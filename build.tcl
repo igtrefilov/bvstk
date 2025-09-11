@@ -16,16 +16,12 @@ bsp regenerate
 
 app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
 
-# --- ЗДЕСЬ: заменяем внутренний src на симлинк на ВАШ репо src ---
 set app_src   [file join $WS $APP_NAME src]
 file delete -force $app_src
 
-# Папка src в репозитории (рядом с build.tcl), считаем от пути скрипта:
 set SCRIPT_DIR [file dirname [file normalize [info script]]]
 set SRC_REAL   [file normalize [file join $SCRIPT_DIR src]]
 
-# Для контроля можно вывести:
 puts "Linking $app_src -> $SRC_REAL"
 
-# Создаём симлинк (Linux)
 file link -symbolic $app_src $SRC_REAL
