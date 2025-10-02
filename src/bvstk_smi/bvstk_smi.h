@@ -2,14 +2,17 @@
 #define BVSTK_SMI_H
 
 #include <stdint.h>
-#include "xscugic.h"
 #include <stdio.h>
 #include "xil_printf.h"
 #include "xil_io.h"
 #include "xparameters.h"
 #include "xil_types.h"
 #include "xil_assert.h"
-#include "xil_exception.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
+#define SMI_TASK_STACK_SIZE     (1024U)
+#define SMI_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
 
 #define MASTER_BASEADDR     XPAR_SMI_MASTER_0_BASEADDR
 #define SLAVE_BASEADDR      XPAR_SMI_SLAVE_0_BASEADDR
@@ -24,7 +27,6 @@
 #define IRQ_SLAVE           XPAR_FABRIC_SMI_SLAVE_0_IRQ_INTR
 #define INTC_DEVICE_ID      XPAR_PS7_SCUGIC_0_DEVICE_ID
 
-// Сдвиги регистров
 #define CSR_m       0x00
 #define TIMEOUT_m   0x04
 #define IRQ_m       0x08
@@ -36,24 +38,12 @@
 #define IRQ_s       0x08
 #define S2H         0x0c
 
-
-// ====== Публичные переменные (если они нужны в main) ======
-extern uint8_t  phy_addr;
-
-extern volatile uint32_t bram_master_data;
-extern volatile uint32_t bram_master_addr;
-
-extern volatile uint32_t bram_slave_data;
-extern volatile uint32_t bram_slave_addr;
-
-extern volatile uint32_t slave2host_data;
-
-// ====== Публичные функции модуля ======
 void start_smi(void);
-int  SetupInterruptSystem(XScuGic *p_intc_inst);
+void smi_task(void *pvParameters);
 void mdio_write(uint8_t phy, uint8_t reg, uint16_t data);
 void mdio_read (uint8_t phy, uint8_t reg);
 void timeout_write(uint16_t timeout);
 uint16_t timeout_read();
+void smi_irq_install(void);
 
 #endif // BVSTK_SMI_H

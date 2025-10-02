@@ -1,29 +1,14 @@
 #include "bvstk_smi.h"
-#include "FreeRTOS.h"
-#include "task.h"
 
 uint8_t phy_addr   = 0x01;
-
-volatile uint32_t bram_master_data = 0;
-volatile uint32_t bram_master_addr = 0;
-volatile uint32_t bram_slave_data = 0;
-volatile uint32_t bram_slave_addr = 0;
-volatile uint32_t slave2host_data = 0;
-
-XScuGic intc_inst;
-
-#define SMI_TASK_STACK_SIZE     (1024U)
-#define SMI_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
-
-static void smi_task(void *pvParameters);
+uint32_t bram_master_data = 0;
+uint32_t bram_master_addr = 0;
+uint32_t bram_slave_data = 0;
+uint32_t bram_slave_addr = 0;
+uint32_t slave2host_data = 0;
 
 void start_smi(void){
-        int status = SetupInterruptSystem(&intc_inst);
-        if (status != XST_SUCCESS) {
-                xil_printf("Error setting up interrupts\n\r");
-                return;
-        }
-
+	smi_irq_install();
         if (xTaskCreate(smi_task,
                         "smi_task",
                         SMI_TASK_STACK_SIZE,
@@ -34,7 +19,7 @@ void start_smi(void){
         }
 }
 
-static void smi_task(void *pvParameters)
+void smi_task(void *pvParameters)
 {
         (void) pvParameters;
 
@@ -86,18 +71,18 @@ uint16_t timeout_read()
 
 static void master_ISR(void *CallBackRef) {
     uint32_t csr = Xil_In32(MASTER_BASEADDR + CSR_m);
-    //xil_printf("[IRQ master]: CSR = 0x%08x,\t", csr);
+    xil_printf("[IRQ master]: CSR = 0x%08x,\t", csr);
 
     if ((csr & 0x28)) { // Если один из буферов заполнен, сбрасываем систему
         Xil_Out32(MASTER_BASEADDR + CSR_m, 0x01);
-        //xil_printf("One of the buffers is full, you idiot\n\r");
+        xil_printf("One of the buffers is full, you idiot\n\r");
         return;
     } else if (csr & 0x01) { // Если данные провалились в память
         bram_master_addr = Xil_In32(MASTER_BASEADDR + MEM_AADR_m);
         bram_master_data = Xil_In32(bram_master_addr);
         Xil_Out32(bram_master_addr + SLAVE_RD_OFFSET, bram_master_data); // Перекладываем эти данные в область slave read, чтобы host мог их прочитать
         Xil_Out32(MASTER_BASEADDR + IRQ_m, 1); // Сброс IRQ
-        ///xil_printf("| addr = 0x%08x | data = 0x%08x\n\r", bram_master_addr, bram_master_data);
+        xil_printf("| addr = 0x%08x | data = 0x%08x\n\r", bram_master_addr, bram_master_data);
         return;
     }
     //xil_printf("\n\r");
@@ -121,24 +106,13 @@ static void slave_ISR(void *CallBackRef) {
     Xil_Out32(SLAVE_BASEADDR + IRQ_s, 1);
 }
 
-int SetupInterruptSystem(XScuGic *p_intc_inst) { // Прерывания
-    XScuGic_Config *p_intc_config = XScuGic_LookupConfig(INTC_DEVICE_ID);
-    if (NULL == p_intc_config) {
-        return XST_FAILURE;
-    }
-    int status = XScuGic_CfgInitialize(p_intc_inst, p_intc_config, p_intc_config->CpuBaseAddress);
-    if (status != XST_SUCCESS) {
-        return XST_FAILURE;
-    }
-    Xil_ExceptionInit();
-    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,(Xil_ExceptionHandler)XScuGic_InterruptHandler,p_intc_inst);
-    Xil_ExceptionEnable();
+void smi_irq_install(void) {
+    xPortInstallInterruptHandler(IRQ_MASTER, master_ISR, NULL);
+    xPortInstallInterruptHandler(IRQ_SLAVE,  slave_ISR,  NULL);
 
-    XScuGic_SetPriorityTriggerType(p_intc_inst, IRQ_MASTER, 0xA0, 0x3);
-    XScuGic_Connect(p_intc_inst, IRQ_MASTER, (Xil_ExceptionHandler)master_ISR, (void *)NULL);
-    XScuGic_Enable(p_intc_inst, IRQ_MASTER);
-    XScuGic_SetPriorityTriggerType(p_intc_inst, IRQ_SLAVE, 0xA0, 0x3);
-    XScuGic_Connect(p_intc_inst, IRQ_SLAVE, (Xil_ExceptionHandler)slave_ISR, (void *)NULL);
-    XScuGic_Enable(p_intc_inst, IRQ_SLAVE);
-    return XST_SUCCESS;
+    vPortEnableInterrupt(IRQ_MASTER);
+    vPortEnableInterrupt(IRQ_SLAVE);
 }
+
+
+
