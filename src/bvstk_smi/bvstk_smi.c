@@ -1,4 +1,6 @@
 #include "bvstk_smi.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 uint8_t phy_addr   = 0x01;
 
@@ -10,22 +12,42 @@ volatile uint32_t slave2host_data = 0;
 
 XScuGic intc_inst;
 
-void start_smi(void){
-	int status = SetupInterruptSystem(&intc_inst);
-	if (status != XST_SUCCESS) {
-		xil_printf("Error setting up interrupts\n\r");
-		return XST_FAILURE;
-	}
+#define SMI_TASK_STACK_SIZE     (1024U)
+#define SMI_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
 
-	timeout_write(4321);
-	timeout_read();
-	while (1) {
-		for (uint8_t i = 0; i < 32; i++) {
-			mdio_read(phy_addr, i);
-		}
-		sleep(1);
-		xil_printf("32 registers were read from PHY\n\r");
-	}
+static void smi_task(void *pvParameters);
+
+void start_smi(void){
+        int status = SetupInterruptSystem(&intc_inst);
+        if (status != XST_SUCCESS) {
+                xil_printf("Error setting up interrupts\n\r");
+                return;
+        }
+
+        if (xTaskCreate(smi_task,
+                        "smi_task",
+                        SMI_TASK_STACK_SIZE,
+                        NULL,
+                        SMI_TASK_PRIORITY,
+                        NULL) != pdPASS) {
+                xil_printf("Error creating SMI task\n\r");
+        }
+}
+
+static void smi_task(void *pvParameters)
+{
+        (void) pvParameters;
+
+        timeout_write(4321);
+        timeout_read();
+
+        while (1) {
+                for (uint8_t i = 0; i < 32; i++) {
+                        mdio_read(phy_addr, i);
+                }
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                xil_printf("32 registers were read from PHY\n\r");
+        }
 }
 
 void mdio_write(uint8_t phy, uint8_t reg, uint16_t data)
@@ -101,7 +123,6 @@ static void slave_ISR(void *CallBackRef) {
 
 int SetupInterruptSystem(XScuGic *p_intc_inst) { // Прерывания
     XScuGic_Config *p_intc_config = XScuGic_LookupConfig(INTC_DEVICE_ID);
-    XScuGic_CfgInitialize(p_intc_inst, p_intc_config, p_intc_config->CpuBaseAddress);
     if (NULL == p_intc_config) {
         return XST_FAILURE;
     }
@@ -113,8 +134,10 @@ int SetupInterruptSystem(XScuGic *p_intc_inst) { // Прерывания
     Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,(Xil_ExceptionHandler)XScuGic_InterruptHandler,p_intc_inst);
     Xil_ExceptionEnable();
 
+    XScuGic_SetPriorityTriggerType(p_intc_inst, IRQ_MASTER, 0xA0, 0x3);
     XScuGic_Connect(p_intc_inst, IRQ_MASTER, (Xil_ExceptionHandler)master_ISR, (void *)NULL);
     XScuGic_Enable(p_intc_inst, IRQ_MASTER);
+    XScuGic_SetPriorityTriggerType(p_intc_inst, IRQ_SLAVE, 0xA0, 0x3);
     XScuGic_Connect(p_intc_inst, IRQ_SLAVE, (Xil_ExceptionHandler)slave_ISR, (void *)NULL);
     XScuGic_Enable(p_intc_inst, IRQ_SLAVE);
     return XST_SUCCESS;
