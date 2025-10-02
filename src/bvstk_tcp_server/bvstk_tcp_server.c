@@ -1,24 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <stdbool.h>
-
-#include "lwip/sockets.h"
-#include "netif/xadapter.h"
-#include "lwipopts.h"
-#include "xil_printf.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "xgpio.h"
-#include "xil_cache.h"
-#include "dma_proc/dma_processing.h"
-#include "mqtt_proc/mqtt_processing.h"
-#include "sntp_proc/sntp_processing.h"
-
-#define MAX_CONNECTIONS 8
-
-extern QueueHandle_t dmaQueue;
+#include "bvstk_tcp_server.h"
 
 int p_count = 0;
 
@@ -29,20 +9,11 @@ int client_active = 0;
 u16_t echo_port = 8888;
 u64_t actual_ntp_time_us;
 
-//void handle_client_request(void *socket_ptr);
-void handle_client_request(void *parameters);
-void process_received_data(uint8_t *data_buffer, int data_length, int socket_fd);
-void pong(uint8_t *data_buffer, int data_length, int socket_fd);
-void select_reg_write_read(uint8_t *data_buffer, int data_length, int socket_fd);
-void reg_write(uint8_t *data_buffer, int data_length, uint8_t auto_increment, int socket_fd);
-void reg_read(uint8_t *data_buffer, int data_length, uint8_t auto_increment, int socket_fd);
-uint16_t swap_endianness_16(uint16_t value);
-uint32_t swap_endianness_32(uint32_t value);
-uint64_t swap_endianness_64(uint64_t value);
-void ddr_eth_task(void *parameters);
-void init_ddr_eth_system(void);
-void print_ntp_time(const u64_t *ntp_microseconds_ptr);
-void get_ntp_time_us_ptr(u64_t *ntp_time_us_ptr);
+void start_tcp_server(void){
+	sys_thread_new("tcp_server_thrd", tcp_server_thread, 0,
+			THREAD_STACKSIZE,
+			tskIDLE_PRIORITY);
+}
 
 void handle_client_request(void *parameters) {
     char buffer[BUFFER_SIZE];
@@ -217,98 +188,7 @@ uint64_t swap_endianness_64(uint64_t value) {
            ((value << 56) & 0xFF00000000000000ULL);
 }
 
-void ddr_eth_task(void *parameters) {
-    uint8_t requestType = 0x03;
-    uint16_t dataSize;
-    int inputWords;
-    uint8_t *output_buffer;
-
-    struct {
-        u32 *buffer;
-        uint16_t length;
-    } dmaData;
-
-    (void)parameters;
-
-    while (1) {
-    	if (xQueueReceive(dmaQueue, &dmaData, portMAX_DELAY) == pdPASS) {
-            dataSize = dmaData.length;
-            inputWords = dmaData.length / 4;
-            size_t tcpDataSize = sizeof(requestType) + sizeof(dataSize) + sizeof(actual_ntp_time_us) + dataSize;
-
-            p_count++;
-            xil_printf("%d. ", p_count);
-            for(int i=0; i < inputWords;i++){
-            	xil_printf("0x%08X ", dmaData.buffer[i]);
-            }
-            xil_printf("\r\n");
-
-            get_ntp_time_us_ptr(&actual_ntp_time_us);
-            //print_ntp_time(&actual_ntp_time_us);
-
-            output_buffer = malloc(tcpDataSize);
-            if (output_buffer == NULL) {
-                xil_printf("Memory allocation failed\r\n");
-                continue;
-            }
-
-            size_t offset = 0;
-
-            memcpy(output_buffer + offset, &requestType, sizeof(requestType));
-            offset += sizeof(requestType);
-
-            uint16_t swappedDataSize = swap_endianness_16(sizeof(actual_ntp_time_us) + dataSize);
-            memcpy(output_buffer + offset, &swappedDataSize, sizeof(swappedDataSize));
-            offset += sizeof(swappedDataSize);
-
-            uint64_t swappedTime = swap_endianness_64(actual_ntp_time_us);
-            memcpy(output_buffer + offset, &swappedTime, sizeof(swappedTime));
-            offset += sizeof(swappedTime);
-
-            for (int i = 0; i < inputWords; i++) {
-                uint32_t swappedValue = swap_endianness_32(dmaData.buffer[i]);
-                memcpy(output_buffer + offset, &swappedValue, sizeof(swappedValue));
-                offset += sizeof(swappedValue);
-            }
-
-            /*xil_printf("output_buffer: 0x");
-            for(int i=0; i<tcpDataSize; i++){
-            	xil_printf("%02X", output_buffer[i]);
-            }
-            xil_printf("\r\n");*/
-
-            /*send data via mqtt*/
-            mqtt_publish_binary(output_buffer, tcpDataSize);
-            if (!client_active || client_socket < 0) {
-                free(output_buffer);
-                continue;
-            }
-            /*send data via tcp*/
-			ssize_t bytesSent = write(client_socket, output_buffer, tcpDataSize);
-			if (bytesSent < 0) {
-				xil_printf("Failed to send data to client socket\r\n");
-				close(client_socket);
-				client_socket = -1;
-				client_active = 0;
-			} else {
-				//xil_printf("Data sent to client %d: %d bytes\r\n", i, (int)bytesSent);
-			}
-			free(output_buffer);
-        }
-    }
-}
-
-void init_ddr_eth_system(void) {
-    dmaQueue = xQueueCreate(MAX_BUFFERS_COUNT, sizeof(struct { u32 *buffer; u32 length; }));
-
-    if (dmaQueue == NULL) {
-        xil_printf("Failed to create DMA queue\r\n");
-        return;
-    }
-    xTaskCreate(ddr_eth_task, "ddr_eth_task", 1024, NULL, tskIDLE_PRIORITY, NULL);
-}
-
-void echo_application_thread(void *parameters) {
+void tcp_server_thread(void *p) {
     struct sockaddr_in address, remote;
     int size = sizeof(remote);
 
@@ -359,27 +239,3 @@ void echo_application_thread(void *parameters) {
     }
 }
 
-/*temp function*/
-
-void print_ntp_time(const u64_t *ntp_microseconds_ptr) {
-    if (!ntp_microseconds_ptr) return;
-
-    uint64_t ntp_microseconds = *ntp_microseconds_ptr;
-    time_t ntp_seconds = ntp_microseconds / 1000000ULL;
-
-    time_t unix_time = ntp_seconds - 2208988800ULL;
-
-    struct tm *tm_info = localtime(&unix_time);
-
-    if (tm_info) {
-        xil_printf("Current date and time: %04d-%02d-%02d %02d:%02d:%02d \r\n",
-               tm_info->tm_year + 1900,
-               tm_info->tm_mon + 1,
-               tm_info->tm_mday,
-               tm_info->tm_hour,
-               tm_info->tm_min,
-               tm_info->tm_sec);
-    } else {
-        xil_printf("Invalid time.\r\n");
-    }
-}
