@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <stdbool.h>
-
 #include "lwip/sockets.h"
 #include "netif/xadapter.h"
 #include "lwipopts.h"
@@ -15,8 +14,12 @@
 #include "task.h"
 #include "xgpio.h"
 #include "xil_cache.h"
-
 #include "../bvstk_lan/bvstk_lan.h"
+#include "../bvstk_smi/bvstk_smi.h"
+
+#ifndef THREAD_STACKSIZE
+#define THREAD_STACKSIZE 2048
+#endif
 
 #define MAX_CONNECTIONS 8
 #define BUFFER_SIZE 1024
@@ -36,5 +39,6 @@ void init_ddr_eth_system(void);
 void print_ntp_time(const u64_t *ntp_microseconds_ptr);
 void get_ntp_time_us_ptr(u64_t *ntp_time_us_ptr);
 void tcp_server_thread(void *p);
+void process_console_line(const char *line, int socket_fd);
 
-#endif // BVSTK_TCP_SERVER_H
+#endif

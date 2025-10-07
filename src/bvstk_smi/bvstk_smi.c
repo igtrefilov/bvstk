@@ -6,31 +6,15 @@ uint32_t bram_slave_data  = 0;
 uint32_t bram_slave_addr  = 0;
 uint32_t slave2host_data  = 0;
 
-typedef enum {
-    MASTER_EVT_OVERFLOW,
-    MASTER_EVT_DATA
-} master_evt_type_t;
-
-typedef struct {
-    master_evt_type_t type;
-    uint32_t csr;
-    uint32_t mem_addr;
-} master_evt_t;
-
-typedef enum {
-    SLAVE_EVT_HOST_WRITE,
-    SLAVE_EVT_HOST_READ
-} slave_evt_type_t;
-
-typedef struct {
-    slave_evt_type_t type;
-    uint32_t csr;
-    uint32_t bram_addr;
-    uint32_t s2h;
-} slave_evt_t;
+typedef enum { MASTER_EVT_OVERFLOW, MASTER_EVT_DATA } master_evt_type_t;
+typedef struct { master_evt_type_t type; uint32_t csr; uint32_t mem_addr; } master_evt_t;
+typedef enum { SLAVE_EVT_HOST_WRITE, SLAVE_EVT_HOST_READ } slave_evt_type_t;
+typedef struct { slave_evt_type_t type; uint32_t csr; uint32_t bram_addr; uint32_t s2h; } slave_evt_t;
 
 static QueueHandle_t q_master = NULL;
 static QueueHandle_t q_slave  = NULL;
+static SemaphoreHandle_t s2h_sem = NULL;
+static volatile uint32_t last_s2h = 0;
 
 static void master_evt_task(void *arg);
 static void slave_evt_task (void *arg);
@@ -41,24 +25,15 @@ static inline void smi_irq_enable(void) { vPortEnableInterrupt(IRQ_MASTER); vPor
 void start_smi(void)
 {
     smi_irq_install();
-
     q_master = xQueueCreate(128, sizeof(master_evt_t));
     q_slave  = xQueueCreate(128, sizeof(slave_evt_t));
     configASSERT(q_master);
     configASSERT(q_slave);
-
-    configASSERT(xTaskCreate(master_evt_task, "master_evt_task",
-                     SMI_TASK_STACK_SIZE, NULL, SMI_TASK_PRIORITY + 1U, NULL) == pdPASS);
-
-    configASSERT(xTaskCreate(slave_evt_task, "slave_evt_task",
-                     SMI_TASK_STACK_SIZE, NULL, SMI_TASK_PRIORITY + 1U, NULL) == pdPASS);
-
-    if (xTaskCreate(smi_task,
-                    "smi_task",
-                    SMI_TASK_STACK_SIZE,
-                    NULL,
-                    SMI_TASK_PRIORITY,
-                    NULL) != pdPASS) {
+    s2h_sem = xSemaphoreCreateBinary();
+    configASSERT(s2h_sem);
+    configASSERT(xTaskCreate(master_evt_task, "master_evt_task", SMI_TASK_STACK_SIZE, NULL, SMI_TASK_PRIORITY + 1U, NULL) == pdPASS);
+    configASSERT(xTaskCreate(slave_evt_task, "slave_evt_task", SMI_TASK_STACK_SIZE, NULL, SMI_TASK_PRIORITY + 1U, NULL) == pdPASS);
+    if (xTaskCreate(smi_task, "smi_task", SMI_TASK_STACK_SIZE, NULL, SMI_TASK_PRIORITY, NULL) != pdPASS) {
         xil_printf("Error creating SMI task\n\r");
     }
 }
@@ -66,10 +41,8 @@ void start_smi(void)
 void smi_task(void *pvParameters)
 {
     (void) pvParameters;
-
     timeout_write(4321);
     (void)timeout_read();
-
     for (;;) {
         for (uint8_t i = 0; i < 32; i++) {
             mdio_read(0x01, i);
@@ -96,6 +69,17 @@ void mdio_read(uint8_t phy, uint8_t reg)
     Xil_Out32(MASTER_BASEADDR + TX_FIFO_m, x);
 }
 
+bool mdio_read_blocking(uint8_t phy, uint8_t reg, uint16_t *out_value, TickType_t timeout_ticks)
+{
+    if (out_value == NULL) return false;
+    while (xSemaphoreTake(s2h_sem, 0) == pdTRUE) {}
+    mdio_read(phy, reg);
+    if (xSemaphoreTake(s2h_sem, timeout_ticks) != pdTRUE) return false;
+    uint16_t data = (uint16_t)(last_s2h & 0xFFFFU);
+    *out_value = data;
+    return true;
+}
+
 void timeout_write(uint16_t timeout)
 {
     uint32_t x = 0
@@ -114,14 +98,10 @@ uint16_t timeout_read(void)
 static void master_ISR(void *CallBackRef)
 {
     (void)CallBackRef;
-
     if (q_master == NULL) { Xil_Out32(MASTER_BASEADDR + IRQ_m, 1U); return; }
-
     uint32_t csr = Xil_In32(MASTER_BASEADDR + CSR_m);
-
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    master_evt_t evt = { .csr = csr, .mem_addr = 0 };
-
+    master_evt_t evt = (master_evt_t){ .csr = csr, .mem_addr = 0, .type = MASTER_EVT_OVERFLOW };
     if ((csr & 0x28U) != 0U) {
         evt.type = MASTER_EVT_OVERFLOW;
         (void)xQueueSendFromISR(q_master, &evt, &xHigherPriorityTaskWoken);
@@ -132,21 +112,16 @@ static void master_ISR(void *CallBackRef)
         (void)xQueueSendFromISR(q_master, &evt, &xHigherPriorityTaskWoken);
         Xil_Out32(MASTER_BASEADDR + IRQ_m, 1U);
     }
-
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 static void slave_ISR(void *CallBackRef)
 {
     (void)CallBackRef;
-
     if (q_slave == NULL) { Xil_Out32(SLAVE_BASEADDR + IRQ_s, 1U); return; }
-
     uint32_t csr = Xil_In32(SLAVE_BASEADDR + CSR_s);
-
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    slave_evt_t evt = { .csr = csr, .bram_addr = 0, .s2h = 0 };
-
+    slave_evt_t evt = (slave_evt_t){ .csr = csr, .bram_addr = 0, .s2h = 0, .type = SLAVE_EVT_HOST_WRITE };
     if ((csr & 0x01U) != 0U) {
         evt.type = SLAVE_EVT_HOST_WRITE;
         evt.bram_addr = Xil_In32(SLAVE_BASEADDR + MEM_ADDR_s);
@@ -156,9 +131,7 @@ static void slave_ISR(void *CallBackRef)
         evt.s2h = Xil_In32(SLAVE_BASEADDR + S2H);
         (void)xQueueSendFromISR(q_slave, &evt, &xHigherPriorityTaskWoken);
     }
-
     Xil_Out32(SLAVE_BASEADDR + IRQ_s, 1U);
-
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -171,10 +144,8 @@ void smi_irq_install(void)
 static void master_evt_task(void *arg)
 {
     (void)arg;
-
     static uint8_t once = 0;
     if (!once) { once = 1; smi_irq_enable(); }
-
     master_evt_t evt;
     for (;;) {
         if (xQueueReceive(q_master, &evt, portMAX_DELAY) == pdTRUE) {
@@ -197,7 +168,6 @@ static void master_evt_task(void *arg)
 static void slave_evt_task(void *arg)
 {
     (void)arg;
-
     slave_evt_t evt;
     for (;;) {
         if (xQueueReceive(q_slave, &evt, portMAX_DELAY) == pdTRUE) {
@@ -210,19 +180,19 @@ static void slave_evt_task(void *arg)
                 uint8_t phy_addr = (uint8_t)(phy_reg_field >> 5);
                 bram_slave_data = Xil_In32(bram_slave_addr);
                 uint16_t data = (uint16_t)(bram_slave_data & 0xFFFFU);
-                xil_printf("[IRQ slave->task]: Host write data = 0x%04X reg_addr=%u phy_addr=%u \n\r",
-                           data, reg_addr, phy_addr);
+                xil_printf("[IRQ slave->task]: Host write data = 0x%04X reg_addr=%u phy_addr=%u \n\r", data, reg_addr, phy_addr);
                 mdio_write(phy_addr, reg_addr, data);
                 break;
             }
             case SLAVE_EVT_HOST_READ: {
                 slave2host_data = evt.s2h;
+                last_s2h = evt.s2h;
                 uint16_t data      = (uint16_t)( slave2host_data        & 0xFFFFU);
                 uint8_t  reg_addr  = (uint8_t) ((slave2host_data >> 16) & 0x1FU);
                 uint8_t  phy_addr  = (uint8_t) ((slave2host_data >> 21) & 0x1FU);
                 uint8_t  rw        = (uint8_t) ((slave2host_data >> 26) & 0x01U);
-                xil_printf("[IRQ slave->task]: Host read data=0x%04X reg_addr=%u phy_addr=%u %s\r\n",
-                           data, reg_addr, phy_addr, rw ? "write" : "read");
+                xil_printf("[IRQ slave->task]: Host read data=0x%04X reg_addr=%u phy_addr=%u %s\r\n", data, reg_addr, phy_addr, rw ? "write" : "read");
+                (void)xSemaphoreGive(s2h_sem);
                 break;
             }
             default:
