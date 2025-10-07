@@ -256,7 +256,7 @@ void process_console_line(const char *line, int socket_fd)
         unsigned long reg = parse_num(s_reg, &ok2);
         if (!ok1 || !ok2 || phy>31 || reg>31) { (void)write(socket_fd, "ERR\r\n", 5); return; }
         uint16_t val = 0;
-        if (mdio_read_blocking((uint8_t)phy, (uint8_t)reg, &val, pdMS_TO_TICKS(500))) {
+        if (mdio_read_blocking((uint8_t)phy, (uint8_t)reg, &val, pdMS_TO_TICKS(2000))) {
             char out[64];
             int n = snprintf(out, sizeof(out), "OK 0x%04X %u\r\n", val, val);
             (void)write(socket_fd, out, n);
