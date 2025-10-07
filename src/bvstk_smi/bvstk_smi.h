@@ -10,6 +10,7 @@
 #include "xil_assert.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 
 #define SMI_TASK_STACK_SIZE     (1024U)
 #define SMI_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
