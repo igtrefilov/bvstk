@@ -19,6 +19,12 @@ u16_t echo_port = 8888;
 u64_t actual_ntp_time_us;
 static volatile int close_requested = 0;
 
+static inline uint32_t bram_slave_rd_addr(uint8_t phy, uint8_t reg)
+{
+    uint32_t idx = (((uint32_t)(phy & 0x1FU)) << 5) | ((uint32_t)(reg & 0x1FU));
+    return BRAM_BASEADDR + SLAVE_RD_OFFSET + (idx * 4U);
+}
+
 void start_tcp_server(void){
     sys_thread_new("tcp_server_thrd", tcp_server_thread, 0, THREAD_STACKSIZE, tskIDLE_PRIORITY);
 }
@@ -255,14 +261,14 @@ void process_console_line(const char *line, int socket_fd)
         unsigned long phy = parse_num(s_phy, &ok1);
         unsigned long reg = parse_num(s_reg, &ok2);
         if (!ok1 || !ok2 || phy>31 || reg>31) { (void)write(socket_fd, "ERR\r\n", 5); return; }
-        uint16_t val = 0;
-        if (mdio_read_blocking((uint8_t)phy, (uint8_t)reg, &val, pdMS_TO_TICKS(2000))) {
-            char out[64];
-            int n = snprintf(out, sizeof(out), "OK 0x%04X %u\r\n", val, val);
-            (void)write(socket_fd, out, n);
-        } else {
-            (void)write(socket_fd, "TIMEOUT\r\n", 9);
-        }
+        uint32_t addr = bram_slave_rd_addr((uint8_t)phy, (uint8_t)reg);
+        uint32_t word = Xil_In32(addr);
+        uint16_t val  = (uint16_t)(word & 0xFFFFU);
+        xil_printf("[BRAM RD] phy=%lu reg=%lu addr=0x%08lX raw=0x%08lX val=0x%04X\r\n",
+                   phy, reg, (unsigned long)addr, (unsigned long)word, val);
+        char out[64];
+        int n = snprintf(out, sizeof(out), "OK 0x%04X %u\r\n", val, val);
+        (void)write(socket_fd, out, n);
         return;
     }
     if (strcasecmp(tok, "w") == 0) {
