@@ -6,6 +6,7 @@ int main()
 	start_lan();
 	start_tcp_server();
 	start_smi();
+	start_i2c();
 	
 	vTaskStartScheduler();
 	while (1);
