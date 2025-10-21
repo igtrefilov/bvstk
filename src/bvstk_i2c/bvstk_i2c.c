@@ -23,6 +23,13 @@ static void master_ISR     (void *CallBackRef);
 static void slave_ISR      (void *CallBackRef);
 static inline void i2c_irq_enable(void) { vPortEnableInterrupt(IRQ_I2C_MASTER); vPortEnableInterrupt(IRQ_I2C_SLAVE); }
 
+static inline void i2c_master_wait_ready(void)
+{
+    while ((reg_read32(I2C_MASTER_BASE, STATUS_OFFSET) & 0x1Fu) != 0u) {
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
+}
+
 void start_i2c(void)
 {
     q_master = xQueueCreate(64, sizeof(master_evt_t));
@@ -54,16 +61,19 @@ void i2c_task(void *pvParameters)
 
 void i2c_master_send(uint8_t addr_7b, uint8_t op_read, uint32_t num_bytes, const uint8_t *payload, uint32_t buf_size, uint8_t csr_bits)
 {
+    (void)buf_size;
     if (i2c_bus_mutex) xSemaphoreTake(i2c_bus_mutex, portMAX_DELAY);
-    uint16_t nb = (num_bytes > 0xFFFFu) ? 0xFFFFu : (uint16_t)num_bytes;
-    uint32_t header = I2C_MAKE_HEADER(addr_7b, op_read ? 1u : 0u, nb);
+    uint32_t nb = (num_bytes > 0xFFFFFFu) ? 0xFFFFFFu : (uint32_t)num_bytes;
+    uint32_t header = I2C_MAKE_HEADER((uint8_t)(addr_7b & 0x7Fu), op_read ? 1u : 0u, nb);
     reg_write32(I2C_MASTER_BASE, TX_DATA_OFFSET, header);
+    xil_printf("reg_write32 header: 0x%08x\r\n", header);
     uint32_t full_words = nb / 4u;
     uint32_t tail_bytes = nb % 4u;
     const uint8_t *p = payload;
     for (uint32_t w = 0; w < full_words; ++w) {
         uint32_t v = ((uint32_t)p[0]) | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
         reg_write32(I2C_MASTER_BASE, TX_DATA_OFFSET, v);
+        xil_printf("reg_write32 full word: 0x%08x\r\n", v);
         p += 4;
     }
     if (tail_bytes) {
@@ -72,7 +82,9 @@ void i2c_master_send(uint8_t addr_7b, uint8_t op_read, uint32_t num_bytes, const
         uint8_t b2 = (tail_bytes > 2) ? p[2] : 0;
         uint32_t v = ((uint32_t)b0) | ((uint32_t)b1 << 8) | ((uint32_t)b2 << 16);
         reg_write32(I2C_MASTER_BASE, TX_DATA_OFFSET, v);
+        xil_printf("reg_write32 tail bytes: 0x%08x\r\n", v);
     }
+    i2c_master_wait_ready();
     reg_write32(I2C_MASTER_BASE, CSR_REG_OFFSET, (uint32_t)csr_bits);
     if (i2c_bus_mutex) xSemaphoreGive(i2c_bus_mutex);
 }
@@ -83,19 +95,20 @@ static inline void pmic_write_byte(uint8_t reg, uint8_t val)
     i2c_master_send(PMIC_ADDR_7B, 0, 2, payload, 2, CSR_START_BIT);
 }
 
-static void i2c_master_read_reg_to_bram(uint8_t addr7, uint8_t reg, uint16_t rd_len)
+static void i2c_master_read_reg_to_bram(uint8_t addr7, uint8_t reg, uint32_t rd_len)
 {
-    uint32_t h1 = I2C_MAKE_HEADER(addr7, 0, 1);
+    uint32_t h1 = I2C_MAKE_HEADER((uint8_t)(addr7 & 0x7Fu), 0, 1u);
     reg_write32(I2C_MASTER_BASE, TX_DATA_OFFSET, h1);
     reg_write32(I2C_MASTER_BASE, TX_DATA_OFFSET, (uint32_t)reg);
-    uint32_t h2 = I2C_MAKE_HEADER(addr7, 1, rd_len);
+    uint32_t h2 = I2C_MAKE_HEADER((uint8_t)(addr7 & 0x7Fu), 1, rd_len);
     reg_write32(I2C_MASTER_BASE, TX_DATA_OFFSET, h2);
+    i2c_master_wait_ready();
     reg_write32(I2C_MASTER_BASE, CSR_REG_OFFSET, CSR_START_BIT | CSR_RP_START_BIT);
 }
 
 static inline void pmic_read_byte_to_master_bram(uint8_t reg)
 {
-    i2c_master_read_reg_to_bram(PMIC_ADDR_7B, reg, 1);
+    i2c_master_read_reg_to_bram(PMIC_ADDR_7B, reg, 1u);
 }
 
 void lut_registers_init(void)
@@ -153,8 +166,8 @@ static void master_ISR(void *CallBackRef)
     if (q_master == NULL) { reg_write32(I2C_MASTER_BASE, IRQ_REG_OFFSET, 0x01); return; }
     reg_write32(I2C_MASTER_BASE, IRQ_REG_OFFSET, 0x01);
     uint32_t hdr = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_MASTER + 0x00);
-    uint16_t num_bytes = I2C_HDR_NUM_BYTES(hdr);
-    g_master_wr_offset = 0x04 + (uint32_t)num_bytes;
+    uint32_t num_bytes = I2C_HDR_NUM_BYTES(hdr);
+    g_master_wr_offset = 0x04 + num_bytes;
     BaseType_t hpw = pdFALSE;
     master_evt_t evt = { .type = MASTER_EVT_IRQ, .wr_offset = g_master_wr_offset };
     (void)xQueueSendFromISR(q_master, &evt, &hpw);
@@ -176,6 +189,7 @@ static void slave_ISR(void *CallBackRef)
 
 static void master_evt_task(void *arg)
 {
+    xil_printf("master_evt_task\n\r");
     (void)arg;
     static uint8_t once = 0;
     if (!once) { once = 1; i2c_irq_enable(); }
@@ -183,7 +197,7 @@ static void master_evt_task(void *arg)
     for (;;) {
         if (xQueueReceive(q_master, &evt, portMAX_DELAY) == pdTRUE) {
             uint32_t hdr = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_MASTER + 0x00);
-            uint16_t nb  = I2C_HDR_NUM_BYTES(hdr);
+            uint32_t nb  = I2C_HDR_NUM_BYTES(hdr);
             uint8_t  op  = I2C_HDR_OP(hdr);
             if (op == 0x01 && nb > 0) {
                 uint32_t src_ofs = I2C_BRAM_MASTER + 0x04;
@@ -200,7 +214,7 @@ static void master_evt_task(void *arg)
                     uint32_t v = reg_read32(BRAM_BASE_ADDR, src_ofs);
                     reg_write32(BRAM_BASE_ADDR, dst_ofs, v);
                 }
-                xil_printf("[I2C][MASTER] Copied %u byte(s) Master→SlaveRead\n\r", nb);
+                xil_printf("[I2C][MASTER] Copied %u byte(s) Master→SlaveRead\n\r", (unsigned)nb);
             }
         }
     }
@@ -212,6 +226,7 @@ static void slave_evt_task(void *arg)
     slave_evt_t evt;
     for (;;) {
         if (xQueueReceive(q_slave, &evt, portMAX_DELAY) == pdTRUE) {
+            xil_printf("slave queue\n\r");
             if (evt.type == SLAVE_EVT_FRAME) {
                 uint32_t size = evt.size;
                 static uint8_t s_in[1024];
