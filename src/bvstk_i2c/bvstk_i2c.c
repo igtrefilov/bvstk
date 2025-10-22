@@ -23,6 +23,8 @@ static void master_ISR     (void *CallBackRef);
 static void slave_ISR      (void *CallBackRef);
 static inline void i2c_irq_enable(void) { vPortEnableInterrupt(IRQ_I2C_MASTER); vPortEnableInterrupt(IRQ_I2C_SLAVE); }
 
+uint32_t master_isr_counter = 0;
+
 static inline void i2c_master_wait_ready(void)
 {
     while ((reg_read32(I2C_MASTER_BASE, STATUS_OFFSET) & 0x1Fu) != 0u) {
@@ -53,7 +55,7 @@ void i2c_task(void *pvParameters)
     vTaskDelay(pdMS_TO_TICKS(100));
     lut_registers_init();
     lut_values_init();
-    pmic_init_full_scan();
+    //pmic_init_full_scan();
     for (;;) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -160,13 +162,13 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
 static void master_ISR(void *CallBackRef)
 {
     (void)CallBackRef;
-    if (q_master == NULL) { reg_write32(I2C_MASTER_BASE, IRQ_REG_OFFSET, 0x01); return; }
+    if (q_master == NULL) {
+        reg_write32(I2C_MASTER_BASE, IRQ_REG_OFFSET, 0x01);
+        return;
+    }
     reg_write32(I2C_MASTER_BASE, IRQ_REG_OFFSET, 0x01);
-    uint32_t hdr = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_MASTER + 0x00);
-    uint32_t num_bytes = I2C_HDR_NUM_BYTES(hdr);
-    g_master_wr_offset = 0x04 + num_bytes;
     BaseType_t hpw = pdFALSE;
-    master_evt_t evt = { .type = MASTER_EVT_IRQ, .wr_offset = g_master_wr_offset };
+    master_evt_t evt = { .type = MASTER_EVT_IRQ, .wr_offset = 0 };
     (void)xQueueSendFromISR(q_master, &evt, &hpw);
     portYIELD_FROM_ISR(hpw);
 }
@@ -192,8 +194,8 @@ static void master_evt_task(void *arg)
     master_evt_t evt;
     for (;;) {
         if (xQueueReceive(q_master, &evt, portMAX_DELAY) == pdTRUE) {
+        	xil_printf("master isr counter: 0x%08X \r\n", master_isr_counter);
             uint32_t hdr = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_MASTER + 0x00);
-            xil_printf("bram hdr: 0x%08X \r\n", hdr);
             uint32_t nb  = I2C_HDR_NUM_BYTES(hdr);
             uint8_t  op  = I2C_HDR_OP(hdr);
             if (op == 0x01 && nb > 0) {
