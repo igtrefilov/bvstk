@@ -140,10 +140,7 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
 {
     if (size == 0) return;
     uint8_t reg = frame[0];
-    xil_printf("reg = 0x%02x\n\r", reg);
-    xil_printf("s_reg_allowed[reg] = 0x%02x\n\r", s_reg_allowed[reg]);
     if (reg < PMIC_REG_COUNT && s_reg_allowed[reg]) {
-        xil_printf("reg allowed\n\r");
         if (size >= 2) {
             uint8_t val = frame[1];
             if (s_value_allowed[reg][val]) {
@@ -189,7 +186,6 @@ static void slave_ISR(void *CallBackRef)
 
 static void master_evt_task(void *arg)
 {
-    xil_printf("master_evt_task\n\r");
     (void)arg;
     static uint8_t once = 0;
     if (!once) { once = 1; i2c_irq_enable(); }
@@ -197,6 +193,7 @@ static void master_evt_task(void *arg)
     for (;;) {
         if (xQueueReceive(q_master, &evt, portMAX_DELAY) == pdTRUE) {
             uint32_t hdr = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_MASTER + 0x00);
+            xil_printf("bram hdr: 0x%08X \r\n", hdr);
             uint32_t nb  = I2C_HDR_NUM_BYTES(hdr);
             uint8_t  op  = I2C_HDR_OP(hdr);
             if (op == 0x01 && nb > 0) {
@@ -226,7 +223,6 @@ static void slave_evt_task(void *arg)
     slave_evt_t evt;
     for (;;) {
         if (xQueueReceive(q_slave, &evt, portMAX_DELAY) == pdTRUE) {
-            xil_printf("slave queue\n\r");
             if (evt.type == SLAVE_EVT_FRAME) {
                 uint32_t size = evt.size;
                 static uint8_t s_in[1024];
