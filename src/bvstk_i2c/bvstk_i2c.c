@@ -13,6 +13,8 @@ typedef struct { slave_evt_type_t type; uint32_t size; } slave_evt_t;
 
 static uint8_t s_reg_allowed[PMIC_REG_COUNT];
 static uint8_t s_value_allowed[PMIC_REG_COUNT][PMIC_MAX_VALUE_CODE + 1];
+static uint8_t s_pmic_container[PMIC_REG_COUNT];
+static volatile uint8_t s_pending_reg = 0xFF;
 
 static inline void reg_write32(uint32_t base, uint32_t ofs, uint32_t v) { Xil_Out32(base + ofs, v); }
 static inline uint32_t reg_read32(uint32_t base, uint32_t ofs) { return Xil_In32(base + ofs); }
@@ -22,8 +24,6 @@ static void slave_evt_task (void *arg);
 static void master_ISR     (void *CallBackRef);
 static void slave_ISR      (void *CallBackRef);
 static inline void i2c_irq_enable(void) { vPortEnableInterrupt(IRQ_I2C_MASTER); vPortEnableInterrupt(IRQ_I2C_SLAVE); }
-
-uint32_t master_isr_counter = 0;
 
 static inline void i2c_master_wait_ready(void)
 {
@@ -55,7 +55,8 @@ void i2c_task(void *pvParameters)
     vTaskDelay(pdMS_TO_TICKS(100));
     lut_registers_init();
     lut_values_init();
-    //pmic_init_full_scan();
+    for (uint32_t i = 0; i < PMIC_REG_COUNT; ++i) s_pmic_container[i] = 0;
+    pmic_init_full_scan();
     for (;;) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -95,6 +96,7 @@ static inline void pmic_write_byte(uint8_t reg, uint8_t val)
 {
     uint8_t payload[2] = { reg, val };
     i2c_master_send(PMIC_ADDR_7B, 0, 2, payload, 2, CSR_START_BIT);
+    s_pmic_container[reg] = val;
 }
 
 static void i2c_master_read_reg_to_bram(uint8_t addr7, uint8_t reg, uint32_t rd_len)
@@ -106,6 +108,7 @@ static void i2c_master_read_reg_to_bram(uint8_t addr7, uint8_t reg, uint32_t rd_
     reg_write32(I2C_MASTER_BASE, TX_DATA_OFFSET, h2);
     i2c_master_wait_ready();
     reg_write32(I2C_MASTER_BASE, CSR_REG_OFFSET, CSR_START_BIT | CSR_RP_START_BIT);
+    s_pending_reg = reg;
 }
 
 static inline void pmic_read_byte_to_master_bram(uint8_t reg)
@@ -134,7 +137,7 @@ void pmic_init_full_scan(void)
 {
     for (uint32_t i = 0; i < PMIC_REG_COUNT; ++i) {
         pmic_read_byte_to_master_bram((uint8_t)i);
-        vTaskDelay(pdMS_TO_TICKS(1));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -152,7 +155,9 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
                 xil_printf("[I2C][SLAVE] Reject value 0x%02x for REG 0x%02x\n\r", val, reg);
             }
         } else {
-            pmic_read_byte_to_master_bram(reg);
+            uint32_t out = (uint32_t)s_pmic_container[reg];
+            reg_write32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_RD + 0x00, out);
+            xil_printf("[I2C][SLAVE] REG 0x%02x -> 0x%02x\n\r", reg, (unsigned)out & 0xFF);
         }
     } else {
         xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg);
@@ -194,7 +199,6 @@ static void master_evt_task(void *arg)
     master_evt_t evt;
     for (;;) {
         if (xQueueReceive(q_master, &evt, portMAX_DELAY) == pdTRUE) {
-        	xil_printf("master isr counter: 0x%08X \r\n", master_isr_counter);
             uint32_t hdr = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_MASTER + 0x00);
             uint32_t nb  = I2C_HDR_NUM_BYTES(hdr);
             uint8_t  op  = I2C_HDR_OP(hdr);
@@ -211,7 +215,9 @@ static void master_evt_task(void *arg)
                 }
                 if (tail) {
                     uint32_t v = reg_read32(BRAM_BASE_ADDR, src_ofs);
-                    reg_write32(BRAM_BASE_ADDR, dst_ofs, v);
+                    xil_printf("src_ofc: 0x%08X v: 0x%08X \r\n", src_ofs, v);
+                    uint8_t val = (uint8_t)(v & 0xFF);
+                    if (s_pending_reg < PMIC_REG_COUNT) s_pmic_container[s_pending_reg] = val;
                 }
                 xil_printf("[I2C][MASTER] Copied %u byte(s) Master→SlaveRead\n\r", (unsigned)nb);
             }
