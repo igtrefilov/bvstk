@@ -11,8 +11,6 @@ typedef struct { master_evt_type_t type; uint32_t wr_offset; } master_evt_t;
 typedef enum { SLAVE_EVT_FRAME } slave_evt_type_t;
 typedef struct { slave_evt_type_t type; uint32_t size; } slave_evt_t;
 
-static uint8_t axp15060_reg_allowlist[AXP15060_REG_COUNT];
-static uint8_t axp15060_value_allowlist[AXP15060_REG_COUNT][AXP15060_MAX_VALUE_CODE + 1];
 static uint8_t axp15060_reg_cache[AXP15060_REG_COUNT];
 static volatile uint8_t s_pending_reg = 0xFF;
 
@@ -53,8 +51,6 @@ void i2c_task(void *pvParameters)
 {
     (void)pvParameters;
     vTaskDelay(pdMS_TO_TICKS(100));
-    axp15060_init_register_allowlist();
-    axp15060_init_value_allowlist();
     for (uint32_t i = 0; i < AXP15060_REG_COUNT; ++i) axp15060_reg_cache[i] = 0;
     pmic_init_full_scan();
     for (;;) {
@@ -116,23 +112,6 @@ static inline void axp15060_read_byte_to_master_bram(uint8_t reg)
     i2c_master_read_reg_to_bram(AXP15060_I2C_ADDR_7B, reg, 1u);
 }
 
-void axp15060_init_register_allowlist(void)
-{
-    for (uint32_t i = 0; i < AXP15060_REG_COUNT; ++i) axp15060_reg_allowlist[i] = 0;
-    axp15060_reg_allowlist[AXP15060_REG_DCDC1_VOLT] = 1;
-    xil_printf("Init axp15060_reg_allowlist[0x%02X] = 0x%02x\n\r", AXP15060_REG_DCDC1_VOLT, axp15060_reg_allowlist[AXP15060_REG_DCDC1_VOLT]);
-}
-
-void axp15060_init_value_allowlist(void)
-{
-    for (uint32_t r = 0; r < AXP15060_REG_COUNT; ++r)
-        for (uint32_t c = 0; c <= AXP15060_MAX_VALUE_CODE; ++c)
-            axp15060_value_allowlist[r][c] = 0;
-    for (uint16_t code = 16; code <= 19; ++code) {
-        axp15060_value_allowlist[AXP15060_REG_DCDC1_VOLT][code] = 1;
-    }
-}
-
 void pmic_init_full_scan(void)
 {
     for (uint32_t i = 0; i < AXP15060_REG_COUNT; ++i) {
@@ -146,9 +125,9 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
     if (size == 0) return;
     uint8_t reg = frame[0];
     if (size >= 2) {
-        if (reg < AXP15060_REG_COUNT && axp15060_reg_allowlist[reg]) {
+        if (reg < AXP15060_REG_COUNT) {
             uint8_t val = frame[1];
-            if (axp15060_value_allowlist[reg][val]) {
+            if (axp15060_is_value_permitted(AXP15060_DEFAULT_POLICY, reg, val)) {
                 axp15060_write_byte(reg, val);
                 xil_printf("[I2C][SLAVE] REG 0x%02x <- 0x%02x\n\r", reg, val);
             } else {
