@@ -11,7 +11,7 @@ typedef struct { master_evt_type_t type; uint32_t wr_offset; } master_evt_t;
 typedef enum { SLAVE_EVT_FRAME } slave_evt_type_t;
 typedef struct { slave_evt_type_t type; uint32_t size; } slave_evt_t;
 
-static uint8_t axp15060_reg_cache[AXP15060_REG_COUNT];
+static uint8_t i2cdev_reg_cache[I2CDEV_REG_COUNT];
 static volatile uint8_t s_pending_reg = 0xFF;
 
 static inline void reg_write32(uint32_t base, uint32_t ofs, uint32_t v) { Xil_Out32(base + ofs, v); }
@@ -51,8 +51,8 @@ void i2c_task(void *pvParameters)
 {
     (void)pvParameters;
     vTaskDelay(pdMS_TO_TICKS(100));
-    for (uint32_t i = 0; i < AXP15060_REG_COUNT; ++i) axp15060_reg_cache[i] = 0;
-    pmic_init_full_scan();
+    for (uint32_t i = 0; i < I2CDEV_REG_COUNT; ++i) i2cdev_reg_cache[i] = 0;
+    i2cdev_init_full_scan();
     for (;;) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -88,11 +88,11 @@ void i2c_master_send(uint8_t addr_7b, uint8_t op_read, uint32_t num_bytes, const
     if (i2c_bus_mutex) xSemaphoreGive(i2c_bus_mutex);
 }
 
-static inline void axp15060_write_byte(uint8_t reg, uint8_t val)
+static inline void i2cdev_write_byte(uint8_t reg, uint8_t val)
 {
     uint8_t payload[2] = { reg, val };
-    i2c_master_send(AXP15060_I2C_ADDR_7B, 0, 2, payload, 2, CSR_START_BIT);
-    axp15060_reg_cache[reg] = val;
+    i2c_master_send(I2CDEV_I2C_ADDR_7B, 0, 2, payload, 2, CSR_START_BIT);
+    i2cdev_reg_cache[reg] = val;
 }
 
 static void i2c_master_read_reg_to_bram(uint8_t addr7, uint8_t reg, uint32_t rd_len)
@@ -107,15 +107,15 @@ static void i2c_master_read_reg_to_bram(uint8_t addr7, uint8_t reg, uint32_t rd_
     s_pending_reg = reg;
 }
 
-static inline void axp15060_read_byte_to_master_bram(uint8_t reg)
+static inline void i2cdev_read_byte_to_master_bram(uint8_t reg)
 {
-    i2c_master_read_reg_to_bram(AXP15060_I2C_ADDR_7B, reg, 1u);
+    i2c_master_read_reg_to_bram(I2CDEV_I2C_ADDR_7B, reg, 1u);
 }
 
-void pmic_init_full_scan(void)
+void i2cdev_init_full_scan(void)
 {
-    for (uint32_t i = 0; i < AXP15060_REG_COUNT; ++i) {
-        axp15060_read_byte_to_master_bram((uint8_t)i);
+    for (uint32_t i = 0; i < I2CDEV_REG_COUNT; ++i) {
+        i2cdev_read_byte_to_master_bram((uint8_t)i);
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
@@ -125,10 +125,10 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
     if (size == 0) return;
     uint8_t reg = frame[0];
     if (size >= 2) {
-        if (reg < AXP15060_REG_COUNT) {
+        if (reg < I2CDEV_REG_COUNT) {
             uint8_t val = frame[1];
-            if (axp15060_is_value_permitted(AXP15060_DEFAULT_POLICY, reg, val)) {
-                axp15060_write_byte(reg, val);
+            if (i2cdev_is_value_permitted(I2CDEV_DEFAULT_POLICY, reg, val)) {
+                i2cdev_write_byte(reg, val);
                 xil_printf("[I2C][SLAVE] REG 0x%02x <- 0x%02x\n\r", reg, val);
             } else {
                 xil_printf("[I2C][SLAVE] Reject value 0x%02x for REG 0x%02x\n\r", val, reg);
@@ -137,8 +137,8 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
             xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg);
         }
     } else {
-        if (reg < AXP15060_REG_COUNT) {
-            uint32_t out = (uint32_t)axp15060_reg_cache[reg];
+        if (reg < I2CDEV_REG_COUNT) {
+            uint32_t out = (uint32_t)i2cdev_reg_cache[reg];
             reg_write32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_RD + 0x00, out);
             xil_printf("[I2C][SLAVE] REG 0x%02x -> 0x%02x\n\r", reg, (unsigned)out & 0xFF);
         } else {
@@ -200,7 +200,7 @@ static void master_evt_task(void *arg)
                     uint32_t v = reg_read32(BRAM_BASE_ADDR, src_ofs);
                     xil_printf("src_ofc: 0x%08X v: 0x%08X \r\n", src_ofs, v);
                     uint8_t val = (uint8_t)(v & 0xFF);
-                    if (s_pending_reg < AXP15060_REG_COUNT) axp15060_reg_cache[s_pending_reg] = val;
+                    if (s_pending_reg < I2CDEV_REG_COUNT) i2cdev_reg_cache[s_pending_reg] = val;
                 }
                 xil_printf("[I2C][MASTER] Copied %u byte(s) Master→SlaveRead\n\r", (unsigned)nb);
             }
