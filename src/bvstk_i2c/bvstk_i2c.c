@@ -11,9 +11,9 @@ typedef struct { master_evt_type_t type; uint32_t wr_offset; } master_evt_t;
 typedef enum { SLAVE_EVT_FRAME } slave_evt_type_t;
 typedef struct { slave_evt_type_t type; uint32_t size; } slave_evt_t;
 
-static uint8_t s_reg_allowed[PMIC_REG_COUNT];
-static uint8_t s_value_allowed[PMIC_REG_COUNT][PMIC_MAX_VALUE_CODE + 1];
-static uint8_t s_pmic_container[PMIC_REG_COUNT];
+static uint8_t axp15060_reg_allowlist[AXP15060_REG_COUNT];
+static uint8_t axp15060_value_allowlist[AXP15060_REG_COUNT][AXP15060_MAX_VALUE_CODE + 1];
+static uint8_t axp15060_reg_cache[AXP15060_REG_COUNT];
 static volatile uint8_t s_pending_reg = 0xFF;
 
 static inline void reg_write32(uint32_t base, uint32_t ofs, uint32_t v) { Xil_Out32(base + ofs, v); }
@@ -53,9 +53,9 @@ void i2c_task(void *pvParameters)
 {
     (void)pvParameters;
     vTaskDelay(pdMS_TO_TICKS(100));
-    lut_registers_init();
-    lut_values_init();
-    for (uint32_t i = 0; i < PMIC_REG_COUNT; ++i) s_pmic_container[i] = 0;
+    axp15060_init_register_allowlist();
+    axp15060_init_value_allowlist();
+    for (uint32_t i = 0; i < AXP15060_REG_COUNT; ++i) axp15060_reg_cache[i] = 0;
     pmic_init_full_scan();
     for (;;) {
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -92,11 +92,11 @@ void i2c_master_send(uint8_t addr_7b, uint8_t op_read, uint32_t num_bytes, const
     if (i2c_bus_mutex) xSemaphoreGive(i2c_bus_mutex);
 }
 
-static inline void pmic_write_byte(uint8_t reg, uint8_t val)
+static inline void axp15060_write_byte(uint8_t reg, uint8_t val)
 {
     uint8_t payload[2] = { reg, val };
-    i2c_master_send(PMIC_ADDR_7B, 0, 2, payload, 2, CSR_START_BIT);
-    s_pmic_container[reg] = val;
+    i2c_master_send(AXP15060_I2C_ADDR_7B, 0, 2, payload, 2, CSR_START_BIT);
+    axp15060_reg_cache[reg] = val;
 }
 
 static void i2c_master_read_reg_to_bram(uint8_t addr7, uint8_t reg, uint32_t rd_len)
@@ -111,32 +111,32 @@ static void i2c_master_read_reg_to_bram(uint8_t addr7, uint8_t reg, uint32_t rd_
     s_pending_reg = reg;
 }
 
-static inline void pmic_read_byte_to_master_bram(uint8_t reg)
+static inline void axp15060_read_byte_to_master_bram(uint8_t reg)
 {
-    i2c_master_read_reg_to_bram(PMIC_ADDR_7B, reg, 1u);
+    i2c_master_read_reg_to_bram(AXP15060_I2C_ADDR_7B, reg, 1u);
 }
 
-void lut_registers_init(void)
+void axp15060_init_register_allowlist(void)
 {
-    for (uint32_t i = 0; i < PMIC_REG_COUNT; ++i) s_reg_allowed[i] = 0;
-    s_reg_allowed[REG_DCDC1_VOLT] = 1;
-    xil_printf("Init s_reg_allowed[19] = 0x%02x\n\r", s_reg_allowed[REG_DCDC1_VOLT]);
+    for (uint32_t i = 0; i < AXP15060_REG_COUNT; ++i) axp15060_reg_allowlist[i] = 0;
+    axp15060_reg_allowlist[AXP15060_REG_DCDC1_VOLT] = 1;
+    xil_printf("Init axp15060_reg_allowlist[0x%02X] = 0x%02x\n\r", AXP15060_REG_DCDC1_VOLT, axp15060_reg_allowlist[AXP15060_REG_DCDC1_VOLT]);
 }
 
-void lut_values_init(void)
+void axp15060_init_value_allowlist(void)
 {
-    for (uint32_t r = 0; r < PMIC_REG_COUNT; ++r)
-        for (uint32_t c = 0; c <= PMIC_MAX_VALUE_CODE; ++c)
-            s_value_allowed[r][c] = 0;
+    for (uint32_t r = 0; r < AXP15060_REG_COUNT; ++r)
+        for (uint32_t c = 0; c <= AXP15060_MAX_VALUE_CODE; ++c)
+            axp15060_value_allowlist[r][c] = 0;
     for (uint16_t code = 16; code <= 19; ++code) {
-        s_value_allowed[REG_DCDC1_VOLT][code] = 1;
+        axp15060_value_allowlist[AXP15060_REG_DCDC1_VOLT][code] = 1;
     }
 }
 
 void pmic_init_full_scan(void)
 {
-    for (uint32_t i = 0; i < PMIC_REG_COUNT; ++i) {
-        pmic_read_byte_to_master_bram((uint8_t)i);
+    for (uint32_t i = 0; i < AXP15060_REG_COUNT; ++i) {
+        axp15060_read_byte_to_master_bram((uint8_t)i);
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
@@ -146,10 +146,10 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
     if (size == 0) return;
     uint8_t reg = frame[0];
     if (size >= 2) {
-        if (reg < PMIC_REG_COUNT && s_reg_allowed[reg]) {
+        if (reg < AXP15060_REG_COUNT && axp15060_reg_allowlist[reg]) {
             uint8_t val = frame[1];
-            if (s_value_allowed[reg][val]) {
-                pmic_write_byte(reg, val);
+            if (axp15060_value_allowlist[reg][val]) {
+                axp15060_write_byte(reg, val);
                 xil_printf("[I2C][SLAVE] REG 0x%02x <- 0x%02x\n\r", reg, val);
             } else {
                 xil_printf("[I2C][SLAVE] Reject value 0x%02x for REG 0x%02x\n\r", val, reg);
@@ -158,8 +158,8 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
             xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg);
         }
     } else {
-        if (reg < PMIC_REG_COUNT) {
-            uint32_t out = (uint32_t)s_pmic_container[reg];
+        if (reg < AXP15060_REG_COUNT) {
+            uint32_t out = (uint32_t)axp15060_reg_cache[reg];
             reg_write32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_RD + 0x00, out);
             xil_printf("[I2C][SLAVE] REG 0x%02x -> 0x%02x\n\r", reg, (unsigned)out & 0xFF);
         } else {
@@ -221,7 +221,7 @@ static void master_evt_task(void *arg)
                     uint32_t v = reg_read32(BRAM_BASE_ADDR, src_ofs);
                     xil_printf("src_ofc: 0x%08X v: 0x%08X \r\n", src_ofs, v);
                     uint8_t val = (uint8_t)(v & 0xFF);
-                    if (s_pending_reg < PMIC_REG_COUNT) s_pmic_container[s_pending_reg] = val;
+                    if (s_pending_reg < AXP15060_REG_COUNT) axp15060_reg_cache[s_pending_reg] = val;
                 }
                 xil_printf("[I2C][MASTER] Copied %u byte(s) Master→SlaveRead\n\r", (unsigned)nb);
             }
