@@ -145,8 +145,8 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
 {
     if (size == 0) return;
     uint8_t reg = frame[0];
-    if (reg < PMIC_REG_COUNT && s_reg_allowed[reg]) {
-        if (size >= 2) {
+    if (size >= 2) {
+        if (reg < PMIC_REG_COUNT && s_reg_allowed[reg]) {
             uint8_t val = frame[1];
             if (s_value_allowed[reg][val]) {
                 pmic_write_byte(reg, val);
@@ -155,12 +155,16 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size)
                 xil_printf("[I2C][SLAVE] Reject value 0x%02x for REG 0x%02x\n\r", val, reg);
             }
         } else {
+            xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg);
+        }
+    } else {
+        if (reg < PMIC_REG_COUNT) {
             uint32_t out = (uint32_t)s_pmic_container[reg];
             reg_write32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_RD + 0x00, out);
             xil_printf("[I2C][SLAVE] REG 0x%02x -> 0x%02x\n\r", reg, (unsigned)out & 0xFF);
+        } else {
+            xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg);
         }
-    } else {
-        xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg);
     }
 }
 
