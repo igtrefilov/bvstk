@@ -3,12 +3,15 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <ctype.h>
+
 #include "lwip/sockets.h"
 #include "netif/xadapter.h"
 #include "lwipopts.h"
 #include "xil_printf.h"
 #include "FreeRTOS.h"
 #include "task.h"
+
 #include "utils/utils.h"
 
 #ifndef THREAD_STACKSIZE

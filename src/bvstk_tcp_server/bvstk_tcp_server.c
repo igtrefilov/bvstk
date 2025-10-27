@@ -4,6 +4,13 @@ int eth_socket;
 int client_socket = -1;
 u16_t echo_port = 8888;
 
+__attribute__((weak)) void process_received_data(uint8_t *data_buffer, int data_length, int socket_fd)
+{
+    (void)data_buffer;
+    (void)data_length;
+    (void)socket_fd;
+}
+
 static void run_client_session(int fd)
 {
     char buffer[BUFFER_SIZE];

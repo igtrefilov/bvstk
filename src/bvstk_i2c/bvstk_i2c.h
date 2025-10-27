@@ -54,5 +54,8 @@ void i2c_task(void *pvParameters);
 void i2c_master_send(uint8_t addr_7b, uint8_t op_read, uint32_t num_bytes, const uint8_t *payload, uint32_t buf_size, uint8_t csr_bits);
 void i2cdev_init_full_scan(void);
 void slave_check_and_exec(const uint8_t *frame, uint32_t size);
+bool i2cdev_read_reg(uint8_t reg, uint8_t *out_val);
+bool i2cdev_write_reg(uint8_t reg, uint8_t val);
+bool i2cdev_read_reg_cached(uint8_t reg, uint8_t *out_val);
 
 #endif
