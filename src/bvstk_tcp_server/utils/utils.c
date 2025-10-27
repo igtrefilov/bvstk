@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <strings.h>
 #include <inttypes.h>
+#include <stdio.h>
 #include "lwip/sockets.h"
 #include "xil_io.h"
 #include "FreeRTOS.h"
@@ -286,7 +287,7 @@ static void print_bitmap_list(int fd, const char *title, const uint8_t map[I2CDE
 static void cmd_axp_rules(int fd)
 {
     char line[64];
-    const char *pol = (I2CDEV_DEFAULT_POLICY == I2CDEV_POLICY_WHITELIST) ? "WHITELIST" : "BLACKLIST";
+    const char *pol = (i2cdev_get_policy() == I2CDEV_POLICY_WHITELIST) ? "WHITELIST" : "BLACKLIST";
     int n = snprintf(line, sizeof(line), "POLICY=%s\r\n", pol);
     (void)lwip_write(fd, line, n);
     print_bitmap_list(fd, "WHITELIST:", i2cdev_whitelist_bitmap);
@@ -306,6 +307,11 @@ static void cmd_help_top(int fd)
     write_str(fd, "  axp r <reg>\r\n");
     write_str(fd, "  axp w <reg> <val>\r\n");
     write_str(fd, "  axp rules\r\n");
+    write_str(fd, "  axp policy <whitelist|blacklist>\r\n");
+    write_str(fd, "  axp allow <reg> <val>\r\n");
+    write_str(fd, "  axp deny <reg> <val>\r\n");
+    write_str(fd, "  axp clear <reg> <val>\r\n");
+    write_str(fd, "  axp reset\r\n");
     write_str(fd, "  help\r\n");
     write_str(fd, "  quit|exit\r\n");
 }
@@ -333,6 +339,42 @@ static void cmd_help_axp(int fd)
     write_str(fd, "  axp r <reg>\r\n");
     write_str(fd, "  axp w <reg> <val>\r\n");
     write_str(fd, "  axp rules\r\n");
+    write_str(fd, "  axp policy <whitelist|blacklist>\r\n");
+    write_str(fd, "  axp allow <reg> <val>\r\n");
+    write_str(fd, "  axp deny <reg> <val>\r\n");
+    write_str(fd, "  axp clear <reg> <val>\r\n");
+    write_str(fd, "  axp reset\r\n");
+}
+
+static void cmd_axp_policy(int fd, const char *mode)
+{
+    if (!mode) { write_str(fd, "ERR\r\n"); return; }
+    if (strcasecmp(mode, "whitelist") == 0) {
+        i2cdev_set_policy(I2CDEV_POLICY_WHITELIST);
+        write_str(fd, "OK\r\n");
+        return;
+    }
+    if (strcasecmp(mode, "blacklist") == 0) {
+        i2cdev_set_policy(I2CDEV_POLICY_BLACKLIST);
+        write_str(fd, "OK\r\n");
+        return;
+    }
+    write_str(fd, "ERR\r\n");
+}
+
+static void cmd_axp_rule_edit(int fd, const char *op, const char *s_reg, const char *s_val)
+{
+    if (!op || !s_reg || !s_val) { write_str(fd, "ERR\r\n"); return; }
+    bool okr = false, okv = false;
+    unsigned long reg = parse_num(s_reg, &okr);
+    unsigned long val = parse_num(s_val, &okv);
+    if (!okr || !okv || reg >= I2CDEV_REG_COUNT || val > I2CDEV_MAX_VALUE_CODE) { write_str(fd, "ERR\r\n"); return; }
+    bool ok = false;
+    if (strcasecmp(op, "allow") == 0) ok = i2cdev_rule_allow((uint8_t)reg, (uint8_t)val);
+    else if (strcasecmp(op, "deny") == 0) ok = i2cdev_rule_deny((uint8_t)reg, (uint8_t)val);
+    else if (strcasecmp(op, "clear") == 0) ok = i2cdev_rule_clear((uint8_t)reg, (uint8_t)val);
+    else { write_str(fd, "ERR\r\n"); return; }
+    write_str(fd, ok ? "OK\r\n" : "ERR\r\n");
 }
 
 void process_console_line(const char *line, int socket_fd)
@@ -462,6 +504,14 @@ void process_console_line(const char *line, int socket_fd)
             return;
         }
         if (strcasecmp(sub,"rules")==0) { cmd_axp_rules(socket_fd); return; }
+        if (strcasecmp(sub,"policy")==0) { char *mode=strtok_r(NULL," \t",&save); cmd_axp_policy(socket_fd, mode); return; }
+        if (strcasecmp(sub,"allow")==0 || strcasecmp(sub,"deny")==0 || strcasecmp(sub,"clear")==0) {
+            char *s_reg = strtok_r(NULL, " \t", &save);
+            char *s_val = strtok_r(NULL, " \t", &save);
+            cmd_axp_rule_edit(socket_fd, sub, s_reg, s_val);
+            return;
+        }
+        if (strcasecmp(sub,"reset")==0) { i2cdev_policy_reset_defaults(); write_str(socket_fd,"OK\r\n"); return; }
         write_str(socket_fd, "ERR\r\n");
         return;
     }
