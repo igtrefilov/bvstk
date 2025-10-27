@@ -8,7 +8,7 @@ unsigned char mac_ethernet_address[] = { 0x00, 0x0a, 0x35, 0x00, 0x01, 0x02 };
 void start_lan(void){
 	sys_thread_new("lan_thrd", lan_thread, NULL,
 			THREAD_STACKSIZE,
-			tskIDLE_PRIORITY);
+			tskIDLE_PRIORITY + 2);
 }
 
 void lan_thread(void *p)
@@ -33,7 +33,7 @@ void lan_thread(void *p)
 
     sys_thread_new("xemacif_input_thread", (void(*)(void*))xemacif_input_thread, netif,
             THREAD_STACKSIZE,
-			tskIDLE_PRIORITY);
+			tskIDLE_PRIORITY + 2);
 
     vTaskDelete(NULL);
 

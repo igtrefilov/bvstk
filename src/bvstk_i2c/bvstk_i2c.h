@@ -19,7 +19,7 @@
 #endif
 #include BVSTK_I2C_DEVICE_HEADER
 
-#define I2C_TASK_STACK_SIZE     (1024U)
+#define I2C_TASK_STACK_SIZE     (512U)
 #define I2C_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
 
 #define CSR_REG_OFFSET        0x00

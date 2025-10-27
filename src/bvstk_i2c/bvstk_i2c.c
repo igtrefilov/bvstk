@@ -23,6 +23,9 @@ static void master_ISR     (void *CallBackRef);
 static void slave_ISR      (void *CallBackRef);
 static inline void i2c_irq_enable(void) { vPortEnableInterrupt(IRQ_I2C_MASTER); vPortEnableInterrupt(IRQ_I2C_SLAVE); }
 
+extern size_t xPortGetFreeHeapSize(void);
+extern size_t xPortGetMinimumEverFreeHeapSize(void);
+
 static inline void i2c_master_wait_ready(void)
 {
     while ((reg_read32(I2C_MASTER_BASE, STATUS_OFFSET) & 0x1Fu) != 0u) {
@@ -32,6 +35,10 @@ static inline void i2c_master_wait_ready(void)
 
 void start_i2c(void)
 {
+    xil_printf("Heap BEFORE I2C: %u, min ever: %u\r\n",
+               (unsigned)xPortGetFreeHeapSize(),
+               (unsigned)xPortGetMinimumEverFreeHeapSize());
+
     q_master = xQueueCreate(64, sizeof(master_evt_t));
     q_slave  = xQueueCreate(64, sizeof(slave_evt_t));
     i2c_bus_mutex = xSemaphoreCreateMutex();
@@ -42,15 +49,19 @@ void start_i2c(void)
     reg_write32(I2C_SLAVE_BASE,  IRQ_REG_OFFSET, 0x01);
     xPortInstallInterruptHandler(IRQ_I2C_MASTER, master_ISR, NULL);
     xPortInstallInterruptHandler(IRQ_I2C_SLAVE,  slave_ISR,  NULL);
-    configASSERT(xTaskCreate(master_evt_task, "i2c_master_evt", I2C_TASK_STACK_SIZE, NULL, I2C_TASK_PRIORITY + 1U, NULL) == pdPASS);
-    configASSERT(xTaskCreate(slave_evt_task,  "i2c_slave_evt",  I2C_TASK_STACK_SIZE, NULL, I2C_TASK_PRIORITY + 1U, NULL) == pdPASS);
+    configASSERT(xTaskCreate(master_evt_task, "i2c_master_evt", I2C_TASK_STACK_SIZE, NULL, I2C_TASK_PRIORITY, NULL) == pdPASS);
+    configASSERT(xTaskCreate(slave_evt_task,  "i2c_slave_evt",  I2C_TASK_STACK_SIZE, NULL, I2C_TASK_PRIORITY, NULL) == pdPASS);
     configASSERT(xTaskCreate(i2c_task,        "i2c_task",       I2C_TASK_STACK_SIZE, NULL, I2C_TASK_PRIORITY,       NULL) == pdPASS);
+
+    xil_printf("Heap AFTER  I2C: %u, min ever: %u\r\n",
+               (unsigned)xPortGetFreeHeapSize(),
+               (unsigned)xPortGetMinimumEverFreeHeapSize());
 }
 
 void i2c_task(void *pvParameters)
 {
     (void)pvParameters;
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(1000));
     for (uint32_t i = 0; i < I2CDEV_REG_COUNT; ++i) i2cdev_reg_cache[i] = 0;
     i2cdev_init_full_scan();
     for (;;) {
