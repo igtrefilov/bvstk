@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <stdbool.h>
 #include "lwip/sockets.h"
 #include "netif/xadapter.h"

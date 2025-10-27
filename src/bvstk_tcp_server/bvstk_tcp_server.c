@@ -28,12 +28,12 @@ static inline uint32_t bram_slave_rd_addr(uint8_t phy, uint8_t reg)
 }
 
 void start_tcp_server(void){
-    sys_thread_new("tcp_server_thrd", tcp_server_thread, 0, THREAD_STACKSIZE, tskIDLE_PRIORITY);
+    sys_thread_new("tcp_server_thrd", tcp_server_thread, 0, THREAD_STACKSIZE, tskIDLE_PRIORITY + 1);
 }
 
 static void write_str(int fd, const char *s)
 {
-    (void)write(fd, s, strlen(s));
+    (void)lwip_write(fd, s, strlen(s));
 }
 
 void tcp_server_thread(void *p) {
@@ -57,7 +57,7 @@ void tcp_server_thread(void *p) {
         client_socket = lwip_accept(eth_socket, (struct sockaddr *)&remote, (socklen_t *)&size);
         if (client_socket < 0) continue;
         run_client_session(client_socket);
-        close(client_socket);
+        lwip_close(client_socket);
         client_socket = -1;
     }
 }
@@ -71,7 +71,7 @@ static void run_client_session(int fd) {
     write_str(fd, prompt);
     close_requested = 0;
     for (;;) {
-        bytes_received = read(fd, buffer, sizeof(buffer) - 1);
+        bytes_received = lwip_read(fd, buffer, sizeof(buffer) - 1);
         if (bytes_received <= 0) break;
         buffer[bytes_received] = '\0';
         bool looks_text = false;
@@ -114,7 +114,7 @@ void process_received_data(uint8_t *data_buffer, int data_length, int socket_fd)
 }
 
 void pong(uint8_t *data_buffer, int data_length, int socket_fd){
-    int send_result = write(socket_fd, data_buffer, data_length);
+    int send_result = lwip_write(socket_fd, data_buffer, data_length);
     if(send_result < 0) return;
 }
 
@@ -157,7 +157,7 @@ void reg_read(uint8_t *data_buffer, int data_length, uint8_t auto_increment, int
     data_buffer[2] = total_bytes & 0xFF;
     data_buffer[1] = total_bytes >> 8;
     data_length = total_bytes + 3;
-    (void)write(socket_fd, data_buffer, data_length);
+    (void)lwip_write(socket_fd, data_buffer, data_length);
 }
 
 uint16_t swap_endianness_16(uint16_t value) {
@@ -247,7 +247,7 @@ void process_console_line(const char *line, int socket_fd)
             if (!ok) { write_str(socket_fd, "ERR\r\n"); return; }
             char out[64];
             int n = snprintf(out, sizeof(out), "OK 0x%04" PRIX16 " %" PRIu16 "\r\n", val, val);
-            (void)write(socket_fd, out, n);
+            (void)lwip_write(socket_fd, out, n);
             return;
         }
         if (strcasecmp(sub, "w") == 0) {
@@ -281,12 +281,12 @@ void process_console_line(const char *line, int socket_fd)
                 uint32_t v = Xil_In32((UINTPTR)addr);
                 char out[64];
                 int n = snprintf(out, sizeof(out), "OK 0x%08" PRIX32 " %" PRIu32 "\r\n", v, v);
-                (void)write(socket_fd, out, n);
+                (void)lwip_write(socket_fd, out, n);
             } else {
                 uint8_t v = Xil_In8((UINTPTR)addr);
                 char out[64];
                 int n = snprintf(out, sizeof(out), "OK 0x%02" PRIX8 " %" PRIu8 "\r\n", v, v);
-                (void)write(socket_fd, out, n);
+                (void)lwip_write(socket_fd, out, n);
             }
             return;
         }

@@ -6,7 +6,7 @@
 #include "netif/xadapter.h"
 #include "xil_printf.h"
 
-#define THREAD_STACKSIZE 2048
+#define THREAD_STACKSIZE 2046
 
 void start_lan(void);
 void lwip_init(void);
