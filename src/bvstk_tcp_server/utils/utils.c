@@ -63,7 +63,7 @@ int utils_should_close(void)
     return s_close_requested;
 }
 
-static void pong(uint8_t *data_buffer, int data_length, int socket_fd)
+static void __attribute__((unused)) pong(uint8_t *data_buffer, int data_length, int socket_fd)
 {
     int send_result = lwip_write(socket_fd, data_buffer, data_length);
     if (send_result < 0) return;
@@ -112,7 +112,7 @@ static void reg_read(uint8_t *data_buffer, int data_length, uint8_t auto_increme
     (void)lwip_write(socket_fd, data_buffer, data_length);
 }
 
-static void select_reg_write_read(uint8_t *data_buffer, int data_length, int socket_fd)
+static void __attribute__((unused)) select_reg_write_read(uint8_t *data_buffer, int data_length, int socket_fd)
 {
     if (data_length < 8) return;
     uint8_t wr_rd_flag = (uint8_t)(data_buffer[3] & 0x80);
