@@ -26,4 +26,26 @@ bool i2cdev_rule_allow(uint8_t reg, uint8_t val);
 bool i2cdev_rule_deny(uint8_t reg, uint8_t val);
 bool i2cdev_rule_clear(uint8_t reg, uint8_t val);
 
+typedef struct {
+    uint8_t reg;
+    uint8_t val;
+} i2cdev_rule_entry_t;
+static inline void i2cdev_device_policy_defaults(void)
+{
+    static const i2cdev_rule_entry_t whitelist[] = {
+        { 0x13u, 16u },
+        { 0x13u, 17u },
+        { 0x13u, 18u },
+        { 0x13u, 19u },
+    };
+
+    for (size_t i = 0; i < (sizeof whitelist / sizeof whitelist[0]); ++i) {
+        const uint8_t r = whitelist[i].reg;
+        const uint8_t v = whitelist[i].val;
+        if (r < I2CDEV_REG_COUNT && v <= I2CDEV_MAX_VALUE_CODE) {
+            i2cdev_whitelist_bitmap[r][v] = 1;
+        }
+    }
+}
+
 #endif

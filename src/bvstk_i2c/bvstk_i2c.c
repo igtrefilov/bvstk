@@ -38,10 +38,7 @@ void i2cdev_policy_reset_defaults(void)
             i2cdev_blacklist_bitmap[r][v] = 0;
         }
     }
-    i2cdev_whitelist_bitmap[0x13][16] = 1;
-    i2cdev_whitelist_bitmap[0x13][17] = 1;
-    i2cdev_whitelist_bitmap[0x13][18] = 1;
-    i2cdev_whitelist_bitmap[0x13][19] = 1;
+    i2cdev_device_policy_defaults();
     g_i2cdev_policy = I2CDEV_DEFAULT_POLICY;
 }
 
