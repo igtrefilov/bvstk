@@ -18,6 +18,30 @@ static i2cdev_policy_t g_i2cdev_policy = I2CDEV_DEFAULT_POLICY;
 static uint8_t i2cdev_reg_cache[I2CDEV_REG_COUNT];
 static volatile uint8_t s_pending_reg = 0xFF;
 
+static void i2cdev_apply_rules(const i2cdev_rule_entry_t *rules,
+                               size_t count,
+                               uint8_t bitmap[I2CDEV_REG_COUNT][I2CDEV_MAX_VALUE_CODE + 1])
+{
+    if (!rules || count == 0) return;
+    for (size_t i = 0; i < count; ++i) {
+        const uint8_t r = rules[i].reg;
+        const uint8_t v = rules[i].val;
+        if (r < I2CDEV_REG_COUNT && v <= I2CDEV_MAX_VALUE_CODE) {
+            bitmap[r][v] = 1u;
+        }
+    }
+}
+
+static void i2cdev_device_policy_defaults(void)
+{
+    i2cdev_apply_rules(i2cdev_default_whitelist,
+                       i2cdev_default_whitelist_len,
+                       i2cdev_whitelist_bitmap);
+    i2cdev_apply_rules(i2cdev_default_blacklist,
+                       i2cdev_default_blacklist_len,
+                       i2cdev_blacklist_bitmap);
+}
+
 static inline void reg_write32(uint32_t base, uint32_t ofs, uint32_t v) { Xil_Out32(base + ofs, v); }
 static inline uint32_t reg_read32(uint32_t base, uint32_t ofs) { return Xil_In32(base + ofs); }
 

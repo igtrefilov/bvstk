@@ -30,22 +30,17 @@ typedef struct {
     uint8_t reg;
     uint8_t val;
 } i2cdev_rule_entry_t;
-static inline void i2cdev_device_policy_defaults(void)
-{
-    static const i2cdev_rule_entry_t whitelist[] = {
-        { 0x13u, 16u },
-        { 0x13u, 17u },
-        { 0x13u, 18u },
-        { 0x13u, 19u },
-    };
 
-    for (size_t i = 0; i < (sizeof whitelist / sizeof whitelist[0]); ++i) {
-        const uint8_t r = whitelist[i].reg;
-        const uint8_t v = whitelist[i].val;
-        if (r < I2CDEV_REG_COUNT && v <= I2CDEV_MAX_VALUE_CODE) {
-            i2cdev_whitelist_bitmap[r][v] = 1;
-        }
-    }
-}
+static const i2cdev_rule_entry_t i2cdev_default_whitelist[] = {
+    { 0x13u, 16u },
+    { 0x13u, 17u },
+    { 0x13u, 18u },
+    { 0x13u, 19u },
+};
+
+static const size_t i2cdev_default_whitelist_len = sizeof(i2cdev_default_whitelist) / sizeof(i2cdev_default_whitelist[0]);
+
+static const i2cdev_rule_entry_t i2cdev_default_blacklist[] = { };
+static const size_t i2cdev_default_blacklist_len = 0u;
 
 #endif
