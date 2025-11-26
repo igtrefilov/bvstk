@@ -18,6 +18,26 @@ static i2cdev_policy_t g_i2cdev_policy = I2CDEV_DEFAULT_POLICY;
 static uint8_t i2cdev_reg_cache[I2CDEV_REG_COUNT];
 static volatile uint8_t s_pending_reg = 0xFF;
 
+static bool i2cdev_autopoll_enabled(void)
+{
+    return (i2cdev_autopoll_profile.enabled &&
+            i2cdev_autopoll_profile.regs &&
+            i2cdev_autopoll_profile.regs_len > 0u);
+}
+
+static void i2cdev_autopoll_cycle(void)
+{
+    if (!i2cdev_autopoll_enabled()) return;
+    for (size_t i = 0; i < i2cdev_autopoll_profile.regs_len; ++i) {
+        uint8_t reg = i2cdev_autopoll_profile.regs[i];
+        uint8_t val;
+        (void)i2cdev_read_reg(reg, &val);
+        if (i2cdev_autopoll_profile.reg_delay_ms) {
+            vTaskDelay(pdMS_TO_TICKS(i2cdev_autopoll_profile.reg_delay_ms));
+        }
+    }
+}
+
 static void i2cdev_apply_rules(const i2cdev_rule_entry_t *rules,
                                size_t count,
                                uint8_t bitmap[I2CDEV_REG_COUNT][I2CDEV_MAX_VALUE_CODE + 1])
@@ -150,7 +170,14 @@ void i2c_task(void *pvParameters)
     for (uint32_t i = 0; i < I2CDEV_REG_COUNT; ++i) i2cdev_reg_cache[i] = 0;
     i2cdev_init_full_scan();
     for (;;) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        if (i2cdev_autopoll_enabled()) {
+            i2cdev_autopoll_cycle();
+            uint32_t pause_ms = i2cdev_autopoll_profile.cycle_delay_ms;
+            if (pause_ms == 0u) pause_ms = 1u;
+            vTaskDelay(pdMS_TO_TICKS(pause_ms));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
     }
 }
 

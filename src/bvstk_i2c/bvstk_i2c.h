@@ -14,10 +14,49 @@
 #include "queue.h"
 #include "semphr.h"
 
+typedef enum {
+    I2CDEV_POLICY_WHITELIST = 0,
+    I2CDEV_POLICY_BLACKLIST = 1
+} i2cdev_policy_t;
+
+#ifndef I2CDEV_DEFAULT_POLICY
+#define I2CDEV_DEFAULT_POLICY I2CDEV_POLICY_WHITELIST
+#endif
+
+typedef struct {
+    uint8_t reg;
+    uint8_t val;
+} i2cdev_rule_entry_t;
+
+typedef struct {
+    const uint8_t *regs;
+    size_t regs_len;
+    uint32_t reg_delay_ms;
+    uint32_t cycle_delay_ms;
+    bool enabled;
+} i2cdev_autopoll_profile_t;
+
 #ifndef BVSTK_I2C_DEVICE_HEADER
-#define BVSTK_I2C_DEVICE_HEADER "axp15060_pmic.h"
+#define BVSTK_I2C_DEVICE_HEADER "axp15060.h"
 #endif
 #include BVSTK_I2C_DEVICE_HEADER
+
+#ifndef I2CDEV_DEFAULT_RULES_DEFINED
+static const i2cdev_rule_entry_t i2cdev_default_whitelist[] = { };
+static const size_t i2cdev_default_whitelist_len = 0u;
+static const i2cdev_rule_entry_t i2cdev_default_blacklist[] = { };
+static const size_t i2cdev_default_blacklist_len = 0u;
+#endif
+
+#ifndef I2CDEV_AUTOPOLL_PROFILE_DEFINED
+static const i2cdev_autopoll_profile_t i2cdev_autopoll_profile = {
+    .regs = NULL,
+    .regs_len = 0u,
+    .reg_delay_ms = 0u,
+    .cycle_delay_ms = 1000u,
+    .enabled = false,
+};
+#endif
 
 #define I2C_TASK_STACK_SIZE     (512U)
 #define I2C_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
@@ -57,5 +96,13 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size);
 bool i2cdev_read_reg(uint8_t reg, uint8_t *out_val);
 bool i2cdev_write_reg(uint8_t reg, uint8_t val);
 bool i2cdev_read_reg_cached(uint8_t reg, uint8_t *out_val);
+
+void i2cdev_policy_reset_defaults(void);
+void i2cdev_set_policy(i2cdev_policy_t policy);
+i2cdev_policy_t i2cdev_get_policy(void);
+bool i2cdev_is_value_permitted_current(uint8_t reg, uint8_t val);
+bool i2cdev_rule_allow(uint8_t reg, uint8_t val);
+bool i2cdev_rule_deny(uint8_t reg, uint8_t val);
+bool i2cdev_rule_clear(uint8_t reg, uint8_t val);
 
 #endif
