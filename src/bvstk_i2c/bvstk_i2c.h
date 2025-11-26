@@ -41,6 +41,9 @@ typedef struct {
 #endif
 #include BVSTK_I2C_DEVICE_HEADER
 
+extern uint8_t i2cdev_whitelist_bitmap[I2CDEV_REG_COUNT][I2CDEV_MAX_VALUE_CODE + 1];
+extern uint8_t i2cdev_blacklist_bitmap[I2CDEV_REG_COUNT][I2CDEV_MAX_VALUE_CODE + 1];
+
 #ifndef I2CDEV_DEFAULT_RULES_DEFINED
 static const i2cdev_rule_entry_t i2cdev_default_whitelist[] = { };
 static const size_t i2cdev_default_whitelist_len = 0u;
