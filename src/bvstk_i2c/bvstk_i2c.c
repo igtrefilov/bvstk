@@ -9,7 +9,7 @@ typedef enum { MASTER_EVT_IRQ } master_evt_type_t;
 typedef struct { master_evt_type_t type; uint32_t wr_offset; } master_evt_t;
 
 typedef enum { SLAVE_EVT_FRAME } slave_evt_type_t;
-typedef struct { slave_evt_type_t type; uint32_t size; } slave_evt_t;
+typedef struct { slave_evt_type_t type; uint32_t size; uint8_t op_read; } slave_evt_t;
 
 uint8_t i2cdev_whitelist_bitmap[I2CDEV_REG_COUNT][I2CDEV_MAX_VALUE_CODE + 1];
 uint8_t i2cdev_blacklist_bitmap[I2CDEV_REG_COUNT][I2CDEV_MAX_VALUE_CODE + 1];
@@ -240,30 +240,43 @@ void i2cdev_init_full_scan(void)
     }
 }
 
-void slave_check_and_exec(const uint8_t *frame, uint32_t size)
+void slave_check_and_exec(const uint8_t *frame, uint32_t size, uint8_t op_read)
 {
     if (size == 0) return;
     uint8_t reg = frame[0];
-    if (size >= 2) {
-        if (reg < I2CDEV_REG_COUNT) {
-            uint8_t val = frame[1];
-            if (i2cdev_is_value_permitted_current(reg, val)) {
-                i2cdev_write_byte(reg, val);
-                xil_printf("[I2C][SLAVE] REG 0x%02x <- 0x%02x\n\r", reg, val);
-            } else {
-                xil_printf("[I2C][SLAVE] Reject value 0x%02x for REG 0x%02x\n\r", val, reg);
+    if (op_read) {
+        if (reg >= I2CDEV_REG_COUNT) { xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg); return; }
+        uint32_t n = size;
+        if (reg + n > I2CDEV_REG_COUNT) n = I2CDEV_REG_COUNT - reg;
+        uint32_t dst_ofs = I2C_BRAM_SLAVE_RD;
+        uint32_t idx = 0;
+        while (idx < n) {
+            uint32_t w = 0;
+            for (uint32_t b = 0; b < 4 && idx < n; ++b, ++idx) {
+                w |= ((uint32_t)i2cdev_reg_cache[reg + idx]) << (8u * b);
             }
-        } else {
-            xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg);
+            reg_write32(BRAM_BASE_ADDR, dst_ofs, w);
+            dst_ofs += 4;
         }
-    } else {
-        if (reg < I2CDEV_REG_COUNT) {
-            uint32_t out = (uint32_t)i2cdev_reg_cache[reg];
-            reg_write32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_RD + 0x00, out);
-            xil_printf("[I2C][SLAVE] REG 0x%02x -> 0x%02x\n\r", reg, (unsigned)out & 0xFF);
-        } else {
-            xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg);
+        xil_printf("[I2C][SLAVE] REG 0x%02x -> %u bytes\n\r", reg, (unsigned)n);
+        return;
+    }
+
+    if (size >= 2) {
+        if (reg >= I2CDEV_REG_COUNT) { xil_printf("[I2C][SLAVE] Reject REG 0x%02x\n\r", reg); return; }
+        uint32_t n = size - 1;
+        if (reg + n > I2CDEV_REG_COUNT) n = I2CDEV_REG_COUNT - reg;
+        for (uint32_t i = 0; i < n; ++i) {
+            uint8_t val = frame[1 + i];
+            uint8_t r   = (uint8_t)(reg + i);
+            if (i2cdev_is_value_permitted_current(r, val)) {
+                i2cdev_write_byte(r, val);
+                xil_printf("[I2C][SLAVE] REG 0x%02x <- 0x%02x\n\r", r, val);
+            } else {
+                xil_printf("[I2C][SLAVE] Reject value 0x%02x for REG 0x%02x\n\r", val, r);
+            }
         }
+        return;
     }
 }
 
@@ -287,9 +300,10 @@ static void slave_ISR(void *CallBackRef)
     if (q_slave == NULL) { reg_write32(I2C_SLAVE_BASE, IRQ_REG_OFFSET, 0x01); return; }
     uint32_t word0 = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_WR);
     uint32_t size  = (uint32_t)I2C_HDR_NUM_BYTES(word0);
+    uint8_t  op    = (uint8_t)I2C_HDR_OP(word0);
     reg_write32(I2C_SLAVE_BASE, IRQ_REG_OFFSET, 0x01);
     BaseType_t hpw = pdFALSE;
-    slave_evt_t evt = (slave_evt_t){ .type = SLAVE_EVT_FRAME, .size = size };
+    slave_evt_t evt = (slave_evt_t){ .type = SLAVE_EVT_FRAME, .size = size, .op_read = op };
     (void)xQueueSendFromISR(q_slave, &evt, &hpw);
     portYIELD_FROM_ISR(hpw);
 }
@@ -345,7 +359,7 @@ static void slave_evt_task(void *arg)
                         s_in[byte_idx] = (uint8_t)((w >> (8*k)) & 0xFF);
                     }
                 }
-                if (size >= 1) slave_check_and_exec(&s_in[0], size);
+                if (size >= 1) slave_check_and_exec(&s_in[0], size, evt.op_read);
             }
         }
     }
