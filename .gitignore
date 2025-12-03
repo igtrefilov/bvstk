@@ -1,2 +1,14 @@
-vitis_ws/
-.Xil/
+# Ignore everything by default and then whitelist what should be tracked
+/*
+
+# Keep repo metadata
+!.gitignore
+
+# Track build script and source tree
+!build.tcl
+!src/
+!src/**
+
+# Keep GitHub workflows if added later
+!.github/
+!.github/**
