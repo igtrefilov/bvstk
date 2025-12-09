@@ -19,8 +19,7 @@ static void run_client_session(int fd)
     int bytes_received;
     console_session_t session;
     console_session_init(&session);
-    const char *prompt = "Zynq>";
-    write_str(fd, prompt);
+    console_print_prompt(fd, &session);
     utils_reset_close();
     for (;;) {
         bytes_received = lwip_read(fd, buffer, sizeof(buffer) - 1);
@@ -43,7 +42,7 @@ static void run_client_session(int fd)
                         linelen = 0;
                     }
                     if (utils_should_close()) return;
-                    write_str(fd, prompt);
+                    console_print_prompt(fd, &session);
                 } else if (linelen + 1 < sizeof(linebuf)) {
                     linebuf[linelen++] = c;
                 }

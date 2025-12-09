@@ -15,6 +15,7 @@
 static volatile int s_close_requested = 0;
 
 #define CONSOLE_PATH_MAX 128
+#define PROMPT_MAX       80
 
 void console_session_init(console_session_t *s)
 {
@@ -71,6 +72,24 @@ void utils_reset_close(void)
 int utils_should_close(void)
 {
     return s_close_requested;
+}
+
+void console_print_prompt(int fd, const console_session_t *session)
+{
+    char prompt[PROMPT_MAX];
+    const char *cwd = (session && session->cwd[0]) ? session->cwd : SD_ROOT;
+    const size_t root_len = strlen(SD_ROOT);
+    const char *rel = cwd;
+    if (strncmp(cwd, SD_ROOT, root_len) == 0) {
+        rel = cwd + root_len;
+        if (*rel == '/') rel++;
+    }
+    if (rel && *rel) {
+        snprintf(prompt, sizeof(prompt), "Zynq/%s> ", rel);
+    } else {
+        snprintf(prompt, sizeof(prompt), "Zynq> ");
+    }
+    write_str(fd, prompt);
 }
 
 static bool build_path(const console_session_t *session, const char *arg, char *out, size_t out_sz)

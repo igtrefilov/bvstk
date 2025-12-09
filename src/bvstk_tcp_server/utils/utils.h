@@ -10,6 +10,7 @@ typedef struct {
 } console_session_t;
 
 void console_session_init(console_session_t *s);
+void console_print_prompt(int fd, const console_session_t *s);
 void write_str(int fd, const char *s);
 unsigned long parse_num(const char *s, bool *ok);
 uint16_t swap_endianness_16(uint16_t value);
