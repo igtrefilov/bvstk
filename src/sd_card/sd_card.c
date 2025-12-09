@@ -5,6 +5,7 @@
 #include "../bvstk_tcp_server/utils/utils.h"
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #define SD_CARD_DEVICE_ID   XPAR_XSDPS_0_DEVICE_ID
 #define SD_MOUNT_POINT      SD_ROOT
@@ -37,6 +38,21 @@ static int sd_hw_init(void)
     status = XSdPs_CardInitialize(&sd_instance);
     if (status != XST_SUCCESS) return status;
     return XST_SUCCESS;
+}
+
+static void normalize_name(char *s)
+{
+    if (!s) return;
+    bool has_lower = false, has_upper = false;
+    for (char *p = s; *p; ++p) {
+        if (islower((unsigned char)*p)) has_lower = true;
+        if (isupper((unsigned char)*p)) has_upper = true;
+    }
+    if (has_upper && !has_lower) {
+        for (char *p = s; *p; ++p) {
+            *p = (char)tolower((unsigned char)*p);
+        }
+    }
 }
 
 static int sd_mount_fatfs(void)
@@ -110,10 +126,14 @@ int sd_card_ls(int fd)
     }
     char line[96];
     while (f_readdir(&dir, &fno) == FR_OK && fno.fname[0]) {
+        char name[sizeof(fno.fname)];
+        strncpy(name, fno.fname, sizeof(name) - 1);
+        name[sizeof(name) - 1] = '\0';
+        normalize_name(name);
         int n = snprintf(line, sizeof(line), "%c %10lu %s\r\n",
             (fno.fattrib & AM_DIR) ? 'd' : '-',
             (unsigned long)fno.fsize,
-            fno.fname);
+            name);
         lwip_write(fd, line, n);
     }
     f_closedir(&dir);
@@ -134,10 +154,14 @@ int sd_fs_ls(const char *path, int fd)
     }
     char line[96];
     while (f_readdir(&dir, &fno) == FR_OK && fno.fname[0]) {
+        char name[sizeof(fno.fname)];
+        strncpy(name, fno.fname, sizeof(name) - 1);
+        name[sizeof(name) - 1] = '\0';
+        normalize_name(name);
         int n = snprintf(line, sizeof(line), "%c %10lu %s\r\n",
             (fno.fattrib & AM_DIR) ? 'd' : '-',
             (unsigned long)fno.fsize,
-            fno.fname);
+            name);
         lwip_write(fd, line, n);
     }
     f_closedir(&dir);
