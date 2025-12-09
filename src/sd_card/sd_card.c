@@ -66,10 +66,14 @@ int start_sd_card(void)
 int sd_card_get_info(sd_card_info_t *info)
 {
     if (!sd_ready || !info) return XST_FAILURE;
-    XSdPs_CardInfo *ci = &sd_instance.CardInfo;
-    info->block_size = ci->BlkSize;
-    info->block_count = (u64)ci->Capacity;
-    info->capacity_bytes = (u64)ci->Capacity * ci->BlkSize;
+    FATFS *fs;
+    DWORD free_clusters = 0;
+    FRESULT res = f_getfree(SD_MOUNT_POINT, &free_clusters, &fs);
+    if (res != FR_OK || fs == NULL) return XST_FAILURE;
+    DWORD total_clusters = fs->n_fatent - 2; /* FAT entries include lead/EOF */
+    info->block_size = (u32)fs->csize * 512U;
+    info->block_count = (u64)total_clusters * fs->csize;
+    info->capacity_bytes = (u64)info->block_count * 512U;
     info->mounted = sd_ready;
     return XST_SUCCESS;
 }
