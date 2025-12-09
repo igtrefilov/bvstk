@@ -7,7 +7,7 @@
 #include <string.h>
 
 #define SD_CARD_DEVICE_ID   XPAR_XSDPS_0_DEVICE_ID
-#define SD_MOUNT_POINT      "0:/"
+#define SD_MOUNT_POINT      SD_ROOT
 #define SD_TASK_STACK       1024
 #define SD_TASK_PRIO        (tskIDLE_PRIORITY + 2)
 
@@ -16,6 +16,17 @@ static FATFS fatfs;
 static TaskHandle_t sd_task_handle = NULL;
 static SemaphoreHandle_t sd_mutex = NULL;
 static volatile int sd_ready = 0;
+
+static int sd_lock(void)
+{
+    if (!sd_mutex) return 0;
+    return xSemaphoreTake(sd_mutex, pdMS_TO_TICKS(200)) == pdTRUE;
+}
+
+static void sd_unlock(void)
+{
+    if (sd_mutex) xSemaphoreGive(sd_mutex);
+}
 
 static int sd_hw_init(void)
 {
@@ -107,6 +118,98 @@ int sd_card_ls(int fd)
     }
     f_closedir(&dir);
     return XST_SUCCESS;
+}
+
+int sd_fs_ls(const char *path, int fd)
+{
+    if (!ensure_ready(fd)) return XST_FAILURE;
+    if (!sd_lock()) { write_str(fd, "SD busy\r\n"); return XST_FAILURE; }
+    DIR dir;
+    FILINFO fno;
+    FRESULT res = f_opendir(&dir, path ? path : SD_MOUNT_POINT);
+    if (res != FR_OK) {
+        write_str(fd, "f_opendir failed\r\n");
+        sd_unlock();
+        return XST_FAILURE;
+    }
+    char line[96];
+    while (f_readdir(&dir, &fno) == FR_OK && fno.fname[0]) {
+        int n = snprintf(line, sizeof(line), "%c %10lu %s\r\n",
+            (fno.fattrib & AM_DIR) ? 'd' : '-',
+            (unsigned long)fno.fsize,
+            fno.fname);
+        lwip_write(fd, line, n);
+    }
+    f_closedir(&dir);
+    sd_unlock();
+    return XST_SUCCESS;
+}
+
+int sd_fs_cat(const char *path, int fd)
+{
+    if (!ensure_ready(fd)) return XST_FAILURE;
+    if (!sd_lock()) { write_str(fd, "SD busy\r\n"); return XST_FAILURE; }
+    FIL file;
+    FRESULT res = f_open(&file, path, FA_READ);
+    if (res != FR_OK) {
+        write_str(fd, "open failed\r\n");
+        sd_unlock();
+        return XST_FAILURE;
+    }
+    char buf[128];
+    UINT br = 0;
+    do {
+        res = f_read(&file, buf, sizeof(buf), &br);
+        if (res != FR_OK) break;
+        if (br) lwip_write(fd, buf, br);
+    } while (br == sizeof(buf));
+    f_close(&file);
+    write_str(fd, "\r\n");
+    sd_unlock();
+    return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
+}
+
+int sd_fs_touch(const char *path)
+{
+    if (!sd_ready || !path) return XST_FAILURE;
+    if (!sd_lock()) return XST_FAILURE;
+    FIL file;
+    FRESULT res = f_open(&file, path, FA_WRITE | FA_OPEN_ALWAYS);
+    if (res == FR_OK) {
+        res = f_truncate(&file);
+        f_close(&file);
+    }
+    sd_unlock();
+    return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
+}
+
+int sd_fs_mkdir(const char *path)
+{
+    if (!sd_ready || !path) return XST_FAILURE;
+    if (!sd_lock()) return XST_FAILURE;
+    FRESULT res = f_mkdir(path);
+    sd_unlock();
+    return (res == FR_OK || res == FR_EXIST) ? XST_SUCCESS : XST_FAILURE;
+}
+
+int sd_fs_rm(const char *path)
+{
+    if (!sd_ready || !path) return XST_FAILURE;
+    if (!sd_lock()) return XST_FAILURE;
+    FRESULT res = f_unlink(path);
+    sd_unlock();
+    return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
+}
+
+int sd_fs_is_dir(const char *path)
+{
+    if (!sd_ready || !path) return XST_FAILURE;
+    if (!sd_lock()) return XST_FAILURE;
+    FILINFO fno;
+    FRESULT res = f_stat(path, &fno);
+    sd_unlock();
+    if (res != FR_OK) return XST_FAILURE;
+    return (fno.fattrib & AM_DIR) ? XST_SUCCESS : XST_FAILURE;
 }
 
 int sd_card_cat(const char *path, int fd)

@@ -17,6 +17,8 @@ static void run_client_session(int fd)
     char linebuf[256];
     size_t linelen = 0;
     int bytes_received;
+    console_session_t session;
+    console_session_init(&session);
     const char *prompt = "Zynq>";
     write_str(fd, prompt);
     utils_reset_close();
@@ -37,7 +39,7 @@ static void run_client_session(int fd)
                 if (c == '\n') {
                     linebuf[linelen] = '\0';
                     if (linelen > 0) {
-                        process_console_line(linebuf, fd);
+                        process_console_line(linebuf, fd, &session);
                         linelen = 0;
                     }
                     if (utils_should_close()) return;

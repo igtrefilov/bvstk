@@ -10,8 +10,18 @@
 #include "FreeRTOS.h"
 #include "../../bvstk_smi/bvstk_smi.h"
 #include "../../bvstk_i2c/bvstk_i2c.h"
+#include "../../sd_card/sd_card.h"
 
 static volatile int s_close_requested = 0;
+
+#define CONSOLE_PATH_MAX 128
+
+void console_session_init(console_session_t *s)
+{
+    if (!s) return;
+    strncpy(s->cwd, SD_ROOT, CONSOLE_CWD_LEN - 1);
+    s->cwd[CONSOLE_CWD_LEN - 1] = '\0';
+}
 
 void write_str(int fd, const char *s)
 {
@@ -61,6 +71,90 @@ void utils_reset_close(void)
 int utils_should_close(void)
 {
     return s_close_requested;
+}
+
+static bool build_path(const console_session_t *session, const char *arg, char *out, size_t out_sz)
+{
+    const char *base = (session && session->cwd[0]) ? session->cwd : SD_ROOT;
+    if (!arg || arg[0] == '\0') {
+        return snprintf(out, out_sz, "%s", base) > 0 && strlen(out) < out_sz;
+    }
+    if (arg[0] == '/' && arg[1] == '\0') {
+        return snprintf(out, out_sz, "%s", SD_ROOT) > 0 && strlen(out) < out_sz;
+    }
+    if (arg[0] == '/') {
+        return snprintf(out, out_sz, "%s%s", SD_ROOT, arg + 1) > 0 && strlen(out) < out_sz;
+    }
+    if (strchr(arg, ':')) { /* absolute drive path */
+        return snprintf(out, out_sz, "%s", arg) > 0 && strlen(out) < out_sz;
+    }
+    bool need_slash = base[strlen(base) - 1] != '/';
+    int n = snprintf(out, out_sz, "%s%s%s", base, need_slash ? "/" : "", arg);
+    return n > 0 && (size_t)n < out_sz;
+}
+
+static void cmd_help_fs(int fd)
+{
+    write_str(fd, "fs usage:\r\n");
+    write_str(fd, "  pwd\r\n");
+    write_str(fd, "  ls [path]\r\n");
+    write_str(fd, "  cd <dir>\r\n");
+    write_str(fd, "  mkdir <dir>\r\n");
+    write_str(fd, "  touch <file>\r\n");
+    write_str(fd, "  cat <file>\r\n");
+    write_str(fd, "  rm <file|dir>\r\n");
+}
+
+static void cmd_fs_pwd(int fd, console_session_t *session)
+{
+    char out[CONSOLE_PATH_MAX];
+    snprintf(out, sizeof(out), "%s\r\n", session ? session->cwd : SD_ROOT);
+    (void)lwip_write(fd, out, strlen(out));
+}
+
+static void cmd_fs_ls(int fd, console_session_t *session, const char *path)
+{
+    char full[CONSOLE_PATH_MAX];
+    if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    if (sd_fs_ls(full, fd) != XST_SUCCESS) { write_str(fd, "ERR\r\n"); }
+}
+
+static void cmd_fs_cd(int fd, console_session_t *session, const char *path)
+{
+    char full[CONSOLE_PATH_MAX];
+    if (!session || !build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    if (sd_fs_is_dir(full) != XST_SUCCESS) { write_str(fd, "ERR\r\n"); return; }
+    strncpy(session->cwd, full, CONSOLE_CWD_LEN - 1);
+    session->cwd[CONSOLE_CWD_LEN - 1] = '\0';
+    cmd_fs_pwd(fd, session);
+}
+
+static void cmd_fs_mkdir(int fd, console_session_t *session, const char *path)
+{
+    char full[CONSOLE_PATH_MAX];
+    if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    if (sd_fs_mkdir(full) == XST_SUCCESS) write_str(fd, "OK\r\n"); else write_str(fd, "ERR\r\n");
+}
+
+static void cmd_fs_touch(int fd, console_session_t *session, const char *path)
+{
+    char full[CONSOLE_PATH_MAX];
+    if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    if (sd_fs_touch(full) == XST_SUCCESS) write_str(fd, "OK\r\n"); else write_str(fd, "ERR\r\n");
+}
+
+static void cmd_fs_cat(int fd, console_session_t *session, const char *path)
+{
+    char full[CONSOLE_PATH_MAX];
+    if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    if (sd_fs_cat(full, fd) != XST_SUCCESS) write_str(fd, "ERR\r\n");
+}
+
+static void cmd_fs_rm(int fd, console_session_t *session, const char *path)
+{
+    char full[CONSOLE_PATH_MAX];
+    if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    if (sd_fs_rm(full) == XST_SUCCESS) write_str(fd, "OK\r\n"); else write_str(fd, "ERR\r\n");
 }
 
 static void __attribute__((unused)) pong(uint8_t *data_buffer, int data_length, int socket_fd)
@@ -296,7 +390,14 @@ static void cmd_axp_rules(int fd)
 
 static void cmd_help_top(int fd)
 {
-    write_str(fd, "Commands:\r\n");
+    write_str(fd, "available commands:\r\n");
+    write_str(fd, "  pwd\r\n");
+    write_str(fd, "  ls [path]\r\n");
+    write_str(fd, "  cd <dir>\r\n");
+    write_str(fd, "  mkdir <dir>\r\n");
+    write_str(fd, "  touch <file>\r\n");
+    write_str(fd, "  cat <file>\r\n");
+    write_str(fd, "  rm <file|dir>\r\n");
     write_str(fd, "  smi -h|--help\r\n");
     write_str(fd, "  smi r <phy> <reg>\r\n");
     write_str(fd, "  smi w <phy> <reg> <data>\r\n");
@@ -377,7 +478,7 @@ static void cmd_axp_rule_edit(int fd, const char *op, const char *s_reg, const c
     write_str(fd, ok ? "OK\r\n" : "ERR\r\n");
 }
 
-void process_console_line(const char *line, int socket_fd)
+void process_console_line(const char *line, int socket_fd, console_session_t *session)
 {
     char tmp[256];
     strncpy(tmp, line, sizeof(tmp) - 1);
@@ -385,6 +486,14 @@ void process_console_line(const char *line, int socket_fd)
     char *save = NULL;
     char *tok = strtok_r(tmp, " \t", &save);
     if (!tok) return;
+    if (strcasecmp(tok, "fs") == 0) { cmd_help_fs(socket_fd); return; }
+    if (strcasecmp(tok, "pwd") == 0) { cmd_fs_pwd(socket_fd, session); return; }
+    if (strcasecmp(tok, "ls") == 0) { char *p = strtok_r(NULL, " \t", &save); cmd_fs_ls(socket_fd, session, p); return; }
+    if (strcasecmp(tok, "cd") == 0) { char *p = strtok_r(NULL, " \t", &save); cmd_fs_cd(socket_fd, session, p); return; }
+    if (strcasecmp(tok, "mkdir") == 0) { char *p = strtok_r(NULL, " \t", &save); cmd_fs_mkdir(socket_fd, session, p); return; }
+    if (strcasecmp(tok, "touch") == 0) { char *p = strtok_r(NULL, " \t", &save); cmd_fs_touch(socket_fd, session, p); return; }
+    if (strcasecmp(tok, "cat") == 0) { char *p = strtok_r(NULL, " \t", &save); cmd_fs_cat(socket_fd, session, p); return; }
+    if (strcasecmp(tok, "rm") == 0) { char *p = strtok_r(NULL, " \t", &save); cmd_fs_rm(socket_fd, session, p); return; }
     if (strcasecmp(tok, "help") == 0 || strcasecmp(tok, "-h") == 0 || strcasecmp(tok, "--help") == 0) { cmd_help_top(socket_fd); return; }
     if (strcasecmp(tok, "quit") == 0 || strcasecmp(tok, "exit") == 0) { write_str(socket_fd, "Bye!\r\n"); s_close_requested = 1; return; }
     if (strcasecmp(tok, "smi") == 0) {
