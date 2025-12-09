@@ -92,24 +92,84 @@ void console_print_prompt(int fd, const console_session_t *session)
     write_str(fd, prompt);
 }
 
+static bool normalize_path(const char *in, char *out, size_t out_sz)
+{
+    char buf[CONSOLE_PATH_MAX * 2];
+    if (!in || !out) return false;
+    strncpy(buf, in, sizeof(buf) - 1);
+    buf[sizeof(buf) - 1] = '\0';
+
+    size_t pos = 0;
+    char drive[8] = {0};
+    if (buf[0] && buf[1] == ':') {
+        drive[0] = buf[0];
+        drive[1] = ':';
+        drive[2] = '\0';
+        pos = 2;
+        if (buf[pos] == '/') pos++;
+    } else if (buf[0] == '/') {
+        pos = 1;
+    } else {
+        return false;
+    }
+
+    const char *segs[32];
+    int seg_cnt = 0;
+    char *p = buf + pos;
+    while (p && *p) {
+        char *slash = strchr(p, '/');
+        if (slash) *slash = '\0';
+        if (p[0] == '\0' || strcmp(p, ".") == 0) {
+            /* skip */
+        } else if (strcmp(p, "..") == 0) {
+            if (seg_cnt > 0) seg_cnt--;
+        } else {
+            if (seg_cnt < 32) segs[seg_cnt++] = p;
+        }
+        if (!slash) break;
+        p = slash + 1;
+    }
+
+    size_t idx = 0;
+    if (drive[0]) {
+        idx += snprintf(out + idx, out_sz - idx, "%s/", drive);
+    } else {
+        idx += snprintf(out + idx, out_sz - idx, "/");
+    }
+    for (int i = 0; i < seg_cnt; ++i) {
+        if (idx + strlen(segs[i]) + 2 >= out_sz) return false;
+        idx += snprintf(out + idx, out_sz - idx, "%s", segs[i]);
+        if (i != seg_cnt - 1) {
+            out[idx++] = '/';
+            out[idx] = '\0';
+        }
+    }
+    if (seg_cnt == 0) {
+        /* root already has trailing slash */
+    }
+    return idx < out_sz;
+}
+
 static bool build_path(const console_session_t *session, const char *arg, char *out, size_t out_sz)
 {
     const char *base = (session && session->cwd[0]) ? session->cwd : SD_ROOT;
-    if (!arg || arg[0] == '\0') {
-        return snprintf(out, out_sz, "%s", base) > 0 && strlen(out) < out_sz;
+    char tmp[CONSOLE_PATH_MAX * 2];
+    if (!arg || arg[0] == '\0' || strcmp(arg, ".") == 0) {
+        strncpy(tmp, base, sizeof(tmp) - 1);
+        tmp[sizeof(tmp) - 1] = '\0';
+    } else if (arg[0] == '/' && arg[1] == '\0') {
+        strncpy(tmp, SD_ROOT, sizeof(tmp) - 1);
+        tmp[sizeof(tmp) - 1] = '\0';
+    } else if (arg[0] == '/') {
+        snprintf(tmp, sizeof(tmp), "%s%s", SD_ROOT, arg + 1);
+    } else if (strchr(arg, ':')) { /* absolute drive path */
+        strncpy(tmp, arg, sizeof(tmp) - 1);
+        tmp[sizeof(tmp) - 1] = '\0';
+    } else {
+        bool need_slash = base[strlen(base) - 1] != '/';
+        snprintf(tmp, sizeof(tmp), "%s%s%s", base, need_slash ? "/" : "", arg);
     }
-    if (arg[0] == '/' && arg[1] == '\0') {
-        return snprintf(out, out_sz, "%s", SD_ROOT) > 0 && strlen(out) < out_sz;
-    }
-    if (arg[0] == '/') {
-        return snprintf(out, out_sz, "%s%s", SD_ROOT, arg + 1) > 0 && strlen(out) < out_sz;
-    }
-    if (strchr(arg, ':')) { /* absolute drive path */
-        return snprintf(out, out_sz, "%s", arg) > 0 && strlen(out) < out_sz;
-    }
-    bool need_slash = base[strlen(base) - 1] != '/';
-    int n = snprintf(out, out_sz, "%s%s%s", base, need_slash ? "/" : "", arg);
-    return n > 0 && (size_t)n < out_sz;
+    return normalize_path(tmp, out, out_sz);
 }
 
 static void cmd_help_fs(int fd)

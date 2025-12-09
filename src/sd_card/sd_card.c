@@ -11,6 +11,7 @@
 #define SD_MOUNT_POINT      SD_ROOT
 #define SD_TASK_STACK       1024
 #define SD_TASK_PRIO        (tskIDLE_PRIORITY + 2)
+#define SD_PATH_MAX         128
 
 static XSdPs sd_instance;
 static FATFS fatfs;
@@ -229,8 +230,14 @@ int sd_fs_is_dir(const char *path)
 {
     if (!sd_ready || !path) return XST_FAILURE;
     if (!sd_lock()) return XST_FAILURE;
+    if (strcmp(path, SD_ROOT) == 0) { sd_unlock(); return XST_SUCCESS; }
+    char norm[SD_PATH_MAX];
+    strncpy(norm, path, sizeof(norm) - 1);
+    norm[sizeof(norm) - 1] = '\0';
+    size_t len = strlen(norm);
+    if (len > 1 && norm[len - 1] == '/') { norm[len - 1] = '\0'; }
     FILINFO fno;
-    FRESULT res = f_stat(path, &fno);
+    FRESULT res = f_stat(norm, &fno);
     sd_unlock();
     if (res != FR_OK) return XST_FAILURE;
     return (fno.fattrib & AM_DIR) ? XST_SUCCESS : XST_FAILURE;
