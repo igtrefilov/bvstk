@@ -18,6 +18,11 @@ static void run_client_session(int fd)
     char linebuf[256];
     size_t linelen = 0;
     size_t cursor = 0;
+    /* simple in-memory history */
+    enum { HISTORY_LEN = 16 };
+    char history[HISTORY_LEN][sizeof(linebuf)];
+    int history_count = 0;   /* number of stored entries */
+    int history_pos = -1;    /* -1 = current line, 0..count-1 = offset from newest */
     enum { ESC_NONE = 0, ESC_ESC, ESC_CSI, ESC_SS3, ESC_CSI_PARAM } esc_state = ESC_NONE;
     int iac_skip = 0; /* skip telnet IAC negotiation byte(s) */
     int bytes_received;
@@ -61,16 +66,64 @@ static void run_client_session(int fd)
                         if ((c >= '0' && c <= '9') || c == ';') { esc_state = ESC_CSI_PARAM; continue; }
                         if (c == 'C') { if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); } }
                         else if (c == 'D') { if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); } }
-                        else if (c == 'A') { xil_printf("up_arrow\r\n"); }
-                        else if (c == 'B') { xil_printf("down_arrow\r\n"); }
+                        else if (c == 'A') { /* arrow up: previous command */ 
+                            if (history_count > 0 && history_pos + 1 < history_count) {
+                                history_pos++;
+                                strcpy(linebuf, history[history_count - 1 - history_pos]);
+                                linelen = strlen(linebuf);
+                                cursor = linelen;
+                                lwip_write(fd, "\r\x1b[K", 3);
+                                console_print_prompt(fd, &session);
+                                if (linelen) lwip_write(fd, linebuf, linelen);
+                            }
+                        }
+                        else if (c == 'B') { /* arrow down: newer command */ 
+                            if (history_pos > 0) {
+                                history_pos--;
+                                strcpy(linebuf, history[history_count - 1 - history_pos]);
+                                linelen = strlen(linebuf);
+                            } else if (history_pos == 0) {
+                                history_pos = -1;
+                                linelen = 0;
+                                linebuf[0] = '\0';
+                            } else { /* already at current line */ }
+                            cursor = linelen;
+                            lwip_write(fd, "\r\x1b[K", 3);
+                            console_print_prompt(fd, &session);
+                            if (linelen) lwip_write(fd, linebuf, linelen);
+                        }
                         esc_state = ESC_NONE;
                         continue;
                     }
                     if (esc_state == ESC_SS3) {
                         if (c == 'C') { if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); } }
                         else if (c == 'D') { if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); } }
-                        else if (c == 'A') { xil_printf("up_arrow\r\n"); }
-                        else if (c == 'B') { xil_printf("down_arrow\r\n"); }
+                        else if (c == 'A') { /* arrow up */ 
+                            if (history_count > 0 && history_pos + 1 < history_count) {
+                                history_pos++;
+                                strcpy(linebuf, history[history_count - 1 - history_pos]);
+                                linelen = strlen(linebuf);
+                                cursor = linelen;
+                                lwip_write(fd, "\r\x1b[K", 3);
+                                console_print_prompt(fd, &session);
+                                if (linelen) lwip_write(fd, linebuf, linelen);
+                            }
+                        }
+                        else if (c == 'B') { /* arrow down */ 
+                            if (history_pos > 0) {
+                                history_pos--;
+                                strcpy(linebuf, history[history_count - 1 - history_pos]);
+                                linelen = strlen(linebuf);
+                            } else if (history_pos == 0) {
+                                history_pos = -1;
+                                linelen = 0;
+                                linebuf[0] = '\0';
+                            } else { /* already at current line */ }
+                            cursor = linelen;
+                            lwip_write(fd, "\r\x1b[K", 3);
+                            console_print_prompt(fd, &session);
+                            if (linelen) lwip_write(fd, linebuf, linelen);
+                        }
                         esc_state = ESC_NONE;
                         continue;
                     }
@@ -91,6 +144,18 @@ static void run_client_session(int fd)
                     lwip_write(fd, "\r\n", 2);
                     linebuf[linelen] = '\0';
                     if (linelen > 0) {
+                        /* save to history (no duplicates in a row) */
+                        if (history_count == 0 || strcmp(history[history_count - 1], linebuf) != 0) {
+                            if (history_count < HISTORY_LEN) {
+                                strcpy(history[history_count], linebuf);
+                                history_count++;
+                            } else {
+                                /* shift left and append */
+                                for (int h = 1; h < HISTORY_LEN; ++h) strcpy(history[h - 1], history[h]);
+                                strcpy(history[HISTORY_LEN - 1], linebuf);
+                            }
+                        }
+                        history_pos = -1;
                         process_console_line(linebuf, fd, &session);
                         linelen = 0;
                         cursor = 0;
