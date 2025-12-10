@@ -14,6 +14,13 @@ __attribute__((weak)) void process_received_data(uint8_t *data_buffer, int data_
     (void)socket_fd;
 }
 
+/* static buffers to reduce task stack usage */
+enum { HISTORY_LEN = 16 };
+static char s_history[HISTORY_LEN][256];
+static int  s_history_count = 0;
+static int  s_history_pos   = -1; /* -1 = current line */
+static char s_dir_candidates[16][SD_NAME_MAX];
+
 static void run_client_session(int fd)
 {
     char buffer[BUFFER_SIZE];
@@ -21,14 +28,11 @@ static void run_client_session(int fd)
     size_t linelen = 0;
     size_t cursor = 0;
     /* simple in-memory history */
-    enum { HISTORY_LEN = 16 };
-    char history[HISTORY_LEN][sizeof(linebuf)];
-    int history_count = 0;   /* number of stored entries */
-    int history_pos = -1;    /* -1 = current line, 0..count-1 = offset from newest */
+    int history_count = s_history_count;   /* number of stored entries */
+    int history_pos = -1;    /* session-local position */
     static const char *const commands[] = { "fs", "smi", "mem", "axp", "help", "quit", "exit" };
     /* path helpers */
     enum { CONSOLE_PATH_MAX = 128 };
-    char dir_candidates[16][SD_NAME_MAX];
     enum { ESC_NONE = 0, ESC_ESC, ESC_CSI, ESC_SS3, ESC_CSI_PARAM } esc_state = ESC_NONE;
     int iac_skip = 0; /* skip telnet IAC negotiation byte(s) */
     int bytes_received;
@@ -75,7 +79,7 @@ static void run_client_session(int fd)
                         else if (c == 'A') { /* arrow up: previous command */ 
                             if (history_count > 0 && history_pos + 1 < history_count) {
                                 history_pos++;
-                                strcpy(linebuf, history[history_count - 1 - history_pos]);
+                                strcpy(linebuf, s_history[history_count - 1 - history_pos]);
                                 linelen = strlen(linebuf);
                                 cursor = linelen;
                                 lwip_write(fd, "\r\x1b[2K", 5); /* clear whole line */
@@ -86,7 +90,7 @@ static void run_client_session(int fd)
                         else if (c == 'B') { /* arrow down: newer command */ 
                             if (history_pos > 0) {
                                 history_pos--;
-                                strcpy(linebuf, history[history_count - 1 - history_pos]);
+                                strcpy(linebuf, s_history[history_count - 1 - history_pos]);
                                 linelen = strlen(linebuf);
                             } else if (history_pos == 0) {
                                 history_pos = -1;
@@ -107,7 +111,7 @@ static void run_client_session(int fd)
                         else if (c == 'A') { /* arrow up */ 
                             if (history_count > 0 && history_pos + 1 < history_count) {
                                 history_pos++;
-                                strcpy(linebuf, history[history_count - 1 - history_pos]);
+                                strcpy(linebuf, s_history[history_count - 1 - history_pos]);
                                 linelen = strlen(linebuf);
                                 cursor = linelen;
                                 lwip_write(fd, "\r\x1b[2K", 5);
@@ -118,7 +122,7 @@ static void run_client_session(int fd)
                         else if (c == 'B') { /* arrow down */ 
                             if (history_pos > 0) {
                                 history_pos--;
-                                strcpy(linebuf, history[history_count - 1 - history_pos]);
+                                strcpy(linebuf, s_history[history_count - 1 - history_pos]);
                                 linelen = strlen(linebuf);
                             } else if (history_pos == 0) {
                                 history_pos = -1;
@@ -151,14 +155,16 @@ static void run_client_session(int fd)
                     linebuf[linelen] = '\0';
                     if (linelen > 0) {
                         /* save to history (no duplicates in a row) */
-                        if (history_count == 0 || strcmp(history[history_count - 1], linebuf) != 0) {
+                        if (history_count == 0 || strcmp(s_history[history_count - 1], linebuf) != 0) {
                             if (history_count < HISTORY_LEN) {
-                                strcpy(history[history_count], linebuf);
+                                strcpy(s_history[history_count], linebuf);
                                 history_count++;
+                                s_history_count = history_count;
                             } else {
                                 /* shift left and append */
-                                for (int h = 1; h < HISTORY_LEN; ++h) strcpy(history[h - 1], history[h]);
-                                strcpy(history[HISTORY_LEN - 1], linebuf);
+                                for (int h = 1; h < HISTORY_LEN; ++h) strcpy(s_history[h - 1], s_history[h]);
+                                strcpy(s_history[HISTORY_LEN - 1], linebuf);
+                                s_history_count = HISTORY_LEN;
                             }
                         }
                         history_pos = -1;
@@ -254,12 +260,12 @@ static void run_client_session(int fd)
                             snprintf(full_dir, sizeof(full_dir), "%s%s%s", dir_part, need_slash ? "/" : "", "");
                         }
                         int total = 0;
-                        if (sd_fs_complete(full_dir, prefix_part, dir_candidates, 16, &total) != XST_SUCCESS || total == 0) {
+                        if (sd_fs_complete(full_dir, prefix_part, s_dir_candidates, 16, &total) != XST_SUCCESS || total == 0) {
                             continue;
                         }
                         matches = total;
                         if (matches == 1) {
-                            const char *match = dir_candidates[0];
+                            const char *match = s_dir_candidates[0];
                             size_t match_len = strlen(match);
                             /* replace current token with completion */
                             size_t tail = linelen - cursor;
@@ -277,7 +283,7 @@ static void run_client_session(int fd)
                         } else {
                             lwip_write(fd, "\r\n", 2);
                             for (int m = 0; m < total && m < 16; ++m) {
-                                lwip_write(fd, dir_candidates[m], strlen(dir_candidates[m]));
+                                lwip_write(fd, s_dir_candidates[m], strlen(s_dir_candidates[m]));
                                 lwip_write(fd, "  ", 2);
                             }
                             lwip_write(fd, "\r\n", 2);
