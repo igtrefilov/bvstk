@@ -41,16 +41,7 @@ static void run_client_session(int fd)
     int bytes_received;
     console_session_t session;
     console_session_init(&session);
-    /* Request character-at-a-time mode so arrows/TAB приходят сразу, но оставляем свою обработку строки. */
-    {
-        const unsigned char opts[] = {
-            0xFF, 0xFB, 0x01, /* IAC WILL ECHO */
-            0xFF, 0xFB, 0x03, /* IAC WILL SUPPRESS-GO-AHEAD */
-            0xFF, 0xFD, 0x03, /* IAC DO SUPPRESS-GO-AHEAD */
-            0xFF, 0xFE, 0x22  /* IAC DONT LINEMODE */
-        };
-        lwip_write(fd, opts, sizeof(opts));
-    }
+    /* No telnet option negotiation: treat input as raw characters to avoid clients stuck in line mode. */
     console_print_prompt(fd, &session);
     utils_reset_close();
     for (;;) {
@@ -60,7 +51,8 @@ static void run_client_session(int fd)
         for (int i = 0; i < bytes_received; ++i) {
             char c = buffer[i];
             if (iac_skip > 0) { iac_skip--; continue; }
-            if ((unsigned char)c == 0xFF) { iac_skip = 2; continue; } /* basic telnet IAC cmd+opt */
+            /* ignore telnet IAC negotiation bytes if any slip in */
+            if ((unsigned char)c == 0xFF) { continue; }
             if (esc_state != ESC_NONE) {
                 if (esc_state == ESC_ESC) {
                     if (c == '[') { esc_state = ESC_CSI; continue; }
