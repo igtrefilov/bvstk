@@ -318,7 +318,7 @@ static void run_client_session(int fd)
 
 void start_tcp_server(void)
 {
-    sys_thread_new("tcp_server_thrd", tcp_server_thread, 0, THREAD_STACKSIZE, tskIDLE_PRIORITY + 1);
+    sys_thread_new("tcp_server_thrd", tcp_server_thread, 0, TCP_THREAD_STACKSIZE, tskIDLE_PRIORITY + 1);
 }
 
 void tcp_server_thread(void *p)
