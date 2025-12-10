@@ -10,6 +10,7 @@
 #include "task.h"
 
 #define SD_ROOT "0:/"
+#define SD_NAME_MAX 64
 
 typedef struct {
 	u32 block_size;
@@ -31,5 +32,6 @@ int sd_fs_touch(const char *path);
 int sd_fs_mkdir(const char *path);
 int sd_fs_rm(const char *path);
 int sd_fs_is_dir(const char *path);
+int sd_fs_complete(const char *dir, const char *prefix, char results[][SD_NAME_MAX], int max_results, int *out_count);
 
 #endif // SD_CARD_H

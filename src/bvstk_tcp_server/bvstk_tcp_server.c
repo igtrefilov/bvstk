@@ -1,5 +1,7 @@
 #include "bvstk_tcp_server.h"
 #include <string.h>
+#include <strings.h>
+#include "../sd_card/sd_card.h"
 
 int eth_socket;
 int client_socket = -1;
@@ -24,6 +26,9 @@ static void run_client_session(int fd)
     int history_count = 0;   /* number of stored entries */
     int history_pos = -1;    /* -1 = current line, 0..count-1 = offset from newest */
     static const char *const commands[] = { "fs", "smi", "mem", "axp", "help", "quit", "exit" };
+    /* path helpers */
+    enum { CONSOLE_PATH_MAX = 128 };
+    char dir_candidates[16][SD_NAME_MAX];
     enum { ESC_NONE = 0, ESC_ESC, ESC_CSI, ESC_SS3, ESC_CSI_PARAM } esc_state = ESC_NONE;
     int iac_skip = 0; /* skip telnet IAC negotiation byte(s) */
     int bytes_received;
@@ -176,54 +181,112 @@ static void run_client_session(int fd)
                         for (size_t k = 0; k < tail + 1; ++k) lwip_write(fd, "\x1b[D", 3);
                     }
                 } else if (c == '\t') {
-                    /* TAB: autocomplete commands (first token only) */
+                    /* TAB autocomplete: commands or filesystem paths */
                     size_t start = cursor;
                     while (start > 0 && linebuf[start - 1] != ' ' && linebuf[start - 1] != '\t') start--;
+                    bool completing_command = true;
+                    for (size_t k = 0; k < start; ++k) {
+                        if (linebuf[k] != ' ' && linebuf[k] != '\t') { completing_command = false; break; }
+                    }
                     size_t prefix_len = cursor - start;
                     int matches = 0;
-                    const char *last_match = NULL;
-                    for (size_t m = 0; m < sizeof(commands)/sizeof(commands[0]); ++m) {
-                        if (strncmp(commands[m], linebuf + start, prefix_len) == 0) {
-                            matches++;
-                            last_match = commands[m];
-                        }
-                    }
-                    if (matches == 0) continue;
-                    if (matches == 1 && last_match) {
-                        size_t match_len = strlen(last_match);
-                        if (start + match_len + 1 >= sizeof(linebuf)) continue; /* +1 for possible space */
-                        /* replace prefix with full match */
-                        size_t tail = linelen - cursor;
-                        memmove(linebuf + start + match_len, linebuf + cursor, tail);
-                        memcpy(linebuf + start, last_match, match_len);
-                        linelen = start + match_len + tail;
-                        cursor = start + match_len;
-                        /* append space if room */
-                        if (linelen + 1 < sizeof(linebuf)) {
-                            memmove(linebuf + cursor + 1, linebuf + cursor, tail);
-                            linebuf[cursor] = ' ';
-                            linelen++;
-                            cursor++;
-                        }
-                        /* redraw line */
-                        lwip_write(fd, "\r\x1b[2K", 5);
-                        console_print_prompt(fd, &session);
-                        if (linelen) lwip_write(fd, linebuf, linelen);
-                    } else if (matches > 1) {
-                        /* list options */
-                        lwip_write(fd, "\r\n", 2);
+                    if (completing_command) {
+                        const char *last_match = NULL;
                         for (size_t m = 0; m < sizeof(commands)/sizeof(commands[0]); ++m) {
                             if (strncmp(commands[m], linebuf + start, prefix_len) == 0) {
-                                lwip_write(fd, commands[m], strlen(commands[m]));
-                                lwip_write(fd, "  ", 2);
+                                matches++;
+                                last_match = commands[m];
                             }
                         }
-                        lwip_write(fd, "\r\n", 2);
-                        /* redraw prompt and line */
-                        lwip_write(fd, "\r\x1b[2K", 5);
-                        console_print_prompt(fd, &session);
-                        if (linelen) lwip_write(fd, linebuf, linelen);
+                        if (matches == 1 && last_match) {
+                            size_t match_len = strlen(last_match);
+                            if (start + match_len + 1 >= sizeof(linebuf)) continue; /* +1 for space */
+                            size_t tail = linelen - cursor;
+                            memmove(linebuf + start + match_len, linebuf + cursor, tail);
+                            memcpy(linebuf + start, last_match, match_len);
+                            linelen = start + match_len + tail;
+                            cursor = start + match_len;
+                            if (linelen + 1 < sizeof(linebuf)) {
+                                memmove(linebuf + cursor + 1, linebuf + cursor, tail);
+                                linebuf[cursor] = ' ';
+                                linelen++;
+                                cursor++;
+                            }
+                        } else if (matches > 1) {
+                            lwip_write(fd, "\r\n", 2);
+                            for (size_t m = 0; m < sizeof(commands)/sizeof(commands[0]); ++m) {
+                                if (strncmp(commands[m], linebuf + start, prefix_len) == 0) {
+                                    lwip_write(fd, commands[m], strlen(commands[m]));
+                                    lwip_write(fd, "  ", 2);
+                                }
+                            }
+                            lwip_write(fd, "\r\n", 2);
+                        } else {
+                            continue;
+                        }
+                    } else {
+                        /* filesystem completion */
+                        /* find token start of current word (already start) and compute directory + prefix */
+                        const char *cwd = (session.cwd[0]) ? session.cwd : SD_ROOT;
+                        char token_prefix[CONSOLE_PATH_MAX];
+                        size_t tok_len = (linelen - start < sizeof(token_prefix)-1) ? (cursor - start) : sizeof(token_prefix)-1;
+                        memcpy(token_prefix, linebuf + start, tok_len);
+                        token_prefix[tok_len] = '\0';
+                        /* split dir/prefix */
+                        char dir_part[CONSOLE_PATH_MAX];
+                        char prefix_part[CONSOLE_PATH_MAX];
+                        const char *last_slash = strrchr(token_prefix, '/');
+                        if (last_slash) {
+                            size_t dlen = (size_t)(last_slash - token_prefix);
+                            if (dlen == 0) snprintf(dir_part, sizeof(dir_part), "%s", SD_ROOT);
+                            else snprintf(dir_part, sizeof(dir_part), "%.*s", (int)dlen, token_prefix);
+                            snprintf(prefix_part, sizeof(prefix_part), "%s", last_slash + 1);
+                        } else {
+                            snprintf(dir_part, sizeof(dir_part), "%s", cwd);
+                            snprintf(prefix_part, sizeof(prefix_part), "%s", token_prefix);
+                        }
+                        /* build absolute dir path */
+                        char full_dir[CONSOLE_PATH_MAX];
+                        if (dir_part[0] == '/' && dir_part[1] != '\0') {
+                            snprintf(full_dir, sizeof(full_dir), "%s%s", SD_ROOT, dir_part + 1);
+                        } else {
+                            bool need_slash = dir_part[strlen(dir_part) - 1] != '/';
+                            snprintf(full_dir, sizeof(full_dir), "%s%s%s", dir_part, need_slash ? "/" : "", "");
+                        }
+                        int total = 0;
+                        if (sd_fs_complete(full_dir, prefix_part, dir_candidates, 16, &total) != XST_SUCCESS || total == 0) {
+                            continue;
+                        }
+                        matches = total;
+                        if (matches == 1) {
+                            const char *match = dir_candidates[0];
+                            size_t match_len = strlen(match);
+                            /* replace current token with completion */
+                            size_t tail = linelen - cursor;
+                            memmove(linebuf + start + match_len, linebuf + cursor, tail);
+                            memcpy(linebuf + start, match, match_len);
+                            linelen = start + match_len + tail;
+                            cursor = start + match_len;
+                            /* append space if not directory ending with '/' */
+                            if (match[match_len - 1] != '/' && linelen + 1 < sizeof(linebuf)) {
+                                memmove(linebuf + cursor + 1, linebuf + cursor, tail);
+                                linebuf[cursor] = ' ';
+                                linelen++;
+                                cursor++;
+                            }
+                        } else {
+                            lwip_write(fd, "\r\n", 2);
+                            for (int m = 0; m < total && m < 16; ++m) {
+                                lwip_write(fd, dir_candidates[m], strlen(dir_candidates[m]));
+                                lwip_write(fd, "  ", 2);
+                            }
+                            lwip_write(fd, "\r\n", 2);
+                        }
                     }
+                    /* redraw prompt and line */
+                    lwip_write(fd, "\r\x1b[2K", 5);
+                    console_print_prompt(fd, &session);
+                    if (linelen) lwip_write(fd, linebuf, linelen);
                 } else if (isprint((unsigned char)c)) {
                     if (linelen + 1 >= sizeof(linebuf)) continue;
                     size_t tail = linelen - cursor;

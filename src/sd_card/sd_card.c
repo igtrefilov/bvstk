@@ -243,6 +243,42 @@ int sd_fs_is_dir(const char *path)
     return (fno.fattrib & AM_DIR) ? XST_SUCCESS : XST_FAILURE;
 }
 
+int sd_fs_complete(const char *dir, const char *prefix, char results[][SD_NAME_MAX], int max_results, int *out_count)
+{
+    if (out_count) *out_count = 0;
+    if (!sd_ready || !dir || !results || max_results <= 0) return XST_FAILURE;
+    if (!sd_lock()) return XST_FAILURE;
+    DIR d;
+    FILINFO fno;
+    FRESULT res = f_opendir(&d, dir);
+    if (res != FR_OK) { sd_unlock(); return XST_FAILURE; }
+    size_t prefix_len = prefix ? strlen(prefix) : 0;
+    int cnt = 0;
+    while (f_readdir(&d, &fno) == FR_OK && fno.fname[0]) {
+        char name[sizeof(fno.fname)];
+        strncpy(name, fno.fname, sizeof(name) - 1);
+        name[sizeof(name) - 1] = '\0';
+        normalize_name(name);
+        if (prefix_len && strncmp(name, prefix, prefix_len) != 0) continue;
+        if (cnt < max_results) {
+            strncpy(results[cnt], name, SD_NAME_MAX - 2);
+            results[cnt][SD_NAME_MAX - 2] = '\0';
+            if (fno.fattrib & AM_DIR) {
+                size_t nlen = strlen(results[cnt]);
+                if (nlen < SD_NAME_MAX - 1) {
+                    results[cnt][nlen] = '/';
+                    results[cnt][nlen + 1] = '\0';
+                }
+            }
+        }
+        cnt++;
+    }
+    f_closedir(&d);
+    sd_unlock();
+    if (out_count) *out_count = cnt;
+    return XST_SUCCESS;
+}
+
 int sd_card_cat(const char *path, int fd)
 {
     if (!ensure_ready(fd)) return XST_FAILURE;
