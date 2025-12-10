@@ -72,7 +72,7 @@ static void run_client_session(int fd)
                                 strcpy(linebuf, history[history_count - 1 - history_pos]);
                                 linelen = strlen(linebuf);
                                 cursor = linelen;
-                                lwip_write(fd, "\r\x1b[K", 3);
+                                lwip_write(fd, "\r\x1b[2K", 5); /* clear whole line */
                                 console_print_prompt(fd, &session);
                                 if (linelen) lwip_write(fd, linebuf, linelen);
                             }
@@ -88,7 +88,7 @@ static void run_client_session(int fd)
                                 linebuf[0] = '\0';
                             } else { /* already at current line */ }
                             cursor = linelen;
-                            lwip_write(fd, "\r\x1b[K", 3);
+                            lwip_write(fd, "\r\x1b[2K", 5);
                             console_print_prompt(fd, &session);
                             if (linelen) lwip_write(fd, linebuf, linelen);
                         }
@@ -104,7 +104,7 @@ static void run_client_session(int fd)
                                 strcpy(linebuf, history[history_count - 1 - history_pos]);
                                 linelen = strlen(linebuf);
                                 cursor = linelen;
-                                lwip_write(fd, "\r\x1b[K", 3);
+                                lwip_write(fd, "\r\x1b[2K", 5);
                                 console_print_prompt(fd, &session);
                                 if (linelen) lwip_write(fd, linebuf, linelen);
                             }
@@ -120,7 +120,7 @@ static void run_client_session(int fd)
                                 linebuf[0] = '\0';
                             } else { /* already at current line */ }
                             cursor = linelen;
-                            lwip_write(fd, "\r\x1b[K", 3);
+                            lwip_write(fd, "\r\x1b[2K", 5);
                             console_print_prompt(fd, &session);
                             if (linelen) lwip_write(fd, linebuf, linelen);
                         }
