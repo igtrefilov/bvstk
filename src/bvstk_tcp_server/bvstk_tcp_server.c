@@ -16,6 +16,8 @@ static void run_client_session(int fd)
     char buffer[BUFFER_SIZE];
     char linebuf[256];
     size_t linelen = 0;
+    size_t cursor = 0;
+    int esc_state = 0; /* 0=none,1=ESC,2=ESC[ */
     int bytes_received;
     console_session_t session;
     console_session_init(&session);
@@ -28,23 +30,59 @@ static void run_client_session(int fd)
         bool looks_text = false;
         for (int i = 0; i < bytes_received; ++i) {
             unsigned char c = (unsigned char)buffer[i];
-            if (c == '\n' || c == '\r' || isprint(c)) looks_text = true;
+            if (c == '\n' || c == '\r' || isprint(c) || c == 0x1B || c == 0x08 || c == 0x7F) looks_text = true;
             else { looks_text = false; break; }
         }
         if (looks_text) {
             for (int i = 0; i < bytes_received; ++i) {
                 char c = buffer[i];
+                if (esc_state) {
+                    if (esc_state == 1 && c == '[') { esc_state = 2; continue; }
+                    if (esc_state == 2) {
+                        if (c == 'C') { /* right */
+                            if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); }
+                        } else if (c == 'D') { /* left */
+                            if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); }
+                        }
+                    }
+                    esc_state = 0;
+                    continue;
+                }
+                if (c == 0x1B) { esc_state = 1; continue; }
                 if (c == '\r') continue;
                 if (c == '\n') {
                     linebuf[linelen] = '\0';
                     if (linelen > 0) {
                         process_console_line(linebuf, fd, &session);
                         linelen = 0;
+                        cursor = 0;
                     }
                     if (utils_should_close()) return;
                     console_print_prompt(fd, &session);
-                } else if (linelen + 1 < sizeof(linebuf)) {
-                    linebuf[linelen++] = c;
+                    esc_state = 0;
+                } else if (c == 0x08 || c == 0x7F) { /* backspace */
+                    if (cursor > 0) {
+                        cursor--;
+                        size_t tail = linelen - cursor - 1;
+                        memmove(linebuf + cursor, linebuf + cursor + 1, tail);
+                        linelen--;
+                        lwip_write(fd, "\b", 1);
+                        if (tail > 0) lwip_write(fd, linebuf + cursor, tail);
+                        lwip_write(fd, " ", 1);
+                        for (size_t k = 0; k < tail + 1; ++k) lwip_write(fd, "\x1b[D", 3);
+                    }
+                } else if (isprint((unsigned char)c)) {
+                    if (linelen + 1 >= sizeof(linebuf)) continue;
+                    size_t tail = linelen - cursor;
+                    memmove(linebuf + cursor + 1, linebuf + cursor, tail);
+                    linebuf[cursor] = c;
+                    linelen++;
+                    cursor++;
+                    lwip_write(fd, &c, 1);
+                    if (tail > 0) {
+                        lwip_write(fd, linebuf + cursor, tail);
+                        for (size_t k = 0; k < tail; ++k) lwip_write(fd, "\x1b[D", 3);
+                    }
                 }
             }
         } else {
