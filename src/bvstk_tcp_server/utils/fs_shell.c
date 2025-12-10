@@ -156,7 +156,15 @@ static void cmd_fs_rm(int fd, console_session_t *session, const char *path)
 bool fs_handle(char *tok, char **save, int fd, console_session_t *session)
 {
     if (!tok) return false;
-    if (strcasecmp(tok, "fs") == 0) { cmd_help_fs(fd); return true; }
+    if (strcasecmp(tok, "fs") == 0) {
+        char *sub = strtok_r(NULL, " \t", save);
+        if (!sub || strcasecmp(sub, "-h") == 0 || strcasecmp(sub, "--help") == 0 || strcasecmp(sub, "-help") == 0) {
+            cmd_help_fs(fd);
+        } else {
+            write_str(fd, "ERR\r\n");
+        }
+        return true;
+    }
     if (strcasecmp(tok, "pwd") == 0) { cmd_fs_pwd(fd, session); return true; }
     if (strcasecmp(tok, "ls") == 0) { char *p = strtok_r(NULL, " \t", save); cmd_fs_ls(fd, session, p); return true; }
     if (strcasecmp(tok, "cd") == 0) { char *p = strtok_r(NULL, " \t", save); cmd_fs_cd(fd, session, p); return true; }
