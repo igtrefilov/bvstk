@@ -51,6 +51,9 @@ setws $WS
 platform create -name $PLAT_NAME -hw $XSA -proc $PROC -os $OS_RTOS -out $WS
 platform active $PLAT_NAME
 
+# Increase FreeRTOS heap for all tasks
+catch {bsp config total_heap_size 131072}
+
 # Attach lwIP (prefer 2.1.1 if present, otherwise 2.2.0 from Vitis 2024.2)
 set lwip_lib ""
 foreach candidate {lwip211 lwip220} {
