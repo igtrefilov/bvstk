@@ -22,7 +22,8 @@ static int  s_history_pos   = -1; /* -1 = current line */
 static char s_dir_candidates[16][SD_NAME_MAX];
 
 static char s_buffer[BUFFER_SIZE];
-static char s_linebuf[256];
+enum { LINEBUF_SIZE = 256 };
+static char s_linebuf[LINEBUF_SIZE];
 
 static void run_client_session(int fd)
 {
@@ -41,18 +42,65 @@ static void run_client_session(int fd)
     int bytes_received;
     console_session_t session;
     console_session_init(&session);
-    /* No telnet option negotiation: treat input as raw characters to avoid clients stuck in line mode. */
+    /* Ask telnet client for character-at-a-time mode: WILL/DO SGA, WILL ECHO, WONT LINEMODE. */
+    {
+        const unsigned char opts[] = {
+            0xFF, 0xFB, 0x01, /* IAC WILL ECHO */
+            0xFF, 0xFB, 0x03, /* IAC WILL SUPPRESS-GO-AHEAD */
+            0xFF, 0xFD, 0x03, /* IAC DO SUPPRESS-GO-AHEAD */
+            0xFF, 0xFE, 0x22  /* IAC DONT LINEMODE */
+        };
+        lwip_write(fd, opts, sizeof(opts));
+    }
     console_print_prompt(fd, &session);
     utils_reset_close();
     for (;;) {
         bytes_received = lwip_read(fd, buffer, sizeof(buffer) - 1);
         if (bytes_received <= 0) break;
         buffer[bytes_received] = '\0';
+        xil_printf("DBG rx len=%d bytes: ", bytes_received);
+        for (int di = 0; di < bytes_received; ++di) xil_printf("%02x ", (unsigned char)buffer[di]);
+        xil_printf("\r\n");
         for (int i = 0; i < bytes_received; ++i) {
             char c = buffer[i];
+            xil_printf("DBG proc c=0x%02x esc=%d len=%u cur=%u\r\n", (unsigned char)c, esc_state, (unsigned)linelen, (unsigned)cursor);
             if (iac_skip > 0) { iac_skip--; continue; }
-            /* ignore telnet IAC negotiation bytes if any slip in */
-            if ((unsigned char)c == 0xFF) { continue; }
+            /* telnet negotiation handling */
+            if ((unsigned char)c == 0xFF) {
+                if (i + 2 >= bytes_received) { /* not enough bytes, drop */
+                    break;
+                }
+                unsigned char cmd = (unsigned char)buffer[i + 1];
+                unsigned char opt = (unsigned char)buffer[i + 2];
+                i += 2;
+                unsigned char reply[3] = {0xFF, 0, 0};
+                bool send = false;
+                if (cmd == 0xFD) { /* DO */
+                    if (opt == 0x01) { reply[1] = 0xFB; reply[2] = opt; send = true; } /* WILL ECHO */
+                    else if (opt == 0x03) { reply[1] = 0xFB; reply[2] = opt; send = true; } /* WILL SGA */
+                    else { reply[1] = 0xFC; reply[2] = opt; send = true; } /* WONT others */
+                } else if (cmd == 0xFB) { /* WILL */
+                    if (opt == 0x01) { reply[1] = 0xFD; reply[2] = opt; send = true; } /* DO ECHO */
+                    else if (opt == 0x03) { reply[1] = 0xFD; reply[2] = opt; send = true; } /* DO SGA */
+                    else if (opt == 0x22) { reply[1] = 0xFE; reply[2] = opt; send = true; } /* DONT LINEMODE */
+                    else { reply[1] = 0xFE; reply[2] = opt; send = true; } /* DONT others */
+                } else if (cmd == 0xFE) { /* DONT */ 
+                    /* ignore */
+                } else if (cmd == 0xFC) { /* WONT */
+                    /* ignore */
+                } else if (cmd == 0xFA) { /* SB ... IAC SE */
+                    /* skip subnegotiation */
+                    while (i + 1 < bytes_received) {
+                        if ((unsigned char)buffer[i + 1] == 0xFF && i + 2 < bytes_received && (unsigned char)buffer[i + 2] == 0xF0) {
+                            i += 2;
+                            break;
+                        }
+                        i++;
+                    }
+                }
+                if (send) lwip_write(fd, reply, sizeof(reply));
+                continue;
+            }
             if (esc_state != ESC_NONE) {
                 if (esc_state == ESC_ESC) {
                     if (c == '[') { esc_state = ESC_CSI; continue; }
@@ -142,6 +190,7 @@ static void run_client_session(int fd)
                 lwip_write(fd, "\r\n", 2);
                 linebuf[linelen] = '\0';
                 if (linelen > 0) {
+                    xil_printf("DBG line len=%u buf='%s'\r\n", (unsigned)linelen, linebuf);
                     /* save to history (no duplicates in a row) */
                     if (history_count == 0 || strcmp(s_history[history_count - 1], linebuf) != 0) {
                         if (history_count < HISTORY_LEN) {
@@ -282,13 +331,14 @@ static void run_client_session(int fd)
                 console_print_prompt(fd, &session);
                 if (linelen) lwip_write(fd, linebuf, linelen);
             } else if (isprint((unsigned char)c)) {
-                if (linelen + 1 >= sizeof(linebuf)) continue;
+                if (linelen + 1 >= LINEBUF_SIZE) continue;
                 size_t tail = linelen - cursor;
                 memmove(linebuf + cursor + 1, linebuf + cursor, tail);
                 linebuf[cursor] = c;
                 linelen++;
                 cursor++;
                 lwip_write(fd, &c, 1);
+                xil_printf("DBG add '%c' len=%u cursor=%u\r\n", c, (unsigned)linelen, (unsigned)cursor);
                 if (tail > 0) {
                     lwip_write(fd, linebuf + cursor, tail);
                     for (size_t k = 0; k < tail; ++k) lwip_write(fd, "\x1b[D", 3);
