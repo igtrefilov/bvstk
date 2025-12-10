@@ -1,4 +1,5 @@
 #include "bvstk_tcp_server.h"
+#include <string.h>
 
 int eth_socket;
 int client_socket = -1;
@@ -17,7 +18,7 @@ static void run_client_session(int fd)
     char linebuf[256];
     size_t linelen = 0;
     size_t cursor = 0;
-    int esc_state = 0; /* 0=none,1=ESC,2=ESC[ */
+    enum { ESC_NONE = 0, ESC_ESC, ESC_CSI, ESC_SS3 } esc_state = ESC_NONE;
     int bytes_received;
     console_session_t session;
     console_session_init(&session);
@@ -36,19 +37,20 @@ static void run_client_session(int fd)
         if (looks_text) {
             for (int i = 0; i < bytes_received; ++i) {
                 char c = buffer[i];
-                if (esc_state) {
-                    if (esc_state == 1 && c == '[') { esc_state = 2; continue; }
-                    if (esc_state == 2) {
+                if (esc_state != ESC_NONE) {
+                    if (esc_state == ESC_ESC && c == '[') { esc_state = ESC_CSI; continue; }
+                    if (esc_state == ESC_ESC && c == 'O') { esc_state = ESC_SS3; continue; }
+                    if (esc_state == ESC_CSI || esc_state == ESC_SS3) {
                         if (c == 'C') { /* right */
                             if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); }
                         } else if (c == 'D') { /* left */
                             if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); }
                         }
                     }
-                    esc_state = 0;
+                    esc_state = ESC_NONE;
                     continue;
                 }
-                if (c == 0x1B) { esc_state = 1; continue; }
+                if (c == 0x1B) { esc_state = ESC_ESC; continue; }
                 if (c == '\r') continue;
                 if (c == '\n') {
                     linebuf[linelen] = '\0';
@@ -59,7 +61,7 @@ static void run_client_session(int fd)
                     }
                     if (utils_should_close()) return;
                     console_print_prompt(fd, &session);
-                    esc_state = 0;
+                    esc_state = ESC_NONE;
                 } else if (c == 0x08 || c == 0x7F) { /* backspace */
                     if (cursor > 0) {
                         cursor--;
