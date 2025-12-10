@@ -18,7 +18,8 @@ static void run_client_session(int fd)
     char linebuf[256];
     size_t linelen = 0;
     size_t cursor = 0;
-    enum { ESC_NONE = 0, ESC_ESC, ESC_CSI, ESC_SS3 } esc_state = ESC_NONE;
+    enum { ESC_NONE = 0, ESC_ESC, ESC_CSI, ESC_SS3, ESC_CSI_PARAM } esc_state = ESC_NONE;
+    int iac_skip = 0; /* skip telnet IAC negotiation byte(s) */
     int bytes_received;
     console_session_t session;
     console_session_init(&session);
@@ -31,24 +32,34 @@ static void run_client_session(int fd)
         bool looks_text = false;
         for (int i = 0; i < bytes_received; ++i) {
             unsigned char c = (unsigned char)buffer[i];
-            if (c == '\n' || c == '\r' || isprint(c) || c == 0x1B || c == 0x08 || c == 0x7F) looks_text = true;
+            if (c == '\n' || c == '\r' || isprint(c) || c == 0x1B || c == 0x08 || c == 0x7F || c == (char)0xFF) looks_text = true;
             else { looks_text = false; break; }
         }
         if (looks_text) {
             for (int i = 0; i < bytes_received; ++i) {
                 char c = buffer[i];
+                if (iac_skip > 0) { iac_skip--; continue; }
+                if ((unsigned char)c == 0xFF) { iac_skip = 2; continue; } /* basic telnet IAC cmd+opt */
                 if (esc_state != ESC_NONE) {
-                    if (esc_state == ESC_ESC && c == '[') { esc_state = ESC_CSI; continue; }
-                    if (esc_state == ESC_ESC && c == 'O') { esc_state = ESC_SS3; continue; }
-                    if (esc_state == ESC_CSI || esc_state == ESC_SS3) {
-                        if (c == 'C') { /* right */
-                            if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); }
-                        } else if (c == 'D') { /* left */
-                            if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); }
-                        }
+                    if (esc_state == ESC_ESC) {
+                        if (c == '[') { esc_state = ESC_CSI; continue; }
+                        if (c == 'O') { esc_state = ESC_SS3; continue; }
+                        esc_state = ESC_NONE;
+                        continue;
                     }
-                    esc_state = ESC_NONE;
-                    continue;
+                    if (esc_state == ESC_CSI || esc_state == ESC_CSI_PARAM) {
+                        if ((c >= '0' && c <= '9') || c == ';') { esc_state = ESC_CSI_PARAM; continue; }
+                        if (c == 'C') { if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); } }
+                        else if (c == 'D') { if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); } }
+                        esc_state = ESC_NONE;
+                        continue;
+                    }
+                    if (esc_state == ESC_SS3) {
+                        if (c == 'C') { if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); } }
+                        else if (c == 'D') { if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); } }
+                        esc_state = ESC_NONE;
+                        continue;
+                    }
                 }
                 if (c == 0x1B) { esc_state = ESC_ESC; continue; }
                 if (c == '\r') continue;
