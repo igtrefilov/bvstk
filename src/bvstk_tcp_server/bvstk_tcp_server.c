@@ -23,6 +23,7 @@ static void run_client_session(int fd)
     char history[HISTORY_LEN][sizeof(linebuf)];
     int history_count = 0;   /* number of stored entries */
     int history_pos = -1;    /* -1 = current line, 0..count-1 = offset from newest */
+    static const char *const commands[] = { "fs", "smi", "mem", "axp", "help", "quit", "exit" };
     enum { ESC_NONE = 0, ESC_ESC, ESC_CSI, ESC_SS3, ESC_CSI_PARAM } esc_state = ESC_NONE;
     int iac_skip = 0; /* skip telnet IAC negotiation byte(s) */
     int bytes_received;
@@ -175,9 +176,54 @@ static void run_client_session(int fd)
                         for (size_t k = 0; k < tail + 1; ++k) lwip_write(fd, "\x1b[D", 3);
                     }
                 } else if (c == '\t') {
-                    xil_printf("tab\r\n");
-                    /* do not insert TAB into input line or echo it */
-                    continue;
+                    /* TAB: autocomplete commands (first token only) */
+                    size_t start = cursor;
+                    while (start > 0 && linebuf[start - 1] != ' ' && linebuf[start - 1] != '\t') start--;
+                    size_t prefix_len = cursor - start;
+                    int matches = 0;
+                    const char *last_match = NULL;
+                    for (size_t m = 0; m < sizeof(commands)/sizeof(commands[0]); ++m) {
+                        if (strncmp(commands[m], linebuf + start, prefix_len) == 0) {
+                            matches++;
+                            last_match = commands[m];
+                        }
+                    }
+                    if (matches == 0) continue;
+                    if (matches == 1 && last_match) {
+                        size_t match_len = strlen(last_match);
+                        if (start + match_len + 1 >= sizeof(linebuf)) continue; /* +1 for possible space */
+                        /* replace prefix with full match */
+                        size_t tail = linelen - cursor;
+                        memmove(linebuf + start + match_len, linebuf + cursor, tail);
+                        memcpy(linebuf + start, last_match, match_len);
+                        linelen = start + match_len + tail;
+                        cursor = start + match_len;
+                        /* append space if room */
+                        if (linelen + 1 < sizeof(linebuf)) {
+                            memmove(linebuf + cursor + 1, linebuf + cursor, tail);
+                            linebuf[cursor] = ' ';
+                            linelen++;
+                            cursor++;
+                        }
+                        /* redraw line */
+                        lwip_write(fd, "\r\x1b[2K", 5);
+                        console_print_prompt(fd, &session);
+                        if (linelen) lwip_write(fd, linebuf, linelen);
+                    } else if (matches > 1) {
+                        /* list options */
+                        lwip_write(fd, "\r\n", 2);
+                        for (size_t m = 0; m < sizeof(commands)/sizeof(commands[0]); ++m) {
+                            if (strncmp(commands[m], linebuf + start, prefix_len) == 0) {
+                                lwip_write(fd, commands[m], strlen(commands[m]));
+                                lwip_write(fd, "  ", 2);
+                            }
+                        }
+                        lwip_write(fd, "\r\n", 2);
+                        /* redraw prompt and line */
+                        lwip_write(fd, "\r\x1b[2K", 5);
+                        console_print_prompt(fd, &session);
+                        if (linelen) lwip_write(fd, linebuf, linelen);
+                    }
                 } else if (isprint((unsigned char)c)) {
                     if (linelen + 1 >= sizeof(linebuf)) continue;
                     size_t tail = linelen - cursor;
