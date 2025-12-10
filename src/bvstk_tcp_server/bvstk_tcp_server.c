@@ -58,12 +58,8 @@ static void run_client_session(int fd)
         bytes_received = lwip_read(fd, buffer, sizeof(buffer) - 1);
         if (bytes_received <= 0) break;
         buffer[bytes_received] = '\0';
-        xil_printf("DBG rx len=%d bytes: ", bytes_received);
-        for (int di = 0; di < bytes_received; ++di) xil_printf("%02x ", (unsigned char)buffer[di]);
-        xil_printf("\r\n");
         for (int i = 0; i < bytes_received; ++i) {
             char c = buffer[i];
-            xil_printf("DBG proc c=0x%02x esc=%d len=%u cur=%u\r\n", (unsigned char)c, esc_state, (unsigned)linelen, (unsigned)cursor);
             if (iac_skip > 0) { iac_skip--; continue; }
             /* telnet negotiation handling */
             if ((unsigned char)c == 0xFF) {
@@ -190,7 +186,6 @@ static void run_client_session(int fd)
                 lwip_write(fd, "\r\n", 2);
                 linebuf[linelen] = '\0';
                 if (linelen > 0) {
-                    xil_printf("DBG line len=%u buf='%s'\r\n", (unsigned)linelen, linebuf);
                     /* save to history (no duplicates in a row) */
                     if (history_count == 0 || strcmp(s_history[history_count - 1], linebuf) != 0) {
                         if (history_count < HISTORY_LEN) {
@@ -338,7 +333,6 @@ static void run_client_session(int fd)
                 linelen++;
                 cursor++;
                 lwip_write(fd, &c, 1);
-                xil_printf("DBG add '%c' len=%u cursor=%u\r\n", c, (unsigned)linelen, (unsigned)cursor);
                 if (tail > 0) {
                     lwip_write(fd, linebuf + cursor, tail);
                     for (size_t k = 0; k < tail; ++k) lwip_write(fd, "\x1b[D", 3);
