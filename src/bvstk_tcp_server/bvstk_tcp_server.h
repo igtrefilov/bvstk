@@ -15,7 +15,7 @@
 #include "utils/utils.h"
 
 #ifndef THREAD_STACKSIZE
-#define THREAD_STACKSIZE 2048
+#define THREAD_STACKSIZE 4096
 #endif
 
 #define MAX_CONNECTIONS 8
