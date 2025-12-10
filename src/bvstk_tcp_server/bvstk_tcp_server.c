@@ -21,10 +21,13 @@ static int  s_history_count = 0;
 static int  s_history_pos   = -1; /* -1 = current line */
 static char s_dir_candidates[16][SD_NAME_MAX];
 
+static char s_buffer[BUFFER_SIZE];
+static char s_linebuf[256];
+
 static void run_client_session(int fd)
 {
-    char buffer[BUFFER_SIZE];
-    char linebuf[256];
+    char *buffer = s_buffer;
+    char *linebuf = s_linebuf;
     size_t linelen = 0;
     size_t cursor = 0;
     /* simple in-memory history */
