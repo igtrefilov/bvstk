@@ -23,6 +23,16 @@ static void run_client_session(int fd)
     int bytes_received;
     console_session_t session;
     console_session_init(&session);
+    /* Request character-at-a-time mode so arrows/TAB приходят сразу, но оставляем свою обработку строки. */
+    {
+        const unsigned char opts[] = {
+            0xFF, 0xFB, 0x01, /* IAC WILL ECHO */
+            0xFF, 0xFB, 0x03, /* IAC WILL SUPPRESS-GO-AHEAD */
+            0xFF, 0xFD, 0x03, /* IAC DO SUPPRESS-GO-AHEAD */
+            0xFF, 0xFE, 0x22  /* IAC DONT LINEMODE */
+        };
+        lwip_write(fd, opts, sizeof(opts));
+    }
     console_print_prompt(fd, &session);
     utils_reset_close();
     for (;;) {
@@ -32,7 +42,7 @@ static void run_client_session(int fd)
         bool looks_text = false;
         for (int i = 0; i < bytes_received; ++i) {
             unsigned char c = (unsigned char)buffer[i];
-            if (c == '\n' || c == '\r' || isprint(c) || c == 0x1B || c == 0x08 || c == 0x7F || c == (char)0xFF) looks_text = true;
+            if (c == '\n' || c == '\r' || c == '\t' || c == 0x00 || isprint(c) || c == 0x1B || c == 0x08 || c == 0x7F || c == (char)0xFF) looks_text = true;
             else { looks_text = false; break; }
         }
         if (looks_text) {
@@ -51,19 +61,34 @@ static void run_client_session(int fd)
                         if ((c >= '0' && c <= '9') || c == ';') { esc_state = ESC_CSI_PARAM; continue; }
                         if (c == 'C') { if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); } }
                         else if (c == 'D') { if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); } }
+                        else if (c == 'A') { xil_printf("up_arrow\r\n"); }
+                        else if (c == 'B') { xil_printf("down_arrow\r\n"); }
                         esc_state = ESC_NONE;
                         continue;
                     }
                     if (esc_state == ESC_SS3) {
                         if (c == 'C') { if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); } }
                         else if (c == 'D') { if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); } }
+                        else if (c == 'A') { xil_printf("up_arrow\r\n"); }
+                        else if (c == 'B') { xil_printf("down_arrow\r\n"); }
                         esc_state = ESC_NONE;
                         continue;
                     }
                 }
                 if (c == 0x1B) { esc_state = ESC_ESC; continue; }
-                if (c == '\r') continue;
+                /* Convert CR or CRLF to newline so Enter works in char mode. */
+                if (c == '\r') {
+                    if ((i + 1) < bytes_received && buffer[i + 1] == '\n') { /* swallow LF part of CRLF */
+                        i++;
+                    } else if ((i + 1) < bytes_received && buffer[i + 1] == '\0') { /* swallow NUL part of CR-NUL */
+                        i++;
+                    }
+                    c = '\n';
+                }
+                if (c == '\0') continue; /* ignore stray NUL */
                 if (c == '\n') {
+                    /* echo newline to client before executing command */
+                    lwip_write(fd, "\r\n", 2);
                     linebuf[linelen] = '\0';
                     if (linelen > 0) {
                         process_console_line(linebuf, fd, &session);
@@ -84,6 +109,10 @@ static void run_client_session(int fd)
                         lwip_write(fd, " ", 1);
                         for (size_t k = 0; k < tail + 1; ++k) lwip_write(fd, "\x1b[D", 3);
                     }
+                } else if (c == '\t') {
+                    xil_printf("tab\r\n");
+                    /* do not insert TAB into input line or echo it */
+                    continue;
                 } else if (isprint((unsigned char)c)) {
                     if (linelen + 1 >= sizeof(linebuf)) continue;
                     size_t tail = linelen - cursor;
