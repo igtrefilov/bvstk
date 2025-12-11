@@ -37,7 +37,6 @@ static bool normalize_path(const char *in, char *out, size_t out_sz)
         char *slash = strchr(p, '/');
         if (slash) *slash = '\0';
         if (p[0] == '\0' || strcmp(p, ".") == 0) {
-            /* skip */
         } else if (strcmp(p, "..") == 0) {
             if (seg_cnt > 0) seg_cnt--;
         } else {
@@ -62,7 +61,6 @@ static bool normalize_path(const char *in, char *out, size_t out_sz)
         }
     }
     if (seg_cnt == 0) {
-        /* root already has trailing slash */
     }
     return idx < out_sz;
 }
@@ -79,7 +77,7 @@ static bool build_path(const console_session_t *session, const char *arg, char *
         tmp[sizeof(tmp) - 1] = '\0';
     } else if (arg[0] == '/') {
         snprintf(tmp, sizeof(tmp), "%s%s", SD_ROOT, arg + 1);
-    } else if (strchr(arg, ':')) { /* absolute drive path */
+    } else if (strchr(arg, ':')) {
         strncpy(tmp, arg, sizeof(tmp) - 1);
         tmp[sizeof(tmp) - 1] = '\0';
     } else {

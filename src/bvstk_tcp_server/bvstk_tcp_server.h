@@ -15,11 +15,11 @@
 #include "utils/utils.h"
 
 #ifndef THREAD_STACKSIZE
-#define THREAD_STACKSIZE 4096   /* default for lwIP helper threads */
+#define THREAD_STACKSIZE 4096
 #endif
 
 #ifndef TCP_THREAD_STACKSIZE
-#define TCP_THREAD_STACKSIZE 12288  /* dedicated stack for console tcp thread */
+#define TCP_THREAD_STACKSIZE 12288
 #endif
 
 #define MAX_CONNECTIONS 8

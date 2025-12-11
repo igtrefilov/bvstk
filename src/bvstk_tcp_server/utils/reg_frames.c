@@ -3,8 +3,6 @@
 #include "lwip/sockets.h"
 #include "xil_io.h"
 
-/* Binary register access helpers; currently unused but kept for parity with the previous monolith. */
-
 static void __attribute__((unused)) reg_write(uint8_t *data_buffer, int data_length, uint8_t auto_increment, int socket_fd)
 {
     uint16_t total_bytes = (uint16_t)((data_buffer[1] << 8) | data_buffer[2]);

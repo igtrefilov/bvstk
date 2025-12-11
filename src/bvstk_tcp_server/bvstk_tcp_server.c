@@ -14,11 +14,10 @@ __attribute__((weak)) void process_received_data(uint8_t *data_buffer, int data_
     (void)socket_fd;
 }
 
-/* static buffers to reduce task stack usage */
 enum { HISTORY_LEN = 16 };
 static char s_history[HISTORY_LEN][256];
 static int  s_history_count = 0;
-static int  s_history_pos   = -1; /* -1 = current line */
+static int  s_history_pos   = -1;
 static char s_dir_candidates[16][SD_NAME_MAX];
 
 static char s_buffer[BUFFER_SIZE];
@@ -31,24 +30,21 @@ static void run_client_session(int fd)
     char *linebuf = s_linebuf;
     size_t linelen = 0;
     size_t cursor = 0;
-    /* simple in-memory history */
-    int history_count = s_history_count;   /* number of stored entries */
-    int history_pos = -1;    /* session-local position */
+    int history_count = s_history_count;
+    int history_pos = -1;
     static const char *const commands[] = { "fs", "smi", "mem", "axp", "help", "quit", "exit" };
-    /* path helpers */
     enum { CONSOLE_PATH_MAX = 128 };
     enum { ESC_NONE = 0, ESC_ESC, ESC_CSI, ESC_SS3, ESC_CSI_PARAM } esc_state = ESC_NONE;
-    int iac_skip = 0; /* skip telnet IAC negotiation byte(s) */
+    int iac_skip = 0;
     int bytes_received;
     console_session_t session;
     console_session_init(&session);
-    /* Ask telnet client for character-at-a-time mode: WILL/DO SGA, WILL ECHO, WONT LINEMODE. */
     {
         const unsigned char opts[] = {
-            0xFF, 0xFB, 0x01, /* IAC WILL ECHO */
-            0xFF, 0xFB, 0x03, /* IAC WILL SUPPRESS-GO-AHEAD */
-            0xFF, 0xFD, 0x03, /* IAC DO SUPPRESS-GO-AHEAD */
-            0xFF, 0xFE, 0x22  /* IAC DONT LINEMODE */
+            0xFF, 0xFB, 0x01,
+            0xFF, 0xFB, 0x03,
+            0xFF, 0xFD, 0x03,
+            0xFF, 0xFE, 0x22
         };
         lwip_write(fd, opts, sizeof(opts));
     }
@@ -61,9 +57,8 @@ static void run_client_session(int fd)
         for (int i = 0; i < bytes_received; ++i) {
             char c = buffer[i];
             if (iac_skip > 0) { iac_skip--; continue; }
-            /* telnet negotiation handling */
             if ((unsigned char)c == 0xFF) {
-                if (i + 2 >= bytes_received) { /* not enough bytes, drop */
+                if (i + 2 >= bytes_received) {
                     break;
                 }
                 unsigned char cmd = (unsigned char)buffer[i + 1];
@@ -71,21 +66,18 @@ static void run_client_session(int fd)
                 i += 2;
                 unsigned char reply[3] = {0xFF, 0, 0};
                 bool send = false;
-                if (cmd == 0xFD) { /* DO */
-                    if (opt == 0x01) { reply[1] = 0xFB; reply[2] = opt; send = true; } /* WILL ECHO */
-                    else if (opt == 0x03) { reply[1] = 0xFB; reply[2] = opt; send = true; } /* WILL SGA */
-                    else { reply[1] = 0xFC; reply[2] = opt; send = true; } /* WONT others */
-                } else if (cmd == 0xFB) { /* WILL */
-                    if (opt == 0x01) { reply[1] = 0xFD; reply[2] = opt; send = true; } /* DO ECHO */
-                    else if (opt == 0x03) { reply[1] = 0xFD; reply[2] = opt; send = true; } /* DO SGA */
-                    else if (opt == 0x22) { reply[1] = 0xFE; reply[2] = opt; send = true; } /* DONT LINEMODE */
-                    else { reply[1] = 0xFE; reply[2] = opt; send = true; } /* DONT others */
-                } else if (cmd == 0xFE) { /* DONT */ 
-                    /* ignore */
-                } else if (cmd == 0xFC) { /* WONT */
-                    /* ignore */
-                } else if (cmd == 0xFA) { /* SB ... IAC SE */
-                    /* skip subnegotiation */
+                if (cmd == 0xFD) {
+                    if (opt == 0x01) { reply[1] = 0xFB; reply[2] = opt; send = true; }
+                    else if (opt == 0x03) { reply[1] = 0xFB; reply[2] = opt; send = true; }
+                    else { reply[1] = 0xFC; reply[2] = opt; send = true; }
+                } else if (cmd == 0xFB) {
+                    if (opt == 0x01) { reply[1] = 0xFD; reply[2] = opt; send = true; }
+                    else if (opt == 0x03) { reply[1] = 0xFD; reply[2] = opt; send = true; }
+                    else if (opt == 0x22) { reply[1] = 0xFE; reply[2] = opt; send = true; }
+                    else { reply[1] = 0xFE; reply[2] = opt; send = true; }
+                } else if (cmd == 0xFE) {
+                } else if (cmd == 0xFC) {
+                } else if (cmd == 0xFA) {
                     while (i + 1 < bytes_received) {
                         if ((unsigned char)buffer[i + 1] == 0xFF && i + 2 < bytes_received && (unsigned char)buffer[i + 2] == 0xF0) {
                             i += 2;
@@ -108,18 +100,18 @@ static void run_client_session(int fd)
                     if ((c >= '0' && c <= '9') || c == ';') { esc_state = ESC_CSI_PARAM; continue; }
                     if (c == 'C') { if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); } }
                     else if (c == 'D') { if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); } }
-                    else if (c == 'A') { /* arrow up: previous command */ 
+                    else if (c == 'A') {
                         if (history_count > 0 && history_pos + 1 < history_count) {
                             history_pos++;
                             strcpy(linebuf, s_history[history_count - 1 - history_pos]);
                             linelen = strlen(linebuf);
                             cursor = linelen;
-                            lwip_write(fd, "\r\x1b[2K", 5); /* clear whole line */
+                            lwip_write(fd, "\r\x1b[2K", 5);
                             console_print_prompt(fd, &session);
                             if (linelen) lwip_write(fd, linebuf, linelen);
                         }
                     }
-                    else if (c == 'B') { /* arrow down: newer command */ 
+                    else if (c == 'B') {
                         if (history_pos > 0) {
                             history_pos--;
                             strcpy(linebuf, s_history[history_count - 1 - history_pos]);
@@ -128,7 +120,8 @@ static void run_client_session(int fd)
                             history_pos = -1;
                             linelen = 0;
                             linebuf[0] = '\0';
-                        } else { /* already at current line */ }
+                        } else {
+                        }
                         cursor = linelen;
                         lwip_write(fd, "\r\x1b[2K", 5);
                         console_print_prompt(fd, &session);
@@ -140,7 +133,7 @@ static void run_client_session(int fd)
                 if (esc_state == ESC_SS3) {
                     if (c == 'C') { if (cursor < linelen) { cursor++; lwip_write(fd, "\x1b[C", 3); } }
                     else if (c == 'D') { if (cursor > 0) { cursor--; lwip_write(fd, "\x1b[D", 3); } }
-                    else if (c == 'A') { /* arrow up */ 
+                    else if (c == 'A') {
                         if (history_count > 0 && history_pos + 1 < history_count) {
                             history_pos++;
                             strcpy(linebuf, s_history[history_count - 1 - history_pos]);
@@ -151,7 +144,7 @@ static void run_client_session(int fd)
                             if (linelen) lwip_write(fd, linebuf, linelen);
                         }
                     }
-                    else if (c == 'B') { /* arrow down */ 
+                    else if (c == 'B') {
                         if (history_pos > 0) {
                             history_pos--;
                             strcpy(linebuf, s_history[history_count - 1 - history_pos]);
@@ -160,7 +153,8 @@ static void run_client_session(int fd)
                             history_pos = -1;
                             linelen = 0;
                             linebuf[0] = '\0';
-                        } else { /* already at current line */ }
+                        } else {
+                        }
                         cursor = linelen;
                         lwip_write(fd, "\r\x1b[2K", 5);
                         console_print_prompt(fd, &session);
@@ -171,29 +165,25 @@ static void run_client_session(int fd)
                 }
             }
             if (c == 0x1B) { esc_state = ESC_ESC; continue; }
-            /* Convert CR or CRLF to newline so Enter works in char mode. */
             if (c == '\r') {
-                if ((i + 1) < bytes_received && buffer[i + 1] == '\n') { /* swallow LF part of CRLF */
+                if ((i + 1) < bytes_received && buffer[i + 1] == '\n') {
                     i++;
-                } else if ((i + 1) < bytes_received && buffer[i + 1] == '\0') { /* swallow NUL part of CR-NUL */
+                } else if ((i + 1) < bytes_received && buffer[i + 1] == '\0') {
                     i++;
                 }
                 c = '\n';
             }
-            if (c == '\0') continue; /* ignore stray NUL */
+            if (c == '\0') continue;
             if (c == '\n') {
-                /* echo newline to client before executing command */
                 lwip_write(fd, "\r\n", 2);
                 linebuf[linelen] = '\0';
                 if (linelen > 0) {
-                    /* save to history (no duplicates in a row) */
                     if (history_count == 0 || strcmp(s_history[history_count - 1], linebuf) != 0) {
                         if (history_count < HISTORY_LEN) {
                             strcpy(s_history[history_count], linebuf);
                             history_count++;
                             s_history_count = history_count;
                         } else {
-                            /* shift left and append */
                             for (int h = 1; h < HISTORY_LEN; ++h) strcpy(s_history[h - 1], s_history[h]);
                             strcpy(s_history[HISTORY_LEN - 1], linebuf);
                             s_history_count = HISTORY_LEN;
@@ -207,7 +197,7 @@ static void run_client_session(int fd)
                 if (utils_should_close()) return;
                 console_print_prompt(fd, &session);
                 esc_state = ESC_NONE;
-            } else if (c == 0x08 || c == 0x7F) { /* backspace */
+            } else if (c == 0x08 || c == 0x7F) {
                 if (cursor > 0) {
                     cursor--;
                     size_t tail = linelen - cursor - 1;
@@ -219,7 +209,6 @@ static void run_client_session(int fd)
                     for (size_t k = 0; k < tail + 1; ++k) lwip_write(fd, "\x1b[D", 3);
                 }
             } else if (c == '\t') {
-                /* TAB autocomplete: commands or filesystem paths */
                 size_t start = cursor;
                 while (start > 0 && linebuf[start - 1] != ' ' && linebuf[start - 1] != '\t') start--;
                 bool completing_command = true;
@@ -238,7 +227,7 @@ static void run_client_session(int fd)
                     }
                     if (matches == 1 && last_match) {
                         size_t match_len = strlen(last_match);
-                        if (start + match_len + 1 >= sizeof(linebuf)) continue; /* +1 for space */
+                        if (start + match_len + 1 >= sizeof(linebuf)) continue;
                         size_t tail = linelen - cursor;
                         memmove(linebuf + start + match_len, linebuf + cursor, tail);
                         memcpy(linebuf + start, last_match, match_len);
@@ -263,14 +252,11 @@ static void run_client_session(int fd)
                         continue;
                     }
                 } else {
-                    /* filesystem completion */
-                    /* find token start of current word (already start) and compute directory + prefix */
                     const char *cwd = (session.cwd[0]) ? session.cwd : SD_ROOT;
                     char token_prefix[CONSOLE_PATH_MAX];
                     size_t tok_len = (linelen - start < sizeof(token_prefix)-1) ? (cursor - start) : sizeof(token_prefix)-1;
                     memcpy(token_prefix, linebuf + start, tok_len);
                     token_prefix[tok_len] = '\0';
-                    /* split dir/prefix */
                     char dir_part[CONSOLE_PATH_MAX];
                     char prefix_part[CONSOLE_PATH_MAX];
                     const char *last_slash = strrchr(token_prefix, '/');
@@ -283,7 +269,6 @@ static void run_client_session(int fd)
                         snprintf(dir_part, sizeof(dir_part), "%s", cwd);
                         snprintf(prefix_part, sizeof(prefix_part), "%s", token_prefix);
                     }
-                    /* build absolute dir path */
                     char full_dir[CONSOLE_PATH_MAX];
                     if (dir_part[0] == '/' && dir_part[1] != '\0') {
                         snprintf(full_dir, sizeof(full_dir), "%s%s", SD_ROOT, dir_part + 1);
@@ -299,13 +284,11 @@ static void run_client_session(int fd)
                     if (matches == 1) {
                         const char *match = s_dir_candidates[0];
                         size_t match_len = strlen(match);
-                        /* replace current token with completion */
                         size_t tail = linelen - cursor;
                         memmove(linebuf + start + match_len, linebuf + cursor, tail);
                         memcpy(linebuf + start, match, match_len);
                         linelen = start + match_len + tail;
                         cursor = start + match_len;
-                        /* append space if not directory ending with '/' */
                         if (match[match_len - 1] != '/' && linelen + 1 < sizeof(linebuf)) {
                             memmove(linebuf + cursor + 1, linebuf + cursor, tail);
                             linebuf[cursor] = ' ';
@@ -321,7 +304,6 @@ static void run_client_session(int fd)
                         lwip_write(fd, "\r\n", 2);
                     }
                 }
-                /* redraw prompt and line */
                 lwip_write(fd, "\r\x1b[2K", 5);
                 console_print_prompt(fd, &session);
                 if (linelen) lwip_write(fd, linebuf, linelen);

@@ -60,7 +60,6 @@ static int sd_mount_fatfs(void)
 {
     FRESULT res = f_mount(&fatfs, SD_MOUNT_POINT, 1);
     if (res != FR_OK) {
-        /* If card is blank, format it */
         BYTE work[FF_MAX_SS];
         res = f_mkfs(SD_MOUNT_POINT, 0, work, sizeof(work));
         if (res != FR_OK) return XST_FAILURE;
@@ -98,7 +97,7 @@ int sd_card_get_info(sd_card_info_t *info)
     DWORD free_clusters = 0;
     FRESULT res = f_getfree(SD_MOUNT_POINT, &free_clusters, &fs);
     if (res != FR_OK || fs == NULL) return XST_FAILURE;
-    DWORD total_clusters = fs->n_fatent - 2; /* FAT entries include lead/EOF */
+    DWORD total_clusters = fs->n_fatent - 2;
     info->block_size = (u32)fs->csize * 512U;
     info->block_count = (u64)total_clusters * fs->csize;
     info->capacity_bytes = (u64)info->block_count * 512U;
