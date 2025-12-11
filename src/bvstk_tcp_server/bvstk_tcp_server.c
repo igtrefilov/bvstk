@@ -18,7 +18,7 @@ enum { HISTORY_LEN = 16 };
 static char s_history[HISTORY_LEN][256];
 static int  s_history_count = 0;
 static int  s_history_pos   = -1;
-static char s_dir_candidates[16][SD_NAME_MAX];
+static char s_dir_candidates[16][FS_NAME_MAX];
 
 static char s_buffer[BUFFER_SIZE];
 enum { LINEBUF_SIZE = 256 };
@@ -252,7 +252,10 @@ static void run_client_session(int fd)
                         continue;
                     }
                 } else {
-                    const char *cwd = (session.cwd[0]) ? session.cwd : SD_ROOT;
+                    const fs_shared_ctx_t *ctx = console_session_get_fs(&session);
+                    if (!ctx) continue;
+                    const char *root = console_session_get_root(&session);
+                    const char *cwd = (session.cwd[0]) ? session.cwd : root;
                     char token_prefix[CONSOLE_PATH_MAX];
                     size_t tok_len = (linelen - start < sizeof(token_prefix)-1) ? (cursor - start) : sizeof(token_prefix)-1;
                     memcpy(token_prefix, linebuf + start, tok_len);
@@ -262,7 +265,7 @@ static void run_client_session(int fd)
                     const char *last_slash = strrchr(token_prefix, '/');
                     if (last_slash) {
                         size_t dlen = (size_t)(last_slash - token_prefix);
-                        if (dlen == 0) snprintf(dir_part, sizeof(dir_part), "%s", SD_ROOT);
+                        if (dlen == 0) snprintf(dir_part, sizeof(dir_part), "%s", root);
                         else snprintf(dir_part, sizeof(dir_part), "%.*s", (int)dlen, token_prefix);
                         snprintf(prefix_part, sizeof(prefix_part), "%s", last_slash + 1);
                     } else {
@@ -271,13 +274,15 @@ static void run_client_session(int fd)
                     }
                     char full_dir[CONSOLE_PATH_MAX];
                     if (dir_part[0] == '/' && dir_part[1] != '\0') {
-                        snprintf(full_dir, sizeof(full_dir), "%s%s", SD_ROOT, dir_part + 1);
+                        snprintf(full_dir, sizeof(full_dir), "%s%s", root, dir_part + 1);
+                    } else if (strchr(dir_part, ':')) {
+                        snprintf(full_dir, sizeof(full_dir), "%s", dir_part);
                     } else {
                         bool need_slash = dir_part[strlen(dir_part) - 1] != '/';
                         snprintf(full_dir, sizeof(full_dir), "%s%s%s", dir_part, need_slash ? "/" : "", "");
                     }
                     int total = 0;
-                    if (sd_fs_complete(full_dir, prefix_part, s_dir_candidates, 16, &total) != XST_SUCCESS || total == 0) {
+                    if (fs_shared_fs_complete(ctx, full_dir, prefix_part, s_dir_candidates, 16, &total) != XST_SUCCESS || total == 0) {
                         continue;
                     }
                     matches = total;

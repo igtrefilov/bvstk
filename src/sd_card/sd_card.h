@@ -1,6 +1,7 @@
 #ifndef SD_CARD_H
 #define SD_CARD_H
 
+#include "../fs/fs_shared.h"
 #include "xsdps.h"
 #include "xil_printf.h"
 #include "xil_io.h"
@@ -31,6 +32,8 @@ int sd_fs_touch(const char *path);
 int sd_fs_mkdir(const char *path);
 int sd_fs_rm(const char *path);
 int sd_fs_is_dir(const char *path);
-int sd_fs_complete(const char *dir, const char *prefix, char results[][SD_NAME_MAX], int max_results, int *out_count);
+int sd_fs_complete(const char *dir, const char *prefix, char results[][FS_NAME_MAX], int max_results, int *out_count);
+
+fs_shared_ctx_t *sd_card_get_context(void);
 
 #endif

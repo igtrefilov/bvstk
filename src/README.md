@@ -5,10 +5,11 @@ Firmware for Zynq‑7000 built on FreeRTOS 10 with the lwIP socket API. Main ser
 
 ## Features
 - Static IPv4: `192.168.0.10/24`, gateway `192.168.0.1`, MAC `00:0a:35:00:01:02` (`src/bvstk_lan/bvstk_lan.c`).
-- TCP console on port `8888` with prompt `Zynq>`; text lines go to `process_console_line()`, binary frames to `process_received_data()` (`src/bvstk_tcp_server/bvstk_tcp_server.c`). Console now exposes a tiny shell for the SD card: `pwd`, `ls [path]`, `cd`, `mkdir`, `touch`, `cat`, `rm`.
+- TCP console on port `8888` with prompt `Zynq>`; text lines go to `process_console_line()`, binary frames to `process_received_data()` (`src/bvstk_tcp_server/bvstk_tcp_server.c`). Console now exposes a tiny shell for the SD card and QSPI flash—switch disks with `fs use sd` or `fs use qspi` (blank flash formats on demand) and run `pwd`, `ls [path]`, `cd`, `mkdir`, `touch`, `cat`, `rm`.
 - I2C master/slave driver with event queues, whitelist/blacklist policy, and autopolling of registers (`src/bvstk_i2c/*`).
 - SMI/MDIO support with PHY register polling and host→slave event filtering (`src/bvstk_smi/*`).
-- SD card + FatFs on PS SDIO0: background task mounts `0:/`, auto-formats blank cards, exposes helpers to fetch capacity, list root dir, read files, and append/overwrite text (`src/sd_card/*`).
+- SD card + FatFs on PS SDIO0: background task mounts `0:/`, auto-formats blank cards, and exposes helpers to fetch capacity, list root dir, read files, and append/overwrite text (`src/sd_card/*`).
+- QSPI flash (Winbond W25Q series) is mirrored into the same FatFs stack at `1:/`; `fs use qspi` picks that disk in the shell and formats a fresh flash before exposing files (`src/qspi_fs/*`).
 - Stubs for MQTT, SNTP, and UART console (`src/mqtt_proc/*`, `src/sntp_proc/*`, `src/uart_console/*`).
 
 ## Layout
@@ -52,6 +53,7 @@ FatFs is pulled in automatically by `build.tcl` (`xilffs` library, SD interface,
   - `sd_card_cat(path, fd)` — dump a file.
   - `sd_card_write_text(path, text, append)` — create/overwrite or append a text file.
   - `sd_fs_*()` — console-ready wrappers: `ls`, `cat`, `touch`, `mkdir`, `rm`, `is_dir`.
+- `fs use <device>` — swap the shell between `sd` and `qspi`, reusing the same helpers for whichever disk is selected.
 - Concurrency: a mutex is created inside `start_sd_card()`; use it (or your own) around multi-call sequences if you add more SD operations.
 
 ## Quick test

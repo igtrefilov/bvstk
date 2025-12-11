@@ -47,6 +47,8 @@ if {$do_clean && [file exists $WS]} {
 }
 file mkdir $WS
 
+set SCRIPT_DIR [file dirname [file normalize [info script]]]
+
 setws $WS
 platform create -name $PLAT_NAME -hw $XSA -proc $PROC -os $OS_RTOS -out $WS
 platform active $PLAT_NAME
@@ -70,8 +72,15 @@ if {[catch {bsp config api_mode SOCKET_API}]} {
     puts "api_mode option not available for $lwip_lib, using defaults"
 }
 # Enable FatFs (xilffs) for SD-card access via PS SDIO0
+# Enable FatFs (xilffs) for SD-card access via PS SDIO0
 if {[catch {bsp setlib -name xilffs} msg]} {
     puts "xilffs library not found: $msg"
+} else {
+    # Replace the generated diskio implementation with our shared version.
+    set CUSTOM_DISKIO [file join $SCRIPT_DIR src fs diskio.c]
+    set TARGET_DISKIO [file join $WS plat_bvstk/ps7_cortexa9_0/freertos10_xilinx_domain/bsp/ps7_cortexa9_0/libsrc/xilffs_v5_3/src/diskio.c]
+    file mkdir -p [file dirname $TARGET_DISKIO]
+    file copy -force $CUSTOM_DISKIO $TARGET_DISKIO
 }
 # Mount SD card in interrupt-driven mode; fall back silently if option is absent
 catch {bsp config xilffs_polled_mode false}
@@ -83,7 +92,6 @@ app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
 set app_src   [file join $WS $APP_NAME src]
 file delete -force $app_src
 
-set SCRIPT_DIR [file dirname [file normalize [info script]]]
 set SRC_REAL   [file normalize [file join $SCRIPT_DIR src]]
 
 puts "Linking $app_src -> $SRC_REAL"

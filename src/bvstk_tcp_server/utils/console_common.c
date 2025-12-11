@@ -6,14 +6,40 @@
 #include <stdio.h>
 
 #include "lwip/sockets.h"
-#include "../../sd_card/sd_card.h"
 
 #define PROMPT_MAX 80
 
 void console_session_init(console_session_t *s)
 {
     if (!s) return;
-    strncpy(s->cwd, SD_ROOT, CONSOLE_CWD_LEN - 1);
+    s->fs_ctx = NULL;
+    s->fs_label = NULL;
+    console_session_set_fs(s, fs_device_default()->ctx, fs_device_default()->label);
+}
+
+const fs_shared_ctx_t *console_session_get_fs(const console_session_t *s)
+{
+    return (s ? s->fs_ctx : NULL);
+}
+
+const char *console_session_get_root(const console_session_t *s)
+{
+    if (s && s->fs_ctx && s->fs_ctx->root) return s->fs_ctx->root;
+    return "/";
+}
+
+const char *console_session_get_label(const console_session_t *s)
+{
+    return (s && s->fs_label) ? s->fs_label : "FS";
+}
+
+void console_session_set_fs(console_session_t *s, const fs_shared_ctx_t *ctx, const char *label)
+{
+    if (!s || !ctx) return;
+    s->fs_ctx = ctx;
+    s->fs_label = label ? label : "FS";
+    const char *root = ctx->root ? ctx->root : "/";
+    strncpy(s->cwd, root, CONSOLE_CWD_LEN - 1);
     s->cwd[CONSOLE_CWD_LEN - 1] = '\0';
 }
 
@@ -60,17 +86,19 @@ uint64_t swap_endianness_64(uint64_t value)
 void console_print_prompt(int fd, const console_session_t *session)
 {
     char prompt[PROMPT_MAX];
-    const char *cwd = (session && session->cwd[0]) ? session->cwd : SD_ROOT;
-    const size_t root_len = strlen(SD_ROOT);
+    const char *root = console_session_get_root(session);
+    const char *cwd = (session && session->cwd[0]) ? session->cwd : root;
+    const size_t root_len = strlen(root);
     const char *rel = cwd;
-    if (strncmp(cwd, SD_ROOT, root_len) == 0) {
+    if (root_len && strncmp(cwd, root, root_len) == 0) {
         rel = cwd + root_len;
         if (*rel == '/') rel++;
     }
+    const char *label = console_session_get_label(session);
     if (rel && *rel) {
-        snprintf(prompt, sizeof(prompt), "Zynq/%s> ", rel);
+        snprintf(prompt, sizeof(prompt), "Zynq/%s:%s> ", label, rel);
     } else {
-        snprintf(prompt, sizeof(prompt), "Zynq> ");
+        snprintf(prompt, sizeof(prompt), "Zynq/%s> ", label);
     }
     write_str(fd, prompt);
 }
