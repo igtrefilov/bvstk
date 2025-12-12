@@ -175,10 +175,24 @@ static void cmd_fs_rm(int fd, console_session_t *session, const char *path)
     if (fs_shared_fs_rm(ctx, full) == XST_SUCCESS) write_str(fd, "OK\r\n"); else write_str(fd, "ERR\r\n");
 }
 
+static const fs_shared_ctx_t *resolve_fs_ctx_for_path(console_session_t *session, const char *path)
+{
+    if (!path) return NULL;
+    const fs_device_info_t *dev = fs_device_for_path(path);
+    if (dev) {
+        if (fs_device_prepare(dev) != XST_SUCCESS) return NULL;
+        return dev->ctx;
+    }
+    if (path[0] && path[1] == ':') return NULL;
+    const fs_shared_ctx_t *ctx = session_ctx(session);
+    if (ctx) return ctx;
+    const fs_device_info_t *fallback = fs_device_default();
+    return fallback ? fallback->ctx : NULL;
+}
+
 static void cmd_fs_cp(int fd, console_session_t *session, const char *src_arg, const char *dst_arg, bool recursive)
 {
-    const fs_shared_ctx_t *ctx = session_ctx(session);
-    if (!ctx || !src_arg || !dst_arg) { write_str(fd, "ERR\r\n"); return; }
+    if (!src_arg || !dst_arg) { write_str(fd, "ERR\r\n"); return; }
     char src_path[CONSOLE_PATH_MAX];
     char dst_path[CONSOLE_PATH_MAX];
     if (!build_path(session, src_arg, src_path, sizeof(src_path)) ||
@@ -186,7 +200,19 @@ static void cmd_fs_cp(int fd, console_session_t *session, const char *src_arg, c
         write_str(fd, "ERR\r\n");
         return;
     }
-    if (fs_shared_fs_cp(ctx, src_path, dst_path, recursive) == XST_SUCCESS) {
+    const fs_shared_ctx_t *src_ctx = resolve_fs_ctx_for_path(session, src_path);
+    const fs_shared_ctx_t *dst_ctx = resolve_fs_ctx_for_path(session, dst_path);
+    if (!src_ctx || !dst_ctx) {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
+    int result;
+    if (src_ctx == dst_ctx) {
+        result = fs_shared_fs_cp(src_ctx, src_path, dst_path, recursive);
+    } else {
+        result = fs_shared_fs_cp_between(src_ctx, dst_ctx, src_path, dst_path, recursive);
+    }
+    if (result == XST_SUCCESS) {
         write_str(fd, "OK\r\n");
     } else {
         write_str(fd, "ERR\r\n");

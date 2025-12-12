@@ -391,3 +391,22 @@ int fs_shared_fs_cp(const fs_shared_ctx_t *ctx, const char *src, const char *dst
     fs_shared_unlock(ctx);
     return ret;
 }
+
+int fs_shared_fs_cp_between(const fs_shared_ctx_t *src_ctx, const fs_shared_ctx_t *dst_ctx,
+                            const char *src, const char *dst, bool recursive)
+{
+    if (!src_ctx || !dst_ctx || !src || !dst) return XST_FAILURE;
+    if (src_ctx == dst_ctx) return fs_shared_fs_cp(src_ctx, src, dst, recursive);
+    if (!fs_shared_is_ready(src_ctx) || !fs_shared_is_ready(dst_ctx)) return XST_FAILURE;
+    const fs_shared_ctx_t *first = (src_ctx < dst_ctx) ? src_ctx : dst_ctx;
+    const fs_shared_ctx_t *second = (first == src_ctx) ? dst_ctx : src_ctx;
+    if (!fs_shared_lock(first)) return XST_FAILURE;
+    if (!fs_shared_lock(second)) {
+        fs_shared_unlock(first);
+        return XST_FAILURE;
+    }
+    int ret = fs_shared_fs_cp_locked(src, dst, recursive);
+    fs_shared_unlock(second);
+    fs_shared_unlock(first);
+    return ret;
+}

@@ -32,6 +32,8 @@ int fs_shared_fs_is_dir(const fs_shared_ctx_t *ctx, const char *path);
 int fs_shared_fs_complete(const fs_shared_ctx_t *ctx, const char *dir, const char *prefix,
                           char results[][FS_NAME_MAX], int max_results, int *out_count);
 int fs_shared_fs_cp(const fs_shared_ctx_t *ctx, const char *src, const char *dst, bool recursive);
+int fs_shared_fs_cp_between(const fs_shared_ctx_t *src_ctx, const fs_shared_ctx_t *dst_ctx,
+                            const char *src, const char *dst, bool recursive);
 
 #ifdef __cplusplus
 }

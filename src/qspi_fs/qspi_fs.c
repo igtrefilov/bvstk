@@ -5,6 +5,7 @@
 
 #include "../qspi_flash/qspi_flash.h"
 #include "xil_printf.h"
+#include <stdbool.h>
 
 #define QSPI_TASK_STACK       1024
 #define QSPI_TASK_PRIO        (tskIDLE_PRIORITY + 1)
@@ -14,21 +15,30 @@ static fs_shared_ctx_t qspi_ctx;
 static volatile int qspi_ready = 0;
 static SemaphoreHandle_t qspi_mutex = NULL;
 static TaskHandle_t qspi_task_handle = NULL;
+static bool qspi_flash_initialized = false;
+
+static int qspi_fs_try_mount(void)
+{
+    if (!qspi_flash_initialized) {
+        if (qspi_flash_init() != XST_SUCCESS) {
+            xil_printf("QSPI: init failed\r\n");
+            return XST_FAILURE;
+        }
+        qspi_flash_initialized = true;
+    }
+    if (fs_shared_mount(&qspi_ctx, "QSPI") != XST_SUCCESS) {
+        return XST_FAILURE;
+    }
+    return XST_SUCCESS;
+}
 
 static void qspi_fs_task(void *arg)
 {
     (void)arg;
-    qspi_ctx.fatfs = &qspi_fatfs;
-    qspi_ctx.root = QSPI_ROOT;
-    qspi_ctx.ready = &qspi_ready;
-    qspi_ctx.mutex = &qspi_mutex;
-    qspi_ready = 0;
-    if (qspi_flash_init() == XST_SUCCESS) {
-        fs_shared_mount(&qspi_ctx, "QSPI");
-    } else {
-        xil_printf("QSPI: init failed\r\n");
-    }
     for (;;) {
+        if (!qspi_ready) {
+            qspi_fs_try_mount();
+        }
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -43,6 +53,8 @@ int start_qspi_fs(void)
     qspi_ctx.ready = &qspi_ready;
     qspi_ctx.mutex = &qspi_mutex;
     qspi_ready = 0;
+    qspi_flash_initialized = false;
+    qspi_fs_try_mount();
     BaseType_t rc = xTaskCreate(qspi_fs_task, "qspi_fs", QSPI_TASK_STACK, NULL, QSPI_TASK_PRIO, &qspi_task_handle);
     return (rc == pdPASS) ? XST_SUCCESS : XST_FAILURE;
 }

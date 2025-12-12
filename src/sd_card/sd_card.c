@@ -5,6 +5,7 @@
 #include "xsdps.h"
 #include "xil_printf.h"
 #include <string.h>
+#include <stdbool.h>
 
 #define SD_CARD_DEVICE_ID   XPAR_XSDPS_0_DEVICE_ID
 #define SD_TASK_STACK       1024
@@ -28,17 +29,29 @@ static int sd_hw_init(void)
     return XST_SUCCESS;
 }
 
+static bool sd_card_hw_ready = false;
+
+static int sd_card_try_mount(void)
+{
+    if (!sd_card_hw_ready) {
+        if (sd_hw_init() != XST_SUCCESS) {
+            return XST_FAILURE;
+        }
+        sd_card_hw_ready = true;
+    }
+    if (fs_shared_mount(&sd_ctx, "SD") != XST_SUCCESS) {
+        return XST_FAILURE;
+    }
+    return XST_SUCCESS;
+}
+
 static void sd_card_task(void *arg)
 {
     (void)arg;
-    sd_ctx.fatfs = &sd_fatfs;
-    sd_ctx.root = SD_ROOT;
-    sd_ctx.ready = &sd_ready;
-    sd_ctx.mutex = &sd_mutex;
-    if (sd_hw_init() == XST_SUCCESS) {
-        fs_shared_mount(&sd_ctx, "SD");
-    }
     for (;;) {
+        if (!sd_ready) {
+            sd_card_try_mount();
+        }
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -53,6 +66,8 @@ int start_sd_card(void)
     sd_ctx.ready = &sd_ready;
     sd_ctx.mutex = &sd_mutex;
     sd_ready = 0;
+    sd_card_hw_ready = false;
+    sd_card_try_mount();
     BaseType_t rc = xTaskCreate(sd_card_task, "sd_card", SD_TASK_STACK, NULL, SD_TASK_PRIO, &sd_task_handle);
     return (rc == pdPASS) ? XST_SUCCESS : XST_FAILURE;
 }

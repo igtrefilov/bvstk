@@ -6,6 +6,7 @@
 #include "xstatus.h"
 #include "task.h"
 
+#include <string.h>
 #include <strings.h>
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -63,4 +64,17 @@ const fs_device_info_t *fs_device_at(int index)
 {
     if (index < 0 || index >= (int)ARRAY_SIZE(s_devices)) return NULL;
     return &s_devices[index];
+}
+
+const fs_device_info_t *fs_device_for_path(const char *path)
+{
+    if (!path || path[0] == '\0' || path[1] != ':') return NULL;
+    for (size_t i = 0; i < ARRAY_SIZE(s_devices); ++i) {
+        const fs_shared_ctx_t *ctx = s_devices[i].ctx;
+        if (!ctx || !ctx->root) continue;
+        size_t root_len = strlen(ctx->root);
+        if (root_len == 0) continue;
+        if (strncasecmp(path, ctx->root, root_len) == 0) return &s_devices[i];
+    }
+    return NULL;
 }
