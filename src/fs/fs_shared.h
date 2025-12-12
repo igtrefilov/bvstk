@@ -34,6 +34,9 @@ int fs_shared_fs_complete(const fs_shared_ctx_t *ctx, const char *dir, const cha
 int fs_shared_fs_cp(const fs_shared_ctx_t *ctx, const char *src, const char *dst, bool recursive);
 int fs_shared_fs_cp_between(const fs_shared_ctx_t *src_ctx, const fs_shared_ctx_t *dst_ctx,
                             const char *src, const char *dst, bool recursive);
+int fs_shared_fs_mv(const fs_shared_ctx_t *ctx, const char *src, const char *dst);
+int fs_shared_fs_mv_between(const fs_shared_ctx_t *src_ctx, const fs_shared_ctx_t *dst_ctx,
+                            const char *src, const char *dst, bool recursive);
 
 #ifdef __cplusplus
 }

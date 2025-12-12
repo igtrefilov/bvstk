@@ -6,6 +6,7 @@ Firmware for Zynq‑7000 built on FreeRTOS 10 with the lwIP socket API. Main ser
 ## Features
 - Static IPv4: `192.168.0.10/24`, gateway `192.168.0.1`, MAC `00:0a:35:00:01:02` (`src/bvstk_lan/bvstk_lan.c`).
 - TCP console on port `8888` with prompt `Zynq>`; text lines go to `process_console_line()`, binary frames to `process_received_data()` (`src/bvstk_tcp_server/bvstk_tcp_server.c`). Console now exposes a tiny shell for the SD card and flash—switch disks with `cd flash` (enter the flash filesystem) and `cd sd` (return to the SD filesystem) and run `pwd`, `ls [path]`, `cd`, `mkdir`, `touch`, `cat`, `cp`, `cp -r`, `rm`.
+- Prefix paths with `sd:/` or `flash:/` when you need to address the other device directly (e.g., `cp sd:/test/file flash:/backup/file`). The same prefixes work with `cp -r`, `cat`, etc.
 - I2C master/slave driver with event queues, whitelist/blacklist policy, and autopolling of registers (`src/bvstk_i2c/*`).
 - SMI/MDIO support with PHY register polling and host→slave event filtering (`src/bvstk_smi/*`).
 - SD card + FatFs on PS SDIO0: background task mounts `0:/`, auto-formats blank cards, and exposes helpers to fetch capacity, list root dir, read files, and append/overwrite text (`src/sd_card/*`).

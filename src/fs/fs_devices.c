@@ -12,8 +12,8 @@
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 static fs_device_info_t s_devices[] = {
-    {"sd", "SD", NULL},
-    {"flash", "FLASH", NULL},
+    {"sd", "sd", NULL},
+    {"flash", "flash", NULL},
 };
 
 void fs_devices_init(void)
