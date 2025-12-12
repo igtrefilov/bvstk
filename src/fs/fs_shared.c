@@ -47,6 +47,19 @@ static void normalize_name(char *s)
     }
 }
 
+static const char *fs_shared_entry_name(const FILINFO *fno, char *out, size_t out_sz)
+{
+#if FF_USE_LFN
+    const char *src = (fno->fname[0]) ? fno->fname : fno->altname;
+#else
+    const char *src = fno->fname;
+#endif
+    if (!src || src[0] == '\0') return NULL;
+    strncpy(out, src, out_sz - 1);
+    out[out_sz - 1] = '\0';
+    return out;
+}
+
 int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label)
 {
     if (!ctx || !ctx->fatfs || !ctx->ready || !ctx->root) return XST_FAILURE;
@@ -83,16 +96,18 @@ int fs_shared_fs_ls(const fs_shared_ctx_t *ctx, const char *path, int fd)
         return XST_FAILURE;
     }
     char line[96];
-    while (f_readdir(&dir, &fno) == FR_OK && fno.fname[0]) {
-        char name[sizeof(fno.fname)];
-        strncpy(name, fno.fname, sizeof(name) - 1);
-        name[sizeof(name) - 1] = '\0';
+    char name[FF_MAX_LFN + 1];
+    while (f_readdir(&dir, &fno) == FR_OK) {
+        const char *entry = fs_shared_entry_name(&fno, name, sizeof(name));
+        if (!entry) break;
         normalize_name(name);
         int n = snprintf(line, sizeof(line), "%c %10lu %s\r\n",
             (fno.fattrib & AM_DIR) ? 'd' : '-',
             (unsigned long)fno.fsize,
             name);
-        lwip_write(fd, line, n);
+        size_t to_write = (n < 0) ? 0 : (size_t)n;
+        if (to_write >= sizeof(line)) to_write = sizeof(line) - 1;
+        lwip_write(fd, line, to_write);
     }
     f_closedir(&dir);
     fs_shared_unlock(ctx);
@@ -184,10 +199,10 @@ int fs_shared_fs_complete(const fs_shared_ctx_t *ctx, const char *dir, const cha
     if (res != FR_OK) { fs_shared_unlock(ctx); return XST_FAILURE; }
     size_t prefix_len = prefix ? strlen(prefix) : 0;
     int cnt = 0;
-    while (f_readdir(&d, &fno) == FR_OK && fno.fname[0]) {
-        char name[sizeof(fno.fname)];
-        strncpy(name, fno.fname, sizeof(name) - 1);
-        name[sizeof(name) - 1] = '\0';
+    char name[FF_MAX_LFN + 1];
+    while (f_readdir(&d, &fno) == FR_OK) {
+        const char *entry = fs_shared_entry_name(&fno, name, sizeof(name));
+        if (!entry) break;
         normalize_name(name);
         if (prefix_len && strncmp(name, prefix, prefix_len) != 0) continue;
         if (cnt < max_results) {
@@ -201,7 +216,7 @@ int fs_shared_fs_complete(const fs_shared_ctx_t *ctx, const char *dir, const cha
                 }
             }
         }
-        cnt++;
+        ++cnt;
     }
     f_closedir(&d);
     fs_shared_unlock(ctx);
@@ -317,21 +332,22 @@ static int fs_shared_copy_directory_contents(const char *src, const char *dst)
 
     int ret = XST_SUCCESS;
     FILINFO fno;
+    char entry_name[FF_MAX_LFN + 1];
     while (1) {
         res = f_readdir(&dir, &fno);
         if (res != FR_OK) {
             ret = XST_FAILURE;
             break;
         }
-        if (fno.fname[0] == '\0') break;
-        if (fno.fname[0] == '.' && (fno.fname[1] == '\0' ||
-            (fno.fname[1] == '.' && fno.fname[2] == '\0'))) {
+        const char *name = fs_shared_entry_name(&fno, entry_name, sizeof(entry_name));
+        if (!name) break;
+        if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) {
             continue;
         }
         char src_entry[FS_PATH_MAX];
         char dst_entry[FS_PATH_MAX];
-        if (!fs_shared_join_path(src, fno.fname, src_entry, sizeof(src_entry)) ||
-            !fs_shared_join_path(dst, fno.fname, dst_entry, sizeof(dst_entry))) {
+        if (!fs_shared_join_path(src, name, src_entry, sizeof(src_entry)) ||
+            !fs_shared_join_path(dst, name, dst_entry, sizeof(dst_entry))) {
             ret = XST_FAILURE;
             break;
         }
@@ -362,6 +378,7 @@ static int fs_shared_remove_entry_recursive(const char *path)
         res = f_opendir(&dir, path);
         if (res != FR_OK) return XST_FAILURE;
         FILINFO fno;
+        char entry_name[FF_MAX_LFN + 1];
         int ret = XST_SUCCESS;
         while (ret == XST_SUCCESS) {
             res = f_readdir(&dir, &fno);
@@ -369,13 +386,14 @@ static int fs_shared_remove_entry_recursive(const char *path)
                 ret = XST_FAILURE;
                 break;
             }
-            if (fno.fname[0] == '\0') break;
-            if (fno.fname[0] == '.' && (fno.fname[1] == '\0' ||
-                (fno.fname[1] == '.' && fno.fname[2] == '\0'))) {
+            const char *name = fs_shared_entry_name(&fno, entry_name, sizeof(entry_name));
+            if (!name) break;
+            if (name[0] == '.' && (name[1] == '\0' ||
+                (name[1] == '.' && name[2] == '\0'))) {
                 continue;
             }
             char child[FS_PATH_MAX];
-            if (!fs_shared_join_path(path, fno.fname, child, sizeof(child))) {
+            if (!fs_shared_join_path(path, name, child, sizeof(child))) {
                 ret = XST_FAILURE;
                 break;
             }
