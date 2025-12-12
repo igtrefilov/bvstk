@@ -1,5 +1,6 @@
 #include "fs_shell.h"
 
+#include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
 #include <strings.h>
@@ -104,6 +105,8 @@ static void cmd_help_fs(int fd)
     write_str(fd, "  touch <file>\r\n");
     write_str(fd, "  cat <file>\r\n");
     write_str(fd, "  rm <file|dir>\r\n");
+    write_str(fd, "  cp <src> <dst>\r\n");
+    write_str(fd, "  cp -r <src> <dst>\r\n");
     write_str(fd, "  use <device>\r\n");
 }
 
@@ -172,6 +175,24 @@ static void cmd_fs_rm(int fd, console_session_t *session, const char *path)
     if (fs_shared_fs_rm(ctx, full) == XST_SUCCESS) write_str(fd, "OK\r\n"); else write_str(fd, "ERR\r\n");
 }
 
+static void cmd_fs_cp(int fd, console_session_t *session, const char *src_arg, const char *dst_arg, bool recursive)
+{
+    const fs_shared_ctx_t *ctx = session_ctx(session);
+    if (!ctx || !src_arg || !dst_arg) { write_str(fd, "ERR\r\n"); return; }
+    char src_path[CONSOLE_PATH_MAX];
+    char dst_path[CONSOLE_PATH_MAX];
+    if (!build_path(session, src_arg, src_path, sizeof(src_path)) ||
+        !build_path(session, dst_arg, dst_path, sizeof(dst_path))) {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
+    if (fs_shared_fs_cp(ctx, src_path, dst_path, recursive) == XST_SUCCESS) {
+        write_str(fd, "OK\r\n");
+    } else {
+        write_str(fd, "ERR\r\n");
+    }
+}
+
 static void cmd_fs_use(int fd, console_session_t *session, const char *name)
 {
     if (!session || !name) { write_str(fd, "ERR\r\n"); return; }
@@ -204,6 +225,20 @@ bool fs_handle(char *tok, char **save, int fd, console_session_t *session)
     if (strcasecmp(tok, "touch") == 0) { char *p = strtok_r(NULL, " \t", save); cmd_fs_touch(fd, session, p); return true; }
     if (strcasecmp(tok, "cat") == 0) { char *p = strtok_r(NULL, " \t", save); cmd_fs_cat(fd, session, p); return true; }
     if (strcasecmp(tok, "rm") == 0) { char *p = strtok_r(NULL, " \t", save); cmd_fs_rm(fd, session, p); return true; }
+    if (strcasecmp(tok, "cp") == 0) {
+        char *first = strtok_r(NULL, " \t", save);
+        if (!first) { write_str(fd, "ERR\r\n"); return true; }
+        bool recursive = false;
+        char *src_arg = first;
+        if (strcasecmp(first, "-r") == 0 || strcasecmp(first, "-R") == 0) {
+            recursive = true;
+            src_arg = strtok_r(NULL, " \t", save);
+        }
+        char *dst_arg = strtok_r(NULL, " \t", save);
+        if (!src_arg || !dst_arg) { write_str(fd, "ERR\r\n"); return true; }
+        cmd_fs_cp(fd, session, src_arg, dst_arg, recursive);
+        return true;
+    }
     return false;
 }
 
@@ -216,5 +251,7 @@ void fs_help(int fd)
     write_str(fd, "  touch <file>\r\n");
     write_str(fd, "  cat <file>\r\n");
     write_str(fd, "  rm <file|dir>\r\n");
+    write_str(fd, "  cp <src> <dst>\r\n");
+    write_str(fd, "  cp -r <src> <dst>\r\n");
     write_str(fd, "  fs use <device>\r\n");
 }

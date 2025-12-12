@@ -208,3 +208,186 @@ int fs_shared_fs_complete(const fs_shared_ctx_t *ctx, const char *dir, const cha
     if (out_count) *out_count = cnt;
     return XST_SUCCESS;
 }
+
+static bool fs_shared_basename(const char *path, char *out, size_t out_sz)
+{
+    if (!path || !out || out_sz == 0) return false;
+    const char *end = path + strlen(path);
+    while (end > path && *(end - 1) == '/') end--;
+    const char *start = end;
+    while (start > path && *(start - 1) != '/') start--;
+    size_t len = end - start;
+    if (len == 0 || len >= out_sz) return false;
+    memcpy(out, start, len);
+    out[len] = '\0';
+    return true;
+}
+
+static bool fs_shared_join_path(const char *parent, const char *child, char *out, size_t out_sz)
+{
+    if (!parent || !child || !out || out_sz == 0) return false;
+    size_t parent_len = strlen(parent);
+    bool has_slash = parent_len > 0 && parent[parent_len - 1] == '/';
+    int needed = has_slash ?
+                 snprintf(out, out_sz, "%s%s", parent, child) :
+                 snprintf(out, out_sz, "%s/%s", parent, child);
+    return (needed >= 0 && (size_t)needed < out_sz);
+}
+
+static bool fs_shared_is_subpath(const char *parent, const char *child)
+{
+    if (!parent || !child) return false;
+    size_t parent_len = strlen(parent);
+    size_t child_len = strlen(child);
+    if (parent_len == 0 || child_len < parent_len) return false;
+    if (strncmp(parent, child, parent_len) != 0) return false;
+    if (child_len == parent_len) return true;
+    if (parent[parent_len - 1] == '/') return true;
+    return child[parent_len] == '/';
+}
+
+static int fs_shared_copy_file_locked(const char *src, const char *dst)
+{
+    FIL src_file;
+    FRESULT res = f_open(&src_file, src, FA_READ);
+    if (res != FR_OK) return XST_FAILURE;
+
+    FIL dst_file;
+    res = f_open(&dst_file, dst, FA_WRITE | FA_CREATE_ALWAYS);
+    if (res != FR_OK) {
+        f_close(&src_file);
+        return XST_FAILURE;
+    }
+
+    char buf[1024];
+    while (1) {
+        UINT br = 0;
+        res = f_read(&src_file, buf, sizeof(buf), &br);
+        if (res != FR_OK) break;
+        if (br == 0) break;
+        UINT bw = 0;
+        res = f_write(&dst_file, buf, br, &bw);
+        if (res != FR_OK || bw != br) break;
+    }
+
+    f_close(&src_file);
+    f_close(&dst_file);
+    return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
+}
+
+static bool fs_shared_prepare_file_target(const char *src, const char *dst, char *out, size_t out_sz)
+{
+    FILINFO dst_info;
+    FRESULT res = f_stat(dst, &dst_info);
+    if (res == FR_OK) {
+        if (dst_info.fattrib & AM_DIR) {
+            char base[FS_NAME_MAX];
+            if (!fs_shared_basename(src, base, sizeof(base))) return false;
+            return fs_shared_join_path(dst, base, out, out_sz);
+        }
+        strncpy(out, dst, out_sz);
+        out[out_sz - 1] = '\0';
+        return true;
+    }
+    if (res != FR_NO_FILE && res != FR_NO_PATH) return false;
+    strncpy(out, dst, out_sz);
+    out[out_sz - 1] = '\0';
+    return true;
+}
+
+static int fs_shared_ensure_dir(const char *path)
+{
+    FILINFO info;
+    FRESULT res = f_stat(path, &info);
+    if (res == FR_OK) {
+        return (info.fattrib & AM_DIR) ? XST_SUCCESS : XST_FAILURE;
+    }
+    res = f_mkdir(path);
+    if (res == FR_OK || res == FR_EXIST) return XST_SUCCESS;
+    return XST_FAILURE;
+}
+
+static int fs_shared_copy_directory_contents(const char *src, const char *dst)
+{
+    if (fs_shared_ensure_dir(dst) != XST_SUCCESS) return XST_FAILURE;
+
+    DIR dir;
+    FRESULT res = f_opendir(&dir, src);
+    if (res != FR_OK) return XST_FAILURE;
+
+    int ret = XST_SUCCESS;
+    FILINFO fno;
+    while (1) {
+        res = f_readdir(&dir, &fno);
+        if (res != FR_OK) {
+            ret = XST_FAILURE;
+            break;
+        }
+        if (fno.fname[0] == '\0') break;
+        if (fno.fname[0] == '.' && (fno.fname[1] == '\0' ||
+            (fno.fname[1] == '.' && fno.fname[2] == '\0'))) {
+            continue;
+        }
+        char src_entry[FS_PATH_MAX];
+        char dst_entry[FS_PATH_MAX];
+        if (!fs_shared_join_path(src, fno.fname, src_entry, sizeof(src_entry)) ||
+            !fs_shared_join_path(dst, fno.fname, dst_entry, sizeof(dst_entry))) {
+            ret = XST_FAILURE;
+            break;
+        }
+        if (fno.fattrib & AM_DIR) {
+            if (fs_shared_copy_directory_contents(src_entry, dst_entry) != XST_SUCCESS) {
+                ret = XST_FAILURE;
+                break;
+            }
+        } else {
+            if (fs_shared_copy_file_locked(src_entry, dst_entry) != XST_SUCCESS) {
+                ret = XST_FAILURE;
+                break;
+            }
+        }
+    }
+
+    f_closedir(&dir);
+    return ret;
+}
+
+static int fs_shared_fs_cp_locked(const char *src, const char *dst, bool recursive)
+{
+    FILINFO src_info;
+    FRESULT res = f_stat(src, &src_info);
+    if (res != FR_OK) return XST_FAILURE;
+    bool src_is_dir = (src_info.fattrib & AM_DIR) != 0;
+    if (src_is_dir && !recursive) return XST_FAILURE;
+
+    char target[FS_PATH_MAX];
+    if (src_is_dir) {
+        FILINFO dst_info;
+        res = f_stat(dst, &dst_info);
+        if (res == FR_OK) {
+            if (!(dst_info.fattrib & AM_DIR)) return XST_FAILURE;
+            char base[FS_NAME_MAX];
+            if (!fs_shared_basename(src, base, sizeof(base))) return XST_FAILURE;
+            if (!fs_shared_join_path(dst, base, target, sizeof(target))) return XST_FAILURE;
+        } else if (res == FR_NO_FILE || res == FR_NO_PATH) {
+            strncpy(target, dst, sizeof(target));
+            target[sizeof(target) - 1] = '\0';
+        } else {
+            return XST_FAILURE;
+        }
+        if (fs_shared_is_subpath(src, target)) return XST_FAILURE;
+        return fs_shared_copy_directory_contents(src, target);
+    }
+
+    if (!fs_shared_prepare_file_target(src, dst, target, sizeof(target))) return XST_FAILURE;
+    return fs_shared_copy_file_locked(src, target);
+}
+
+int fs_shared_fs_cp(const fs_shared_ctx_t *ctx, const char *src, const char *dst, bool recursive)
+{
+    if (!ctx || !src || !dst || !fs_shared_is_ready(ctx)) return XST_FAILURE;
+    if (!fs_shared_lock(ctx)) return XST_FAILURE;
+    int ret = fs_shared_fs_cp_locked(src, dst, recursive);
+    fs_shared_unlock(ctx);
+    return ret;
+}
