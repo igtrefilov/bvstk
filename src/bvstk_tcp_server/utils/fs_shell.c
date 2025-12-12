@@ -101,6 +101,7 @@ static void cmd_help_fs(int fd)
     write_str(fd, "  pwd\r\n");
     write_str(fd, "  ls [path]\r\n");
     write_str(fd, "  cd <dir>\r\n");
+    write_str(fd, "  cd flash | cd sd  (switch between FLASH and SD filesystems)\r\n");
     write_str(fd, "  mkdir <dir>\r\n");
     write_str(fd, "  touch <file>\r\n");
     write_str(fd, "  cat <file>\r\n");
@@ -129,6 +130,7 @@ static void cmd_fs_ls(int fd, console_session_t *session, const char *path)
 
 static void cmd_fs_cd(int fd, console_session_t *session, const char *path)
 {
+    if (session && try_switch_device_cd(fd, session, path)) return;
     const fs_shared_ctx_t *ctx = session_ctx(session);
     if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     char full[CONSOLE_PATH_MAX];
@@ -175,6 +177,26 @@ static void cmd_fs_rm(int fd, console_session_t *session, const char *path)
     if (fs_shared_fs_rm(ctx, full) == XST_SUCCESS) write_str(fd, "OK\r\n"); else write_str(fd, "ERR\r\n");
 }
 
+static const char *device_alias_for_cd(const char *arg)
+{
+    if (!arg) return NULL;
+    if (strcasecmp(arg, "flash") == 0 || strcasecmp(arg, "flash/") == 0) return "flash";
+    if (strcasecmp(arg, "sd") == 0 || strcasecmp(arg, "sd/") == 0) return "sd";
+    return NULL;
+}
+
+static bool try_switch_device_cd(int fd, console_session_t *session, const char *arg)
+{
+    const char *alias = device_alias_for_cd(arg);
+    if (!alias) return false;
+    const fs_device_info_t *dev = fs_device_by_name(alias);
+    if (!dev || !dev->ctx) { write_str(fd, "ERR\r\n"); return true; }
+    if (fs_device_prepare(dev) != XST_SUCCESS) { write_str(fd, "ERR\r\n"); return true; }
+    console_session_set_fs(session, dev->ctx, dev->label);
+    cmd_fs_pwd(fd, session);
+    return true;
+}
+
 static const fs_shared_ctx_t *resolve_fs_ctx_for_path(console_session_t *session, const char *path)
 {
     if (!path) return NULL;
@@ -219,16 +241,6 @@ static void cmd_fs_cp(int fd, console_session_t *session, const char *src_arg, c
     }
 }
 
-static void cmd_fs_use(int fd, console_session_t *session, const char *name)
-{
-    if (!session || !name) { write_str(fd, "ERR\r\n"); return; }
-    const fs_device_info_t *dev = fs_device_by_name(name);
-    if (!dev || !dev->ctx) { write_str(fd, "ERR\r\n"); return; }
-    if (fs_device_prepare(dev) != XST_SUCCESS) { write_str(fd, "ERR\r\n"); return; }
-    console_session_set_fs(session, dev->ctx, dev->label);
-    write_str(fd, "OK\r\n");
-}
-
 bool fs_handle(char *tok, char **save, int fd, console_session_t *session)
 {
     if (!tok) return false;
@@ -236,9 +248,6 @@ bool fs_handle(char *tok, char **save, int fd, console_session_t *session)
         char *sub = strtok_r(NULL, " \t", save);
         if (!sub || strcasecmp(sub, "-h") == 0 || strcasecmp(sub, "--help") == 0 || strcasecmp(sub, "-help") == 0) {
             cmd_help_fs(fd);
-        } else if (strcasecmp(sub, "use") == 0) {
-            char *dev = strtok_r(NULL, " \t", save);
-            cmd_fs_use(fd, session, dev);
         } else {
             write_str(fd, "ERR\r\n");
         }
@@ -273,11 +282,11 @@ void fs_help(int fd)
     write_str(fd, "  pwd\r\n");
     write_str(fd, "  ls [path]\r\n");
     write_str(fd, "  cd <dir>\r\n");
+    write_str(fd, "  cd flash | cd sd  (switch devices)\r\n");
     write_str(fd, "  mkdir <dir>\r\n");
     write_str(fd, "  touch <file>\r\n");
     write_str(fd, "  cat <file>\r\n");
     write_str(fd, "  rm <file|dir>\r\n");
     write_str(fd, "  cp <src> <dst>\r\n");
     write_str(fd, "  cp -r <src> <dst>\r\n");
-    write_str(fd, "  fs use <device>\r\n");
 }

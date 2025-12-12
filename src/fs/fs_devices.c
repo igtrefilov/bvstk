@@ -13,7 +13,7 @@
 
 static fs_device_info_t s_devices[] = {
     {"sd", "SD", NULL},
-    {"qspi", "QSPI", NULL},
+    {"flash", "FLASH", NULL},
 };
 
 void fs_devices_init(void)
