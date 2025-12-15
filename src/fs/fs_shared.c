@@ -66,11 +66,16 @@ int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label)
     if (!ctx || !ctx->fatfs || !ctx->ready || !ctx->root) return XST_FAILURE;
     FRESULT res = f_mount(ctx->fatfs, ctx->root, 1);
     if (res != FR_OK) {
-        BYTE work[FF_MAX_SS];
-        res = f_mkfs(ctx->root, 0, 0, work, sizeof(work));
-        if (res != FR_OK) return XST_FAILURE;
-        res = f_mount(ctx->fatfs, ctx->root, 1);
-        if (res != FR_OK) return XST_FAILURE;
+        if (res == FR_NO_FILESYSTEM) {
+            BYTE work[FF_MAX_SS];
+            BYTE mkfs_opt = (BYTE)(FM_ANY | FM_SFD);
+            res = f_mkfs(ctx->root, mkfs_opt, 0, work, sizeof(work));
+            if (res != FR_OK) return XST_FAILURE;
+            res = f_mount(ctx->fatfs, ctx->root, 1);
+            if (res != FR_OK) return XST_FAILURE;
+        } else {
+            return XST_FAILURE;
+        }
     }
     *(ctx->ready) = 1;
     xil_printf("%s: mounted %s\r\n", label ? label : "FS", ctx->root);

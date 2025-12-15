@@ -8,6 +8,8 @@
 #include "xil_printf.h"
 #include <stdbool.h>
 
+#include "qspi_fs_layout.h"
+
 #define QSPI_TASK_STACK       1024
 #define QSPI_TASK_PRIO        (tskIDLE_PRIORITY + 1)
 

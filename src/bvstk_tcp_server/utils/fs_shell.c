@@ -241,7 +241,10 @@ static void cmd_fs_cd(int fd, console_session_t *session, const char *path)
     const fs_shared_ctx_t *ctx = session_ctx(session);
     if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     char full[CONSOLE_PATH_MAX];
-    if (!session || !build_path(session, target_path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    if (!session || !build_path(session, target_path, full, sizeof(full))) {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
     if (fs_shared_fs_is_dir(ctx, full) != XST_SUCCESS) { write_str(fd, "ERR\r\n"); return; }
     strncpy(session->cwd, full, CONSOLE_CWD_LEN - 1);
     session->cwd[CONSOLE_CWD_LEN - 1] = '\0';

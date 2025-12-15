@@ -117,7 +117,7 @@ Output ELF: `vitis_ws/app_bvstk/Debug/app_bvstk.elf`.
 
 ## SD card/FatFs usage
 - Startup: `main()` starts SD + QSPI FS tasks early; each task retries mount until its media becomes available.
-- Auto-format: `fs_shared_mount()` falls back to `f_mkfs()` when `f_mount()` fails (`src/fs/fs_shared.c`).
+- Auto-format: `fs_shared_mount()` falls back to `f_mkfs()` only when `f_mount()` returns `FR_NO_FILESYSTEM` (`src/fs/fs_shared.c`).
 - Concurrency: each FS context has its own mutex; shared helpers lock internally.
 - Cross-device copy/move: console commands `cp`, `cp -r`, `mv` support `sd:/` and `flash:/` prefixes.
 

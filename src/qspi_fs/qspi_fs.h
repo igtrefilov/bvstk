@@ -3,7 +3,20 @@
 
 #include "../fs/fs_shared.h"
 
-#define QSPI_ROOT "1:/"
+#include "xparameters.h"
+
+#define QSPI_STR_IMPL(x) #x
+#define QSPI_STR(x) QSPI_STR_IMPL(x)
+
+#ifndef XPAR_XSDPS_NUM_INSTANCES
+#define XPAR_XSDPS_NUM_INSTANCES 1
+#endif
+
+/*
+ * Keep the QSPI FatFs logical drive number consistent with diskio.c:
+ * DISKIO_QSPI_PDRV == DISKIO_SD_PDRV_COUNT == XPAR_XSDPS_NUM_INSTANCES.
+ */
+#define QSPI_ROOT QSPI_STR(XPAR_XSDPS_NUM_INSTANCES) ":/"
 
 int start_qspi_fs(void);
 fs_shared_ctx_t *qspi_fs_get_context(void);

@@ -108,6 +108,7 @@ typedef DWORD LBA_t;
 #include "xil_util.h"
 
 #include "../qspi_flash/qspi_flash.h"
+#include "../qspi_fs/qspi_fs_layout.h"
 
 #ifdef XPAR_XSDPS_NUM_INSTANCES
 #define SD_CD_DELAY		10000U		/**< SD card detection delay */
@@ -125,7 +126,19 @@ typedef DWORD LBA_t;
 #define DISKIO_QSPI_PDRV		DISKIO_SD_PDRV_COUNT
 #define DISKIO_SECTOR_SIZE		512U
 #define DISKIO_QSPI_BLOCK_SIZE	QSPI_FLASH_SECTOR_SIZE
-#define DISKIO_QSPI_FLASH_SIZE_BYTES	QSPI_FLASH_SIZE_BYTES
+#define DISKIO_QSPI_FLASH_SIZE_BYTES	QSPI_FS_SIZE_BYTES
+
+static int qspi_lba_to_flash_addr(u32 *out_addr, LBA_t sector, u32 count)
+{
+    if (!out_addr) return 0;
+    u32 byte_addr = (u32)sector * DISKIO_SECTOR_SIZE;
+    u32 bytes = count * DISKIO_SECTOR_SIZE;
+    if (byte_addr > (u32)DISKIO_QSPI_FLASH_SIZE_BYTES) return 0;
+    if (bytes > (u32)DISKIO_QSPI_FLASH_SIZE_BYTES) return 0;
+    if ((byte_addr + bytes) > (u32)DISKIO_QSPI_FLASH_SIZE_BYTES) return 0;
+    *out_addr = (u32)QSPI_FS_BASE_BYTES + byte_addr;
+    return 1;
+}
 
 #ifdef FILE_SYSTEM_INTERFACE_RAM
 #include "xparameters.h"
@@ -147,23 +160,29 @@ static char *dataramfs = NULL;
  * Global variables
  */
 #ifdef XPAR_XUFSPSXC_NUM_INSTANCES
-static DSTATUS Stat[XSDPS_NUM_INSTANCES + 33U] =
-{ STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT,
-  STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT,
-  STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT,
-  STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT, STA_NOINIT};	/* Disk status */
+#define DISKIO_STAT_COUNT (XSDPS_NUM_INSTANCES + 33U + 1U) /* +1 for QSPI */
 #else
-static DSTATUS Stat[XSDPS_NUM_INSTANCES] = {STA_NOINIT, STA_NOINIT};	/* Disk status */
+#define DISKIO_STAT_COUNT (DISKIO_SD_PDRV_COUNT + 1U) /* +1 for QSPI */
 #endif
+
+static DSTATUS Stat[DISKIO_STAT_COUNT] = { [0 ... (DISKIO_STAT_COUNT - 1U)] = STA_NOINIT }; /* Disk status */
+
+static int diskio_pdrv_valid(BYTE pdrv)
+{
+	return pdrv < (BYTE)DISKIO_STAT_COUNT;
+}
 
 static int qspi_disk_ready = 0;
 static u8 qspi_sector_cache[QSPI_FLASH_SECTOR_SIZE];
 
 static DRESULT qspi_write_sector(LBA_t sector, const BYTE *buff)
 {
-    u32 byte_addr = (u32)sector * DISKIO_SECTOR_SIZE;
-    u32 block_addr = byte_addr & ~(QSPI_FLASH_SECTOR_SIZE - 1);
-    u32 offset = byte_addr - block_addr;
+    u32 flash_addr;
+    if (!qspi_lba_to_flash_addr(&flash_addr, sector, 1U)) {
+        return RES_PARERR;
+    }
+    u32 block_addr = flash_addr & ~(QSPI_FLASH_SECTOR_SIZE - 1U);
+    u32 offset = flash_addr - block_addr;
 
     if (qspi_flash_read(block_addr, qspi_sector_cache, QSPI_FLASH_SECTOR_SIZE) != XST_SUCCESS) {
         return RES_ERROR;
@@ -221,10 +240,13 @@ DSTATUS disk_status (
 	BYTE pdrv	/* Drive number (0) */
 )
 {
-	DSTATUS s = Stat[pdrv];
 	if (pdrv == DISKIO_QSPI_PDRV) {
 		return qspi_disk_ready ? 0 : STA_NOINIT;
 	}
+	if (!diskio_pdrv_valid(pdrv)) {
+		return STA_NOINIT;
+	}
+	DSTATUS s = Stat[pdrv];
 #ifdef FILE_SYSTEM_INTERFACE_SD
 #ifdef XPAR_XSDPS_NUM_INSTANCES
 	u32 StatusReg;
@@ -368,13 +390,17 @@ DSTATUS disk_initialize (
 	if (pdrv == DISKIO_QSPI_PDRV) {
 		if (qspi_flash_init() != XST_SUCCESS) {
 			s |= STA_NOINIT;
-			Stat[pdrv] = s;
+			if (diskio_pdrv_valid(pdrv)) {
+				Stat[pdrv] = s;
+			}
 			return s;
 		}
 		qspi_disk_ready = 1;
 		/* Disk is initialized. */
 		s &= (~STA_NOINIT);
-		Stat[pdrv] = s;
+		if (diskio_pdrv_valid(pdrv)) {
+			Stat[pdrv] = s;
+		}
 		return s;
 	}
 
@@ -551,7 +577,10 @@ DRESULT disk_read (
 #endif
 	}
 	if (pdrv == DISKIO_QSPI_PDRV) {
-		u32 addr = (u32)sector * DISKIO_SECTOR_SIZE;
+		u32 addr;
+		if (!qspi_lba_to_flash_addr(&addr, sector, (u32)count)) {
+			return RES_PARERR;
+		}
 		u32 bytes = count * DISKIO_SECTOR_SIZE;
 		if (!qspi_disk_ready) {
 			return RES_NOTRDY;
@@ -611,83 +640,83 @@ DRESULT disk_ioctl (
 	u32 Status = XST_FAILURE;
 #endif
 
-	const int is_qspi = (pdrv == DISKIO_QSPI_PDRV);
-	if ((disk_status(pdrv) & STA_NOINIT) != 0U) {	/* Check if card is in the socket */
-		return RES_NOTRDY;
-	}
-
-	switch (cmd) {
-		case (BYTE)CTRL_SYNC :	/* Make sure that no pending write process */
-			res = RES_OK;
-			break;
-
-#ifdef FILE_SYSTEM_INTERFACE_SD
-		case (BYTE)GET_SECTOR_COUNT : /* Get number of sectors on the disk (DWORD) */
-		if (is_qspi) {
-			*((DWORD *)(void *)LocBuff) = (DWORD)(DISKIO_QSPI_FLASH_SIZE_BYTES / DISKIO_SECTOR_SIZE);
-		} else if (pdrv < DISKIO_SD_PDRV_COUNT) {
-#ifdef XPAR_XSDPS_NUM_INSTANCES
-			(*((DWORD *)(void *)LocBuff)) = (DWORD)SdInstance[pdrv].SectorCount;
-#endif
-		} else {
-#ifdef XPAR_XUFSPSXC_NUM_INSTANCES
-			u32 LunId;
-
-			if (pdrv == XUFS_BLUN_PDRV) {	/* B-LUN drive number */
-				if (UfsInstance.BootLunEn == XUFSPSXC_BLUN_A) {
-					LunId = UfsInstance.BLunALunId;
-				} else {
-					LunId = UfsInstance.BLunBLunId;
-				}
-			} else {
-				LunId = pdrv - XUFSPSXC_START_INDEX;
-			}
-
-			(*((DWORD *)(void *)LocBuff)) = (DWORD)((UfsInstance.LUNInfo[LunId].LUNSize * 1024U * 1024U) / UfsInstance.LUNInfo[LunId].BlockSize);
-#endif
+		const int is_qspi = (pdrv == DISKIO_QSPI_PDRV);
+		if ((disk_status(pdrv) & STA_NOINIT) != 0U) {	/* Check if card is in the socket */
+			return RES_NOTRDY;
 		}
-		res = RES_OK;
-		break;
 
-		case (BYTE)GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (DWORD) */
-			if (is_qspi) {
-				(*((DWORD *)((void *)LocBuff))) = (DWORD)(QSPI_FLASH_SECTOR_SIZE / DISKIO_SECTOR_SIZE);
-			} else {
-				(*((DWORD *)((void *)LocBuff))) = ((DWORD)128);
-			}
-			res = RES_OK;
-			break;
+		switch (cmd) {
+			case (BYTE)CTRL_SYNC :	/* Make sure that no pending write process */
+				res = RES_OK;
+				break;
 
-		case (BYTE)CTRL_TRIM :	/* Erase the data (no-op) */
-			res = RES_OK;
-			break;
-
-		case (BYTE)GET_SECTOR_SIZE : /* Get sector size on the disk (DWORD) */
-			if (is_qspi) {
-				(*((DWORD*)((void *)buff))) = ((DWORD)DISKIO_SECTOR_SIZE);
-			} else if (pdrv < DISKIO_SD_PDRV_COUNT) {
-#ifdef XPAR_XSDPS_NUM_INSTANCES
-				(*((DWORD*)((void *)buff))) = ((DWORD)512U);
-#endif
-			} else {
-#ifdef XPAR_XUFSPSXC_NUM_INSTANCES
-				u32 LunId;
-
-				if (pdrv == XUFS_BLUN_PDRV) {	/* B-LUN drive number */
-					if (UfsInstance.BootLunEn == XUFSPSXC_BLUN_A) {
-						LunId = UfsInstance.BLunALunId;
-					} else {
-						LunId = UfsInstance.BLunBLunId;
-					}
+			case (BYTE)GET_SECTOR_COUNT : /* Get number of sectors on the disk (DWORD) */
+				if (is_qspi) {
+					*((DWORD *)(void *)LocBuff) = (DWORD)(DISKIO_QSPI_FLASH_SIZE_BYTES / DISKIO_SECTOR_SIZE);
+				} else if (pdrv < DISKIO_SD_PDRV_COUNT) {
+	#ifdef XPAR_XSDPS_NUM_INSTANCES
+					(*((DWORD *)(void *)LocBuff)) = (DWORD)SdInstance[pdrv].SectorCount;
+	#endif
 				} else {
-					LunId = pdrv - XUFSPSXC_START_INDEX;
-				}
+	#ifdef XPAR_XUFSPSXC_NUM_INSTANCES
+					u32 LunId;
 
-				(*((DWORD*)((void *)buff))) = ((DWORD)UfsInstance.LUNInfo[LunId].BlockSize);
-#endif
-			}
-			res = RES_OK;
-			break;
+					if (pdrv == XUFS_BLUN_PDRV) {	/* B-LUN drive number */
+						if (UfsInstance.BootLunEn == XUFSPSXC_BLUN_A) {
+							LunId = UfsInstance.BLunALunId;
+						} else {
+							LunId = UfsInstance.BLunBLunId;
+						}
+					} else {
+						LunId = pdrv - XUFSPSXC_START_INDEX;
+					}
+
+					(*((DWORD *)(void *)LocBuff)) = (DWORD)((UfsInstance.LUNInfo[LunId].LUNSize * 1024U * 1024U) /
+						UfsInstance.LUNInfo[LunId].BlockSize);
+	#endif
+				}
+				res = RES_OK;
+				break;
+
+			case (BYTE)GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (DWORD) */
+				if (is_qspi) {
+					(*((DWORD *)((void *)LocBuff))) = (DWORD)(QSPI_FLASH_SECTOR_SIZE / DISKIO_SECTOR_SIZE);
+				} else {
+					(*((DWORD *)((void *)LocBuff))) = ((DWORD)128);
+				}
+				res = RES_OK;
+				break;
+
+			case (BYTE)CTRL_TRIM :	/* Erase the data (no-op) */
+				res = RES_OK;
+				break;
+
+			case (BYTE)GET_SECTOR_SIZE : /* Get sector size on the disk (DWORD) */
+				if (is_qspi) {
+					(*((DWORD*)((void *)buff))) = ((DWORD)DISKIO_SECTOR_SIZE);
+				} else if (pdrv < DISKIO_SD_PDRV_COUNT) {
+	#ifdef XPAR_XSDPS_NUM_INSTANCES
+					(*((DWORD*)((void *)buff))) = ((DWORD)512U);
+	#endif
+				} else {
+	#ifdef XPAR_XUFSPSXC_NUM_INSTANCES
+					u32 LunId;
+
+					if (pdrv == XUFS_BLUN_PDRV) {	/* B-LUN drive number */
+						if (UfsInstance.BootLunEn == XUFSPSXC_BLUN_A) {
+							LunId = UfsInstance.BLunALunId;
+						} else {
+							LunId = UfsInstance.BLunBLunId;
+						}
+					} else {
+						LunId = pdrv - XUFSPSXC_START_INDEX;
+					}
+
+					(*((DWORD*)((void *)buff))) = ((DWORD)UfsInstance.LUNInfo[LunId].BlockSize);
+	#endif
+				}
+				res = RES_OK;
+				break;
 
 #ifdef XPAR_XUFSPSXC_NUM_INSTANCES
 		case (BYTE)XUFSPSXC_SWITCH_BLUN :
@@ -853,14 +882,12 @@ DRESULT disk_write (
 		}
 		return RES_OK;
 	}
-#endif
+	#endif
 
-#endif
-
-#ifdef FILE_SYSTEM_INTERFACE_RAM
-	Xil_SMemCpy(dataramfs + (sector * SECTORSIZE), count * SECTORSIZE, buff,
-		    count * SECTORSIZE, count * SECTORSIZE);
-#endif
+	#ifdef FILE_SYSTEM_INTERFACE_RAM
+		Xil_SMemCpy(dataramfs + (sector * SECTORSIZE), count * SECTORSIZE, buff,
+			    count * SECTORSIZE, count * SECTORSIZE);
+	#endif
 
 #if !defined(FILE_SYSTEM_INTERFACE_SD) && !defined(FILE_SYSTEM_INTERFACE_RAM)
 	(void)buff;
