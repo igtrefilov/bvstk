@@ -67,10 +67,25 @@ platform active $PLAT_NAME
 # Increase FreeRTOS heap for all tasks
 catch {bsp config total_heap_size 131072}
 
-# Attach lwIP (prefer 2.1.1 if present, otherwise 2.2.0 from Vitis 2024.2)
-set lwip_lib "lwip220"
-if {[catch {bsp setlib -name $lwip_lib}]} {
-    error "lwIP library \"$lwip_lib\" not found in current Vitis installation"
+# Attach lwIP (prefer 2.2.0, but fall back to 2.1.1 if needed)
+set preferred_lwip_libs [list]
+if {[info exists ::env(LWIP_LIB)]} {
+    lappend preferred_lwip_libs $::env(LWIP_LIB)
+} else {
+    set preferred_lwip_libs [list lwip220 lwip211]
+}
+
+set lwip_lib ""
+foreach candidate $preferred_lwip_libs {
+    if {[catch {bsp setlib -name $candidate}]} {
+        puts "lwIP candidate \"$candidate\" not available; trying next option."
+    } else {
+        set lwip_lib $candidate
+        break
+    }
+}
+if {$lwip_lib == ""} {
+    error "None of the preferred lwIP libraries were found ([join $preferred_lwip_libs , ])."
 }
 if {[catch {bsp config api_mode SOCKET_API}]} {
     puts "api_mode option not available for $lwip_lib, using defaults"

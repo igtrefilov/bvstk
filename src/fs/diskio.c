@@ -87,6 +87,13 @@
 #endif
 
 #include <string.h>
+#include <stdbool.h>
+
+typedef DWORD LBA_t;
+
+#ifndef CTRL_TRIM
+#define CTRL_TRIM CTRL_ERASE_SECTOR
+#endif
 
 #ifdef FILE_SYSTEM_INTERFACE_SD
 #ifdef XPAR_XSDPS_NUM_INSTANCES
@@ -651,20 +658,7 @@ DRESULT disk_ioctl (
 			res = RES_OK;
 			break;
 
-		case (BYTE)CTRL_TRIM :	/* Erase the data */
-			if (is_qspi) {
-				res = RES_OK;
-				break;
-			}
-			if (pdrv < DISKIO_SD_PDRV_COUNT) {
-#ifdef XPAR_XSDPS_NUM_INSTANCES
-				if ((SdInstance[pdrv].HCS) == 0U) {
-					SendBuff[0] *= (DWORD)XSDPS_BLK_SIZE_512_MASK;
-					SendBuff[1] *= (DWORD)XSDPS_BLK_SIZE_512_MASK;
-				}
-				(void)XSdPs_Erase(&SdInstance[pdrv], SendBuff[0], SendBuff[1]);
-#endif
-			}
+		case (BYTE)CTRL_TRIM :	/* Erase the data (no-op) */
 			res = RES_OK;
 			break;
 

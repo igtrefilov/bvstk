@@ -6,6 +6,9 @@
 
 # Track build script and source tree
 !build.tcl
+!build.sh
+!run_jtag.sh
+!run_jtag.tcl
 !src/
 !src/**
 

@@ -31,6 +31,7 @@ PATCHED_BLOCK = (
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_SRC = REPO_ROOT / "src" / "fs" / "xilffs_config.h"
+FFSYSTEM_TEMPLATE = REPO_ROOT / "src" / "fs" / "ffsystem_freertos.c"
 
 FF_FS_REENTRANT_PATTERN = re.compile(r'(?m)^(#define\s+FF_FS_REENTRANT\s+)(\d+)(.*)$')
 OS_TYPE_PATTERN = re.compile(r'(?m)^(#define\s+OS_TYPE\s+)(\d+)(\s*/\*.*)$')
@@ -40,6 +41,10 @@ def _patch_include_block(text: str, path: Path) -> tuple[str, bool]:
     if INCLUDE_BLOCK not in text:
         if "#ifndef FILE_SYSTEM_USE_LFN" in text:
             return text, False
+        replaced, count = re.subn(
+            r'#include\s+"xparameters\.h"[^\S\r\n]*\n', PATCHED_BLOCK, text, count=1)
+        if count:
+            return replaced, True
         raise SystemExit(f"Expected include block missing in {path}")
     return text.replace(INCLUDE_BLOCK, PATCHED_BLOCK, 1), True
 
@@ -68,10 +73,17 @@ def _ensure_ffsystem_file(path: Path) -> bool:
     return True
 
 
+def _replace_ffsystem_file(path: Path) -> None:
+    if not FFSYSTEM_TEMPLATE.exists():
+        raise SystemExit(f"Missing FreeRTOS ffsystem template at {FFSYSTEM_TEMPLATE}")
+    shutil.copy2(FFSYSTEM_TEMPLATE, path)
+
+
 def _ensure_ffsystem_files(root: Path) -> None:
     if not root.exists():
         return
     for entry in sorted(root.rglob("ffsystem.c")):
+        _replace_ffsystem_file(entry)
         _ensure_ffsystem_file(entry)
 
 

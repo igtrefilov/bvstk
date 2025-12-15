@@ -213,12 +213,14 @@ int qspi_flash_self_test(void)
 
 restore:
     /* Try to restore previous contents to avoid breaking boot images. */
-    int restore_rc = qspi_flash_erase_sector(QSPI_TEST_ADDR);
-    if (restore_rc == XST_SUCCESS) {
-        restore_rc = qspi_flash_program(QSPI_TEST_ADDR, sector_backup, sizeof(sector_backup));
-    }
-    if (restore_rc != XST_SUCCESS) {
-        xil_printf("QSPI: restore failed (%d)\r\n", restore_rc);
+    {
+        int restore_rc = qspi_flash_erase_sector(QSPI_TEST_ADDR);
+        if (restore_rc == XST_SUCCESS) {
+            restore_rc = qspi_flash_program(QSPI_TEST_ADDR, sector_backup, sizeof(sector_backup));
+        }
+        if (restore_rc != XST_SUCCESS) {
+            xil_printf("QSPI: restore failed (%d)\r\n", restore_rc);
+        }
     }
 
     return rc;

@@ -7,6 +7,7 @@
 
 #include "lwip/sockets.h"
 #include "xil_printf.h"
+#include "xstatus.h"
 
 #include "../bvstk_tcp_server/utils/utils.h"
 
@@ -66,7 +67,7 @@ int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label)
     FRESULT res = f_mount(ctx->fatfs, ctx->root, 1);
     if (res != FR_OK) {
         BYTE work[FF_MAX_SS];
-        res = f_mkfs(ctx->root, 0, work, sizeof(work));
+        res = f_mkfs(ctx->root, 0, 0, work, sizeof(work));
         if (res != FR_OK) return XST_FAILURE;
         res = f_mount(ctx->fatfs, ctx->root, 1);
         if (res != FR_OK) return XST_FAILURE;

@@ -2,6 +2,7 @@
 
 #include "../fs/fs_shared.h"
 #include "semphr.h"
+#include "xstatus.h"
 
 #include "../qspi_flash/qspi_flash.h"
 #include "xil_printf.h"
