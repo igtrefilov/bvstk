@@ -97,10 +97,28 @@ int fs_shared_fs_ls(const fs_shared_ctx_t *ctx, const char *path, int fd)
     }
     char line[96];
     char name[FF_MAX_LFN + 1];
-    while (f_readdir(&dir, &fno) == FR_OK) {
+    enum { LS_REPEAT_LIMIT = 4 };
+    char last_name[FF_MAX_LFN + 1] = "";
+    int same_count = 0;
+    while (1) {
+        res = f_readdir(&dir, &fno);
+        if (res != FR_OK) break;
+        if (fno.fname[0] == '\0') break;
         const char *entry = fs_shared_entry_name(&fno, name, sizeof(name));
-        if (!entry) break;
+        if (!entry) continue;
         normalize_name(name);
+        if (name[0] == '\0') continue;
+        if (strcmp(name, last_name) == 0) {
+            ++same_count;
+            if (same_count >= LS_REPEAT_LIMIT) {
+                write_str(fd, "ls: stopped because entry repeated\r\n");
+                break;
+            }
+        } else {
+            same_count = 0;
+            strncpy(last_name, name, sizeof(last_name) - 1);
+            last_name[sizeof(last_name) - 1] = '\0';
+        }
         int n = snprintf(line, sizeof(line), "%c %10lu %s\r\n",
             (fno.fattrib & AM_DIR) ? 'd' : '-',
             (unsigned long)fno.fsize,
@@ -138,10 +156,10 @@ int fs_shared_fs_cat(const fs_shared_ctx_t *ctx, const char *path, int fd)
     return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
 }
 
-int fs_shared_fs_touch(const fs_shared_ctx_t *ctx, const char *path)
+FRESULT fs_shared_fs_touch(const fs_shared_ctx_t *ctx, const char *path)
 {
-    if (!ctx || !path || !fs_shared_is_ready(ctx)) return XST_FAILURE;
-    if (!fs_shared_lock(ctx)) return XST_FAILURE;
+    if (!ctx || !path || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
     FIL file;
     FRESULT res = f_open(&file, path, FA_WRITE | FA_OPEN_ALWAYS);
     if (res == FR_OK) {
@@ -149,16 +167,16 @@ int fs_shared_fs_touch(const fs_shared_ctx_t *ctx, const char *path)
         f_close(&file);
     }
     fs_shared_unlock(ctx);
-    return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
+    return res;
 }
 
-int fs_shared_fs_mkdir(const fs_shared_ctx_t *ctx, const char *path)
+FRESULT fs_shared_fs_mkdir(const fs_shared_ctx_t *ctx, const char *path)
 {
-    if (!ctx || !path || !fs_shared_is_ready(ctx)) return XST_FAILURE;
-    if (!fs_shared_lock(ctx)) return XST_FAILURE;
+    if (!ctx || !path || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
     FRESULT res = f_mkdir(path);
     fs_shared_unlock(ctx);
-    return (res == FR_OK || res == FR_EXIST) ? XST_SUCCESS : XST_FAILURE;
+    return res;
 }
 
 int fs_shared_fs_rm(const fs_shared_ctx_t *ctx, const char *path)
@@ -188,7 +206,7 @@ int fs_shared_fs_is_dir(const fs_shared_ctx_t *ctx, const char *path)
 }
 
 int fs_shared_fs_complete(const fs_shared_ctx_t *ctx, const char *dir, const char *prefix,
-                           char results[][FS_NAME_MAX], int max_results, int *out_count)
+                          char results[][FS_NAME_MAX], int max_results, int *out_count)
 {
     if (out_count) *out_count = 0;
     if (!ctx || !dir || !results || max_results <= 0 || !fs_shared_is_ready(ctx)) return XST_FAILURE;
@@ -196,13 +214,19 @@ int fs_shared_fs_complete(const fs_shared_ctx_t *ctx, const char *dir, const cha
     DIR d;
     FILINFO fno;
     FRESULT res = f_opendir(&d, dir);
-    if (res != FR_OK) { fs_shared_unlock(ctx); return XST_FAILURE; }
+    if (res != FR_OK) {
+        fs_shared_unlock(ctx);
+        return XST_FAILURE;
+    }
     size_t prefix_len = prefix ? strlen(prefix) : 0;
     int cnt = 0;
     char name[FF_MAX_LFN + 1];
-    while (f_readdir(&d, &fno) == FR_OK) {
+    while (1) {
+        res = f_readdir(&d, &fno);
+        if (res != FR_OK) break;
+        if (fno.fname[0] == '\0') break;
         const char *entry = fs_shared_entry_name(&fno, name, sizeof(name));
-        if (!entry) break;
+        if (!entry) continue;
         normalize_name(name);
         if (prefix_len && strncmp(name, prefix, prefix_len) != 0) continue;
         if (cnt < max_results) {

@@ -23,7 +23,7 @@ proc safe_delete {path} {
 }
 
 # Workspace / project names
-set WS        [file normalize "./vitis_ws"]
+set WS        [file normalize "[file dirname [info script]]/vitis_ws"]
 set PLAT_NAME plat_bvstk
 set APP_NAME  app_bvstk
 
@@ -48,6 +48,17 @@ if {$do_clean && [file exists $WS]} {
 file mkdir $WS
 
 set SCRIPT_DIR [file dirname [file normalize [info script]]]
+set PATCH_FFCONF_SCRIPT [file join $SCRIPT_DIR src scripts patch_ffconf_lfn.py]
+
+proc ensure_ffconf_lfn {script ws} {
+    if {![file exists $script]} {
+        return
+    }
+    puts "Ensuring FatFs LFN support via [file tail $script]"
+    if {[catch {exec python3 -- $script $ws} err]} {
+        error "patch_ffconf_lfn.py failed: $err"
+    }
+}
 
 setws $WS
 platform create -name $PLAT_NAME -hw $XSA -proc $PROC -os $OS_RTOS -out $WS
@@ -57,16 +68,9 @@ platform active $PLAT_NAME
 catch {bsp config total_heap_size 131072}
 
 # Attach lwIP (prefer 2.1.1 if present, otherwise 2.2.0 from Vitis 2024.2)
-set lwip_lib ""
-foreach candidate {lwip211 lwip220} {
-    if {[catch {bsp setlib -name $candidate}]} {
-        continue
-    }
-    set lwip_lib $candidate
-    break
-}
-if {$lwip_lib eq ""} {
-    error "lwIP library not found in current Vitis installation"
+set lwip_lib "lwip220"
+if {[catch {bsp setlib -name $lwip_lib}]} {
+    error "lwIP library \"$lwip_lib\" not found in current Vitis installation"
 }
 if {[catch {bsp config api_mode SOCKET_API}]} {
     puts "api_mode option not available for $lwip_lib, using defaults"
@@ -79,13 +83,14 @@ if {[catch {bsp setlib -name xilffs} msg]} {
     # Replace the generated diskio implementation with our shared version.
     set CUSTOM_DISKIO [file join $SCRIPT_DIR src fs diskio.c]
     set TARGET_DISKIO [file join $WS plat_bvstk/ps7_cortexa9_0/freertos10_xilinx_domain/bsp/ps7_cortexa9_0/libsrc/xilffs_v5_3/src/diskio.c]
-    file mkdir -p [file dirname $TARGET_DISKIO]
+    exec mkdir -p [file dirname $TARGET_DISKIO]
     file copy -force $CUSTOM_DISKIO $TARGET_DISKIO
 }
 # Mount SD card in interrupt-driven mode; fall back silently if option is absent
 catch {bsp config xilffs_polled_mode false}
 catch {bsp config xilffs_fs_interface SD}
 bsp regenerate
+ensure_ffconf_lfn $PATCH_FFCONF_SCRIPT $WS
 
 app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
 
@@ -100,7 +105,9 @@ file link -symbolic $app_src $SRC_REAL
 
 # Generate platform/BSP and build the application
 platform generate
+ensure_ffconf_lfn $PATCH_FFCONF_SCRIPT $WS
 app build -name $APP_NAME
+ensure_ffconf_lfn $PATCH_FFCONF_SCRIPT $WS
 
 puts ""
 puts "Build completed."

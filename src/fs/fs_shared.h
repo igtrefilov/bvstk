@@ -2,6 +2,7 @@
 #define FS_SHARED_H
 
 #include <stdbool.h>
+#include "xilffs_config.h"
 #include "ff.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
@@ -25,8 +26,8 @@ int fs_shared_is_ready(const fs_shared_ctx_t *ctx);
 
 int fs_shared_fs_ls(const fs_shared_ctx_t *ctx, const char *path, int fd);
 int fs_shared_fs_cat(const fs_shared_ctx_t *ctx, const char *path, int fd);
-int fs_shared_fs_touch(const fs_shared_ctx_t *ctx, const char *path);
-int fs_shared_fs_mkdir(const fs_shared_ctx_t *ctx, const char *path);
+FRESULT fs_shared_fs_touch(const fs_shared_ctx_t *ctx, const char *path);
+FRESULT fs_shared_fs_mkdir(const fs_shared_ctx_t *ctx, const char *path);
 int fs_shared_fs_rm(const fs_shared_ctx_t *ctx, const char *path);
 int fs_shared_fs_is_dir(const fs_shared_ctx_t *ctx, const char *path);
 int fs_shared_fs_complete(const fs_shared_ctx_t *ctx, const char *dir, const char *prefix,

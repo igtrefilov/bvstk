@@ -114,12 +114,14 @@ int sd_fs_cat(const char *path, int fd)
 
 int sd_fs_touch(const char *path)
 {
-    return fs_shared_fs_touch(&sd_ctx, path);
+    FRESULT res = fs_shared_fs_touch(&sd_ctx, path);
+    return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
 }
 
 int sd_fs_mkdir(const char *path)
 {
-    return fs_shared_fs_mkdir(&sd_ctx, path);
+    FRESULT res = fs_shared_fs_mkdir(&sd_ctx, path);
+    return (res == FR_OK || res == FR_EXIST) ? XST_SUCCESS : XST_FAILURE;
 }
 
 int sd_fs_rm(const char *path)

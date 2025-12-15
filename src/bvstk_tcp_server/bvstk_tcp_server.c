@@ -210,6 +210,16 @@ static void run_client_session(int fd)
                 }
             } else if (c == '\t') {
                 size_t start = cursor;
+                if (linelen >= LINEBUF_SIZE) {
+                    linelen = LINEBUF_SIZE - 1;
+                    if (cursor > linelen) {
+                        cursor = linelen;
+                    }
+                }
+                if (cursor > linelen) {
+                    cursor = linelen;
+                }
+                start = cursor;
                 while (start > 0 && linebuf[start - 1] != ' ' && linebuf[start - 1] != '\t') start--;
                 bool completing_command = true;
                 for (size_t k = 0; k < start; ++k) {
@@ -278,11 +288,12 @@ static void run_client_session(int fd)
                     } else if (strchr(dir_part, ':')) {
                         snprintf(full_dir, sizeof(full_dir), "%s", dir_part);
                     } else {
-                        bool need_slash = dir_part[strlen(dir_part) - 1] != '/';
-                        snprintf(full_dir, sizeof(full_dir), "%s%s%s", dir_part, need_slash ? "/" : "", "");
+                        bool need_slash = (strlen(dir_part) > 0 && dir_part[strlen(dir_part) - 1] != '/');
+                        snprintf(full_dir, sizeof(full_dir), "%s%s", dir_part, need_slash ? "/" : "");
                     }
                     int total = 0;
-                    if (fs_shared_fs_complete(ctx, full_dir, prefix_part, s_dir_candidates, 16, &total) != XST_SUCCESS || total == 0) {
+                    int status = fs_shared_fs_complete(ctx, full_dir, prefix_part, s_dir_candidates, 16, &total);
+                    if (status != XST_SUCCESS || total == 0) {
                         continue;
                     }
                     matches = total;
@@ -301,8 +312,9 @@ static void run_client_session(int fd)
                             cursor++;
                         }
                     } else {
+                        int printed_candidates = (total < 16) ? total : 16;
                         lwip_write(fd, "\r\n", 2);
-                        for (int m = 0; m < total && m < 16; ++m) {
+                        for (int m = 0; m < printed_candidates; ++m) {
                             lwip_write(fd, s_dir_candidates[m], strlen(s_dir_candidates[m]));
                             lwip_write(fd, "  ", 2);
                         }

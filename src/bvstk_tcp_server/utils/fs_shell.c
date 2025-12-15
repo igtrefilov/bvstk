@@ -254,7 +254,18 @@ static void cmd_fs_mkdir(int fd, console_session_t *session, const char *path)
     if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     char full[CONSOLE_PATH_MAX];
     if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
-    if (fs_shared_fs_mkdir(ctx, full) == XST_SUCCESS) write_str(fd, "OK\r\n"); else write_str(fd, "ERR\r\n");
+    FRESULT res = fs_shared_fs_mkdir(ctx, full);
+    if (res == FR_OK || res == FR_EXIST) {
+        write_str(fd, "OK\r\n");
+    } else {
+        char buf[32];
+        int n = snprintf(buf, sizeof(buf), "ERR (FR=%d)\r\n", res);
+        if (n > 0 && n < (int)sizeof(buf)) {
+            write_str(fd, buf);
+        } else {
+            write_str(fd, "ERR\r\n");
+        }
+    }
 }
 
 static void cmd_fs_touch(int fd, console_session_t *session, const char *path)
@@ -263,7 +274,18 @@ static void cmd_fs_touch(int fd, console_session_t *session, const char *path)
     if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     char full[CONSOLE_PATH_MAX];
     if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
-    if (fs_shared_fs_touch(ctx, full) == XST_SUCCESS) write_str(fd, "OK\r\n"); else write_str(fd, "ERR\r\n");
+    FRESULT res = fs_shared_fs_touch(ctx, full);
+    if (res == FR_OK) {
+        write_str(fd, "OK\r\n");
+    } else {
+        char buf[32];
+        int n = snprintf(buf, sizeof(buf), "ERR (FR=%d)\r\n", res);
+        if (n > 0 && n < (int)sizeof(buf)) {
+            write_str(fd, buf);
+        } else {
+            write_str(fd, "ERR\r\n");
+        }
+    }
 }
 
 static void cmd_fs_cat(int fd, console_session_t *session, const char *path)
