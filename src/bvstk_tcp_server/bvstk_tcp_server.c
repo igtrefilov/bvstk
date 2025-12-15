@@ -48,6 +48,7 @@ static void run_client_session(int fd)
         };
         lwip_write(fd, opts, sizeof(opts));
     }
+    console_print_banner(fd);
     console_print_prompt(fd, &session);
     utils_reset_close();
     for (;;) {

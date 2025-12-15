@@ -9,6 +9,40 @@
 
 #define PROMPT_MAX 80
 
+void console_print_banner(int fd)
+{
+    static const char *const lines[] = {
+        " _______   __     __   ______  ________  __    __       \r\n",
+        "|       \\ |  \\   |  \\ /      \\|        \\|  \\  /  \\      \r\n",
+        "| $$$$$$$\\| $$   | $$|  $$$$$$\\\\$$$$$$$$| $$ /  $$      \r\n",
+        "| $$__/ $$| $$   | $$| $$___\\$$  | $$   | $$/  $$       \r\n",
+        "| $$    $$ \\$$\\ /  $$ \\$$    \\   | $$   | $$  $$        \r\n",
+        "| $$$$$$$\\  \\$$\\  $$  _\\$$$$$$\\  | $$   | $$$$$\\        \r\n",
+        "| $$__/ $$   \\$$ $$  |  \\__| $$  | $$   | $$ \\$$\\       \r\n",
+        "| $$    $$    \\$$$    \\$$    $$  | $$   | $$  \\$$\\      \r\n",
+        " \\$$$$$$$      \\$      \\$$$$$$    \\$$    \\$$   \\$$      \r\n",
+        "\r\n",
+        "+----------------+-----------------------------+\r\n",
+        "| Utility        | Description                 |\r\n",
+        "+----------------+-----------------------------+\r\n",
+        "| fs             | Filesystem commands         |\r\n",
+        "| smi            | MDIO/SMI access             |\r\n",
+        "| mem            | Memory info/tools           |\r\n",
+        "| axp            | AXP control shell           |\r\n",
+        "| help           | List available utilities    |\r\n",
+        "| quit / exit    | Close session               |\r\n",
+        "+----------------+-----------------------------+\r\n",
+        "\r\n",
+        "Tip: use `<utility> -h` for help.\r\n",
+        "\r\n",
+        NULL
+    };
+
+    for (const char *const *p = lines; *p; ++p) {
+        write_str(fd, *p);
+    }
+}
+
 void console_session_init(console_session_t *s)
 {
     if (!s) return;
