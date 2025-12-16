@@ -1,4 +1,5 @@
 #include "main.h"
+#include "config/config_store.h"
 #include "fs/fs_devices.h"
 #include "qspi_fs/qspi_fs.h"
 #include "http/http_server.h"
@@ -10,6 +11,7 @@ int main()
 	start_sd_card();
 	start_qspi_fs();
 	fs_devices_init();
+	start_config_store();
 	start_lan();
 	start_tcp_server();
 	start_http_server();

@@ -49,6 +49,18 @@ file mkdir $WS
 
 set SCRIPT_DIR [file dirname [file normalize [info script]]]
 set PATCH_FFCONF_SCRIPT [file join $SCRIPT_DIR src scripts patch_ffconf_lfn.py]
+set GEN_DEFAULT_CONFIGS_SCRIPT [file join $SCRIPT_DIR src scripts gen_default_configs.py]
+set DEFAULT_CONFIGS_HDR [file join $SCRIPT_DIR src config default_configs.h]
+
+proc gen_default_configs {script repo_root out_hdr} {
+    if {![file exists $script]} {
+        error "gen_default_configs.py not found at $script"
+    }
+    puts "Generating embedded default configs..."
+    if {[catch {exec python3 -- $script --repo-root $repo_root --out $out_hdr} err]} {
+        error "gen_default_configs.py failed: $err"
+    }
+}
 
 proc ensure_ffconf_lfn {script ws} {
     if {![file exists $script]} {
@@ -61,6 +73,7 @@ proc ensure_ffconf_lfn {script ws} {
 }
 
 setws $WS
+gen_default_configs $GEN_DEFAULT_CONFIGS_SCRIPT $SCRIPT_DIR $DEFAULT_CONFIGS_HDR
 platform create -name $PLAT_NAME -hw $XSA -proc $PROC -os $OS_RTOS -out $WS
 platform active $PLAT_NAME
 

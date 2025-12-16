@@ -9,8 +9,18 @@
 !build.sh
 !run_jtag.sh
 !run_jtag.tcl
+!configs/
+!configs/**
 !src/
 !src/**
+
+# Editor metadata
+src/.obsidian/
+src/.obsidian/**
+
+# Python caches
+**/__pycache__/
+**/*.pyc
 
 # Keep GitHub workflows if added later
 !.github/
