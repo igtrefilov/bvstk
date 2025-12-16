@@ -49,6 +49,9 @@ bool i2cdev_select_device(const char *name);
 bool i2cdev_select_device_addr(uint8_t addr_7b);
 bool i2cdev_get_selected_info(i2cdev_device_info_t *out);
 
+bool i2cdev_find_device_index_by_name(const char *name, size_t *out_idx);
+bool i2cdev_find_device_index_by_addr(uint8_t addr_7b, size_t *out_idx);
+
 void i2cdev_autopoll_get(i2cdev_autopoll_profile_t *out);
 void i2cdev_autopoll_set(const i2cdev_autopoll_profile_t *p);
 
@@ -91,6 +94,9 @@ bool i2cdev_read_reg(uint8_t reg, uint8_t *out_val);
 bool i2cdev_write_reg(uint8_t reg, uint8_t val);
 bool i2cdev_read_reg_cached(uint8_t reg, uint8_t *out_val);
 
+bool i2cdev_read_reg_dev(size_t dev_idx, uint8_t reg, uint8_t *out_val);
+bool i2cdev_write_reg_dev(size_t dev_idx, uint8_t reg, uint8_t val);
+
 void i2cdev_policy_reset_defaults(void);
 void i2cdev_policy_clear_all(void);
 void i2cdev_set_policy(i2cdev_policy_t policy);
@@ -99,5 +105,11 @@ bool i2cdev_is_value_permitted_current(uint8_t reg, uint8_t val);
 bool i2cdev_rule_allow(uint8_t reg, uint8_t val);
 bool i2cdev_rule_deny(uint8_t reg, uint8_t val);
 bool i2cdev_rule_clear(uint8_t reg, uint8_t val);
+
+bool i2cdev_set_policy_dev(size_t dev_idx, i2cdev_policy_t policy);
+i2cdev_policy_t i2cdev_get_policy_dev(size_t dev_idx);
+bool i2cdev_rule_allow_dev(size_t dev_idx, uint8_t reg, uint8_t val);
+bool i2cdev_rule_deny_dev(size_t dev_idx, uint8_t reg, uint8_t val);
+bool i2cdev_rule_clear_dev(size_t dev_idx, uint8_t reg, uint8_t val);
 
 #endif

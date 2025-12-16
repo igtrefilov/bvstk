@@ -55,6 +55,18 @@ static uint8_t *i2cdev_selected_cache(void)
     return s_reg_cache[i2cdev_selected_idx()];
 }
 
+static i2c_device_config_t *i2cdev_cfg_by_idx(size_t idx)
+{
+    if (idx >= s_cfg_count) return NULL;
+    return s_cfgs[idx];
+}
+
+static uint8_t *i2cdev_cache_by_idx(size_t idx)
+{
+    if (idx >= s_cfg_count) return NULL;
+    return s_reg_cache[idx];
+}
+
 size_t i2cdev_device_count(void)
 {
     return s_cfg_count;
@@ -103,6 +115,32 @@ bool i2cdev_get_selected_info(i2cdev_device_info_t *out)
     out->reg_count = c->reg_count;
     out->max_value_code = c->max_value_code;
     return true;
+}
+
+bool i2cdev_find_device_index_by_name(const char *name, size_t *out_idx)
+{
+    if (out_idx) *out_idx = 0;
+    if (!name || !name[0]) return false;
+    for (size_t i = 0; i < s_cfg_count; ++i) {
+        if (s_cfgs[i] && strcasecmp(s_cfgs[i]->name, name) == 0) {
+            if (out_idx) *out_idx = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool i2cdev_find_device_index_by_addr(uint8_t addr_7b, size_t *out_idx)
+{
+    if (out_idx) *out_idx = 0;
+    addr_7b &= 0x7Fu;
+    for (size_t i = 0; i < s_cfg_count; ++i) {
+        if (s_cfgs[i] && s_cfgs[i]->addr_7b == addr_7b) {
+            if (out_idx) *out_idx = i;
+            return true;
+        }
+    }
+    return false;
 }
 
 static int rule_list_contains(const i2c_rule_entry_t *rules, size_t len, uint8_t reg, uint8_t val)
@@ -196,6 +234,23 @@ i2cdev_policy_t i2cdev_get_policy(void)
     return (cfg->policy == I2C_POLICY_BLACKLIST) ? I2CDEV_POLICY_BLACKLIST : I2CDEV_POLICY_WHITELIST;
 }
 
+bool i2cdev_set_policy_dev(size_t dev_idx, i2cdev_policy_t policy)
+{
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
+    if (!cfg) return false;
+    taskENTER_CRITICAL();
+    cfg->policy = (policy == I2CDEV_POLICY_BLACKLIST) ? I2C_POLICY_BLACKLIST : I2C_POLICY_WHITELIST;
+    taskEXIT_CRITICAL();
+    return true;
+}
+
+i2cdev_policy_t i2cdev_get_policy_dev(size_t dev_idx)
+{
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
+    if (!cfg) return I2CDEV_POLICY_WHITELIST;
+    return (cfg->policy == I2C_POLICY_BLACKLIST) ? I2CDEV_POLICY_BLACKLIST : I2CDEV_POLICY_WHITELIST;
+}
+
 bool i2cdev_rule_allow(uint8_t reg, uint8_t val)
 {
     i2c_device_config_t *cfg = i2cdev_selected_cfg();
@@ -223,6 +278,41 @@ bool i2cdev_rule_deny(uint8_t reg, uint8_t val)
 bool i2cdev_rule_clear(uint8_t reg, uint8_t val)
 {
     i2c_device_config_t *cfg = i2cdev_selected_cfg();
+    if (!cfg) return false;
+    taskENTER_CRITICAL();
+    rule_list_remove(cfg->whitelist, &cfg->whitelist_len, reg, val);
+    rule_list_remove(cfg->blacklist, &cfg->blacklist_len, reg, val);
+    taskEXIT_CRITICAL();
+    return true;
+}
+
+bool i2cdev_rule_allow_dev(size_t dev_idx, uint8_t reg, uint8_t val)
+{
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
+    if (!cfg) return false;
+    if (reg >= cfg->reg_count) return false;
+    if (val > cfg->max_value_code) return false;
+    taskENTER_CRITICAL();
+    rule_list_add(cfg->whitelist, &cfg->whitelist_len, I2C_CFG_RULES_MAX, reg, val);
+    taskEXIT_CRITICAL();
+    return true;
+}
+
+bool i2cdev_rule_deny_dev(size_t dev_idx, uint8_t reg, uint8_t val)
+{
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
+    if (!cfg) return false;
+    if (reg >= cfg->reg_count) return false;
+    if (val > cfg->max_value_code) return false;
+    taskENTER_CRITICAL();
+    rule_list_add(cfg->blacklist, &cfg->blacklist_len, I2C_CFG_RULES_MAX, reg, val);
+    taskEXIT_CRITICAL();
+    return true;
+}
+
+bool i2cdev_rule_clear_dev(size_t dev_idx, uint8_t reg, uint8_t val)
+{
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
     if (!cfg) return false;
     taskENTER_CRITICAL();
     rule_list_remove(cfg->whitelist, &cfg->whitelist_len, reg, val);
@@ -591,6 +681,11 @@ static bool i2cdev_read_reg_idx(size_t dev_idx, uint8_t reg, uint8_t *out_val)
     return true;
 }
 
+bool i2cdev_read_reg_dev(size_t dev_idx, uint8_t reg, uint8_t *out_val)
+{
+    return i2cdev_read_reg_idx(dev_idx, reg, out_val);
+}
+
 bool i2cdev_read_reg_cached(uint8_t reg, uint8_t *out_val)
 {
     if (!out_val) return false;
@@ -614,5 +709,15 @@ bool i2cdev_write_reg(uint8_t reg, uint8_t val)
     if (reg >= cfg->reg_count) return false;
     if (!i2cdev_is_value_permitted_cfg(cfg, reg, val)) return false;
     i2cdev_write_byte(i2cdev_selected_idx(), cfg->addr_7b, reg, val);
+    return true;
+}
+
+bool i2cdev_write_reg_dev(size_t dev_idx, uint8_t reg, uint8_t val)
+{
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
+    if (!cfg) return false;
+    if (reg >= cfg->reg_count) return false;
+    if (!i2cdev_is_value_permitted_cfg(cfg, reg, val)) return false;
+    i2cdev_write_byte(dev_idx, cfg->addr_7b, reg, val);
     return true;
 }

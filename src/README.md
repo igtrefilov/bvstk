@@ -272,29 +272,30 @@ mem w 0xE000A001 0x7F
 
 Команды:
 - `i2c list`
-- `i2c info`
-- `i2c use <name>`
-- `i2c addr <0x..>`
-- `i2c r <reg>`
-- `i2c w <reg> <val>`
-- `i2c rules`
-- `i2c policy <whitelist|blacklist>`
-- `i2c allow <reg> <val>`
-- `i2c deny <reg> <val>`
-- `i2c clear <reg> <val>`
-- `i2c autopoll` (показать автополлинг)
-- `i2c save` (сохранить текущие правила/политику в JSON)
+- `i2c <name|@0x..> [info]`
+- `i2c <name|@0x..> r <reg>`
+- `i2c <name|@0x..> w <reg> <val>`
+- `i2c <name|@0x..> rules`
+- `i2c <name|@0x..> policy <whitelist|blacklist>`
+- `i2c <name|@0x..> allow <reg> <val>`
+- `i2c <name|@0x..> deny <reg> <val>`
+- `i2c <name|@0x..> clear <reg> <val>`
+- `i2c <name|@0x..> autopoll` (показать автополлинг)
+- `i2c <name|@0x..> save` (сохранить правила/политику в JSON)
 
 Примеры:
 ```
 i2c list
-i2c use axp15060
-i2c r 0x10
-i2c w 0x10 0x01
-i2c policy whitelist
-i2c allow 0x10 0x01
-i2c rules
-i2c save
+i2c axp15060 r 0x10
+i2c axp15060 w 0x10 0x01
+i2c axp15060 policy whitelist
+i2c axp15060 allow 0x10 0x01
+i2c axp15060 rules
+i2c axp15060 save
+```
+По адресу (7-bit):
+```
+i2c @0x36 r 0x10
 ```
 
 ## HTTP file transfer
