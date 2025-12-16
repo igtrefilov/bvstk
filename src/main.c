@@ -1,6 +1,7 @@
 #include "main.h"
 #include "fs/fs_devices.h"
 #include "qspi_fs/qspi_fs.h"
+#include "http/http_server.h"
 
 int main()
 {
@@ -11,6 +12,7 @@ int main()
 	fs_devices_init();
 	start_lan();
 	start_tcp_server();
+	start_http_server();
 	start_smi();
 	start_i2c();
 

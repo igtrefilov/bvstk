@@ -12,6 +12,13 @@ Startup sequence in `src/main.c`:
   - Text lines go to `process_console_line()`; binary frames go to `process_received_data()` (weak symbol you can override).
   - Built-ins: `help`, `quit`/`exit`.
   - Utilities: `fs` (help), `smi`, `mem`, `axp` (run `<name> -h` for usage).
+- HTTP server on port `8000` (`src/http/*`). Filesystem endpoints are implemented as a separate route module (`src/http_fs/http_fs_routes.c`) so the HTTP server stays generic for a future web UI:
+  - Single file:
+    - `GET  /sd/<path>` / `PUT /sd/<path>` (maps to FatFs `0:/<path>`)
+    - `GET  /flash/<path>` / `PUT /flash/<path>` (maps to FatFs `1:/<path>`)
+  - Directory as tar stream (tar encoder/decoder lives in `src/tar/*`, reusable from console in the future):
+    - `GET  /tar/sd/<dir>` / `PUT /tar/sd/<dir>`
+    - `GET  /tar/flash/<dir>` / `PUT /tar/flash/<dir>`
 - Filesystem commands: `pwd`, `ls [path]`, `cd <dir>`, `cd flash|cd sd`, `mkdir`, `touch`, `cat`, `rm`, `cp`, `cp -r`, `mv` (see `fs -h`).
 - Prefix paths with `sd:/` or `flash:/` when you need to address the other device directly (e.g., `cp sd:/test/file flash:/backup/file`). The same prefixes work with `cp -r`, `cat`, `mv`, etc.
 - I2C master/slave driver with event queues, whitelist/blacklist policy, and autopolling of registers (`src/bvstk_i2c/*`).
@@ -95,6 +102,21 @@ Important for a new machine:
 After successful run, connect to the TCP console:
 ```
 telnet 192.168.0.10 8888
+```
+
+## HTTP file transfer (curl/wget)
+Base URL: `http://192.168.0.10:8000`
+
+Single file:
+```
+curl -T local.bin http://192.168.0.10:8000/flash/fw/local.bin
+curl -o local.bin http://192.168.0.10:8000/sd/logs/local.bin
+```
+
+Directories (tar stream, no compression):
+```
+curl http://192.168.0.10:8000/tar/flash/cfg | tar -xf -
+tar -cf - ./cfg | curl -T - http://192.168.0.10:8000/tar/flash/cfg
 ```
 
 ## Build (quick)
