@@ -20,6 +20,7 @@ int start_config_store(void);
 int config_store_is_ready(void);
 int config_store_wait_ready(uint32_t timeout_ms);
 int config_store_get_network(network_config_t *out);
+int config_store_set_network(const network_config_t *cfg);
+int config_store_save_network(void);
 
 #endif /* CONFIG_STORE_H */
-
