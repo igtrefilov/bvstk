@@ -1,5 +1,9 @@
 #include "bvstk_i2c.h"
 
+#include <string.h>
+
+#include "../config/config_store.h"
+
 static QueueHandle_t q_master = NULL;
 static QueueHandle_t q_slave  = NULL;
 static SemaphoreHandle_t i2c_bus_mutex = NULL;
@@ -18,22 +22,41 @@ static i2cdev_policy_t g_i2cdev_policy = I2CDEV_DEFAULT_POLICY;
 static uint8_t i2cdev_reg_cache[I2CDEV_REG_COUNT];
 static volatile uint8_t s_pending_reg = 0xFF;
 
+static uint8_t s_autopoll_regs[I2CDEV_REG_COUNT];
+static i2cdev_autopoll_profile_t s_autopoll;
+
+static void i2cdev_autopoll_init_defaults(void)
+{
+    memset(s_autopoll_regs, 0, sizeof(s_autopoll_regs));
+    s_autopoll = i2cdev_autopoll_profile;
+    if (i2cdev_autopoll_profile.regs && i2cdev_autopoll_profile.regs_len) {
+        size_t n = i2cdev_autopoll_profile.regs_len;
+        if (n > I2CDEV_REG_COUNT) n = I2CDEV_REG_COUNT;
+        memcpy(s_autopoll_regs, i2cdev_autopoll_profile.regs, n);
+        s_autopoll.regs = s_autopoll_regs;
+        s_autopoll.regs_len = n;
+    } else {
+        s_autopoll.regs = NULL;
+        s_autopoll.regs_len = 0u;
+    }
+}
+
 static bool i2cdev_autopoll_enabled(void)
 {
-    return (i2cdev_autopoll_profile.enabled &&
-            i2cdev_autopoll_profile.regs &&
-            i2cdev_autopoll_profile.regs_len > 0u);
+    return (s_autopoll.enabled &&
+            s_autopoll.regs &&
+            s_autopoll.regs_len > 0u);
 }
 
 static void i2cdev_autopoll_cycle(void)
 {
     if (!i2cdev_autopoll_enabled()) return;
-    for (size_t i = 0; i < i2cdev_autopoll_profile.regs_len; ++i) {
-        uint8_t reg = i2cdev_autopoll_profile.regs[i];
+    for (size_t i = 0; i < s_autopoll.regs_len; ++i) {
+        uint8_t reg = s_autopoll.regs[i];
         uint8_t val;
         (void)i2cdev_read_reg(reg, &val);
-        if (i2cdev_autopoll_profile.reg_delay_ms) {
-            vTaskDelay(pdMS_TO_TICKS(i2cdev_autopoll_profile.reg_delay_ms));
+        if (s_autopoll.reg_delay_ms) {
+            vTaskDelay(pdMS_TO_TICKS(s_autopoll.reg_delay_ms));
         }
     }
 }
@@ -76,14 +99,19 @@ extern size_t xPortGetMinimumEverFreeHeapSize(void);
 
 void i2cdev_policy_reset_defaults(void)
 {
+    i2cdev_policy_clear_all();
+    i2cdev_device_policy_defaults();
+    g_i2cdev_policy = I2CDEV_DEFAULT_POLICY;
+}
+
+void i2cdev_policy_clear_all(void)
+{
     for (uint32_t r = 0; r < I2CDEV_REG_COUNT; ++r) {
         for (uint32_t v = 0; v <= I2CDEV_MAX_VALUE_CODE; ++v) {
             i2cdev_whitelist_bitmap[r][v] = 0;
             i2cdev_blacklist_bitmap[r][v] = 0;
         }
     }
-    i2cdev_device_policy_defaults();
-    g_i2cdev_policy = I2CDEV_DEFAULT_POLICY;
 }
 
 void i2cdev_set_policy(i2cdev_policy_t policy)
@@ -144,6 +172,7 @@ void start_i2c(void)
     xil_printf("Heap BEFORE I2C: %u, min ever: %u\r\n",
                (unsigned)xPortGetFreeHeapSize(),
                (unsigned)xPortGetMinimumEverFreeHeapSize());
+    i2cdev_autopoll_init_defaults();
     i2cdev_policy_reset_defaults();
     q_master = xQueueCreate(64, sizeof(master_evt_t));
     q_slave  = xQueueCreate(64, sizeof(slave_evt_t));
@@ -163,16 +192,64 @@ void start_i2c(void)
                (unsigned)xPortGetMinimumEverFreeHeapSize());
 }
 
+void i2cdev_autopoll_configure(const uint8_t *regs,
+                               size_t regs_len,
+                               uint32_t reg_delay_ms,
+                               uint32_t cycle_delay_ms,
+                               bool enabled)
+{
+    if (regs && regs_len) {
+        size_t n = 0;
+        for (size_t i = 0; i < regs_len && n < I2CDEV_REG_COUNT; ++i) {
+            uint8_t r = regs[i];
+            if (r < I2CDEV_REG_COUNT) s_autopoll_regs[n++] = r;
+        }
+        s_autopoll.regs = s_autopoll_regs;
+        s_autopoll.regs_len = n;
+    } else {
+        s_autopoll.regs = NULL;
+        s_autopoll.regs_len = 0u;
+    }
+    s_autopoll.reg_delay_ms = reg_delay_ms;
+    s_autopoll.cycle_delay_ms = cycle_delay_ms;
+    s_autopoll.enabled = enabled;
+}
+
 void i2c_task(void *pvParameters)
 {
     (void)pvParameters;
     vTaskDelay(pdMS_TO_TICKS(1000));
+
+    /* Load AXP15060 access policy/autopoll from JSON config (if available). */
+    {
+        const axp15060_config_t *cfg = NULL;
+        if (config_store_wait_ready(5000)) cfg = config_store_peek_axp15060();
+        if (cfg) {
+            i2cdev_policy_clear_all();
+            i2cdev_set_policy((cfg->policy == AXP_POLICY_BLACKLIST) ? I2CDEV_POLICY_BLACKLIST : I2CDEV_POLICY_WHITELIST);
+            for (size_t i = 0; i < cfg->whitelist_len; ++i) {
+                (void)i2cdev_rule_allow(cfg->whitelist[i].reg, cfg->whitelist[i].val);
+            }
+            for (size_t i = 0; i < cfg->blacklist_len; ++i) {
+                (void)i2cdev_rule_deny(cfg->blacklist[i].reg, cfg->blacklist[i].val);
+            }
+            i2cdev_autopoll_configure(cfg->autopoll_regs,
+                                      cfg->autopoll_regs_len,
+                                      cfg->autopoll_reg_delay_ms,
+                                      cfg->autopoll_cycle_delay_ms,
+                                      cfg->autopoll_enabled);
+            xil_printf("I2C: loaded AXP15060 policy from flash config\r\n");
+        } else {
+            xil_printf("I2C: using embedded AXP15060 defaults\r\n");
+        }
+    }
+
     for (uint32_t i = 0; i < I2CDEV_REG_COUNT; ++i) i2cdev_reg_cache[i] = 0;
     i2cdev_init_full_scan();
     for (;;) {
         if (i2cdev_autopoll_enabled()) {
             i2cdev_autopoll_cycle();
-            uint32_t pause_ms = i2cdev_autopoll_profile.cycle_delay_ms;
+            uint32_t pause_ms = s_autopoll.cycle_delay_ms;
             if (pause_ms == 0u) pause_ms = 1u;
             vTaskDelay(pdMS_TO_TICKS(pause_ms));
         } else {

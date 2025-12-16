@@ -5,5 +5,7 @@
 
 static const char DEFAULT_NETWORK_JSON[] = "{\n  \"ipv4\": {\n    \"ip\": \"192.168.0.10\",\n    \"netmask\": \"255.255.255.0\",\n    \"gateway\": \"192.168.0.1\"\n  },\n  \"mac\": \"00:0a:35:00:01:02\"\n}\n\n";
 static const unsigned int DEFAULT_NETWORK_JSON_LEN = 138u;
+static const char DEFAULT_AXP15060_JSON[] = "{\n  \"policy\": \"whitelist\",\n  \"autopoll_enabled\": true,\n  \"autopoll_reg_delay_ms\": 5,\n  \"autopoll_cycle_delay_ms\": 200,\n  \"autopoll_regs\": [0, 49, 50, 72, 73],\n  \"whitelist\": [\n    { \"reg\": 19, \"val\": 16 },\n    { \"reg\": 19, \"val\": 17 },\n    { \"reg\": 19, \"val\": 18 },\n    { \"reg\": 19, \"val\": 19 }\n  ],\n  \"blacklist\": []\n}\n\n";
+static const unsigned int DEFAULT_AXP15060_JSON_LEN = 321u;
 
 #endif /* DEFAULT_CONFIGS_H */

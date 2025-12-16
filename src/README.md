@@ -268,6 +268,8 @@ mem w 0xE000A001 0x7F
 ### axp — AXP15060 (I2C)
 Назначение: диагностика и управление PMIC AXP15060 + правила доступа (whitelist/blacklist).
 
+Конфиг: `flash:/configs/axp15060.json` (создаётся автоматически, если отсутствует).
+
 Команды:
 - `axp status`
 - `axp r <reg>`
@@ -278,6 +280,8 @@ mem w 0xE000A001 0x7F
 - `axp deny <reg> <val>`
 - `axp clear <reg> <val>`
 - `axp reset`
+
+Примечание: `axp policy/allow/deny/clear/reset` обновляют и сохраняют конфиг в `flash:/configs/axp15060.json`.
 
 Примеры:
 ```
@@ -326,6 +330,7 @@ ls
 cd flash
 ls /configs
 cat /configs/network.json
+cat /configs/axp15060.json
 ```
 5) Проверить сеть/настройки:
 ```

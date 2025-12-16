@@ -1,0 +1,15 @@
+{
+  "policy": "whitelist",
+  "autopoll_enabled": true,
+  "autopoll_reg_delay_ms": 5,
+  "autopoll_cycle_delay_ms": 200,
+  "autopoll_regs": [0, 49, 50, 72, 73],
+  "whitelist": [
+    { "reg": 19, "val": 16 },
+    { "reg": 19, "val": 17 },
+    { "reg": 19, "val": 18 },
+    { "reg": 19, "val": 19 }
+  ],
+  "blacklist": []
+}
+

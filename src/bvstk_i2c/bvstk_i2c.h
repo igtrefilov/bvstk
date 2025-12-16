@@ -101,11 +101,18 @@ bool i2cdev_write_reg(uint8_t reg, uint8_t val);
 bool i2cdev_read_reg_cached(uint8_t reg, uint8_t *out_val);
 
 void i2cdev_policy_reset_defaults(void);
+void i2cdev_policy_clear_all(void);
 void i2cdev_set_policy(i2cdev_policy_t policy);
 i2cdev_policy_t i2cdev_get_policy(void);
 bool i2cdev_is_value_permitted_current(uint8_t reg, uint8_t val);
 bool i2cdev_rule_allow(uint8_t reg, uint8_t val);
 bool i2cdev_rule_deny(uint8_t reg, uint8_t val);
 bool i2cdev_rule_clear(uint8_t reg, uint8_t val);
+
+void i2cdev_autopoll_configure(const uint8_t *regs,
+                               size_t regs_len,
+                               uint32_t reg_delay_ms,
+                               uint32_t cycle_delay_ms,
+                               bool enabled);
 
 #endif

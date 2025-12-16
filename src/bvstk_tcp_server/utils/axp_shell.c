@@ -8,6 +8,41 @@
 #include "lwip/sockets.h"
 
 #include "../../bvstk_i2c/bvstk_i2c.h"
+#include "../../config/config_store.h"
+
+static void cfg_rule_add(axp_rule_entry_t *rules, size_t *len, size_t max, uint8_t reg, uint8_t val)
+{
+    if (!rules || !len) return;
+    for (size_t i = 0; i < *len; ++i) {
+        if (rules[i].reg == reg && rules[i].val == val) return;
+    }
+    if (*len < max) {
+        rules[*len].reg = reg;
+        rules[*len].val = val;
+        (*len)++;
+    }
+}
+
+static void cfg_rule_remove(axp_rule_entry_t *rules, size_t *len, uint8_t reg, uint8_t val)
+{
+    if (!rules || !len) return;
+    size_t w = 0;
+    for (size_t i = 0; i < *len; ++i) {
+        if (rules[i].reg == reg && rules[i].val == val) continue;
+        rules[w++] = rules[i];
+    }
+    *len = w;
+}
+
+static void persist_cfg(int fd, const axp15060_config_t *cfg)
+{
+    if (!cfg) return;
+    (void)config_store_set_axp15060(cfg);
+    int saved = config_store_save_axp15060();
+    if (!saved) {
+        write_str(fd, "WARN: failed to save to flash:/configs/axp15060.json\r\n");
+    }
+}
 
 static uint16_t dcdc12x_mv(uint8_t code)
 {
@@ -194,18 +229,29 @@ static void cmd_help_axp(int fd)
     write_str(fd, "  axp deny <reg> <val>\r\n");
     write_str(fd, "  axp clear <reg> <val>\r\n");
     write_str(fd, "  axp reset\r\n");
+    write_str(fd, "notes:\r\n");
+    write_str(fd, "  policy/rules persist to flash:/configs/axp15060.json\r\n");
 }
 
 static void cmd_axp_policy(int fd, const char *mode)
 {
     if (!mode) { write_str(fd, "ERR\r\n"); return; }
+    axp15060_config_t cfg;
+    if (!config_store_get_axp15060(&cfg)) {
+        write_str(fd, "ERR (config not ready)\r\n");
+        return;
+    }
     if (strcasecmp(mode, "whitelist") == 0) {
         i2cdev_set_policy(I2CDEV_POLICY_WHITELIST);
+        cfg.policy = AXP_POLICY_WHITELIST;
+        persist_cfg(fd, &cfg);
         write_str(fd, "OK\r\n");
         return;
     }
     if (strcasecmp(mode, "blacklist") == 0) {
         i2cdev_set_policy(I2CDEV_POLICY_BLACKLIST);
+        cfg.policy = AXP_POLICY_BLACKLIST;
+        persist_cfg(fd, &cfg);
         write_str(fd, "OK\r\n");
         return;
     }
@@ -219,11 +265,30 @@ static void cmd_axp_rule_edit(int fd, const char *op, const char *s_reg, const c
     unsigned long reg = parse_num(s_reg, &okr);
     unsigned long val = parse_num(s_val, &okv);
     if (!okr || !okv || reg >= I2CDEV_REG_COUNT || val > I2CDEV_MAX_VALUE_CODE) { write_str(fd, "ERR\r\n"); return; }
+
+    axp15060_config_t cfg;
+    if (!config_store_get_axp15060(&cfg)) {
+        write_str(fd, "ERR (config not ready)\r\n");
+        return;
+    }
+
     bool ok = false;
-    if (strcasecmp(op, "allow") == 0) ok = i2cdev_rule_allow((uint8_t)reg, (uint8_t)val);
-    else if (strcasecmp(op, "deny") == 0) ok = i2cdev_rule_deny((uint8_t)reg, (uint8_t)val);
-    else if (strcasecmp(op, "clear") == 0) ok = i2cdev_rule_clear((uint8_t)reg, (uint8_t)val);
+    if (strcasecmp(op, "allow") == 0) {
+        ok = i2cdev_rule_allow((uint8_t)reg, (uint8_t)val);
+        if (ok) cfg_rule_add(cfg.whitelist, &cfg.whitelist_len, AXP15060_RULES_MAX, (uint8_t)reg, (uint8_t)val);
+    } else if (strcasecmp(op, "deny") == 0) {
+        ok = i2cdev_rule_deny((uint8_t)reg, (uint8_t)val);
+        if (ok) cfg_rule_add(cfg.blacklist, &cfg.blacklist_len, AXP15060_RULES_MAX, (uint8_t)reg, (uint8_t)val);
+    } else if (strcasecmp(op, "clear") == 0) {
+        ok = i2cdev_rule_clear((uint8_t)reg, (uint8_t)val);
+        if (ok) {
+            cfg_rule_remove(cfg.whitelist, &cfg.whitelist_len, (uint8_t)reg, (uint8_t)val);
+            cfg_rule_remove(cfg.blacklist, &cfg.blacklist_len, (uint8_t)reg, (uint8_t)val);
+        }
+    }
     else { write_str(fd, "ERR\r\n"); return; }
+
+    if (ok) persist_cfg(fd, &cfg);
     write_str(fd, ok ? "OK\r\n" : "ERR\r\n");
 }
 
@@ -267,7 +332,23 @@ bool axp_handle(char *tok, char **save, int fd)
         cmd_axp_rule_edit(fd, sub, s_reg, s_val);
         return true;
     }
-    if (strcasecmp(sub,"reset")==0) { i2cdev_policy_reset_defaults(); write_str(fd,"OK\r\n"); return true; }
+    if (strcasecmp(sub,"reset")==0) {
+        (void)config_store_set_axp15060_defaults();
+        axp15060_config_t cfg;
+        if (!config_store_get_axp15060(&cfg)) { write_str(fd, "ERR (config not ready)\r\n"); return true; }
+        i2cdev_policy_clear_all();
+        i2cdev_set_policy((cfg.policy == AXP_POLICY_BLACKLIST) ? I2CDEV_POLICY_BLACKLIST : I2CDEV_POLICY_WHITELIST);
+        for (size_t i = 0; i < cfg.whitelist_len; ++i) (void)i2cdev_rule_allow(cfg.whitelist[i].reg, cfg.whitelist[i].val);
+        for (size_t i = 0; i < cfg.blacklist_len; ++i) (void)i2cdev_rule_deny(cfg.blacklist[i].reg, cfg.blacklist[i].val);
+        i2cdev_autopoll_configure(cfg.autopoll_regs,
+                                  cfg.autopoll_regs_len,
+                                  cfg.autopoll_reg_delay_ms,
+                                  cfg.autopoll_cycle_delay_ms,
+                                  cfg.autopoll_enabled);
+        persist_cfg(fd, &cfg);
+        write_str(fd,"OK\r\n");
+        return true;
+    }
     write_str(fd, "ERR\r\n");
     return true;
 }
@@ -283,4 +364,5 @@ void axp_help(int fd)
     write_str(fd, "  axp deny <reg> <val>\r\n");
     write_str(fd, "  axp clear <reg> <val>\r\n");
     write_str(fd, "  axp reset\r\n");
+    write_str(fd, "  (policy/rules persist to flash:/configs/axp15060.json)\r\n");
 }
