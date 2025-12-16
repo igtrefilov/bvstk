@@ -15,9 +15,48 @@
 
 #include "default_configs.h"
 
-#define CONFIG_DIR_NAME "configs"
+/* Primary on-device config directory is flash:/config (legacy: flash:/configs). */
+#define CONFIG_DIR_PRIMARY "config"
+#define CONFIG_DIR_FALLBACK "configs"
 #define NETWORK_CFG_NAME "network.json"
-#define I2C_CFG_DIR_NAME "configs/i2c"
+#define I2C_CFG_SUBDIR_NAME "i2c"
+
+static void build_flash_path(char *out, size_t out_sz, const char *suffix_no_slash);
+static int file_exists(const char *path);
+static int read_file_to_buf(const char *path, char *buf, size_t buf_sz, size_t *out_len);
+
+static void build_cfg_path(char *out_primary, size_t out_primary_sz,
+                           char *out_fallback, size_t out_fallback_sz,
+                           const char *rel_suffix)
+{
+    char p1[160];
+    char p2[160];
+    if (!rel_suffix) rel_suffix = "";
+    if (rel_suffix[0] == '/') rel_suffix++;
+    if (rel_suffix[0]) {
+        snprintf(p1, sizeof(p1), "%s/%s", CONFIG_DIR_PRIMARY, rel_suffix);
+        snprintf(p2, sizeof(p2), "%s/%s", CONFIG_DIR_FALLBACK, rel_suffix);
+    } else {
+        snprintf(p1, sizeof(p1), "%s", CONFIG_DIR_PRIMARY);
+        snprintf(p2, sizeof(p2), "%s", CONFIG_DIR_FALLBACK);
+    }
+    build_flash_path(out_primary, out_primary_sz, p1);
+    build_flash_path(out_fallback, out_fallback_sz, p2);
+}
+
+static int dir_exists(const char *path)
+{
+    FILINFO info;
+    FRESULT r = f_stat(path, &info);
+    return (r == FR_OK) && ((info.fattrib & AM_DIR) != 0);
+}
+
+static int read_file_first_available(const char *p1, const char *p2, char *buf, size_t buf_sz, size_t *out_len)
+{
+    if (p1 && file_exists(p1) && read_file_to_buf(p1, buf, buf_sz, out_len)) return 1;
+    if (p2 && file_exists(p2) && read_file_to_buf(p2, buf, buf_sz, out_len)) return 1;
+    return 0;
+}
 
 #define CONFIG_TASK_STACK 2048
 #define CONFIG_TASK_PRIO (tskIDLE_PRIORITY + 3)
@@ -27,7 +66,8 @@ static volatile int s_ready = 0;
 static network_config_t s_net_cfg;
 static i2c_device_config_t s_i2c_cfgs[I2C_CFG_MAX_DEVICES];
 static size_t s_i2c_cfg_count = 0;
-static char s_cfg_buf[4096];
+static char s_cfg_buf[16384];
+static char s_i2c_save_buf[16384];
 
 static void config_apply_defaults(network_config_t *cfg)
 {
@@ -103,6 +143,14 @@ static int write_file_atomic(const char *final_path, const void *data, size_t le
         return 0;
     }
     return 1;
+}
+
+static int copy_file_atomic(const char *src_path, const char *dst_path, char *buf, size_t buf_sz)
+{
+    if (!src_path || !dst_path || !buf || buf_sz < 2) return 0;
+    size_t blen = 0;
+    if (!read_file_to_buf(src_path, buf, buf_sz, &blen)) return 0;
+    return write_file_atomic(dst_path, buf, blen) ? 1 : 0;
 }
 
 static int read_file_to_buf(const char *path, char *buf, size_t buf_sz, size_t *out_len)
@@ -486,6 +534,12 @@ static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
         if (!json_parse_rules_array(p, cfg->blacklist, I2C_CFG_RULES_MAX, &n)) return 0;
         cfg->blacklist_len = n;
     }
+    p = find_key(json, "settings");
+    if (p) {
+        size_t n = 0;
+        if (!json_parse_rules_array(p, cfg->settings, I2C_CFG_SETTINGS_MAX, &n)) return 0;
+        cfg->settings_len = n;
+    }
 
     for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
         if (cfg->autopoll_regs[i] >= cfg->reg_count) return 0;
@@ -498,6 +552,9 @@ static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
         if (cfg->blacklist[i].reg >= cfg->reg_count) return 0;
         if (cfg->blacklist[i].val > cfg->max_value_code) return 0;
     }
+    for (size_t i = 0; i < cfg->settings_len; ++i) {
+        if (cfg->settings[i].reg >= cfg->reg_count) return 0;
+    }
 
     return 1;
 }
@@ -506,26 +563,27 @@ static void config_task(void *arg)
 {
     (void)arg;
 
-    for (int i = 0; i < 50; ++i) {
+    /* Give QSPI FatFs enough time to mount before we decide to fall back to embedded defaults. */
+    for (int i = 0; i < 300; ++i) {
         if (qspi_fs_is_ready()) break;
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 
-    char dir_path[96];
-    char net_cfg_path[128];
-    char i2c_dir_path[128];
-    build_flash_path(dir_path, sizeof(dir_path), CONFIG_DIR_NAME);
-    build_flash_path(net_cfg_path, sizeof(net_cfg_path), CONFIG_DIR_NAME "/" NETWORK_CFG_NAME);
-    build_flash_path(i2c_dir_path, sizeof(i2c_dir_path), I2C_CFG_DIR_NAME);
+    char dir_path[96], dir_path_fb[96];
+    char net_cfg_path[128], net_cfg_path_fb[128];
+    char i2c_dir_path[128], i2c_dir_path_fb[128];
+    build_cfg_path(dir_path, sizeof(dir_path), dir_path_fb, sizeof(dir_path_fb), "");
+    build_cfg_path(net_cfg_path, sizeof(net_cfg_path), net_cfg_path_fb, sizeof(net_cfg_path_fb), NETWORK_CFG_NAME);
+    build_cfg_path(i2c_dir_path, sizeof(i2c_dir_path), i2c_dir_path_fb, sizeof(i2c_dir_path_fb), I2C_CFG_SUBDIR_NAME);
 
-    if (!dir_path[0] || !net_cfg_path[0] || !i2c_dir_path[0]) {
+    if (!dir_path[0] || !dir_path_fb[0] || !net_cfg_path[0] || !net_cfg_path_fb[0] || !i2c_dir_path[0] || !i2c_dir_path_fb[0]) {
         xil_printf("CFG: path build failed\r\n");
         goto done;
     }
 
     if (qspi_fs_is_ready()) {
         (void)ensure_dir_exists(dir_path);
-        if (!file_exists(net_cfg_path)) {
+        if (!file_exists(net_cfg_path) && !file_exists(net_cfg_path_fb)) {
             if (!write_file_atomic(net_cfg_path, DEFAULT_NETWORK_JSON, DEFAULT_NETWORK_JSON_LEN)) {
                 xil_printf("CFG: failed to write default %s\r\n", net_cfg_path);
             } else {
@@ -535,17 +593,53 @@ static void config_task(void *arg)
         (void)ensure_dir_exists(i2c_dir_path);
         for (unsigned i = 0; i < DEFAULT_I2C_CONFIG_FILES_COUNT; ++i) {
             const default_json_file_t *d = &DEFAULT_I2C_CONFIG_FILES[i];
-            char pth[160];
+            char cfg_path[160], cfg_path_fb[160];
             char suf[96];
-            snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_DIR_NAME, d->file_name);
-            build_flash_path(pth, sizeof(pth), suf);
-            if (!pth[0]) continue;
-            if (!file_exists(pth)) {
-                if (!write_file_atomic(pth, d->json, d->json_len)) {
-                    xil_printf("CFG: failed to write default %s\r\n", pth);
+            snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_SUBDIR_NAME, d->file_name);
+            build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
+            if (!cfg_path[0] || !cfg_path_fb[0]) continue;
+            if (!file_exists(cfg_path) && !file_exists(cfg_path_fb)) {
+                if (!write_file_atomic(cfg_path, d->json, d->json_len)) {
+                    xil_printf("CFG: failed to write default %s\r\n", cfg_path);
                 } else {
-                    xil_printf("CFG: wrote default %s\r\n", pth);
+                    xil_printf("CFG: wrote default %s\r\n", cfg_path);
                 }
+            }
+        }
+
+        /* One-time migration: if legacy configs exist but primary is empty/missing, copy into flash:/config/. */
+        if (!file_exists(net_cfg_path) && file_exists(net_cfg_path_fb)) {
+            if (copy_file_atomic(net_cfg_path_fb, net_cfg_path, s_cfg_buf, sizeof(s_cfg_buf))) {
+                xil_printf("CFG: migrated %s -> %s\r\n", net_cfg_path_fb, net_cfg_path);
+            }
+        }
+        if (!dir_exists(i2c_dir_path) && dir_exists(i2c_dir_path_fb)) {
+            (void)ensure_dir_exists(i2c_dir_path);
+        }
+        if (dir_exists(i2c_dir_path_fb)) {
+            DIR d;
+            FILINFO fno;
+            if (f_opendir(&d, i2c_dir_path_fb) == FR_OK) {
+                for (;;) {
+                    if (f_readdir(&d, &fno) != FR_OK) break;
+                    if (!fno.fname[0]) break;
+                    if (fno.fattrib & AM_DIR) continue;
+                    const char *fn = fno.fname;
+                    size_t fl = strlen(fn);
+                    if (fl < 6) continue;
+                    if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
+
+                    char src_p[200], dst_p[200];
+                    int sn = snprintf(src_p, sizeof(src_p), "%s/%s", i2c_dir_path_fb, fn);
+                    int dn = snprintf(dst_p, sizeof(dst_p), "%s/%s", i2c_dir_path, fn);
+                    if (sn <= 0 || dn <= 0) continue;
+                    if ((size_t)sn >= sizeof(src_p) || (size_t)dn >= sizeof(dst_p)) continue;
+                    if (file_exists(dst_p)) continue;
+                    if (copy_file_atomic(src_p, dst_p, s_cfg_buf, sizeof(s_cfg_buf))) {
+                        xil_printf("CFG: migrated %s -> %s\r\n", src_p, dst_p);
+                    }
+                }
+                (void)f_closedir(&d);
             }
         }
     } else {
@@ -554,8 +648,10 @@ static void config_task(void *arg)
 
     size_t blen = 0;
     int loaded = 0;
-    if (qspi_fs_is_ready() && file_exists(net_cfg_path) && read_file_to_buf(net_cfg_path, s_cfg_buf, sizeof(s_cfg_buf), &blen)) {
-        loaded = parse_network_json(s_cfg_buf, &s_net_cfg);
+    if (qspi_fs_is_ready()) {
+        if (read_file_first_available(net_cfg_path, net_cfg_path_fb, s_cfg_buf, sizeof(s_cfg_buf), &blen)) {
+            loaded = parse_network_json(s_cfg_buf, &s_net_cfg);
+        }
     }
     if (!loaded) {
         (void)parse_network_json(DEFAULT_NETWORK_JSON, &s_net_cfg);
@@ -563,9 +659,12 @@ static void config_task(void *arg)
 
     s_i2c_cfg_count = 0;
     if (qspi_fs_is_ready()) {
-        DIR d;
-        FILINFO fno;
-        if (f_opendir(&d, i2c_dir_path) == FR_OK) {
+        for (int pass = 0; pass < 2; ++pass) {
+            const char *scan_dir = (pass == 0) ? i2c_dir_path : i2c_dir_path_fb;
+            if (!scan_dir || !scan_dir[0] || !dir_exists(scan_dir)) continue;
+            DIR d;
+            FILINFO fno;
+            if (f_opendir(&d, scan_dir) != FR_OK) continue;
             for (;;) {
                 if (f_readdir(&d, &fno) != FR_OK) break;
                 if (!fno.fname[0]) break;
@@ -576,14 +675,20 @@ static void config_task(void *arg)
                 if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
                 if (s_i2c_cfg_count >= I2C_CFG_MAX_DEVICES) break;
 
-                char pth[160];
-                char suf[96];
-                snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_DIR_NAME, fn);
-                build_flash_path(pth, sizeof(pth), suf);
-                if (!pth[0]) continue;
+                char pth[200];
+                int pn = snprintf(pth, sizeof(pth), "%s/%s", scan_dir, fn);
+                if (pn <= 0 || (size_t)pn >= sizeof(pth)) continue;
                 if (!read_file_to_buf(pth, s_cfg_buf, sizeof(s_cfg_buf), &blen)) continue;
                 i2c_device_config_t tmp;
                 if (!parse_i2c_device_json(s_cfg_buf, &tmp)) continue;
+
+                /* Avoid duplicates by device name (primary dir wins). */
+                bool dup = false;
+                for (size_t j = 0; j < s_i2c_cfg_count; ++j) {
+                    if (strcasecmp(s_i2c_cfgs[j].name, tmp.name) == 0) { dup = true; break; }
+                }
+                if (dup) continue;
+
                 strncpy(tmp.file_name, fn, sizeof(tmp.file_name) - 1);
                 tmp.file_name[sizeof(tmp.file_name) - 1] = '\0';
                 s_i2c_cfgs[s_i2c_cfg_count++] = tmp;
@@ -716,11 +821,11 @@ int config_store_save_network(void)
 {
     if (!config_store_is_ready()) return 0;
 
-    char dir_path[96];
-    char cfg_path[128];
-    build_flash_path(dir_path, sizeof(dir_path), CONFIG_DIR_NAME);
-    build_flash_path(cfg_path, sizeof(cfg_path), CONFIG_DIR_NAME "/" NETWORK_CFG_NAME);
-    if (!dir_path[0] || !cfg_path[0]) return 0;
+    char dir_path[96], dir_path_fb[96];
+    char cfg_path[128], cfg_path_fb[128];
+    build_cfg_path(dir_path, sizeof(dir_path), dir_path_fb, sizeof(dir_path_fb), "");
+    build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), NETWORK_CFG_NAME);
+    if (!dir_path[0] || !dir_path_fb[0] || !cfg_path[0] || !cfg_path_fb[0]) return 0;
 
     if (!qspi_fs_is_ready()) return 0;
     if (!ensure_dir_exists(dir_path)) return 0;
@@ -746,7 +851,12 @@ int config_store_save_network(void)
     size_t len = (size_t)n;
     if (len >= sizeof(json)) return 0;
 
-    return write_file_atomic(cfg_path, json, len) ? 1 : 0;
+    int ok = write_file_atomic(cfg_path, json, len) ? 1 : 0;
+    if (ok && dir_exists(dir_path_fb)) {
+        (void)ensure_dir_exists(dir_path_fb);
+        (void)write_file_atomic(cfg_path_fb, json, len);
+    }
+    return ok;
 }
 
 int config_store_save_i2c_device(const i2c_device_config_t *cfg)
@@ -755,18 +865,19 @@ int config_store_save_i2c_device(const i2c_device_config_t *cfg)
 
     if (!qspi_fs_is_ready()) return 0;
 
-    char root_dir_path[96];
-    char i2c_dir_path[128];
-    build_flash_path(root_dir_path, sizeof(root_dir_path), CONFIG_DIR_NAME);
-    build_flash_path(i2c_dir_path, sizeof(i2c_dir_path), I2C_CFG_DIR_NAME);
-    if (!root_dir_path[0] || !i2c_dir_path[0]) return 0;
+    char root_dir_path[96], root_dir_path_fb[96];
+    char i2c_dir_path[128], i2c_dir_path_fb[128];
+    build_cfg_path(root_dir_path, sizeof(root_dir_path), root_dir_path_fb, sizeof(root_dir_path_fb), "");
+    build_cfg_path(i2c_dir_path, sizeof(i2c_dir_path), i2c_dir_path_fb, sizeof(i2c_dir_path_fb), I2C_CFG_SUBDIR_NAME);
+    if (!root_dir_path[0] || !root_dir_path_fb[0] || !i2c_dir_path[0] || !i2c_dir_path_fb[0]) return 0;
     if (!ensure_dir_exists(root_dir_path)) return 0;
     if (!ensure_dir_exists(i2c_dir_path)) return 0;
 
-    char json[8192];
+    char *json = s_i2c_save_buf;
+    const size_t json_cap = sizeof(s_i2c_save_buf);
     size_t pos = 0;
     const char *pol = (cfg->policy == I2C_POLICY_BLACKLIST) ? "blacklist" : "whitelist";
-    int n = snprintf(json + pos, sizeof(json) - pos,
+    int n = snprintf(json + pos, json_cap - pos,
         "{\n"
         "  \"name\": \"%s\",\n"
         "  \"addr_7b\": %u,\n"
@@ -787,52 +898,68 @@ int config_store_save_i2c_device(const i2c_device_config_t *cfg)
         (unsigned)cfg->autopoll_cycle_delay_ms);
     if (n <= 0) return 0;
     pos += (size_t)n;
-    if (pos >= sizeof(json)) return 0;
+    if (pos >= json_cap) return 0;
 
     for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
-        n = snprintf(json + pos, sizeof(json) - pos, "%s%u",
+        n = snprintf(json + pos, json_cap - pos, "%s%u",
                      (i == 0) ? "" : ", ",
                      (unsigned)cfg->autopoll_regs[i]);
         if (n <= 0) return 0;
         pos += (size_t)n;
-        if (pos >= sizeof(json)) return 0;
+        if (pos >= json_cap) return 0;
     }
-    n = snprintf(json + pos, sizeof(json) - pos, "],\n  \"whitelist\": [\n");
+    n = snprintf(json + pos, json_cap - pos, "],\n  \"whitelist\": [\n");
     if (n <= 0) return 0;
     pos += (size_t)n;
-    if (pos >= sizeof(json)) return 0;
+    if (pos >= json_cap) return 0;
 
     for (size_t i = 0; i < cfg->whitelist_len; ++i) {
-        n = snprintf(json + pos, sizeof(json) - pos,
+        n = snprintf(json + pos, json_cap - pos,
                      "    { \"reg\": %u, \"val\": %u }%s\n",
                      (unsigned)cfg->whitelist[i].reg,
                      (unsigned)cfg->whitelist[i].val,
                      (i + 1 == cfg->whitelist_len) ? "" : ",");
         if (n <= 0) return 0;
         pos += (size_t)n;
-        if (pos >= sizeof(json)) return 0;
+        if (pos >= json_cap) return 0;
     }
-    n = snprintf(json + pos, sizeof(json) - pos, "  ],\n  \"blacklist\": [\n");
+    n = snprintf(json + pos, json_cap - pos, "  ],\n  \"blacklist\": [\n");
     if (n <= 0) return 0;
     pos += (size_t)n;
-    if (pos >= sizeof(json)) return 0;
+    if (pos >= json_cap) return 0;
 
     for (size_t i = 0; i < cfg->blacklist_len; ++i) {
-        n = snprintf(json + pos, sizeof(json) - pos,
+        n = snprintf(json + pos, json_cap - pos,
                      "    { \"reg\": %u, \"val\": %u }%s\n",
                      (unsigned)cfg->blacklist[i].reg,
                      (unsigned)cfg->blacklist[i].val,
                      (i + 1 == cfg->blacklist_len) ? "" : ",");
         if (n <= 0) return 0;
         pos += (size_t)n;
-        if (pos >= sizeof(json)) return 0;
+        if (pos >= json_cap) return 0;
     }
-    n = snprintf(json + pos, sizeof(json) - pos, "  ]\n}\n");
+    n = snprintf(json + pos, json_cap - pos, "  ],\n  \"settings\": [\n");
     if (n <= 0) return 0;
     pos += (size_t)n;
-    if (pos >= sizeof(json)) return 0;
+    if (pos >= json_cap) return 0;
 
-    char cfg_path[160];
+    for (size_t i = 0; i < cfg->settings_len; ++i) {
+        n = snprintf(json + pos, json_cap - pos,
+                     "    { \"reg\": %u, \"val\": %u }%s\n",
+                     (unsigned)cfg->settings[i].reg,
+                     (unsigned)cfg->settings[i].val,
+                     (i + 1 == cfg->settings_len) ? "" : ",");
+        if (n <= 0) return 0;
+        pos += (size_t)n;
+        if (pos >= json_cap) return 0;
+    }
+
+    n = snprintf(json + pos, json_cap - pos, "  ]\n}\n");
+    if (n <= 0) return 0;
+    pos += (size_t)n;
+    if (pos >= json_cap) return 0;
+
+    char cfg_path[160], cfg_path_fb[160];
     char suf[96];
     const char *fn = (cfg->file_name[0] ? cfg->file_name : NULL);
     char tmp_fn[I2C_CFG_FILE_NAME_MAX];
@@ -840,8 +967,15 @@ int config_store_save_i2c_device(const i2c_device_config_t *cfg)
         snprintf(tmp_fn, sizeof(tmp_fn), "%s.json", cfg->name);
         fn = tmp_fn;
     }
-    snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_DIR_NAME, fn);
-    build_flash_path(cfg_path, sizeof(cfg_path), suf);
-    if (!cfg_path[0]) return 0;
-    return write_file_atomic(cfg_path, json, pos) ? 1 : 0;
+    snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_SUBDIR_NAME, fn);
+    build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
+    if (!cfg_path[0] || !cfg_path_fb[0]) return 0;
+
+    int ok = write_file_atomic(cfg_path, json, pos) ? 1 : 0;
+    if (ok && dir_exists(root_dir_path_fb)) {
+        (void)ensure_dir_exists(root_dir_path_fb);
+        (void)ensure_dir_exists(i2c_dir_path_fb);
+        (void)write_file_atomic(cfg_path_fb, json, pos);
+    }
+    return ok;
 }

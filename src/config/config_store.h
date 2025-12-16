@@ -21,6 +21,7 @@ typedef struct {
 #define I2C_CFG_FILE_NAME_MAX 48u
 #define I2C_CFG_RULES_MAX 256u
 #define I2C_CFG_AUTOPOLL_REGS_MAX 64u
+#define I2C_CFG_SETTINGS_MAX 256u
 
 typedef enum {
     I2C_POLICY_WHITELIST = 0,
@@ -51,6 +52,14 @@ typedef struct {
 
     i2c_rule_entry_t blacklist[I2C_CFG_RULES_MAX];
     size_t blacklist_len;
+
+    /*
+     * Persisted device settings (register writes).
+     * Semantics: list of {reg,val} pairs to apply on boot.
+     * This is intentionally separate from policy rules.
+     */
+    i2c_rule_entry_t settings[I2C_CFG_SETTINGS_MAX];
+    size_t settings_len;
 } i2c_device_config_t;
 
 int start_config_store(void);

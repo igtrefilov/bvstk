@@ -143,7 +143,7 @@ static void apply_and_save(int fd, const network_config_t *cfg, bool apply_runti
     (void)config_store_set_network(cfg);
     int saved = config_store_save_network();
     if (!saved) {
-        write_str(fd, "WARN: failed to save to flash:/configs/network.json\r\n");
+        write_str(fd, "WARN: failed to save to flash:/config/network.json\r\n");
     }
 
     if (apply_runtime) {

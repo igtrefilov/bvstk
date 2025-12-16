@@ -185,13 +185,13 @@ FRESULT fs_shared_fs_mkdir(const fs_shared_ctx_t *ctx, const char *path)
     return res;
 }
 
-int fs_shared_fs_rm(const fs_shared_ctx_t *ctx, const char *path)
+FRESULT fs_shared_fs_rm(const fs_shared_ctx_t *ctx, const char *path)
 {
-    if (!ctx || !path || !fs_shared_is_ready(ctx)) return XST_FAILURE;
-    if (!fs_shared_lock(ctx)) return XST_FAILURE;
+    if (!ctx || !path || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
     FRESULT res = f_unlink(path);
     fs_shared_unlock(ctx);
-    return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
+    return res;
 }
 
 int fs_shared_fs_is_dir(const fs_shared_ctx_t *ctx, const char *path)
@@ -398,54 +398,167 @@ static int fs_shared_copy_directory_contents(const char *src, const char *dst)
     return ret;
 }
 
-static int fs_shared_remove_entry_recursive(const char *path)
+static FRESULT fs_shared_remove_entry_recursive(const char *path)
 {
+    if (!path || !path[0]) return FR_INVALID_NAME;
+
+    /* FatFs APIs are sometimes picky about trailing slashes on directories. */
+    char norm[FS_PATH_MAX];
+    strncpy(norm, path, sizeof(norm) - 1);
+    norm[sizeof(norm) - 1] = '\0';
+    size_t nlen = strlen(norm);
+    while (nlen > 0 && norm[nlen - 1] == '/') {
+        norm[nlen - 1] = '\0';
+        nlen--;
+    }
+    char norm_slash[FS_PATH_MAX];
+    bool has_norm_slash = false;
+    if (nlen + 1 < sizeof(norm_slash)) {
+        memcpy(norm_slash, norm, nlen);
+        norm_slash[nlen] = '/';
+        norm_slash[nlen + 1] = '\0';
+        has_norm_slash = true;
+    }
+
     FILINFO info;
-    FRESULT res = f_stat(path, &info);
-    if (res != FR_OK) return XST_FAILURE;
+    FRESULT res = f_stat(norm, &info);
+    if ((res == FR_NO_FILE || res == FR_NO_PATH) && has_norm_slash) {
+        /* Retry with a trailing slash (observed on some xilffs builds). */
+        res = f_stat(norm_slash, &info);
+    }
+    if (res != FR_OK) {
+        /*
+         * Fallback for cases when f_stat() is unreliable on directories:
+         * try opening as a directory; if that fails, try unlinking as a file.
+         */
+        DIR dir;
+        FRESULT od = f_opendir(&dir, norm);
+        if (od != FR_OK && has_norm_slash) {
+            od = f_opendir(&dir, norm_slash);
+        }
+        if (od == FR_OK) {
+            FILINFO fno;
+            char entry_name[FF_MAX_LFN + 1];
+            char last_name[FF_MAX_LFN + 1] = "";
+            int same_count = 0;
+            enum { RM_REPEAT_LIMIT = 4 };
+            FRESULT ret = FR_OK;
+            while (ret == FR_OK) {
+                od = f_readdir(&dir, &fno);
+                if (od != FR_OK) { ret = od; break; }
+                const char *name = fs_shared_entry_name(&fno, entry_name, sizeof(entry_name));
+                if (!name) break;
+                normalize_name(entry_name);
+                if (strcmp(entry_name, last_name) == 0) {
+                    ++same_count;
+                    if (same_count >= RM_REPEAT_LIMIT) {
+                        break;
+                    }
+                } else {
+                    same_count = 0;
+                    strncpy(last_name, entry_name, sizeof(last_name) - 1);
+                    last_name[sizeof(last_name) - 1] = '\0';
+                }
+                if (name[0] == '.' && (name[1] == '\0' ||
+                    (name[1] == '.' && name[2] == '\0'))) {
+                    continue;
+                }
+                char child[FS_PATH_MAX];
+                if (!fs_shared_join_path(norm, name, child, sizeof(child))) {
+                    ret = FR_INVALID_NAME;
+                    break;
+                }
+                FRESULT cr = fs_shared_remove_entry_recursive(child);
+                if (cr != FR_OK && cr != FR_NO_FILE && cr != FR_NO_PATH) { ret = cr; break; }
+            }
+            f_closedir(&dir);
+            if (ret != FR_OK) { return ret; }
+            FRESULT ur = f_unlink(norm);
+            if ((ur == FR_NO_PATH || ur == FR_NO_FILE) && has_norm_slash) {
+                ur = f_unlink(norm_slash);
+            }
+            return ur;
+        }
+
+        /* Not a directory (or cannot open): attempt file unlink before giving up. */
+        FRESULT ur = f_unlink(norm);
+        if ((ur == FR_NO_PATH || ur == FR_NO_FILE) && has_norm_slash) {
+            ur = f_unlink(norm_slash);
+        }
+        if (ur == FR_OK) { return FR_OK; }
+        FRESULT out = (od != FR_OK) ? od : res;
+        return out;
+    }
+
     if (info.fattrib & AM_DIR) {
         DIR dir;
-        res = f_opendir(&dir, path);
-        if (res != FR_OK) return XST_FAILURE;
+        res = f_opendir(&dir, norm);
+        if (res != FR_OK && has_norm_slash) {
+            res = f_opendir(&dir, norm_slash);
+        }
+        if (res != FR_OK) { return res; }
         FILINFO fno;
         char entry_name[FF_MAX_LFN + 1];
-        int ret = XST_SUCCESS;
-        while (ret == XST_SUCCESS) {
+        char last_name[FF_MAX_LFN + 1] = "";
+        int same_count = 0;
+        enum { RM_REPEAT_LIMIT = 4 };
+        FRESULT ret = FR_OK;
+        while (ret == FR_OK) {
             res = f_readdir(&dir, &fno);
             if (res != FR_OK) {
-                ret = XST_FAILURE;
+                ret = res;
                 break;
             }
             const char *name = fs_shared_entry_name(&fno, entry_name, sizeof(entry_name));
             if (!name) break;
+            normalize_name(entry_name);
+            if (strcmp(entry_name, last_name) == 0) {
+                ++same_count;
+                if (same_count >= RM_REPEAT_LIMIT) {
+                    break;
+                }
+            } else {
+                same_count = 0;
+                strncpy(last_name, entry_name, sizeof(last_name) - 1);
+                last_name[sizeof(last_name) - 1] = '\0';
+            }
             if (name[0] == '.' && (name[1] == '\0' ||
                 (name[1] == '.' && name[2] == '\0'))) {
                 continue;
             }
             char child[FS_PATH_MAX];
-            if (!fs_shared_join_path(path, name, child, sizeof(child))) {
-                ret = XST_FAILURE;
+            if (!fs_shared_join_path(norm, name, child, sizeof(child))) {
+                ret = FR_INVALID_NAME;
                 break;
             }
-            if (fs_shared_remove_entry_recursive(child) != XST_SUCCESS) {
-                ret = XST_FAILURE;
-                break;
-            }
+            FRESULT cr = fs_shared_remove_entry_recursive(child);
+            if (cr != FR_OK && cr != FR_NO_FILE && cr != FR_NO_PATH) { ret = cr; break; }
         }
         f_closedir(&dir);
-        if (ret != XST_SUCCESS) return XST_FAILURE;
-        res = f_unlink(path);
-        return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
+        if (ret != FR_OK) { return ret; }
+        res = f_unlink(norm);
+        if ((res == FR_NO_PATH || res == FR_NO_FILE) && has_norm_slash) {
+            res = f_unlink(norm_slash);
+        }
+        return res;
     }
-    res = f_unlink(path);
-    return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
+    res = f_unlink(norm);
+    if ((res == FR_NO_PATH || res == FR_NO_FILE) && has_norm_slash) {
+        res = f_unlink(norm_slash);
+    }
+    return res;
 }
 
-static int fs_shared_fs_rm_recursive(const fs_shared_ctx_t *ctx, const char *path)
+FRESULT fs_shared_fs_rm_recursive(const fs_shared_ctx_t *ctx, const char *path)
 {
-    if (!ctx || !path || !fs_shared_is_ready(ctx)) return XST_FAILURE;
-    if (!fs_shared_lock(ctx)) return XST_FAILURE;
-    int ret = fs_shared_remove_entry_recursive(path);
+    if (!ctx || !path || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    /* Never allow removing the filesystem root. */
+    if (ctx->root && strcmp(path, ctx->root) == 0) {
+        fs_shared_unlock(ctx);
+        return FR_DENIED;
+    }
+    FRESULT ret = fs_shared_remove_entry_recursive(path);
     fs_shared_unlock(ctx);
     return ret;
 }
@@ -548,6 +661,6 @@ int fs_shared_fs_mv_between(const fs_shared_ctx_t *src_ctx, const fs_shared_ctx_
     if (src_ctx == dst_ctx) return fs_shared_fs_mv(src_ctx, src, dst);
     if (!fs_shared_is_ready(src_ctx) || !fs_shared_is_ready(dst_ctx)) return XST_FAILURE;
     if (fs_shared_fs_cp_between(src_ctx, dst_ctx, src, dst, recursive) != XST_SUCCESS) return XST_FAILURE;
-    int rm_result = recursive ? fs_shared_fs_rm_recursive(src_ctx, src) : fs_shared_fs_rm(src_ctx, src);
-    return (rm_result == XST_SUCCESS) ? XST_SUCCESS : XST_FAILURE;
+    FRESULT rm_res = recursive ? fs_shared_fs_rm_recursive(src_ctx, src) : fs_shared_fs_rm(src_ctx, src);
+    return (rm_res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
 }

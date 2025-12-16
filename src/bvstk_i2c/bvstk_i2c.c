@@ -187,6 +187,8 @@ static bool i2cdev_is_value_permitted_cfg(const i2c_device_config_t *cfg, uint8_
 static inline void reg_write32(uint32_t base, uint32_t ofs, uint32_t v) { Xil_Out32(base + ofs, v); }
 static inline uint32_t reg_read32(uint32_t base, uint32_t ofs) { return Xil_In32(base + ofs); }
 
+static inline void i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val);
+
 static void master_evt_task(void *arg);
 static void slave_evt_task (void *arg);
 static void master_ISR     (void *CallBackRef);
@@ -434,6 +436,18 @@ void i2c_task(void *pvParameters)
                s_cfgs[s_selected] ? s_cfgs[s_selected]->addr_7b : 0);
 
     i2cdev_init_full_scan();
+    /* Restore persisted device settings (register writes) from config. */
+    for (size_t di = 0; di < s_cfg_count; ++di) {
+        i2c_device_config_t *cfg = s_cfgs[di];
+        if (!cfg || cfg->settings_len == 0u) continue;
+        for (size_t si = 0; si < cfg->settings_len; ++si) {
+            uint8_t reg = cfg->settings[si].reg;
+            uint8_t val = cfg->settings[si].val;
+            if (reg >= cfg->reg_count) continue;
+            i2cdev_write_byte(di, cfg->addr_7b, reg, val);
+            vTaskDelay(pdMS_TO_TICKS(2));
+        }
+    }
     for (;;) {
         TickType_t now = xTaskGetTickCount();
         TickType_t next_wakeup = now + pdMS_TO_TICKS(1000);
@@ -502,6 +516,25 @@ static inline void i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg,
     i2c_master_send(addr7, 0, 2, payload, 2, CSR_START_BIT);
     if (dev_idx < I2CDEV_MAX_DEVICES && reg < I2CDEV_MAX_REG_COUNT) {
         s_reg_cache[dev_idx][reg] = val;
+    }
+    /* Track persisted device settings (register writes) in the loaded config. */
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
+    if (cfg && reg < cfg->reg_count) {
+        taskENTER_CRITICAL();
+        bool updated = false;
+        for (size_t i = 0; i < cfg->settings_len; ++i) {
+            if (cfg->settings[i].reg == reg) {
+                cfg->settings[i].val = val;
+                updated = true;
+                break;
+            }
+        }
+        if (!updated && cfg->settings_len < I2C_CFG_SETTINGS_MAX) {
+            cfg->settings[cfg->settings_len].reg = reg;
+            cfg->settings[cfg->settings_len].val = val;
+            cfg->settings_len++;
+        }
+        taskEXIT_CRITICAL();
     }
 }
 

@@ -38,7 +38,7 @@
 - HTTP server on port `8000` with file/dir transfer endpoints (see [HTTP file transfer](#http-file-transfer)).
 - SD FatFs (`0:/`, alias `sd:/`) with auto-mount and auto-format on “no filesystem”.
 - QSPI FatFs (`1:/`, alias `flash:/`) mapped away from boot area (`QSPI_FS_BASE_BYTES`).
-- Network configuration stored as editable JSON on QSPI: `flash:/configs/network.json`.
+- Network configuration stored as editable JSON on QSPI: `flash:/config/network.json` (legacy: `flash:/configs/network.json`).
 - Console utilities:
   - `fs` (filesystem shell), `tar` (tar create/list/extract), `ip` (Linux-like network utility),
   - `smi` (MDIO read/write), `mem` (peek/poke), `i2c` (I2C device access + policy/rules).
@@ -69,7 +69,7 @@ QSPI‑том работает не “поверх всего флеша”, а
 ## Configuration
 
 ### Network config file
-Основной конфиг сети: `flash:/configs/network.json`.
+Основной конфиг сети: `flash:/config/network.json` (legacy: `flash:/configs/network.json`).
 
 Текущий формат (IPv4 + MAC):
 ```json
@@ -86,8 +86,8 @@ QSPI‑том работает не “поверх всего флеша”, а
 ### Bootstrap behavior
 При старте `config_store` делает следующее:
 - убеждается, что QSPI‑том смонтирован;
-- создаёт директорию `flash:/configs/`, если её нет;
-- создаёт `flash:/configs/network.json`, **только если файла ещё нет**;
+- создаёт директорию `flash:/config/`, если её нет (legacy: `flash:/configs/`);
+- создаёт `flash:/config/network.json`, **только если файла ещё нет** (если есть legacy-файл, не трогает);
 - загружает настройки в RAM (если QSPI недоступен — использует встроенный дефолт).
 
 Дефолт берётся из `configs/network.json` (в репозитории) и вшивается в прошивку во время сборки.
@@ -96,17 +96,17 @@ QSPI‑том работает не “поверх всего флеша”, а
 Есть несколько практичных способов управлять настройками:
 
 1) Через TCP‑консоль утилитой `ip` (см. [ip — network](#ip-network)):
-- меняет настройки и сохраняет обратно в `flash:/configs/network.json`;
-- может оборвать текущую TCP‑сессию при смене IP.
+- меняет настройки и сохраняет обратно в `flash:/config/network.json`;
+  - может оборвать текущую TCP‑сессию при смене IP.
 
 2) Через HTTP PUT (см. [HTTP file transfer](#http-file-transfer)):
 ```
-curl -T network.json http://<device-ip>:8000/flash/configs/network.json
+curl -T network.json http://<device-ip>:8000/flash/config/network.json
 ```
 
 3) Через консоль `fs` копированием между `sd:/` и `flash:/`:
 ```
-cp sd:/configs/network.json flash:/configs/network.json
+cp sd:/configs/network.json flash:/config/network.json
 ```
 
 ## Build & run
@@ -193,8 +193,8 @@ pwd
 ls
 cd flash
 mkdir configs
-cat flash:/configs/network.json
-cp sd:/configs/network.json flash:/configs/network.json
+cat flash:/config/network.json
+cp sd:/configs/network.json flash:/config/network.json
 ```
 
 ### tar — archive
@@ -222,7 +222,7 @@ tar x sd:/backup/logs.tar /restore
 - `ip link set address <mac>`
 - `ip route show`
 - `ip route set default via <gw>`
-- `ip save` — сохранить текущие runtime‑настройки из `netif` в `flash:/configs/network.json`
+- `ip save` — сохранить текущие runtime‑настройки из `netif` в `flash:/config/network.json` (legacy: `flash:/configs/network.json`)
 
 Примеры:
 ```
@@ -268,7 +268,7 @@ mem w 0xE000A001 0x7F
 ### i2c — I2C devices
 Назначение: доступ к устройствам на шине I2C + правила доступа (whitelist/blacklist) на уровне (reg,val).
 
-Конфиг: `flash:/configs/i2c/<name>.json` (создаётся автоматически для дефолтного устройства, если папка пустая).
+Конфиг: `flash:/config/i2c/<name>.json` (legacy: `flash:/configs/i2c/<name>.json`).
 
 Команды:
 - `i2c list`
@@ -281,7 +281,7 @@ mem w 0xE000A001 0x7F
 - `i2c <name|@0x..> deny <reg> <val>`
 - `i2c <name|@0x..> clear <reg> <val>`
 - `i2c <name|@0x..> autopoll` (показать автополлинг)
-- `i2c <name|@0x..> save` (сохранить правила/политику в JSON)
+- `i2c <name|@0x..> save` (сохранить правила/политику и **настроечные записи регистров** в JSON; применяются при старте)
 
 Примеры:
 ```
@@ -332,10 +332,10 @@ tar -cf - ./cfg | curl -T - http://192.168.0.10:8000/tar/flash/cfg
 pwd
 ls
 cd flash
-ls /configs
-cat /configs/network.json
-ls /configs/i2c
-cat /configs/i2c/axp15060.json
+ls /config
+cat /config/network.json
+ls /config/i2c
+cat /config/i2c/axp15060.json
 ```
 5) Проверить сеть/настройки:
 ```

@@ -135,6 +135,8 @@ static const fs_shared_ctx_t *session_ctx(const console_session_t *session)
     return console_session_get_fs(session);
 }
 
+static const fs_shared_ctx_t *resolve_fs_ctx_for_path(console_session_t *session, const char *path);
+
 static bool build_path(const console_session_t *session, const char *arg, char *out, size_t out_sz)
 {
     const char *root = console_session_get_root(session);
@@ -204,6 +206,7 @@ static void cmd_help_fs(int fd)
     write_str(fd, "  touch <file>\r\n");
     write_str(fd, "  cat <file>\r\n");
     write_str(fd, "  rm <file|dir>\r\n");
+    write_str(fd, "  rm -r <dir>   (recursive)\r\n");
     write_str(fd, "  cp <src> <dst>\r\n");
     write_str(fd, "  cp -r <src> <dst>\r\n");
     write_str(fd, "  mv <src> <dst>\r\n");
@@ -300,13 +303,22 @@ static void cmd_fs_cat(int fd, console_session_t *session, const char *path)
     if (fs_shared_fs_cat(ctx, full, fd) != XST_SUCCESS) write_str(fd, "ERR\r\n");
 }
 
-static void cmd_fs_rm(int fd, console_session_t *session, const char *path)
+static void cmd_fs_rm(int fd, console_session_t *session, const char *path, bool recursive)
 {
-    const fs_shared_ctx_t *ctx = session_ctx(session);
-    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
+    if (!path) { write_str(fd, "ERR\r\n"); return; }
     char full[CONSOLE_PATH_MAX];
     if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
-    if (fs_shared_fs_rm(ctx, full) == XST_SUCCESS) write_str(fd, "OK\r\n"); else write_str(fd, "ERR\r\n");
+    const fs_shared_ctx_t *ctx = resolve_fs_ctx_for_path(session, full);
+    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
+    FRESULT res = recursive ? fs_shared_fs_rm_recursive(ctx, full) : fs_shared_fs_rm(ctx, full);
+    if (res == FR_OK) {
+        write_str(fd, "OK\r\n");
+    } else {
+        char buf[32];
+        int n = snprintf(buf, sizeof(buf), "ERR (FR=%d)\r\n", (int)res);
+        if (n > 0 && n < (int)sizeof(buf)) write_str(fd, buf);
+        else write_str(fd, "ERR\r\n");
+    }
 }
 
 static const fs_shared_ctx_t *resolve_fs_ctx_for_path(console_session_t *session, const char *path)
@@ -423,7 +435,21 @@ bool fs_handle(char *tok, char **save, int fd, console_session_t *session)
     if (strcasecmp(tok, "mkdir") == 0) { char *p = strtok_r(NULL, " \t", save); cmd_fs_mkdir(fd, session, p); return true; }
     if (strcasecmp(tok, "touch") == 0) { char *p = strtok_r(NULL, " \t", save); cmd_fs_touch(fd, session, p); return true; }
     if (strcasecmp(tok, "cat") == 0) { char *p = strtok_r(NULL, " \t", save); cmd_fs_cat(fd, session, p); return true; }
-    if (strcasecmp(tok, "rm") == 0) { char *p = strtok_r(NULL, " \t", save); cmd_fs_rm(fd, session, p); return true; }
+    if (strcasecmp(tok, "rm") == 0) {
+        char *first = strtok_r(NULL, " \t", save);
+        if (!first) { write_str(fd, "ERR\r\n"); return true; }
+        bool recursive = false;
+        char *path = first;
+        if (strcasecmp(first, "-r") == 0 || strcasecmp(first, "-R") == 0 ||
+            strcasecmp(first, "-rf") == 0 || strcasecmp(first, "-fr") == 0 ||
+            strcasecmp(first, "-Rf") == 0 || strcasecmp(first, "-rF") == 0 ||
+            strcasecmp(first, "-RF") == 0 || strcasecmp(first, "-FR") == 0) {
+            recursive = true;
+            path = strtok_r(NULL, " \t", save);
+        }
+        cmd_fs_rm(fd, session, path, recursive);
+        return true;
+    }
     if (strcasecmp(tok, "cp") == 0) {
         char *first = strtok_r(NULL, " \t", save);
         if (!first) { write_str(fd, "ERR\r\n"); return true; }
@@ -458,6 +484,7 @@ void fs_help(int fd)
     write_str(fd, "  touch <file>\r\n");
     write_str(fd, "  cat <file>\r\n");
     write_str(fd, "  rm <file|dir>\r\n");
+    write_str(fd, "  rm -r <dir>\r\n");
     write_str(fd, "  cp <src> <dst>\r\n");
     write_str(fd, "  cp -r <src> <dst>\r\n");
     write_str(fd, "  mv <src> <dst>\r\n");

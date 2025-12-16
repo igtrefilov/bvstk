@@ -68,7 +68,7 @@ static void persist_cfg(int fd, const i2c_device_config_t *cfg)
 {
     if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
     int saved = config_store_save_i2c_device(cfg);
-    if (!saved) write_str(fd, "WARN: failed to save to flash:/configs/i2c/<device>.json\r\n");
+    if (!saved) write_str(fd, "WARN: failed to save to flash:/config/i2c/<device>.json\r\n");
 }
 
 static void cmd_list(int fd)
@@ -223,6 +223,6 @@ void i2c_help(int fd)
     write_str(fd, "  i2c <name> deny <reg> <val>\r\n");
     write_str(fd, "  i2c <name> clear <reg> <val>\r\n");
     write_str(fd, "  i2c <name> autopoll\r\n");
-    write_str(fd, "  i2c <name> save\r\n");
+    write_str(fd, "  i2c <name> save   (persist policy/rules + register settings)\r\n");
     write_str(fd, "  (address selector: use @0x.. instead of <name>, e.g. `i2c @0x36 r 0x10`)\r\n");
 }

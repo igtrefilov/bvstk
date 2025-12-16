@@ -126,7 +126,8 @@ int sd_fs_mkdir(const char *path)
 
 int sd_fs_rm(const char *path)
 {
-    return fs_shared_fs_rm(&sd_ctx, path);
+    FRESULT res = fs_shared_fs_rm(&sd_ctx, path);
+    return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
 }
 
 int sd_fs_is_dir(const char *path)
