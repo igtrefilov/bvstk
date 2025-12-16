@@ -11,7 +11,7 @@ Startup sequence in `src/main.c`:
   - Prompt shows active filesystem and current directory: `Zynq/<fs>[:path]>` (e.g. `Zynq/sd:logs> `, `Zynq/flash> `).
   - Text lines go to `process_console_line()`; binary frames go to `process_received_data()` (weak symbol you can override).
   - Built-ins: `help`, `quit`/`exit`.
-  - Utilities: `fs` (help), `tar`, `smi`, `mem`, `axp` (run `<name> -h` for usage).
+  - Utilities: `fs` (help), `tar`, `ip`, `smi`, `mem`, `axp` (run `<name> -h` for usage).
 - HTTP server on port `8000` (`src/http/*`). Filesystem endpoints are implemented as a separate route module (`src/http_fs/http_fs_routes.c`) so the HTTP server stays generic for a future web UI:
   - Single file:
     - `GET  /sd/<path>` / `PUT /sd/<path>` (maps to FatFs `0:/<path>`)
@@ -103,6 +103,30 @@ After successful run, connect to the TCP console:
 ```
 telnet 192.168.0.10 8888
 ```
+
+## TCP console: `ip` utility
+The console includes a small Linux-like `ip` command for inspecting and changing the network settings.
+
+Show current interface settings:
+```
+ip addr show
+ip link show
+ip route show
+```
+
+Set IPv4 address and default gateway (applies immediately and persists to QSPI config):
+```
+ip addr set 192.168.0.10/24
+ip route set default via 192.168.0.1
+ip link set address 00:0a:35:00:01:02
+```
+
+Persist current runtime settings into `flash:/configs/network.json`:
+```
+ip save
+```
+
+Note: changing IP can drop the current TCP session.
 
 ## HTTP file transfer (curl/wget)
 Base URL: `http://192.168.0.10:8000`
