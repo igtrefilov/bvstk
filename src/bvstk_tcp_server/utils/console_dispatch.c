@@ -7,6 +7,7 @@
 #include "smi_shell.h"
 #include "mem_shell.h"
 #include "axp_shell.h"
+#include "tar_shell.h"
 
 static volatile int s_close_requested = 0;
 
@@ -24,6 +25,7 @@ static void cmd_help_top(int fd)
 {
     write_str(fd, "available utilities (use <name> -h):\r\n");
     write_str(fd, "  fs\r\n");
+    write_str(fd, "  tar\r\n");
     write_str(fd, "  smi\r\n");
     write_str(fd, "  mem\r\n");
     write_str(fd, "  axp\r\n");
@@ -44,6 +46,7 @@ void process_console_line(const char *line, int socket_fd, console_session_t *se
     if (fs_handle(tok, &save, socket_fd, session)) return;
     if (strcasecmp(tok, "help") == 0 || strcasecmp(tok, "-h") == 0 || strcasecmp(tok, "--help") == 0 || strcasecmp(tok, "-help") == 0) { cmd_help_top(socket_fd); return; }
     if (strcasecmp(tok, "quit") == 0 || strcasecmp(tok, "exit") == 0) { write_str(socket_fd, "Bye!\r\n"); s_close_requested = 1; return; }
+    if (tar_handle(tok, &save, socket_fd, session)) return;
     if (smi_handle(tok, &save, socket_fd)) return;
     if (mem_handle(tok, &save, socket_fd)) return;
     if (axp_handle(tok, &save, socket_fd)) return;

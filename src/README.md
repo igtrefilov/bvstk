@@ -11,7 +11,7 @@ Startup sequence in `src/main.c`:
   - Prompt shows active filesystem and current directory: `Zynq/<fs>[:path]>` (e.g. `Zynq/sd:logs> `, `Zynq/flash> `).
   - Text lines go to `process_console_line()`; binary frames go to `process_received_data()` (weak symbol you can override).
   - Built-ins: `help`, `quit`/`exit`.
-  - Utilities: `fs` (help), `smi`, `mem`, `axp` (run `<name> -h` for usage).
+  - Utilities: `fs` (help), `tar`, `smi`, `mem`, `axp` (run `<name> -h` for usage).
 - HTTP server on port `8000` (`src/http/*`). Filesystem endpoints are implemented as a separate route module (`src/http_fs/http_fs_routes.c`) so the HTTP server stays generic for a future web UI:
   - Single file:
     - `GET  /sd/<path>` / `PUT /sd/<path>` (maps to FatFs `0:/<path>`)
@@ -193,6 +193,21 @@ pwd
 Move a directory from SD to flash (cross-device `mv`):
 ```
 mv sd:/logs flash:/logs_backup
+```
+
+## Tar utility (console)
+`tar` is a small, linux-like console utility for creating/extracting `.tar` archives inside FatFs. It does **not** stream binary tar over the telnet session; instead it reads/writes tar files on SD/QSPI, which you can then transfer via HTTP.
+
+Commands:
+- `tar c <src_dir> <dst_tar>` — create tar file from a directory.
+- `tar x <src_tar> <dst_dir>` — extract tar file into a directory.
+- `tar t <src_tar>` — list entries in a tar file.
+
+Examples:
+```
+tar c logs sd:/backup/logs.tar
+tar t sd:/backup/logs.tar
+tar x sd:/backup/logs.tar /restore
 ```
 
 ## Quick test

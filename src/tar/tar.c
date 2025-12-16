@@ -351,3 +351,55 @@ int tar_extract_into_dir_fatfs(const fs_shared_ctx_t *ctx, const char *dst_dir_p
     }
 }
 
+int tar_list(tar_read_cb read_cb, void *user, tar_write_cb write_cb, void *write_user)
+{
+    if (!read_cb || !write_cb) return XST_FAILURE;
+    uint8_t block[TAR_BLOCK];
+    int zero_blocks = 0;
+    while (1) {
+        if (read_exact(read_cb, user, block, sizeof(block)) != XST_SUCCESS) return XST_FAILURE;
+
+        bool all_zero = true;
+        for (size_t i = 0; i < sizeof(block); ++i) {
+            if (block[i] != 0) { all_zero = false; break; }
+        }
+        if (all_zero) {
+            zero_blocks++;
+            if (zero_blocks >= 2) return XST_SUCCESS;
+            continue;
+        }
+        zero_blocks = 0;
+
+        tar_hdr_t h;
+        memcpy(&h, block, sizeof(h));
+        h.name[sizeof(h.name) - 1] = '\0';
+        h.prefix[sizeof(h.prefix) - 1] = '\0';
+
+        char rel[256];
+        if (h.prefix[0]) snprintf(rel, sizeof(rel), "%s/%s", h.prefix, h.name);
+        else snprintf(rel, sizeof(rel), "%s", h.name);
+
+        if (!relpath_safe(rel)) return XST_FAILURE;
+
+        if (write_all(write_cb, write_user, rel, strlen(rel)) != XST_SUCCESS) return XST_FAILURE;
+        if (write_all(write_cb, write_user, "\r\n", 2) != XST_SUCCESS) return XST_FAILURE;
+
+        uint64_t fsize = 0;
+        if (!tar_parse_octal(h.size, sizeof(h.size), &fsize)) return XST_FAILURE;
+        char type = h.typeflag ? h.typeflag : '0';
+        if (type == '5') continue;
+
+        uint64_t skip = fsize;
+        uint8_t buf[256];
+        while (skip > 0) {
+            size_t want = (skip < sizeof(buf)) ? (size_t)skip : sizeof(buf);
+            if (read_exact(read_cb, user, buf, want) != XST_SUCCESS) return XST_FAILURE;
+            skip -= want;
+        }
+        size_t pad = (size_t)(TAR_BLOCK - (fsize % TAR_BLOCK)) % TAR_BLOCK;
+        if (pad) {
+            uint8_t padbuf[TAR_BLOCK];
+            if (read_exact(read_cb, user, padbuf, pad) != XST_SUCCESS) return XST_FAILURE;
+        }
+    }
+}

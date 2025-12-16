@@ -26,6 +26,7 @@ void console_print_banner(int fd)
         "| Utility        | Description                 |\r\n",
         "+----------------+-----------------------------+\r\n",
         "| fs             | Filesystem commands         |\r\n",
+        "| tar            | Tar archive utility         |\r\n",
         "| smi            | MDIO/SMI access             |\r\n",
         "| mem            | Memory info/tools           |\r\n",
         "| axp            | AXP control shell           |\r\n",

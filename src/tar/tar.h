@@ -18,5 +18,6 @@ typedef int (*tar_write_cb)(void *user, const void *buf, size_t len);
 int tar_stream_dir_fatfs(const fs_shared_ctx_t *ctx, const char *dir_path, tar_write_cb write_cb, void *user);
 int tar_extract_into_dir_fatfs(const fs_shared_ctx_t *ctx, const char *dst_dir_path,
                                tar_read_cb read_cb, void *user);
+int tar_list(tar_read_cb read_cb, void *user, tar_write_cb write_cb, void *write_user);
 
 #endif /* BVSTK_TAR_H */

@@ -32,7 +32,7 @@ static void run_client_session(int fd)
     size_t cursor = 0;
     int history_count = s_history_count;
     int history_pos = -1;
-    static const char *const commands[] = { "fs", "smi", "mem", "axp", "help", "quit", "exit" };
+    static const char *const commands[] = { "fs", "tar", "smi", "mem", "axp", "help", "quit", "exit" };
     enum { CONSOLE_PATH_MAX = 128 };
     enum { ESC_NONE = 0, ESC_ESC, ESC_CSI, ESC_SS3, ESC_CSI_PARAM } esc_state = ESC_NONE;
     int iac_skip = 0;
