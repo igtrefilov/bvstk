@@ -181,13 +181,20 @@ static const char *find_key(const char *json, const char *key)
     char pat[64];
     int n = snprintf(pat, sizeof(pat), "\"%s\"", key);
     if (n <= 0 || (size_t)n >= sizeof(pat)) return NULL;
-    const char *p = strstr(json, pat);
-    if (!p) return NULL;
-    p += strlen(pat);
-    p = skip_ws(p);
-    if (!p || *p != ':') return NULL;
-    p++;
-    return skip_ws(p);
+    const char *p = json;
+    while (p && *p) {
+        p = strstr(p, pat);
+        if (!p) return NULL;
+        const char *q = p + strlen(pat);
+        q = skip_ws(q);
+        if (q && *q == ':') {
+            q++;
+            return skip_ws(q);
+        }
+        /* This was a string value match (e.g. policy:"whitelist"), not a key. Keep searching. */
+        p = q ? q : (p + 1);
+    }
+    return NULL;
 }
 
 static int json_get_string(const char *json, const char *key, char *out, size_t out_sz)
