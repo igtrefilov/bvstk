@@ -1,4 +1,8 @@
 {
+  "name": "axp15060",
+  "addr_7b": 54,
+  "reg_count": 74,
+  "max_value_code": 64,
   "policy": "whitelist",
   "autopoll_enabled": true,
   "autopoll_reg_delay_ms": 5,
@@ -12,4 +16,3 @@
   ],
   "blacklist": []
 }
-

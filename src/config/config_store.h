@@ -16,34 +16,42 @@ typedef struct {
     bool has_mac;
 } network_config_t;
 
+#define I2C_CFG_MAX_DEVICES 32u
+#define I2C_CFG_NAME_MAX 32u
+#define I2C_CFG_FILE_NAME_MAX 48u
+#define I2C_CFG_RULES_MAX 256u
+#define I2C_CFG_AUTOPOLL_REGS_MAX 64u
+
 typedef enum {
-    AXP_POLICY_WHITELIST = 0,
-    AXP_POLICY_BLACKLIST = 1
-} axp_policy_t;
+    I2C_POLICY_WHITELIST = 0,
+    I2C_POLICY_BLACKLIST = 1
+} i2c_policy_t;
 
 typedef struct {
     uint8_t reg;
     uint8_t val;
-} axp_rule_entry_t;
-
-#define AXP15060_RULES_MAX 256u
-#define AXP15060_AUTOPOLL_REGS_MAX 64u
+} i2c_rule_entry_t;
 
 typedef struct {
-    axp_policy_t policy;
-
-    axp_rule_entry_t whitelist[AXP15060_RULES_MAX];
-    size_t whitelist_len;
-
-    axp_rule_entry_t blacklist[AXP15060_RULES_MAX];
-    size_t blacklist_len;
+    char name[I2C_CFG_NAME_MAX];
+    char file_name[I2C_CFG_FILE_NAME_MAX];
+    uint8_t addr_7b;
+    uint16_t reg_count;
+    uint8_t max_value_code;
+    i2c_policy_t policy;
 
     bool autopoll_enabled;
-    uint8_t autopoll_regs[AXP15060_AUTOPOLL_REGS_MAX];
+    uint8_t autopoll_regs[I2C_CFG_AUTOPOLL_REGS_MAX];
     size_t autopoll_regs_len;
     uint32_t autopoll_reg_delay_ms;
     uint32_t autopoll_cycle_delay_ms;
-} axp15060_config_t;
+
+    i2c_rule_entry_t whitelist[I2C_CFG_RULES_MAX];
+    size_t whitelist_len;
+
+    i2c_rule_entry_t blacklist[I2C_CFG_RULES_MAX];
+    size_t blacklist_len;
+} i2c_device_config_t;
 
 int start_config_store(void);
 int config_store_is_ready(void);
@@ -52,10 +60,11 @@ int config_store_get_network(network_config_t *out);
 int config_store_set_network(const network_config_t *cfg);
 int config_store_save_network(void);
 
-int config_store_get_axp15060(axp15060_config_t *out);
-const axp15060_config_t *config_store_peek_axp15060(void);
-int config_store_set_axp15060(const axp15060_config_t *cfg);
-int config_store_set_axp15060_defaults(void);
-int config_store_save_axp15060(void);
+size_t config_store_get_i2c_device_count(void);
+const i2c_device_config_t *config_store_get_i2c_devices(void);
+const i2c_device_config_t *config_store_find_i2c_device_by_name(const char *name);
+const i2c_device_config_t *config_store_find_i2c_device_by_addr(uint8_t addr_7b);
+int config_store_set_i2c_device(const i2c_device_config_t *cfg);
+int config_store_save_i2c_device(const i2c_device_config_t *cfg);
 
 #endif /* CONFIG_STORE_H */

@@ -28,7 +28,7 @@
   - [ip — network](#ip-network)
   - [smi — MDIO/SMI](#smi-mdiosmi)
   - [mem — memory](#mem-memory)
-  - [axp — AXP15060 (I2C)](#axp-axp15060-i2c)
+  - [i2c — I2C devices](#i2c--i2c-devices)
 - [HTTP file transfer](#http-file-transfer)
 - [Quick verification checklist](#quick-verification-checklist)
 - [Troubleshooting](#troubleshooting)
@@ -41,7 +41,7 @@
 - Network configuration stored as editable JSON on QSPI: `flash:/configs/network.json`.
 - Console utilities:
   - `fs` (filesystem shell), `tar` (tar create/list/extract), `ip` (Linux-like network utility),
-  - `smi` (MDIO read/write), `mem` (peek/poke), `axp` (AXP15060 status + access + policy/rules).
+  - `smi` (MDIO read/write), `mem` (peek/poke), `i2c` (I2C device access + policy/rules).
 
 ## Repository layout
 - Repo root:
@@ -265,33 +265,36 @@ mem r 0xE000A001
 mem w 0xE000A001 0x7F
 ```
 
-### axp — AXP15060 (I2C)
-Назначение: диагностика и управление PMIC AXP15060 + правила доступа (whitelist/blacklist).
+### i2c — I2C devices
+Назначение: доступ к устройствам на шине I2C + правила доступа (whitelist/blacklist) на уровне (reg,val).
 
-Конфиг: `flash:/configs/axp15060.json` (создаётся автоматически, если отсутствует).
+Конфиг: `flash:/configs/i2c/<name>.json` (создаётся автоматически для дефолтного устройства, если папка пустая).
 
 Команды:
-- `axp status`
-- `axp r <reg>`
-- `axp w <reg> <val>`
-- `axp rules`
-- `axp policy <whitelist|blacklist>`
-- `axp allow <reg> <val>`
-- `axp deny <reg> <val>`
-- `axp clear <reg> <val>`
-- `axp reset`
-
-Примечание: `axp policy/allow/deny/clear/reset` обновляют и сохраняют конфиг в `flash:/configs/axp15060.json`.
+- `i2c list`
+- `i2c info`
+- `i2c use <name>`
+- `i2c addr <0x..>`
+- `i2c r <reg>`
+- `i2c w <reg> <val>`
+- `i2c rules`
+- `i2c policy <whitelist|blacklist>`
+- `i2c allow <reg> <val>`
+- `i2c deny <reg> <val>`
+- `i2c clear <reg> <val>`
+- `i2c autopoll` (показать автополлинг)
+- `i2c save` (сохранить текущие правила/политику в JSON)
 
 Примеры:
 ```
-axp status
-axp r 0x10
-axp w 0x10 0x01
-axp policy whitelist
-axp allow 0x10 0x01
-axp rules
-axp reset
+i2c list
+i2c use axp15060
+i2c r 0x10
+i2c w 0x10 0x01
+i2c policy whitelist
+i2c allow 0x10 0x01
+i2c rules
+i2c save
 ```
 
 ## HTTP file transfer
@@ -330,7 +333,8 @@ ls
 cd flash
 ls /configs
 cat /configs/network.json
-cat /configs/axp15060.json
+ls /configs/i2c
+cat /configs/i2c/axp15060.json
 ```
 5) Проверить сеть/настройки:
 ```

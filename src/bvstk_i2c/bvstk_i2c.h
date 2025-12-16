@@ -19,47 +19,38 @@ typedef enum {
     I2CDEV_POLICY_BLACKLIST = 1
 } i2cdev_policy_t;
 
-#ifndef I2CDEV_DEFAULT_POLICY
-#define I2CDEV_DEFAULT_POLICY I2CDEV_POLICY_WHITELIST
-#endif
-
 typedef struct {
     uint8_t reg;
     uint8_t val;
 } i2cdev_rule_entry_t;
 
 typedef struct {
-    const uint8_t *regs;
+    uint8_t regs[64];
     size_t regs_len;
     uint32_t reg_delay_ms;
     uint32_t cycle_delay_ms;
     bool enabled;
 } i2cdev_autopoll_profile_t;
 
-#ifndef BVSTK_I2C_DEVICE_HEADER
-#define BVSTK_I2C_DEVICE_HEADER "axp15060.h"
-#endif
-#include BVSTK_I2C_DEVICE_HEADER
+#define I2CDEV_MAX_DEVICES     32u
+#define I2CDEV_MAX_REG_COUNT   256u
+#define I2CDEV_MAX_VALUE_CODE  64u
 
-extern uint8_t i2cdev_whitelist_bitmap[I2CDEV_REG_COUNT][I2CDEV_MAX_VALUE_CODE + 1];
-extern uint8_t i2cdev_blacklist_bitmap[I2CDEV_REG_COUNT][I2CDEV_MAX_VALUE_CODE + 1];
+typedef struct {
+    const char *name;
+    uint8_t addr_7b;
+    uint16_t reg_count;
+    uint8_t max_value_code;
+} i2cdev_device_info_t;
 
-#ifndef I2CDEV_DEFAULT_RULES_DEFINED
-static const i2cdev_rule_entry_t i2cdev_default_whitelist[] = { };
-static const size_t i2cdev_default_whitelist_len = 0u;
-static const i2cdev_rule_entry_t i2cdev_default_blacklist[] = { };
-static const size_t i2cdev_default_blacklist_len = 0u;
-#endif
+size_t i2cdev_device_count(void);
+bool i2cdev_device_get_info(size_t idx, i2cdev_device_info_t *out);
+bool i2cdev_select_device(const char *name);
+bool i2cdev_select_device_addr(uint8_t addr_7b);
+bool i2cdev_get_selected_info(i2cdev_device_info_t *out);
 
-#ifndef I2CDEV_AUTOPOLL_PROFILE_DEFINED
-static const i2cdev_autopoll_profile_t i2cdev_autopoll_profile = {
-    .regs = NULL,
-    .regs_len = 0u,
-    .reg_delay_ms = 0u,
-    .cycle_delay_ms = 1000u,
-    .enabled = false,
-};
-#endif
+void i2cdev_autopoll_get(i2cdev_autopoll_profile_t *out);
+void i2cdev_autopoll_set(const i2cdev_autopoll_profile_t *p);
 
 #define I2C_TASK_STACK_SIZE     (512U)
 #define I2C_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
@@ -108,11 +99,5 @@ bool i2cdev_is_value_permitted_current(uint8_t reg, uint8_t val);
 bool i2cdev_rule_allow(uint8_t reg, uint8_t val);
 bool i2cdev_rule_deny(uint8_t reg, uint8_t val);
 bool i2cdev_rule_clear(uint8_t reg, uint8_t val);
-
-void i2cdev_autopoll_configure(const uint8_t *regs,
-                               size_t regs_len,
-                               uint32_t reg_delay_ms,
-                               uint32_t cycle_delay_ms,
-                               bool enabled);
 
 #endif

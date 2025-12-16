@@ -17,7 +17,7 @@
 
 #define CONFIG_DIR_NAME "configs"
 #define NETWORK_CFG_NAME "network.json"
-#define AXP15060_CFG_NAME "axp15060.json"
+#define I2C_CFG_DIR_NAME "configs/i2c"
 
 #define CONFIG_TASK_STACK 2048
 #define CONFIG_TASK_PRIO (tskIDLE_PRIORITY + 3)
@@ -25,7 +25,8 @@
 static TaskHandle_t s_task = NULL;
 static volatile int s_ready = 0;
 static network_config_t s_net_cfg;
-static axp15060_config_t s_axp_cfg;
+static i2c_device_config_t s_i2c_cfgs[I2C_CFG_MAX_DEVICES];
+static size_t s_i2c_cfg_count = 0;
 static char s_cfg_buf[4096];
 
 static void config_apply_defaults(network_config_t *cfg)
@@ -263,7 +264,7 @@ static int json_parse_num_array_u8(const char *p, uint8_t *out, size_t out_max, 
     return 1;
 }
 
-static int json_parse_rules_array(const char *p, axp_rule_entry_t *out, size_t out_max, size_t *out_len)
+static int json_parse_rules_array(const char *p, i2c_rule_entry_t *out, size_t out_max, size_t *out_len)
 {
     if (out_len) *out_len = 0;
     if (!p || !out || out_max == 0) return 0;
@@ -379,41 +380,67 @@ static int parse_network_json(const char *json, network_config_t *cfg)
     return cfg->has_ip && cfg->has_netmask && cfg->has_gateway && cfg->has_mac;
 }
 
-static void axp_apply_defaults(axp15060_config_t *cfg)
+static void i2c_cfg_clear(i2c_device_config_t *cfg)
 {
     if (!cfg) return;
     memset(cfg, 0, sizeof(*cfg));
-    cfg->policy = AXP_POLICY_WHITELIST;
-    cfg->autopoll_enabled = true;
-    cfg->autopoll_reg_delay_ms = 5u;
-    cfg->autopoll_cycle_delay_ms = 200u;
-    cfg->autopoll_regs_len = 5u;
-    cfg->autopoll_regs[0] = 0u;
-    cfg->autopoll_regs[1] = 0x31u;
-    cfg->autopoll_regs[2] = 0x32u;
-    cfg->autopoll_regs[3] = 0x48u;
-    cfg->autopoll_regs[4] = 0x49u;
-    cfg->whitelist_len = 4u;
-    cfg->whitelist[0] = (axp_rule_entry_t){ .reg = 0x13u, .val = 16u };
-    cfg->whitelist[1] = (axp_rule_entry_t){ .reg = 0x13u, .val = 17u };
-    cfg->whitelist[2] = (axp_rule_entry_t){ .reg = 0x13u, .val = 18u };
-    cfg->whitelist[3] = (axp_rule_entry_t){ .reg = 0x13u, .val = 19u };
-    cfg->blacklist_len = 0u;
+    cfg->policy = I2C_POLICY_WHITELIST;
+    cfg->autopoll_enabled = false;
+    cfg->autopoll_cycle_delay_ms = 1000u;
 }
 
-static int parse_axp15060_json(const char *json, axp15060_config_t *cfg)
+static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
 {
     if (!json || !cfg) return 0;
-    axp_apply_defaults(cfg);
+    i2c_cfg_clear(cfg);
 
-    const char *p = find_key(json, "policy");
-    if (p) {
+    const char *p = find_key(json, "name");
+    if (!p) return 0;
+    {
+        int ok = 0;
+        (void)parse_json_string_inplace(p, cfg->name, sizeof(cfg->name), &ok);
+        if (!ok || !cfg->name[0]) return 0;
+    }
+
+    p = find_key(json, "addr_7b");
+    if (!p) return 0;
+    {
+        uint32_t v = 0;
+        int ok = 0;
+        (void)parse_json_u32_inplace(p, &v, &ok);
+        if (!ok || v > 0x7Fu) return 0;
+        cfg->addr_7b = (uint8_t)v;
+    }
+
+    p = find_key(json, "reg_count");
+    if (!p) return 0;
+    {
+        uint32_t v = 0;
+        int ok = 0;
+        (void)parse_json_u32_inplace(p, &v, &ok);
+        if (!ok || v == 0 || v > 256u) return 0;
+        cfg->reg_count = (uint16_t)v;
+    }
+
+    p = find_key(json, "max_value_code");
+    if (!p) return 0;
+    {
+        uint32_t v = 0;
+        int ok = 0;
+        (void)parse_json_u32_inplace(p, &v, &ok);
+        if (!ok || v > 64u) return 0;
+        cfg->max_value_code = (uint8_t)v;
+    }
+
+    p = find_key(json, "policy");
+    if (!p) return 0;
+    {
         char pol[16];
         int ok = 0;
         (void)parse_json_string_inplace(p, pol, sizeof(pol), &ok);
         if (!ok) return 0;
-        if (strcasecmp(pol, "whitelist") == 0) cfg->policy = AXP_POLICY_WHITELIST;
-        else if (strcasecmp(pol, "blacklist") == 0) cfg->policy = AXP_POLICY_BLACKLIST;
+        if (strcasecmp(pol, "whitelist") == 0) cfg->policy = I2C_POLICY_WHITELIST;
+        else if (strcasecmp(pol, "blacklist") == 0) cfg->policy = I2C_POLICY_BLACKLIST;
         else return 0;
     }
 
@@ -443,21 +470,33 @@ static int parse_axp15060_json(const char *json, axp15060_config_t *cfg)
     p = find_key(json, "autopoll_regs");
     if (p) {
         size_t n = 0;
-        if (!json_parse_num_array_u8(p, cfg->autopoll_regs, AXP15060_AUTOPOLL_REGS_MAX, &n)) return 0;
+        if (!json_parse_num_array_u8(p, cfg->autopoll_regs, I2C_CFG_AUTOPOLL_REGS_MAX, &n)) return 0;
         cfg->autopoll_regs_len = n;
     }
 
     p = find_key(json, "whitelist");
     if (p) {
         size_t n = 0;
-        if (!json_parse_rules_array(p, cfg->whitelist, AXP15060_RULES_MAX, &n)) return 0;
+        if (!json_parse_rules_array(p, cfg->whitelist, I2C_CFG_RULES_MAX, &n)) return 0;
         cfg->whitelist_len = n;
     }
     p = find_key(json, "blacklist");
     if (p) {
         size_t n = 0;
-        if (!json_parse_rules_array(p, cfg->blacklist, AXP15060_RULES_MAX, &n)) return 0;
+        if (!json_parse_rules_array(p, cfg->blacklist, I2C_CFG_RULES_MAX, &n)) return 0;
         cfg->blacklist_len = n;
+    }
+
+    for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
+        if (cfg->autopoll_regs[i] >= cfg->reg_count) return 0;
+    }
+    for (size_t i = 0; i < cfg->whitelist_len; ++i) {
+        if (cfg->whitelist[i].reg >= cfg->reg_count) return 0;
+        if (cfg->whitelist[i].val > cfg->max_value_code) return 0;
+    }
+    for (size_t i = 0; i < cfg->blacklist_len; ++i) {
+        if (cfg->blacklist[i].reg >= cfg->reg_count) return 0;
+        if (cfg->blacklist[i].val > cfg->max_value_code) return 0;
     }
 
     return 1;
@@ -474,12 +513,12 @@ static void config_task(void *arg)
 
     char dir_path[96];
     char net_cfg_path[128];
-    char axp_cfg_path[128];
+    char i2c_dir_path[128];
     build_flash_path(dir_path, sizeof(dir_path), CONFIG_DIR_NAME);
     build_flash_path(net_cfg_path, sizeof(net_cfg_path), CONFIG_DIR_NAME "/" NETWORK_CFG_NAME);
-    build_flash_path(axp_cfg_path, sizeof(axp_cfg_path), CONFIG_DIR_NAME "/" AXP15060_CFG_NAME);
+    build_flash_path(i2c_dir_path, sizeof(i2c_dir_path), I2C_CFG_DIR_NAME);
 
-    if (!dir_path[0] || !net_cfg_path[0] || !axp_cfg_path[0]) {
+    if (!dir_path[0] || !net_cfg_path[0] || !i2c_dir_path[0]) {
         xil_printf("CFG: path build failed\r\n");
         goto done;
     }
@@ -493,11 +532,20 @@ static void config_task(void *arg)
                 xil_printf("CFG: wrote default %s\r\n", net_cfg_path);
             }
         }
-        if (!file_exists(axp_cfg_path)) {
-            if (!write_file_atomic(axp_cfg_path, DEFAULT_AXP15060_JSON, DEFAULT_AXP15060_JSON_LEN)) {
-                xil_printf("CFG: failed to write default %s\r\n", axp_cfg_path);
-            } else {
-                xil_printf("CFG: wrote default %s\r\n", axp_cfg_path);
+        (void)ensure_dir_exists(i2c_dir_path);
+        for (unsigned i = 0; i < DEFAULT_I2C_CONFIG_FILES_COUNT; ++i) {
+            const default_json_file_t *d = &DEFAULT_I2C_CONFIG_FILES[i];
+            char pth[160];
+            char suf[96];
+            snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_DIR_NAME, d->file_name);
+            build_flash_path(pth, sizeof(pth), suf);
+            if (!pth[0]) continue;
+            if (!file_exists(pth)) {
+                if (!write_file_atomic(pth, d->json, d->json_len)) {
+                    xil_printf("CFG: failed to write default %s\r\n", pth);
+                } else {
+                    xil_printf("CFG: wrote default %s\r\n", pth);
+                }
             }
         }
     } else {
@@ -513,13 +561,44 @@ static void config_task(void *arg)
         (void)parse_network_json(DEFAULT_NETWORK_JSON, &s_net_cfg);
     }
 
-    loaded = 0;
-    if (qspi_fs_is_ready() && file_exists(axp_cfg_path) && read_file_to_buf(axp_cfg_path, s_cfg_buf, sizeof(s_cfg_buf), &blen)) {
-        loaded = parse_axp15060_json(s_cfg_buf, &s_axp_cfg);
+    s_i2c_cfg_count = 0;
+    if (qspi_fs_is_ready()) {
+        DIR d;
+        FILINFO fno;
+        if (f_opendir(&d, i2c_dir_path) == FR_OK) {
+            for (;;) {
+                if (f_readdir(&d, &fno) != FR_OK) break;
+                if (!fno.fname[0]) break;
+                if (fno.fattrib & AM_DIR) continue;
+                const char *fn = fno.fname;
+                size_t fl = strlen(fn);
+                if (fl < 6) continue;
+                if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
+                if (s_i2c_cfg_count >= I2C_CFG_MAX_DEVICES) break;
+
+                char pth[160];
+                char suf[96];
+                snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_DIR_NAME, fn);
+                build_flash_path(pth, sizeof(pth), suf);
+                if (!pth[0]) continue;
+                if (!read_file_to_buf(pth, s_cfg_buf, sizeof(s_cfg_buf), &blen)) continue;
+                i2c_device_config_t tmp;
+                if (!parse_i2c_device_json(s_cfg_buf, &tmp)) continue;
+                strncpy(tmp.file_name, fn, sizeof(tmp.file_name) - 1);
+                tmp.file_name[sizeof(tmp.file_name) - 1] = '\0';
+                s_i2c_cfgs[s_i2c_cfg_count++] = tmp;
+            }
+            (void)f_closedir(&d);
+        }
     }
-    if (!loaded) {
-        if (!parse_axp15060_json(DEFAULT_AXP15060_JSON, &s_axp_cfg)) {
-            axp_apply_defaults(&s_axp_cfg);
+    if (s_i2c_cfg_count == 0) {
+        for (unsigned i = 0; i < DEFAULT_I2C_CONFIG_FILES_COUNT && s_i2c_cfg_count < I2C_CFG_MAX_DEVICES; ++i) {
+            const default_json_file_t *d = &DEFAULT_I2C_CONFIG_FILES[i];
+            i2c_device_config_t tmp;
+            if (!parse_i2c_device_json(d->json, &tmp)) continue;
+            strncpy(tmp.file_name, d->file_name, sizeof(tmp.file_name) - 1);
+            tmp.file_name[sizeof(tmp.file_name) - 1] = '\0';
+            s_i2c_cfgs[s_i2c_cfg_count++] = tmp;
         }
     }
 
@@ -533,6 +612,8 @@ int start_config_store(void)
     if (s_task) return 1;
     s_ready = 0;
     memset(&s_net_cfg, 0, sizeof(s_net_cfg));
+    memset(s_i2c_cfgs, 0, sizeof(s_i2c_cfgs));
+    s_i2c_cfg_count = 0;
     BaseType_t rc = xTaskCreate(config_task, "cfg", CONFIG_TASK_STACK, NULL, CONFIG_TASK_PRIO, &s_task);
     return (rc == pdPASS) ? 1 : 0;
 }
@@ -567,32 +648,53 @@ int config_store_set_network(const network_config_t *cfg)
     return 1;
 }
 
-int config_store_get_axp15060(axp15060_config_t *out)
+size_t config_store_get_i2c_device_count(void)
 {
-    if (!out) return 0;
-    *out = s_axp_cfg;
-    return config_store_is_ready();
+    return config_store_is_ready() ? s_i2c_cfg_count : 0u;
 }
 
-const axp15060_config_t *config_store_peek_axp15060(void)
+const i2c_device_config_t *config_store_get_i2c_devices(void)
+{
+    return config_store_is_ready() ? s_i2c_cfgs : NULL;
+}
+
+const i2c_device_config_t *config_store_find_i2c_device_by_name(const char *name)
+{
+    if (!config_store_is_ready() || !name || !name[0]) return NULL;
+    for (size_t i = 0; i < s_i2c_cfg_count; ++i) {
+        if (strcasecmp(s_i2c_cfgs[i].name, name) == 0) return &s_i2c_cfgs[i];
+    }
+    return NULL;
+}
+
+const i2c_device_config_t *config_store_find_i2c_device_by_addr(uint8_t addr_7b)
 {
     if (!config_store_is_ready()) return NULL;
-    return &s_axp_cfg;
-}
-
-int config_store_set_axp15060(const axp15060_config_t *cfg)
-{
-    if (!cfg) return 0;
-    s_axp_cfg = *cfg;
-    return 1;
-}
-
-int config_store_set_axp15060_defaults(void)
-{
-    if (!parse_axp15060_json(DEFAULT_AXP15060_JSON, &s_axp_cfg)) {
-        axp_apply_defaults(&s_axp_cfg);
+    for (size_t i = 0; i < s_i2c_cfg_count; ++i) {
+        if (s_i2c_cfgs[i].addr_7b == (addr_7b & 0x7Fu)) return &s_i2c_cfgs[i];
     }
-    return 1;
+    return NULL;
+}
+
+int config_store_set_i2c_device(const i2c_device_config_t *cfg)
+{
+    if (!config_store_is_ready() || !cfg || !cfg->name[0]) return 0;
+    for (size_t i = 0; i < s_i2c_cfg_count; ++i) {
+        if (strcasecmp(s_i2c_cfgs[i].name, cfg->name) == 0) {
+            char fn[I2C_CFG_FILE_NAME_MAX];
+            strncpy(fn, s_i2c_cfgs[i].file_name, sizeof(fn) - 1);
+            fn[sizeof(fn) - 1] = '\0';
+            s_i2c_cfgs[i] = *cfg;
+            strncpy(s_i2c_cfgs[i].file_name, fn, sizeof(s_i2c_cfgs[i].file_name) - 1);
+            s_i2c_cfgs[i].file_name[sizeof(s_i2c_cfgs[i].file_name) - 1] = '\0';
+            return 1;
+        }
+    }
+    if (s_i2c_cfg_count < I2C_CFG_MAX_DEVICES) {
+        s_i2c_cfgs[s_i2c_cfg_count++] = *cfg;
+        return 1;
+    }
+    return 0;
 }
 
 static void ipv4_to_str(uint32_t be, char out[16])
@@ -647,41 +749,50 @@ int config_store_save_network(void)
     return write_file_atomic(cfg_path, json, len) ? 1 : 0;
 }
 
-int config_store_save_axp15060(void)
+int config_store_save_i2c_device(const i2c_device_config_t *cfg)
 {
-    if (!config_store_is_ready()) return 0;
-
-    char dir_path[96];
-    char cfg_path[128];
-    build_flash_path(dir_path, sizeof(dir_path), CONFIG_DIR_NAME);
-    build_flash_path(cfg_path, sizeof(cfg_path), CONFIG_DIR_NAME "/" AXP15060_CFG_NAME);
-    if (!dir_path[0] || !cfg_path[0]) return 0;
+    if (!config_store_is_ready() || !cfg || !cfg->name[0]) return 0;
 
     if (!qspi_fs_is_ready()) return 0;
-    if (!ensure_dir_exists(dir_path)) return 0;
+
+    char root_dir_path[96];
+    char i2c_dir_path[128];
+    build_flash_path(root_dir_path, sizeof(root_dir_path), CONFIG_DIR_NAME);
+    build_flash_path(i2c_dir_path, sizeof(i2c_dir_path), I2C_CFG_DIR_NAME);
+    if (!root_dir_path[0] || !i2c_dir_path[0]) return 0;
+    if (!ensure_dir_exists(root_dir_path)) return 0;
+    if (!ensure_dir_exists(i2c_dir_path)) return 0;
 
     char json[8192];
     size_t pos = 0;
-    const char *pol = (s_axp_cfg.policy == AXP_POLICY_BLACKLIST) ? "blacklist" : "whitelist";
+    const char *pol = (cfg->policy == I2C_POLICY_BLACKLIST) ? "blacklist" : "whitelist";
     int n = snprintf(json + pos, sizeof(json) - pos,
         "{\n"
+        "  \"name\": \"%s\",\n"
+        "  \"addr_7b\": %u,\n"
+        "  \"reg_count\": %u,\n"
+        "  \"max_value_code\": %u,\n"
         "  \"policy\": \"%s\",\n"
         "  \"autopoll_enabled\": %s,\n"
         "  \"autopoll_reg_delay_ms\": %u,\n"
         "  \"autopoll_cycle_delay_ms\": %u,\n"
         "  \"autopoll_regs\": [",
+        cfg->name,
+        (unsigned)cfg->addr_7b,
+        (unsigned)cfg->reg_count,
+        (unsigned)cfg->max_value_code,
         pol,
-        s_axp_cfg.autopoll_enabled ? "true" : "false",
-        (unsigned)s_axp_cfg.autopoll_reg_delay_ms,
-        (unsigned)s_axp_cfg.autopoll_cycle_delay_ms);
+        cfg->autopoll_enabled ? "true" : "false",
+        (unsigned)cfg->autopoll_reg_delay_ms,
+        (unsigned)cfg->autopoll_cycle_delay_ms);
     if (n <= 0) return 0;
     pos += (size_t)n;
     if (pos >= sizeof(json)) return 0;
 
-    for (size_t i = 0; i < s_axp_cfg.autopoll_regs_len; ++i) {
+    for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
         n = snprintf(json + pos, sizeof(json) - pos, "%s%u",
                      (i == 0) ? "" : ", ",
-                     (unsigned)s_axp_cfg.autopoll_regs[i]);
+                     (unsigned)cfg->autopoll_regs[i]);
         if (n <= 0) return 0;
         pos += (size_t)n;
         if (pos >= sizeof(json)) return 0;
@@ -691,12 +802,12 @@ int config_store_save_axp15060(void)
     pos += (size_t)n;
     if (pos >= sizeof(json)) return 0;
 
-    for (size_t i = 0; i < s_axp_cfg.whitelist_len; ++i) {
+    for (size_t i = 0; i < cfg->whitelist_len; ++i) {
         n = snprintf(json + pos, sizeof(json) - pos,
                      "    { \"reg\": %u, \"val\": %u }%s\n",
-                     (unsigned)s_axp_cfg.whitelist[i].reg,
-                     (unsigned)s_axp_cfg.whitelist[i].val,
-                     (i + 1 == s_axp_cfg.whitelist_len) ? "" : ",");
+                     (unsigned)cfg->whitelist[i].reg,
+                     (unsigned)cfg->whitelist[i].val,
+                     (i + 1 == cfg->whitelist_len) ? "" : ",");
         if (n <= 0) return 0;
         pos += (size_t)n;
         if (pos >= sizeof(json)) return 0;
@@ -706,12 +817,12 @@ int config_store_save_axp15060(void)
     pos += (size_t)n;
     if (pos >= sizeof(json)) return 0;
 
-    for (size_t i = 0; i < s_axp_cfg.blacklist_len; ++i) {
+    for (size_t i = 0; i < cfg->blacklist_len; ++i) {
         n = snprintf(json + pos, sizeof(json) - pos,
                      "    { \"reg\": %u, \"val\": %u }%s\n",
-                     (unsigned)s_axp_cfg.blacklist[i].reg,
-                     (unsigned)s_axp_cfg.blacklist[i].val,
-                     (i + 1 == s_axp_cfg.blacklist_len) ? "" : ",");
+                     (unsigned)cfg->blacklist[i].reg,
+                     (unsigned)cfg->blacklist[i].val,
+                     (i + 1 == cfg->blacklist_len) ? "" : ",");
         if (n <= 0) return 0;
         pos += (size_t)n;
         if (pos >= sizeof(json)) return 0;
@@ -721,5 +832,16 @@ int config_store_save_axp15060(void)
     pos += (size_t)n;
     if (pos >= sizeof(json)) return 0;
 
+    char cfg_path[160];
+    char suf[96];
+    const char *fn = (cfg->file_name[0] ? cfg->file_name : NULL);
+    char tmp_fn[I2C_CFG_FILE_NAME_MAX];
+    if (!fn) {
+        snprintf(tmp_fn, sizeof(tmp_fn), "%s.json", cfg->name);
+        fn = tmp_fn;
+    }
+    snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_DIR_NAME, fn);
+    build_flash_path(cfg_path, sizeof(cfg_path), suf);
+    if (!cfg_path[0]) return 0;
     return write_file_atomic(cfg_path, json, pos) ? 1 : 0;
 }

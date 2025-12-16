@@ -30,7 +30,7 @@ void console_print_banner(int fd)
         "| ip             | Network configuration       |\r\n",
         "| smi            | MDIO/SMI access             |\r\n",
         "| mem            | Memory info/tools           |\r\n",
-        "| axp            | AXP control shell           |\r\n",
+        "| i2c            | I2C device shell            |\r\n",
         "| help           | List available utilities    |\r\n",
         "| quit / exit    | Close session               |\r\n",
         "+----------------+-----------------------------+\r\n",
