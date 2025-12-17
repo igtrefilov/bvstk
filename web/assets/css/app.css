@@ -12,17 +12,18 @@
   box-sizing: border-box;
 }
 
-html,
-body {
-  height: 100%;
+html {
+  min-height: 100%;
+  background: var(--bg) url("../bg.png") center / cover no-repeat fixed;
 }
 
 body {
+  min-height: 100%;
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans",
     "Liberation Sans", sans-serif;
   color: var(--text);
-  background: var(--bg) url("../bg.png") center / cover no-repeat;
+  background: transparent;
 }
 
 a {
