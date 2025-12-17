@@ -307,9 +307,43 @@
 
           <section id="tab-settings" class="hidden" aria-label="Настройки" style="margin-top: 18px">
             <div class="tiles" role="list">
-              <article class="card" role="listitem" aria-label="Настройки">
-                <h2 class="section-title">Настройки</h2>
-                <p class="section-desc">Раздел в разработке.</p>
+              <article class="card" role="listitem" aria-label="Сетевые настройки">
+                <h2 class="section-title">Сеть</h2>
+                <p class="section-desc">
+                  Изменение IP/маски/шлюза/MAC. При применении IP текущая сессия может оборваться.
+                </p>
+
+                <div style="display:grid; gap: 12px; margin-top: 14px">
+                  <label style="display:grid; gap:6px">
+                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">IP</span>
+                    <input id="cfg-ip" inputmode="decimal" placeholder="192.168.0.10" />
+                  </label>
+
+                  <label style="display:grid; gap:6px">
+                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">Netmask</span>
+                    <input id="cfg-netmask" inputmode="decimal" placeholder="255.255.255.0" />
+                  </label>
+
+                  <label style="display:grid; gap:6px">
+                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">Gateway</span>
+                    <input id="cfg-gateway" inputmode="decimal" placeholder="192.168.0.1" />
+                  </label>
+
+                  <label style="display:grid; gap:6px">
+                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">MAC</span>
+                    <input id="cfg-mac" inputmode="text" placeholder="00:0a:35:00:01:02" />
+                  </label>
+
+                  <label style="display:flex; align-items:center; gap:10px">
+                    <input id="cfg-apply" type="checkbox" checked />
+                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">Применить сразу</span>
+                  </label>
+
+                  <div style="display:flex; align-items:center; gap: 12px; flex-wrap: wrap">
+                    <button id="cfg-save" type="button">Сохранить</button>
+                    <span id="cfg-status" style="color: rgba(30, 36, 48, 0.72)">—</span>
+                  </div>
+                </div>
               </article>
             </div>
           </section>
@@ -376,6 +410,85 @@
           const res = await fetch(path, { cache: "no-store" });
           if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
           return await res.json();
+        }
+
+        function isIpv4(s) {
+          if (typeof s !== "string") return false;
+          const m = s.trim().match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+          if (!m) return false;
+          for (let i = 1; i <= 4; i++) {
+            const v = Number(m[i]);
+            if (!Number.isInteger(v) || v < 0 || v > 255) return false;
+          }
+          return true;
+        }
+
+        function isMac(s) {
+          if (typeof s !== "string") return false;
+          return /^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$/.test(s.trim());
+        }
+
+        async function loadNetConfigToForm() {
+          try {
+            const j = await fetchJson("/api/net");
+            const ip = (j.ip || "").trim();
+            const nm = (j.netmask || "").trim();
+            const gw = (j.gateway || "").trim();
+            const mac = (j.mac || "").trim();
+            if (ip) byId("cfg-ip").value = ip;
+            if (nm) byId("cfg-netmask").value = nm;
+            if (gw) byId("cfg-gateway").value = gw;
+            if (mac) byId("cfg-mac").value = mac;
+            byId("cfg-status").textContent = "loaded";
+          } catch (_) {
+            byId("cfg-status").textContent = "failed to load";
+          }
+        }
+
+        async function saveNetConfig() {
+          const ip = byId("cfg-ip").value.trim();
+          const netmask = byId("cfg-netmask").value.trim();
+          const gateway = byId("cfg-gateway").value.trim();
+          const mac = byId("cfg-mac").value.trim();
+          const apply = !!byId("cfg-apply").checked;
+
+          if (!isIpv4(ip)) {
+            byId("cfg-status").textContent = "bad IP";
+            return;
+          }
+          if (!isIpv4(netmask)) {
+            byId("cfg-status").textContent = "bad netmask";
+            return;
+          }
+          if (!isIpv4(gateway)) {
+            byId("cfg-status").textContent = "bad gateway";
+            return;
+          }
+          if (!isMac(mac)) {
+            byId("cfg-status").textContent = "bad MAC";
+            return;
+          }
+
+          byId("cfg-status").textContent = "saving...";
+          try {
+            const res = await fetch("/api/net", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ip, netmask, gateway, mac, apply }),
+            });
+            const text = await res.text();
+            if (!res.ok) {
+              byId("cfg-status").textContent = `ERR ${res.status}: ${text.trim() || "failed"}`;
+              return;
+            }
+            byId("cfg-status").textContent = apply ? "saved (applied)" : "saved";
+            // Refresh tiles (may fail if IP changed).
+            setTimeout(() => {
+              loadNet();
+            }, 300);
+          } catch (e) {
+            byId("cfg-status").textContent = `save failed (${e && e.message ? e.message : "error"})`;
+          }
         }
 
         async function loadNet() {
@@ -473,6 +586,10 @@
         loadRtos();
         loadFs();
         loadI2c();
+        loadNetConfigToForm();
+
+        const btn = byId("cfg-save");
+        if (btn) btn.addEventListener("click", saveNetConfig);
       })();
     </script>
   </body>

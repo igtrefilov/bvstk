@@ -263,6 +263,221 @@ static void api_handle_net(int fd)
     http_write_str(fd, "}\n");
 }
 
+static const char *json_skip_ws(const char *p)
+{
+    while (p && *p && isspace((unsigned char)*p)) p++;
+    return p;
+}
+
+static const char *json_find_key(const char *json, const char *key)
+{
+    if (!json || !key) return NULL;
+    char pat[64];
+    int n = snprintf(pat, sizeof(pat), "\"%s\"", key);
+    if (n <= 0 || (size_t)n >= sizeof(pat)) return NULL;
+    const char *p = json;
+    while (p && *p) {
+        p = strstr(p, pat);
+        if (!p) return NULL;
+        const char *q = p + strlen(pat);
+        q = json_skip_ws(q);
+        if (q && *q == ':') {
+            q++;
+            return json_skip_ws(q);
+        }
+        p = q ? q : (p + 1);
+    }
+    return NULL;
+}
+
+static int json_get_string_val(const char *json, const char *key, char *out, size_t out_sz)
+{
+    if (!out || out_sz == 0) return 0;
+    out[0] = '\0';
+    const char *p = json_find_key(json, key);
+    if (!p || *p != '"') return 0;
+    p++;
+    size_t i = 0;
+    while (*p && *p != '"' && i + 1 < out_sz) {
+        if (*p == '\\' && p[1]) p++;
+        out[i++] = *p++;
+    }
+    out[i] = '\0';
+    return (*p == '"') ? 1 : 0;
+}
+
+static int json_get_bool_val(const char *json, const char *key, int *out)
+{
+    if (out) *out = 0;
+    const char *p = json_find_key(json, key);
+    if (!p) return 0;
+    if (strncmp(p, "true", 4) == 0) { if (out) *out = 1; return 1; }
+    if (strncmp(p, "false", 5) == 0) { if (out) *out = 0; return 1; }
+    return 0;
+}
+
+static int parse_ipv4_str(const char *s, uint32_t *out_ip_be)
+{
+    if (!s || !out_ip_be) return 0;
+    unsigned a, b, c, d;
+    if (sscanf(s, "%u.%u.%u.%u", &a, &b, &c, &d) != 4) return 0;
+    if (a > 255 || b > 255 || c > 255 || d > 255) return 0;
+    *out_ip_be = ((a & 0xffu) << 24) | ((b & 0xffu) << 16) | ((c & 0xffu) << 8) | (d & 0xffu);
+    return 1;
+}
+
+static uint32_t netmask_be_from_prefix(int pfx, int *ok)
+{
+    if (ok) *ok = 0;
+    if (pfx < 0 || pfx > 32) return 0;
+    uint32_t m = (pfx == 0) ? 0u : (0xffffffffu << (32 - pfx));
+    if (ok) *ok = 1;
+    return m;
+}
+
+static int parse_mac_str(const char *s, uint8_t mac[6])
+{
+    if (!s || !mac) return 0;
+    int v[6];
+    if (sscanf(s, "%x:%x:%x:%x:%x:%x", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]) != 6) return 0;
+    for (int i = 0; i < 6; ++i) {
+        if (v[i] < 0 || v[i] > 255) return 0;
+        mac[i] = (uint8_t)v[i];
+    }
+    return 1;
+}
+
+static int read_body_to_buf(http_conn_t *conn, char *buf, size_t buf_sz, size_t *out_len)
+{
+    if (out_len) *out_len = 0;
+    if (!conn || !buf || buf_sz < 2) return 0;
+    size_t got = 0;
+    while (got + 1 < buf_sz) {
+        int r = conn->read_body(conn->read_user, buf + got, buf_sz - 1 - got);
+        if (r < 0) return 0;
+        if (r == 0) break;
+        got += (size_t)r;
+    }
+    buf[got] = '\0';
+    if (out_len) *out_len = got;
+    return 1;
+}
+
+static void api_handle_net_put(http_conn_t *conn)
+{
+    if (!conn) return;
+    char body[1024];
+    size_t blen = 0;
+    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
+        return;
+    }
+
+    char ip_s[32], nm_s[32], gw_s[32], mac_s[32];
+    ip_s[0] = nm_s[0] = gw_s[0] = mac_s[0] = '\0';
+
+    (void)json_get_string_val(body, "ip", ip_s, sizeof(ip_s));
+    (void)json_get_string_val(body, "netmask", nm_s, sizeof(nm_s));
+    (void)json_get_string_val(body, "gateway", gw_s, sizeof(gw_s));
+    (void)json_get_string_val(body, "mac", mac_s, sizeof(mac_s));
+
+    int apply = 1;
+    (void)json_get_bool_val(body, "apply", &apply);
+
+    int prefix_ok = 0;
+    uint32_t ip_be = 0, nm_be = 0, gw_be = 0;
+    uint8_t mac[6];
+
+    if (ip_s[0] && strstr(ip_s, "/")) {
+        // Support "ip":"a.b.c.d/prefix"
+        char tmp[40];
+        strncpy(tmp, ip_s, sizeof(tmp) - 1);
+        tmp[sizeof(tmp) - 1] = '\0';
+        char *slash = strchr(tmp, '/');
+        if (!slash) { http_reply_simple(conn->fd, 400, "Bad Request", "bad ip\r\n"); return; }
+        *slash = '\0';
+        int pfx = atoi(slash + 1);
+        nm_be = netmask_be_from_prefix(pfx, &prefix_ok);
+        if (!prefix_ok || !parse_ipv4_str(tmp, &ip_be)) {
+            http_reply_simple(conn->fd, 400, "Bad Request", "bad ip/prefix\r\n");
+            return;
+        }
+    } else {
+        if (!ip_s[0] || !parse_ipv4_str(ip_s, &ip_be)) {
+            http_reply_simple(conn->fd, 400, "Bad Request", "missing/bad ip\r\n");
+            return;
+        }
+        if (nm_s[0]) {
+            if (!parse_ipv4_str(nm_s, &nm_be)) {
+                http_reply_simple(conn->fd, 400, "Bad Request", "bad netmask\r\n");
+                return;
+            }
+        } else {
+            // optional: accept numeric prefix
+            const char *p = json_find_key(body, "prefix");
+            if (p) {
+                int pfx = atoi(p);
+                nm_be = netmask_be_from_prefix(pfx, &prefix_ok);
+                if (!prefix_ok) {
+                    http_reply_simple(conn->fd, 400, "Bad Request", "bad prefix\r\n");
+                    return;
+                }
+            } else {
+                http_reply_simple(conn->fd, 400, "Bad Request", "missing netmask/prefix\r\n");
+                return;
+            }
+        }
+    }
+
+    if (!gw_s[0] || !parse_ipv4_str(gw_s, &gw_be)) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "missing/bad gateway\r\n");
+        return;
+    }
+    if (!mac_s[0] || !parse_mac_str(mac_s, mac)) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "missing/bad mac\r\n");
+        return;
+    }
+
+    network_config_t cfg;
+    if (!config_store_get_network(&cfg)) memset(&cfg, 0, sizeof(cfg));
+    cfg.ip_be = ip_be;
+    cfg.netmask_be = nm_be;
+    cfg.gateway_be = gw_be;
+    cfg.has_ip = true;
+    cfg.has_netmask = true;
+    cfg.has_gateway = true;
+    memcpy(cfg.mac, mac, 6);
+    cfg.has_mac = true;
+
+    (void)config_store_set_network(&cfg);
+    int saved = config_store_save_network();
+
+    if (apply && netif) {
+        ip_addr_t ipaddr, netmask, gw;
+        IP4_ADDR(&ipaddr,
+                 (cfg.ip_be >> 24) & 0xff, (cfg.ip_be >> 16) & 0xff,
+                 (cfg.ip_be >> 8) & 0xff, (cfg.ip_be >> 0) & 0xff);
+        IP4_ADDR(&netmask,
+                 (cfg.netmask_be >> 24) & 0xff, (cfg.netmask_be >> 16) & 0xff,
+                 (cfg.netmask_be >> 8) & 0xff, (cfg.netmask_be >> 0) & 0xff);
+        IP4_ADDR(&gw,
+                 (cfg.gateway_be >> 24) & 0xff, (cfg.gateway_be >> 16) & 0xff,
+                 (cfg.gateway_be >> 8) & 0xff, (cfg.gateway_be >> 0) & 0xff);
+        netif_set_ipaddr(netif, &ipaddr);
+        netif_set_netmask(netif, &netmask);
+        netif_set_gw(netif, &gw);
+        memcpy(mac_ethernet_address, cfg.mac, 6);
+        if (netif->hwaddr_len >= 6) memcpy(netif->hwaddr, cfg.mac, 6);
+    }
+
+    http_reply_json_hdr(conn->fd, 200, "OK");
+    http_write_str(conn->fd, "{");
+    json_write_kv_bool(conn->fd, "ok", true, true);
+    json_write_kv_bool(conn->fd, "saved", saved != 0, true);
+    json_write_kv_bool(conn->fd, "applied", (apply && netif) ? true : false, false);
+    http_write_str(conn->fd, "}\n");
+}
+
 static bool fs_drive_str_from_root(const char *root, char out[4])
 {
     if (!root || !root[0] || root[1] != ':') return false;
@@ -691,14 +906,27 @@ int http_handle_request(const http_request_t *req, http_conn_t *conn)
     if (!req || !conn || !req->method || !req->path) return 0;
 
     // 0) JSON API: /api/...
-    if (strcasecmp(req->method, "GET") == 0 && starts_with(req->path, "/api/")) {
-        if (strcmp(req->path, "/api/net") == 0) { api_handle_net(conn->fd); return 1; }
-        if (strcmp(req->path, "/api/rtos") == 0) { api_handle_rtos(conn->fd); return 1; }
-        if (strcmp(req->path, "/api/fs") == 0) { api_handle_fs(conn->fd); return 1; }
-        if (strcmp(req->path, "/api/qspi") == 0) { api_handle_qspi(conn->fd); return 1; }
-        if (strcmp(req->path, "/api/i2c") == 0) { api_handle_i2c(conn->fd); return 1; }
-        if (strcmp(req->path, "/api/version") == 0) { api_handle_version(conn->fd); return 1; }
-        http_reply_simple(conn->fd, 404, "Not Found", "api not found\r\n");
+    if (starts_with(req->path, "/api/")) {
+        if (strcasecmp(req->method, "GET") == 0) {
+            if (strcmp(req->path, "/api/net") == 0) { api_handle_net(conn->fd); return 1; }
+            if (strcmp(req->path, "/api/rtos") == 0) { api_handle_rtos(conn->fd); return 1; }
+            if (strcmp(req->path, "/api/fs") == 0) { api_handle_fs(conn->fd); return 1; }
+            if (strcmp(req->path, "/api/qspi") == 0) { api_handle_qspi(conn->fd); return 1; }
+            if (strcmp(req->path, "/api/i2c") == 0) { api_handle_i2c(conn->fd); return 1; }
+            if (strcmp(req->path, "/api/version") == 0) { api_handle_version(conn->fd); return 1; }
+            http_reply_simple(conn->fd, 404, "Not Found", "api not found\r\n");
+            return 1;
+        }
+        if (strcasecmp(req->method, "PUT") == 0) {
+            if (!(req->has_content_length || req->chunked)) {
+                http_reply_simple(conn->fd, 411, "Length Required", "need Content-Length or chunked\r\n");
+                return 1;
+            }
+            if (strcmp(req->path, "/api/net") == 0) { api_handle_net_put(conn); return 1; }
+            http_reply_simple(conn->fd, 404, "Not Found", "api not found\r\n");
+            return 1;
+        }
+        http_reply_simple(conn->fd, 405, "Method Not Allowed", "only GET/PUT\r\n");
         return 1;
     }
 
