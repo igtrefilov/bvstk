@@ -145,6 +145,24 @@ main {
   margin-top: 18px;
 }
 
+.section-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 0 2px 18px;
+}
+
+.btn-danger {
+  border-color: rgba(196, 47, 47, 0.35);
+  background: linear-gradient(180deg, #ff7d7d, #d62e2e);
+  box-shadow: 0 14px 26px rgba(200, 50, 50, 0.22);
+}
+
+.btn-danger:hover {
+  filter: saturate(1.05);
+}
+
 .stack {
   display: grid;
   gap: 18px;

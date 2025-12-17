@@ -20,6 +20,9 @@
 #include "task.h"
 
 #include "xstatus.h"
+#include "xil_io.h"
+#include "xparameters.h"
+#include "xscuwdt.h"
 
 #include "../config/config_store.h"
 #include "../bvstk_i2c/bvstk_i2c.h"
@@ -1138,6 +1141,57 @@ static void api_diag_mem_write(http_conn_t *conn)
     http_write_str(conn->fd, "{\"ok\":true,\"width\":8}\n");
 }
 
+static void reboot_task(void *arg)
+{
+    uint32_t delay_ms = (uint32_t)(uintptr_t)arg;
+    if (delay_ms) vTaskDelay(pdMS_TO_TICKS(delay_ms));
+
+    XScuWdt wdt;
+    XScuWdt_Config *cfg = NULL;
+#ifdef XPAR_SCUWDT_0_DEVICE_ID
+    cfg = XScuWdt_LookupConfig(XPAR_SCUWDT_0_DEVICE_ID);
+#endif
+#ifdef XPAR_PS7_SCUWDT_0_DEVICE_ID
+    if (!cfg) cfg = XScuWdt_LookupConfig(XPAR_PS7_SCUWDT_0_DEVICE_ID);
+#endif
+
+    if (cfg) {
+        (void)XScuWdt_CfgInitialize(&wdt, cfg, cfg->BaseAddr);
+        XScuWdt_SetWdMode(&wdt);
+        XScuWdt_LoadWdt(&wdt, 0x00000FFFu);
+        XScuWdt_Start(&wdt);
+    }
+
+    for (;;) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+static void api_handle_reboot_put(http_conn_t *conn)
+{
+    if (!conn) return;
+    char body[256];
+    size_t blen = 0;
+    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
+        return;
+    }
+    int confirm = 0;
+    (void)json_get_bool_val(body, "confirm", &confirm);
+    if (!confirm) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "confirm required\r\n");
+        return;
+    }
+    uint32_t delay_ms = 200;
+    (void)json_get_u32_val(body, "delay_ms", &delay_ms);
+    if (delay_ms > 5000U) delay_ms = 5000U;
+
+    http_reply_json_hdr(conn->fd, 200, "OK");
+    http_write_str(conn->fd, "{\"ok\":true,\"rebooting\":true}\n");
+
+    (void)xTaskCreate(reboot_task, "reboot", 512, (void *)(uintptr_t)delay_ms, tskIDLE_PRIORITY + 3, NULL);
+}
+
 static bool map_url_to_fatfs(const char *url_path, char *out_fat, size_t out_sz,
                              const fs_device_info_t **out_dev, bool *out_tar_mode)
 {
@@ -1458,6 +1512,7 @@ int http_handle_request(const http_request_t *req, http_conn_t *conn)
             }
             if (strcmp(api_path, "/api/net") == 0) { api_handle_net_put(conn); return 1; }
             if (strcmp(api_path, "/api/i2c") == 0) { api_handle_i2c_put(conn); return 1; }
+            if (strcmp(api_path, "/api/reboot") == 0) { api_handle_reboot_put(conn); return 1; }
             if (strcmp(api_path, "/api/diag/i2c/read") == 0) { api_diag_i2c_read(conn); return 1; }
             if (strcmp(api_path, "/api/diag/i2c/write") == 0) { api_diag_i2c_write(conn); return 1; }
             if (strcmp(api_path, "/api/diag/smi/read") == 0) { api_diag_smi_read(conn); return 1; }

@@ -67,3 +67,7 @@ export function apiDiagMemRead(payload) {
 export function apiDiagMemWrite(payload) {
   return putJson("/api/diag/mem/write", payload);
 }
+
+export function apiReboot(payload) {
+  return putJson("/api/reboot", payload);
+}

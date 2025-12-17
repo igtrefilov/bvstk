@@ -28,6 +28,10 @@
       <main>
         <div class="container">
           <section id="tab-home" aria-label="Главная">
+            <div class="section-toolbar" role="group" aria-label="Действия">
+              <button class="btn-danger" type="button" data-action="reboot">Перезагрузить</button>
+              <span class="status reboot-status" aria-live="polite">—</span>
+            </div>
             <div class="tiles" role="list">
               <article class="card" role="listitem" aria-label="Сеть">
                 <div class="pill"><span id="net-dot" class="dot"></span>Сеть</div>
@@ -75,6 +79,10 @@
           </section>
 
           <section id="tab-diag" class="hidden section" aria-label="Диагностика">
+            <div class="section-toolbar" role="group" aria-label="Действия">
+              <button class="btn-danger" type="button" data-action="reboot">Перезагрузить</button>
+              <span class="status reboot-status" aria-live="polite">—</span>
+            </div>
             <div class="tiles" role="list">
               <article class="card" role="listitem" aria-label="I2C регистры">
                 <h2 class="section-title">I2C</h2>
@@ -151,6 +159,10 @@
           </section>
 
           <section id="tab-settings" class="hidden section" aria-label="Настройки">
+            <div class="section-toolbar" role="group" aria-label="Действия">
+              <button class="btn-danger" type="button" data-action="reboot">Перезагрузить</button>
+              <span class="status reboot-status" aria-live="polite">—</span>
+            </div>
             <div class="stack">
               <article class="card" aria-label="Сетевые настройки">
                 <h2 class="section-title">Сеть</h2>
