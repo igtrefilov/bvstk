@@ -16,7 +16,8 @@ export function apiGetFs() {
   return fetchJson("/api/fs");
 }
 
-export function apiGetI2c() {
+export function apiGetI2c(name) {
+  if (name) return fetchJson(`/api/i2c?name=${encodeURIComponent(name)}`);
   return fetchJson("/api/i2c");
 }
 

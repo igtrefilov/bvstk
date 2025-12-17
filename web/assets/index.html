@@ -149,6 +149,16 @@
                   </label>
 
                   <label class="field">
+                    <span>Whitelist rules (one per line: reg=val)</span>
+                    <textarea id="i2c-whitelist" placeholder="19=16&#10;19=17"></textarea>
+                  </label>
+
+                  <label class="field">
+                    <span>Blacklist rules (one per line: reg=val)</span>
+                    <textarea id="i2c-blacklist" placeholder=""></textarea>
+                  </label>
+
+                  <label class="field">
                     <span>Reg delay (ms)</span>
                     <input id="i2c-reg-delay" inputmode="numeric" placeholder="5" />
                   </label>

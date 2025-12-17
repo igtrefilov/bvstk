@@ -19,6 +19,28 @@ function regsToString(regs) {
   return regs.join(", ");
 }
 
+function parseRulesText(text) {
+  const lines = String(text || "")
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  const out = [];
+  for (const line of lines) {
+    const m = line.split(/[\s=,]+/).filter(Boolean);
+    if (m.length < 2) return null;
+    const reg = Number.parseInt(m[0], 0);
+    const val = Number.parseInt(m[1], 0);
+    if (!Number.isInteger(reg) || !Number.isInteger(val) || reg < 0 || reg > 255 || val < 0 || val > 255) return null;
+    out.push({ reg, val });
+  }
+  return out;
+}
+
+function rulesToText(rules) {
+  if (!Array.isArray(rules) || rules.length === 0) return "";
+  return rules.map((r) => `${r.reg}=${r.val}`).join("\n");
+}
+
 export function initI2cSettings(onSaved) {
   const form = byId("i2c-form");
   const sel = byId("i2c-dev");
@@ -49,7 +71,7 @@ export function initI2cSettings(onSaved) {
         })
         .join("");
       sel.value = devices[0].name || "";
-      fillFromSelected();
+      await fillFromSelected();
       setText("i2c-status", "loaded");
     } catch (e) {
       setText("i2c-status", `failed to load (${e && e.message ? e.message : "error"})`);
@@ -61,16 +83,25 @@ export function initI2cSettings(onSaved) {
     return devices.find((d) => d && d.name === name) || null;
   }
 
-  function fillFromSelected() {
-    const d = currentDevice();
-    if (!d) return;
-    byId("i2c-policy").value = d.policy === "blacklist" ? "blacklist" : "whitelist";
-    byId("i2c-autopoll-enabled").checked = !!d.autopoll_enabled;
-    byId("i2c-autopoll-regs").value = regsToString(d.autopoll_regs || []);
-    byId("i2c-reg-delay").value =
-      typeof d.autopoll_reg_delay_ms === "number" ? String(d.autopoll_reg_delay_ms) : "";
-    byId("i2c-cycle-delay").value =
-      typeof d.autopoll_cycle_delay_ms === "number" ? String(d.autopoll_cycle_delay_ms) : "";
+  async function fillFromSelected() {
+    const meta = currentDevice();
+    if (!meta || !meta.name) return;
+    try {
+      const j = await apiGetI2c(meta.name);
+      const d = j && j.device ? j.device : null;
+      if (!d) return;
+      byId("i2c-policy").value = d.policy === "blacklist" ? "blacklist" : "whitelist";
+      byId("i2c-autopoll-enabled").checked = !!d.autopoll_enabled;
+      byId("i2c-autopoll-regs").value = regsToString(d.autopoll_regs || []);
+      byId("i2c-whitelist").value = rulesToText(d.whitelist || []);
+      byId("i2c-blacklist").value = rulesToText(d.blacklist || []);
+      byId("i2c-reg-delay").value =
+        typeof d.autopoll_reg_delay_ms === "number" ? String(d.autopoll_reg_delay_ms) : "";
+      byId("i2c-cycle-delay").value =
+        typeof d.autopoll_cycle_delay_ms === "number" ? String(d.autopoll_cycle_delay_ms) : "";
+    } catch (_) {
+      // ignore; keep whatever was there
+    }
   }
 
   async function save() {
@@ -81,6 +112,11 @@ export function initI2cSettings(onSaved) {
     const autopoll_enabled = !!byId("i2c-autopoll-enabled").checked;
     const regs = parseRegsList(byId("i2c-autopoll-regs").value);
     if (regs === null) return void setText("i2c-status", "bad regs list");
+
+    const whitelist = parseRulesText(byId("i2c-whitelist").value);
+    if (whitelist === null) return void setText("i2c-status", "bad whitelist");
+    const blacklist = parseRulesText(byId("i2c-blacklist").value);
+    if (blacklist === null) return void setText("i2c-status", "bad blacklist");
 
     const regDelay = byId("i2c-reg-delay").value.trim();
     const cycleDelay = byId("i2c-cycle-delay").value.trim();
@@ -100,6 +136,8 @@ export function initI2cSettings(onSaved) {
         policy,
         autopoll_enabled,
         autopoll_regs: regs,
+        whitelist,
+        blacklist,
         autopoll_reg_delay_ms,
         autopoll_cycle_delay_ms,
       });
@@ -111,8 +149,8 @@ export function initI2cSettings(onSaved) {
     }
   }
 
-  sel.addEventListener("change", () => {
-    fillFromSelected();
+  sel.addEventListener("change", async () => {
+    await fillFromSelected();
     setText("i2c-status", "ready");
   });
 
@@ -123,4 +161,3 @@ export function initI2cSettings(onSaved) {
 
   refreshDevices();
 }
-
