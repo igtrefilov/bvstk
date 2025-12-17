@@ -15,7 +15,7 @@
 #include "task.h"
 #include "xil_printf.h"
 
-enum { HTTP_PORT_DEFAULT = 8000 };
+enum { HTTP_PORT_DEFAULT = 80 };
 enum { HTTP_THREAD_STACK = 2048 };
 
 static uint16_t s_port = HTTP_PORT_DEFAULT;

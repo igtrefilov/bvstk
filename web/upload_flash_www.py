@@ -263,7 +263,7 @@ def main() -> int:
         description="Upload ~/Zynq/bvstk/web/assets/ contents to device flash:/www/ (mkdir via TCP console, PUT via HTTP)."
     )
     ap.add_argument("host", help="Device IP/host")
-    ap.add_argument("--http-port", type=int, default=8000, help="HTTP server port (default: 8000)")
+    ap.add_argument("--http-port", type=int, default=80, help="HTTP server port (default: 80)")
     ap.add_argument("--console-port", type=int, default=8888, help="TCP console port (default: 8888)")
     ap.add_argument(
         "--src",

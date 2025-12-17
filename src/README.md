@@ -35,7 +35,7 @@
 
 ## Features
 - TCP console (telnet-friendly) on port `8888` with line editor (history, arrows, tab completion).
-- HTTP server on port `8000` with file/dir transfer endpoints (see [HTTP file transfer](#http-file-transfer)).
+- HTTP server on port `80` with file/dir transfer endpoints (see [HTTP file transfer](#http-file-transfer)).
 - SD FatFs (`0:/`, alias `sd:/`) with auto-mount and auto-format on “no filesystem”.
 - QSPI FatFs (`1:/`, alias `flash:/`) mapped away from boot area (`QSPI_FS_BASE_BYTES`).
 - Network configuration stored as editable JSON on QSPI: `flash:/config/network.json` (legacy: `flash:/configs/network.json`).
@@ -101,7 +101,7 @@ QSPI‑том работает не “поверх всего флеша”, а
 
 2) Через HTTP PUT (см. [HTTP file transfer](#http-file-transfer)):
 ```
-curl -T network.json http://<device-ip>:8000/flash/config/network.json
+curl -T network.json http://<device-ip>/flash/config/network.json
 ```
 
 3) Через консоль `fs` копированием между `sd:/` и `flash:/`:
@@ -299,7 +299,7 @@ i2c @0x36 r 0x10
 ```
 
 ## HTTP file transfer
-Base URL: `http://<device-ip>:8000`
+Base URL: `http://<device-ip>`
 
 Single file:
 - `GET  /sd/<path>` → `0:/<path>`
@@ -309,8 +309,8 @@ Single file:
 
 Примеры:
 ```sh
-curl -T local.bin http://192.168.0.10:8000/flash/fw/local.bin
-curl -o local.bin http://192.168.0.10:8000/sd/logs/local.bin
+curl -T local.bin http://192.168.0.10/flash/fw/local.bin
+curl -o local.bin http://192.168.0.10/sd/logs/local.bin
 ```
 
 Directories (tar stream, без сжатия):
@@ -319,8 +319,8 @@ Directories (tar stream, без сжатия):
 
 Примеры:
 ```sh
-curl http://192.168.0.10:8000/tar/flash/cfg | tar -xf -
-tar -cf - ./cfg | curl -T - http://192.168.0.10:8000/tar/flash/cfg
+curl http://192.168.0.10/tar/flash/cfg | tar -xf -
+tar -cf - ./cfg | curl -T - http://192.168.0.10/tar/flash/cfg
 ```
 
 ## Quick verification checklist
@@ -345,8 +345,8 @@ ip route show
 6) Проверить HTTP PUT/GET:
 ```sh
 echo hello > hello.txt
-curl -T hello.txt http://<ip>:8000/flash/tmp/hello.txt
-curl -o hello2.txt http://<ip>:8000/flash/tmp/hello.txt
+curl -T hello.txt http://<ip>/flash/tmp/hello.txt
+curl -o hello2.txt http://<ip>/flash/tmp/hello.txt
 ```
 
 ## Troubleshooting

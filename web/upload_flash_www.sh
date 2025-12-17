@@ -5,7 +5,7 @@ set -euo pipefail
 DEVICE_IP="192.168.0.10"
 
 # Optional overrides (usually keep defaults):
-HTTP_PORT="8000"
+HTTP_PORT="80"
 CONSOLE_PORT="8888"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
