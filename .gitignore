@@ -18,6 +18,8 @@
 !web/
 web/**
 !web/upload*
+!web/assets/
+!web/assets/**
 
 # Editor metadata
 src/.obsidian/
