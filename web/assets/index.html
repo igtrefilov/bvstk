@@ -148,6 +148,78 @@
       .hidden {
         display: none;
       }
+
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .kv {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 14px;
+      }
+
+      .kv th,
+      .kv td {
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(30, 36, 48, 0.08);
+        vertical-align: top;
+      }
+
+      .kv th {
+        text-align: left;
+        font-weight: 700;
+        color: rgba(30, 36, 48, 0.78);
+        padding-right: 14px;
+        width: 40%;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(30, 36, 48, 0.12);
+        background: rgba(255, 255, 255, 0.5);
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.02em;
+        color: rgba(30, 36, 48, 0.82);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #9aa6bf;
+        box-shadow: 0 0 0 4px rgba(154, 166, 191, 0.22);
+      }
+
+      .dot.ok {
+        background: #2f9b4c;
+        box-shadow: 0 0 0 4px rgba(47, 155, 76, 0.22);
+      }
+
+      .dot.bad {
+        background: #cc3a3a;
+        box-shadow: 0 0 0 4px rgba(204, 58, 58, 0.2);
+      }
+
+      @media (min-width: 920px) {
+        .tiles {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (min-width: 1180px) {
+        .tiles {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
     </style>
   </head>
   <body>
@@ -170,9 +242,54 @@
 
       <main>
         <div class="container">
-          <section id="tab-home" class="card" aria-label="Главная">
-            <h2 class="section-title">Главная</h2>
-            <p class="section-desc">Краткое состояние устройства.</p>
+          <section id="tab-home" aria-label="Главная">
+            <div class="tiles" role="list">
+              <article class="card" role="listitem" aria-label="Сеть">
+                <div class="pill"><span id="net-dot" class="dot"></span>Сеть</div>
+                <table class="kv" aria-label="Сеть">
+                  <tr><th>IP</th><td id="net-ip">—</td></tr>
+                  <tr><th>Mode</th><td id="net-mode">—</td></tr>
+                  <tr><th>Netmask</th><td id="net-netmask">—</td></tr>
+                  <tr><th>Gateway</th><td id="net-gateway">—</td></tr>
+                  <tr><th>MAC</th><td id="net-mac">—</td></tr>
+                </table>
+              </article>
+
+              <article class="card" role="listitem" aria-label="RTOS">
+                <div class="pill"><span id="rtos-dot" class="dot"></span>RTOS</div>
+                <table class="kv" aria-label="RTOS">
+                  <tr><th>Uptime</th><td id="rtos-uptime">—</td></tr>
+                  <tr><th>Heap free</th><td id="rtos-heap-free">—</td></tr>
+                  <tr><th>Heap min</th><td id="rtos-heap-min">—</td></tr>
+                  <tr><th>Tick rate</th><td id="rtos-tick">—</td></tr>
+                </table>
+              </article>
+
+              <article class="card" role="listitem" aria-label="Файловые системы">
+                <div class="pill"><span id="fs-dot" class="dot"></span>FS</div>
+                <table class="kv" aria-label="FS">
+                  <tr><th>Flash</th><td id="fs-flash">—</td></tr>
+                  <tr><th>SD</th><td id="fs-sd">—</td></tr>
+                </table>
+              </article>
+
+              <article class="card" role="listitem" aria-label="QSPI">
+                <div class="pill"><span id="qspi-dot" class="dot"></span>QSPI</div>
+                <table class="kv" aria-label="QSPI">
+                  <tr><th>Ready</th><td id="qspi-ready">—</td></tr>
+                  <tr><th>FS base</th><td id="qspi-base">—</td></tr>
+                  <tr><th>FS size</th><td id="qspi-size">—</td></tr>
+                </table>
+              </article>
+
+              <article class="card" role="listitem" aria-label="Версия">
+                <div class="pill"><span id="ver-dot" class="dot"></span>Версия</div>
+                <table class="kv" aria-label="Версия">
+                  <tr><th>Build</th><td id="ver-build">—</td></tr>
+                  <tr><th>HTTP</th><td id="ver-http">—</td></tr>
+                </table>
+              </article>
+            </div>
           </section>
 
           <section id="tab-diag" class="card hidden" aria-label="Диагностика" style="margin-top: 18px">
@@ -180,9 +297,16 @@
             <p class="section-desc">Статусы подсистем и проверки.</p>
           </section>
 
-          <section id="tab-settings" class="card hidden" aria-label="Настройки" style="margin-top: 18px">
-            <h2 class="section-title">Настройки</h2>
-            <p class="section-desc">Параметры устройства.</p>
+          <section id="tab-settings" class="hidden" aria-label="Настройки" style="margin-top: 18px">
+            <div class="tiles" role="list">
+              <article class="card" role="listitem" aria-label="I2C">
+                <div class="pill"><span id="i2c-dot" class="dot"></span>I2C</div>
+                <p class="section-desc" style="margin-top: 10px">Доступные устройства и их настройки (из config_store).</p>
+                <div id="i2c-list" style="margin-top: 12px; font-size: 14px; color: rgba(30, 36, 48, 0.86)">
+                  —
+                </div>
+              </article>
+            </div>
           </section>
         </div>
       </main>
@@ -207,10 +331,160 @@
           setActive(raw);
         }
 
+        function byId(id) {
+          return document.getElementById(id);
+        }
+
+        function setDot(id, state) {
+          const el = byId(id);
+          if (!el) return;
+          el.classList.remove("ok", "bad");
+          if (state === "ok") el.classList.add("ok");
+          else if (state === "bad") el.classList.add("bad");
+        }
+
+        function fmtBytes(n) {
+          if (typeof n !== "number" || !isFinite(n)) return "—";
+          const units = ["B", "KiB", "MiB", "GiB"];
+          let v = n;
+          let u = 0;
+          while (v >= 1024 && u < units.length - 1) {
+            v /= 1024;
+            u++;
+          }
+          return `${v.toFixed(u === 0 ? 0 : 1)} ${units[u]}`;
+        }
+
+        function fmtUptime(ms) {
+          if (typeof ms !== "number" || !isFinite(ms)) return "—";
+          const s = Math.floor(ms / 1000);
+          const d = Math.floor(s / 86400);
+          const h = Math.floor((s % 86400) / 3600);
+          const m = Math.floor((s % 3600) / 60);
+          const ss = s % 60;
+          if (d > 0) return `${d}d ${h}h ${m}m`;
+          if (h > 0) return `${h}h ${m}m`;
+          return `${m}m ${ss}s`;
+        }
+
+        async function fetchJson(path) {
+          const res = await fetch(path, { cache: "no-store" });
+          if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
+          return await res.json();
+        }
+
+        async function loadNet() {
+          try {
+            const j = await fetchJson("/api/net");
+            byId("net-ip").textContent = j.ip || "—";
+            byId("net-netmask").textContent = j.netmask || "—";
+            byId("net-gateway").textContent = j.gateway || "—";
+            byId("net-mac").textContent = j.mac || "—";
+            byId("net-mode").textContent = j.mode || "—";
+            const ok = !!j.up && !!j.link_up && !!j.ip;
+            setDot("net-dot", ok ? "ok" : "bad");
+          } catch (_) {
+            setDot("net-dot", "bad");
+          }
+        }
+
+        async function loadRtos() {
+          try {
+            const j = await fetchJson("/api/rtos");
+            byId("rtos-uptime").textContent = fmtUptime(j.uptime_ms);
+            byId("rtos-heap-free").textContent = fmtBytes(j.heap_free);
+            byId("rtos-heap-min").textContent = fmtBytes(j.heap_min_ever);
+            byId("rtos-tick").textContent = (j.tick_rate_hz ? `${j.tick_rate_hz} Hz` : "—");
+            setDot("rtos-dot", "ok");
+          } catch (_) {
+            setDot("rtos-dot", "bad");
+          }
+        }
+
+        async function loadFs() {
+          try {
+            const j = await fetchJson("/api/fs");
+            const vols = Array.isArray(j.volumes) ? j.volumes : [];
+            function fmtVol(name) {
+              const v = vols.find((x) => x && x.name === name);
+              if (!v) return "—";
+              if (!v.ready) return "not ready";
+              return `${fmtBytes(v.free_bytes)} free / ${fmtBytes(v.total_bytes)}`;
+            }
+            byId("fs-flash").textContent = fmtVol("flash");
+            byId("fs-sd").textContent = fmtVol("sd");
+            setDot("fs-dot", "ok");
+          } catch (_) {
+            setDot("fs-dot", "bad");
+          }
+        }
+
+        async function loadQspi() {
+          try {
+            const j = await fetchJson("/api/qspi");
+            byId("qspi-ready").textContent = j.ready ? "yes" : "no";
+            byId("qspi-base").textContent = typeof j.fs_base_bytes === "number" ? fmtBytes(j.fs_base_bytes) : "—";
+            byId("qspi-size").textContent = typeof j.fs_size_bytes === "number" ? fmtBytes(j.fs_size_bytes) : "—";
+            setDot("qspi-dot", j.ready ? "ok" : "bad");
+          } catch (_) {
+            setDot("qspi-dot", "bad");
+          }
+        }
+
+        async function loadVersion() {
+          try {
+            const j = await fetchJson("/api/version");
+            byId("ver-build").textContent = `${j.build_date || "—"} ${j.build_time || ""}`.trim();
+            byId("ver-http").textContent = j.http_port ? `:${j.http_port}` : "—";
+            setDot("ver-dot", "ok");
+          } catch (_) {
+            setDot("ver-dot", "bad");
+          }
+        }
+
+        async function loadI2c() {
+          try {
+            const j = await fetchJson("/api/i2c");
+            const el = byId("i2c-list");
+            const devices = Array.isArray(j.devices) ? j.devices : [];
+            if (!j.ready) {
+              el.textContent = "config_store not ready";
+              setDot("i2c-dot", "bad");
+              return;
+            }
+            if (devices.length === 0) {
+              el.textContent = "no devices";
+              setDot("i2c-dot", "ok");
+              return;
+            }
+            const rows = devices
+              .map((d) => {
+                const addr = typeof d.addr_7b === "number" ? `0x${d.addr_7b.toString(16).padStart(2, "0")}` : "—";
+                const pol = d.policy || "—";
+                const ap = d.autopoll_enabled ? "autopoll on" : "autopoll off";
+                return `${d.name || "—"} (${addr}) — ${pol}, ${ap}, settings:${d.settings_len ?? "—"}`;
+              })
+              .slice(0, 32);
+            el.innerHTML = `<div style="display:grid;gap:8px">${rows
+              .map((r) => `<div>${r}</div>`)
+              .join("")}</div>`;
+            setDot("i2c-dot", "ok");
+          } catch (_) {
+            setDot("i2c-dot", "bad");
+          }
+        }
+
         window.addEventListener("hashchange", onHash);
         onHash();
+
+        // Load tiles
+        loadNet();
+        loadRtos();
+        loadFs();
+        loadQspi();
+        loadVersion();
+        loadI2c();
       })();
     </script>
   </body>
 </html>
-

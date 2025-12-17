@@ -7,16 +7,34 @@
 #include <string.h>
 #include <strings.h>
 
+#include "ff.h"
+#include "lwip/ip4_addr.h"
+#include "lwip/netif.h"
 #include "lwip/sockets.h"
+
+#if LWIP_DHCP
+#include "lwip/dhcp.h"
+#endif
+
+#include "FreeRTOS.h"
+#include "task.h"
 
 #include "xstatus.h"
 
+#include "../config/config_store.h"
 #include "../fs/fs_devices.h"
 #include "../fs/fs_shared.h"
+#include "../qspi_fs/qspi_fs.h"
+#include "../qspi_fs/qspi_fs_layout.h"
 #include "../tar/tar.h"
 
 enum { WEB_INDEX_NAME_MAX = 16 };
 static const char *const WEB_ROOT_DIR = "www";
+
+extern struct netif *netif;
+extern unsigned char mac_ethernet_address[];
+extern size_t xPortGetFreeHeapSize(void);
+extern size_t xPortGetMinimumEverFreeHeapSize(void);
 
 static int ctx_lock(const fs_shared_ctx_t *ctx)
 {
@@ -47,6 +65,38 @@ static void http_reply_simple(int fd, int code, const char *reason, const char *
         code, reason ? reason : "ERR", (unsigned)strlen(b));
     if (n > 0) lwip_write(fd, hdr, n);
     if (b[0]) http_write_str(fd, b);
+}
+
+static void http_reply_json_hdr(int fd, int code, const char *reason)
+{
+    char hdr[256];
+    int n = snprintf(hdr, sizeof(hdr),
+        "HTTP/1.0 %d %s\r\n"
+        "Connection: close\r\n"
+        "Content-Type: application/json; charset=utf-8\r\n"
+        "\r\n",
+        code, reason ? reason : "OK");
+    if (n > 0) lwip_write(fd, hdr, n);
+}
+
+static void json_write_escaped(int fd, const char *s)
+{
+    http_write_str(fd, "\"");
+    if (!s) { http_write_str(fd, "\""); return; }
+    for (const unsigned char *p = (const unsigned char *)s; *p; ++p) {
+        char c = (char)*p;
+        if (c == '\\' || c == '"') {
+            char out[3] = {'\\', c, 0};
+            http_write_str(fd, out);
+        } else if ((unsigned char)c < 0x20) {
+            char esc[8];
+            int n = snprintf(esc, sizeof(esc), "\\u%04x", (unsigned)(unsigned char)c);
+            if (n > 0) http_write_str(fd, esc);
+        } else {
+            (void)lwip_write(fd, &c, 1);
+        }
+    }
+    http_write_str(fd, "\"");
 }
 
 static int is_hex_digit(char c)
@@ -109,6 +159,240 @@ static void strip_query_fragment_inplace(char *s)
     for (char *p = s; *p; ++p) {
         if (*p == '?' || *p == '#') { *p = '\0'; return; }
     }
+}
+
+static void ip4_to_str(const ip4_addr_t *a, char *out, size_t out_sz)
+{
+    if (!out || out_sz == 0) return;
+    out[0] = '\0';
+    if (!a) return;
+    (void)ip4addr_ntoa_r(a, out, (int)out_sz);
+}
+
+static void mac_to_str(const uint8_t *mac, size_t mac_len, char *out, size_t out_sz)
+{
+    if (!out || out_sz < 18) { if (out && out_sz) out[0] = '\0'; return; }
+    if (!mac || mac_len < 6) { strncpy(out, "00:00:00:00:00:00", out_sz - 1); out[out_sz - 1] = '\0'; return; }
+    (void)snprintf(out, out_sz, "%02x:%02x:%02x:%02x:%02x:%02x",
+                   (unsigned)mac[0], (unsigned)mac[1], (unsigned)mac[2],
+                   (unsigned)mac[3], (unsigned)mac[4], (unsigned)mac[5]);
+}
+
+static void json_write_kv_str(int fd, const char *k, const char *v, bool comma)
+{
+    json_write_escaped(fd, k);
+    http_write_str(fd, ":");
+    json_write_escaped(fd, v ? v : "");
+    if (comma) http_write_str(fd, ",");
+}
+
+static void json_write_kv_u64(int fd, const char *k, uint64_t v, bool comma)
+{
+    char buf[64];
+    int n = snprintf(buf, sizeof(buf), "\"%s\":%llu%s", k, (unsigned long long)v, comma ? "," : "");
+    if (n > 0) http_write_str(fd, buf);
+}
+
+static void json_write_kv_bool(int fd, const char *k, bool v, bool comma)
+{
+    char buf[64];
+    int n = snprintf(buf, sizeof(buf), "\"%s\":%s%s", k, v ? "true" : "false", comma ? "," : "");
+    if (n > 0) http_write_str(fd, buf);
+}
+
+static void api_handle_version(int fd)
+{
+    http_reply_json_hdr(fd, 200, "OK");
+    http_write_str(fd, "{");
+    json_write_kv_str(fd, "build_date", __DATE__, true);
+    json_write_kv_str(fd, "build_time", __TIME__, true);
+    json_write_kv_u64(fd, "http_port", http_server_port(), false);
+    http_write_str(fd, "}\n");
+}
+
+static void api_handle_rtos(int fd)
+{
+    const uint64_t ticks = (uint64_t)xTaskGetTickCount();
+    const uint64_t tick_hz = (uint64_t)configTICK_RATE_HZ;
+    const uint64_t uptime_ms = (tick_hz != 0) ? (ticks * 1000ULL / tick_hz) : 0ULL;
+
+    http_reply_json_hdr(fd, 200, "OK");
+    http_write_str(fd, "{");
+    json_write_kv_u64(fd, "uptime_ms", uptime_ms, true);
+    json_write_kv_u64(fd, "tick_rate_hz", (uint64_t)configTICK_RATE_HZ, true);
+    json_write_kv_u64(fd, "heap_free", (uint64_t)xPortGetFreeHeapSize(), true);
+    json_write_kv_u64(fd, "heap_min_ever", (uint64_t)xPortGetMinimumEverFreeHeapSize(), false);
+    http_write_str(fd, "}\n");
+}
+
+static void api_handle_net(int fd)
+{
+    char ip[24], nm[24], gw[24], mac[24];
+    ip[0] = nm[0] = gw[0] = mac[0] = '\0';
+
+    bool link_up = false;
+    bool up = false;
+    const char *mode = "static";
+    bool dhcp = false;
+
+    if (netif) {
+        up = netif_is_up(netif) != 0;
+        link_up = netif_is_link_up(netif) != 0;
+        ip4_to_str(netif_ip4_addr(netif), ip, sizeof(ip));
+        ip4_to_str(netif_ip4_netmask(netif), nm, sizeof(nm));
+        ip4_to_str(netif_ip4_gw(netif), gw, sizeof(gw));
+        mac_to_str(netif->hwaddr, (size_t)netif->hwaddr_len, mac, sizeof(mac));
+#if LWIP_DHCP
+        dhcp = dhcp_supplied_address(netif) != 0;
+        mode = dhcp ? "dhcp" : "static";
+#endif
+    } else {
+        mac_to_str(mac_ethernet_address, 6, mac, sizeof(mac));
+    }
+
+    http_reply_json_hdr(fd, 200, "OK");
+    http_write_str(fd, "{");
+    json_write_kv_str(fd, "ip", ip, true);
+    json_write_kv_str(fd, "netmask", nm, true);
+    json_write_kv_str(fd, "gateway", gw, true);
+    json_write_kv_str(fd, "mac", mac, true);
+    json_write_kv_str(fd, "mode", mode, true);
+    json_write_kv_bool(fd, "dhcp", dhcp, true);
+    json_write_kv_bool(fd, "up", up, true);
+    json_write_kv_bool(fd, "link_up", link_up, false);
+    http_write_str(fd, "}\n");
+}
+
+static bool fs_drive_str_from_root(const char *root, char out[4])
+{
+    if (!root || !root[0] || root[1] != ':') return false;
+    out[0] = root[0];
+    out[1] = ':';
+    out[2] = '\0';
+    return true;
+}
+
+static void api_write_fs_one(int fd, const char *name, const fs_device_info_t *dev, bool comma)
+{
+    http_write_str(fd, "{");
+    json_write_kv_str(fd, "name", name, true);
+    bool ready = (dev && dev->ctx && fs_shared_is_ready(dev->ctx));
+    json_write_kv_bool(fd, "ready", ready, true);
+
+    uint64_t total = 0, freeb = 0;
+    if (ready && ctx_lock(dev->ctx)) {
+        char drv[4];
+        if (fs_drive_str_from_root(dev->ctx->root, drv)) {
+            FATFS *fs = NULL;
+            DWORD fre_clust = 0;
+            if (f_getfree(drv, &fre_clust, &fs) == FR_OK && fs) {
+                uint64_t csize = (uint64_t)fs->csize;
+                uint64_t ss = 512ULL;
+                total = (uint64_t)(fs->n_fatent - 2U) * csize * ss;
+                freeb = (uint64_t)fre_clust * csize * ss;
+            }
+        }
+        ctx_unlock(dev->ctx);
+    }
+    json_write_kv_u64(fd, "total_bytes", total, true);
+    json_write_kv_u64(fd, "free_bytes", freeb, false);
+    http_write_str(fd, "}");
+    if (comma) http_write_str(fd, ",");
+}
+
+static void api_handle_fs(int fd)
+{
+    const fs_device_info_t *sd = fs_device_by_name("sd");
+    const fs_device_info_t *flash = fs_device_by_name("flash");
+
+    http_reply_json_hdr(fd, 200, "OK");
+    http_write_str(fd, "{");
+    http_write_str(fd, "\"volumes\":[");
+    api_write_fs_one(fd, "flash", flash, true);
+    api_write_fs_one(fd, "sd", sd, false);
+    http_write_str(fd, "]}");
+    http_write_str(fd, "\n");
+}
+
+static void api_handle_qspi(int fd)
+{
+    http_reply_json_hdr(fd, 200, "OK");
+    http_write_str(fd, "{");
+    json_write_kv_bool(fd, "ready", qspi_fs_is_ready() != 0, true);
+    json_write_kv_u64(fd, "fs_base_bytes", (uint64_t)QSPI_FS_BASE_BYTES, true);
+    json_write_kv_u64(fd, "fs_size_bytes", (uint64_t)QSPI_FS_SIZE_BYTES, false);
+    http_write_str(fd, "}\n");
+}
+
+static void api_handle_i2c(int fd)
+{
+    http_reply_json_hdr(fd, 200, "OK");
+    http_write_str(fd, "{");
+    json_write_kv_bool(fd, "ready", config_store_is_ready() != 0, true);
+    size_t cnt = config_store_get_i2c_device_count();
+    json_write_kv_u64(fd, "count", (uint64_t)cnt, true);
+    http_write_str(fd, "\"devices\":[");
+
+    const i2c_device_config_t *devs = config_store_get_i2c_devices();
+    for (size_t i = 0; i < cnt; ++i) {
+        const i2c_device_config_t *d = &devs[i];
+        http_write_str(fd, "{");
+        http_write_str(fd, "\"name\":");
+        json_write_escaped(fd, d->name);
+        http_write_str(fd, ",\"addr_7b\":");
+        {
+            char b[16];
+            int n = snprintf(b, sizeof(b), "%u", (unsigned)d->addr_7b);
+            if (n > 0) http_write_str(fd, b);
+        }
+        http_write_str(fd, ",\"file_name\":");
+        json_write_escaped(fd, d->file_name);
+        http_write_str(fd, ",\"policy\":");
+        json_write_escaped(fd, (d->policy == I2C_POLICY_BLACKLIST) ? "blacklist" : "whitelist");
+        http_write_str(fd, ",\"autopoll_enabled\":");
+        http_write_str(fd, d->autopoll_enabled ? "true" : "false");
+        http_write_str(fd, ",\"autopoll_regs_len\":");
+        {
+            char b[16];
+            int n = snprintf(b, sizeof(b), "%u", (unsigned)d->autopoll_regs_len);
+            if (n > 0) http_write_str(fd, b);
+        }
+        http_write_str(fd, ",\"autopoll_reg_delay_ms\":");
+        {
+            char b[24];
+            int n = snprintf(b, sizeof(b), "%lu", (unsigned long)d->autopoll_reg_delay_ms);
+            if (n > 0) http_write_str(fd, b);
+        }
+        http_write_str(fd, ",\"autopoll_cycle_delay_ms\":");
+        {
+            char b[24];
+            int n = snprintf(b, sizeof(b), "%lu", (unsigned long)d->autopoll_cycle_delay_ms);
+            if (n > 0) http_write_str(fd, b);
+        }
+        http_write_str(fd, ",\"settings_len\":");
+        {
+            char b[16];
+            int n = snprintf(b, sizeof(b), "%u", (unsigned)d->settings_len);
+            if (n > 0) http_write_str(fd, b);
+        }
+        http_write_str(fd, ",\"whitelist_len\":");
+        {
+            char b[16];
+            int n = snprintf(b, sizeof(b), "%u", (unsigned)d->whitelist_len);
+            if (n > 0) http_write_str(fd, b);
+        }
+        http_write_str(fd, ",\"blacklist_len\":");
+        {
+            char b[16];
+            int n = snprintf(b, sizeof(b), "%u", (unsigned)d->blacklist_len);
+            if (n > 0) http_write_str(fd, b);
+        }
+        http_write_str(fd, "}");
+        if (i + 1 < cnt) http_write_str(fd, ",");
+    }
+
+    http_write_str(fd, "]}");
+    http_write_str(fd, "\n");
 }
 
 static bool map_url_to_fatfs(const char *url_path, char *out_fat, size_t out_sz,
@@ -405,6 +689,18 @@ static int handle_put_tar(int fd, const fs_device_info_t *dev, const char *fat_d
 int http_handle_request(const http_request_t *req, http_conn_t *conn)
 {
     if (!req || !conn || !req->method || !req->path) return 0;
+
+    // 0) JSON API: /api/...
+    if (strcasecmp(req->method, "GET") == 0 && starts_with(req->path, "/api/")) {
+        if (strcmp(req->path, "/api/net") == 0) { api_handle_net(conn->fd); return 1; }
+        if (strcmp(req->path, "/api/rtos") == 0) { api_handle_rtos(conn->fd); return 1; }
+        if (strcmp(req->path, "/api/fs") == 0) { api_handle_fs(conn->fd); return 1; }
+        if (strcmp(req->path, "/api/qspi") == 0) { api_handle_qspi(conn->fd); return 1; }
+        if (strcmp(req->path, "/api/i2c") == 0) { api_handle_i2c(conn->fd); return 1; }
+        if (strcmp(req->path, "/api/version") == 0) { api_handle_version(conn->fd); return 1; }
+        http_reply_simple(conn->fd, 404, "Not Found", "api not found\r\n");
+        return 1;
+    }
 
     // 1) File/dir transfer API: /sd, /flash, /tar/...
     char fat_path[FS_PATH_MAX * 2];
