@@ -316,6 +316,49 @@ static int json_get_bool_val(const char *json, const char *key, int *out)
     return 0;
 }
 
+static int json_get_u32_val(const char *json, const char *key, uint32_t *out)
+{
+    if (out) *out = 0;
+    const char *p = json_find_key(json, key);
+    if (!p) return 0;
+    unsigned long v = strtoul(p, NULL, 10);
+    if (out) *out = (uint32_t)v;
+    return 1;
+}
+
+static int json_parse_u8_array(const char *json, const char *key, uint8_t *out, size_t out_max, size_t *out_len)
+{
+    if (out_len) *out_len = 0;
+    if (!out || out_max == 0) return 0;
+    const char *p = json_find_key(json, key);
+    if (!p) return 0;
+    p = json_skip_ws(p);
+    if (!p || *p != '[') return 0;
+    p++;
+    size_t n = 0;
+    while (p && *p) {
+        p = json_skip_ws(p);
+        if (*p == ']') {
+            if (out_len) *out_len = n;
+            return 1;
+        }
+        if (n >= out_max) return 0;
+        char *end = NULL;
+        unsigned long v = strtoul(p, &end, 10);
+        if (!end || end == p) return 0;
+        if (v > 255UL) return 0;
+        out[n++] = (uint8_t)v;
+        p = json_skip_ws(end);
+        if (*p == ',') { p++; continue; }
+        if (*p == ']') {
+            if (out_len) *out_len = n;
+            return 1;
+        }
+        return 0;
+    }
+    return 0;
+}
+
 static int parse_ipv4_str(const char *s, uint32_t *out_ip_be)
 {
     if (!s || !out_ip_be) return 0;
@@ -608,6 +651,79 @@ static void api_handle_i2c(int fd)
 
     http_write_str(fd, "]}");
     http_write_str(fd, "\n");
+}
+
+static void api_handle_i2c_put(http_conn_t *conn)
+{
+    if (!conn) return;
+    if (!config_store_is_ready()) {
+        http_reply_simple(conn->fd, 503, "Service Unavailable", "config_store not ready\r\n");
+        return;
+    }
+
+    char body[2048];
+    size_t blen = 0;
+    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
+        return;
+    }
+
+    char name[I2C_CFG_NAME_MAX];
+    name[0] = '\0';
+    if (!json_get_string_val(body, "name", name, sizeof(name)) || !name[0]) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "missing name\r\n");
+        return;
+    }
+
+    const i2c_device_config_t *cur = config_store_find_i2c_device_by_name(name);
+    if (!cur) {
+        http_reply_simple(conn->fd, 404, "Not Found", "unknown device\r\n");
+        return;
+    }
+
+    i2c_device_config_t next = *cur;
+
+    char policy[16];
+    policy[0] = '\0';
+    if (json_get_string_val(body, "policy", policy, sizeof(policy)) && policy[0]) {
+        if (strcasecmp(policy, "whitelist") == 0) next.policy = I2C_POLICY_WHITELIST;
+        else if (strcasecmp(policy, "blacklist") == 0) next.policy = I2C_POLICY_BLACKLIST;
+        else {
+            http_reply_simple(conn->fd, 400, "Bad Request", "bad policy\r\n");
+            return;
+        }
+    }
+
+    int ap_en = -1;
+    if (json_get_bool_val(body, "autopoll_enabled", &ap_en)) {
+        next.autopoll_enabled = ap_en ? true : false;
+    }
+
+    uint32_t v = 0;
+    if (json_get_u32_val(body, "autopoll_reg_delay_ms", &v)) next.autopoll_reg_delay_ms = v;
+    if (json_get_u32_val(body, "autopoll_cycle_delay_ms", &v)) next.autopoll_cycle_delay_ms = v;
+
+    size_t regs_len = 0;
+    if (json_find_key(body, "autopoll_regs")) {
+        if (!json_parse_u8_array(body, "autopoll_regs", next.autopoll_regs, I2C_CFG_AUTOPOLL_REGS_MAX, &regs_len)) {
+            http_reply_simple(conn->fd, 400, "Bad Request", "bad autopoll_regs\r\n");
+            return;
+        }
+        next.autopoll_regs_len = regs_len;
+    }
+
+    int ok = config_store_set_i2c_device(&next);
+    int saved = ok ? config_store_save_i2c_device(&next) : 0;
+    if (!ok) {
+        http_reply_simple(conn->fd, 500, "ERR", "set failed\r\n");
+        return;
+    }
+
+    http_reply_json_hdr(conn->fd, 200, "OK");
+    http_write_str(conn->fd, "{");
+    json_write_kv_bool(conn->fd, "ok", true, true);
+    json_write_kv_bool(conn->fd, "saved", saved != 0, false);
+    http_write_str(conn->fd, "}\n");
 }
 
 static bool map_url_to_fatfs(const char *url_path, char *out_fat, size_t out_sz,
@@ -923,6 +1039,7 @@ int http_handle_request(const http_request_t *req, http_conn_t *conn)
                 return 1;
             }
             if (strcmp(req->path, "/api/net") == 0) { api_handle_net_put(conn); return 1; }
+            if (strcmp(req->path, "/api/i2c") == 0) { api_handle_i2c_put(conn); return 1; }
             http_reply_simple(conn->fd, 404, "Not Found", "api not found\r\n");
             return 1;
         }

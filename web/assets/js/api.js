@@ -20,6 +20,21 @@ export function apiGetI2c() {
   return fetchJson("/api/i2c");
 }
 
+export async function apiPutI2c(payload) {
+  const res = await fetch("/api/i2c", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`PUT /api/i2c: HTTP ${res.status}: ${text.trim() || "failed"}`);
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: true };
+  }
+}
+
 export async function apiPutNet(payload) {
   const res = await fetch("/api/net", {
     method: "PUT",
@@ -34,4 +49,3 @@ export async function apiPutNet(payload) {
     return { ok: true };
   }
 }
-

@@ -80,44 +80,91 @@
           </section>
 
           <section id="tab-settings" class="hidden section" aria-label="Настройки">
-            <article class="card" aria-label="Сетевые настройки">
-              <h2 class="section-title">Сеть</h2>
-              <p class="section-desc">
-                Изменение IP/маски/шлюза/MAC. При применении IP текущая сессия может оборваться.
-              </p>
+            <div class="tiles" role="list">
+              <article class="card" role="listitem" aria-label="Сетевые настройки">
+                <h2 class="section-title">Сеть</h2>
+                <p class="section-desc">
+                  Изменение IP/маски/шлюза/MAC. При применении IP текущая сессия может оборваться.
+                </p>
 
-              <form id="net-form" class="form" autocomplete="off">
-                <label class="field">
-                  <span>IP</span>
-                  <input id="cfg-ip" inputmode="decimal" placeholder="192.168.0.10" />
-                </label>
+                <form id="net-form" class="form" autocomplete="off">
+                  <label class="field">
+                    <span>IP</span>
+                    <input id="cfg-ip" inputmode="decimal" placeholder="192.168.0.10" />
+                  </label>
 
-                <label class="field">
-                  <span>Netmask</span>
-                  <input id="cfg-netmask" inputmode="decimal" placeholder="255.255.255.0" />
-                </label>
+                  <label class="field">
+                    <span>Netmask</span>
+                    <input id="cfg-netmask" inputmode="decimal" placeholder="255.255.255.0" />
+                  </label>
 
-                <label class="field">
-                  <span>Gateway</span>
-                  <input id="cfg-gateway" inputmode="decimal" placeholder="192.168.0.1" />
-                </label>
+                  <label class="field">
+                    <span>Gateway</span>
+                    <input id="cfg-gateway" inputmode="decimal" placeholder="192.168.0.1" />
+                  </label>
 
-                <label class="field">
-                  <span>MAC</span>
-                  <input id="cfg-mac" inputmode="text" placeholder="00:0a:35:00:01:02" />
-                </label>
+                  <label class="field">
+                    <span>MAC</span>
+                    <input id="cfg-mac" inputmode="text" placeholder="00:0a:35:00:01:02" />
+                  </label>
 
-                <label class="check">
-                  <input id="cfg-apply" type="checkbox" checked />
-                  <span>Применить сразу</span>
-                </label>
+                  <label class="check">
+                    <input id="cfg-apply" type="checkbox" checked />
+                    <span>Применить сразу</span>
+                  </label>
 
-                <div class="actions">
-                  <button id="cfg-save" type="submit">Сохранить</button>
-                  <span id="cfg-status" class="status">—</span>
-                </div>
-              </form>
-            </article>
+                  <div class="actions">
+                    <button id="cfg-save" type="submit">Сохранить</button>
+                    <span id="cfg-status" class="status">—</span>
+                  </div>
+                </form>
+              </article>
+
+              <article class="card" role="listitem" aria-label="I2C настройки">
+                <h2 class="section-title">I2C</h2>
+                <p class="section-desc">Выбор устройства и изменение параметров конфигурации.</p>
+
+                <form id="i2c-form" class="form" autocomplete="off">
+                  <label class="field">
+                    <span>Device</span>
+                    <select id="i2c-dev" aria-label="I2C device"></select>
+                  </label>
+
+                  <label class="field">
+                    <span>Policy</span>
+                    <select id="i2c-policy">
+                      <option value="whitelist">whitelist</option>
+                      <option value="blacklist">blacklist</option>
+                    </select>
+                  </label>
+
+                  <label class="check">
+                    <input id="i2c-autopoll-enabled" type="checkbox" />
+                    <span>Autopoll enabled</span>
+                  </label>
+
+                  <label class="field">
+                    <span>Autopoll regs (comma separated)</span>
+                    <input id="i2c-autopoll-regs" inputmode="text" placeholder="0, 49, 50, 72, 73" />
+                  </label>
+
+                  <label class="field">
+                    <span>Reg delay (ms)</span>
+                    <input id="i2c-reg-delay" inputmode="numeric" placeholder="5" />
+                  </label>
+
+                  <label class="field">
+                    <span>Cycle delay (ms)</span>
+                    <input id="i2c-cycle-delay" inputmode="numeric" placeholder="200" />
+                  </label>
+
+                  <div class="actions">
+                    <button id="i2c-save" type="submit">Сохранить</button>
+                    <span id="i2c-status" class="status">—</span>
+                  </div>
+                </form>
+              </article>
+            </div>
           </section>
         </div>
       </main>
@@ -126,4 +173,3 @@
     <script type="module" src="./js/main.js"></script>
   </body>
 </html>
-
