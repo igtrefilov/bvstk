@@ -450,7 +450,10 @@
                 const addr = typeof d.addr_7b === "number" ? `0x${d.addr_7b.toString(16).padStart(2, "0")}` : "—";
                 const pol = d.policy || "—";
                 const ap = d.autopoll_enabled ? "autopoll on" : "autopoll off";
-                return `${d.name || "—"} (${addr}) — ${pol}, ${ap}, settings:${d.settings_len ?? "—"}`;
+                const wl = typeof d.whitelist_len === "number" ? d.whitelist_len : "—";
+                const bl = typeof d.blacklist_len === "number" ? d.blacklist_len : "—";
+                const boot = typeof d.settings_len === "number" ? d.settings_len : "—";
+                return `${d.name || "—"} (${addr}) — ${pol}, ${ap}, wl:${wl}, bl:${bl}, boot:${boot}`;
               })
               .slice(0, 32);
             el.innerHTML = rows.map((r) => `<div style="padding:4px 0">${r}</div>`).join("");
