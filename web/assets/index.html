@@ -151,8 +151,8 @@
           </section>
 
           <section id="tab-settings" class="hidden section" aria-label="Настройки">
-            <div class="tiles" role="list">
-              <article class="card" role="listitem" aria-label="Сетевые настройки">
+            <div class="stack">
+              <article class="card" aria-label="Сетевые настройки">
                 <h2 class="section-title">Сеть</h2>
                 <p class="section-desc">
                   Изменение IP/маски/шлюза/MAC. При применении IP текущая сессия может оборваться.
@@ -191,102 +191,111 @@
                 </form>
               </article>
 
-              <article class="card" role="listitem" aria-label="I2C настройки">
-                <h2 class="section-title">I2C</h2>
-                <p class="section-desc">Выбор устройства и изменение параметров конфигурации.</p>
+              <section class="group" aria-label="PL драйвера">
+                <div class="group-head">
+                  <h2 class="group-title">PL драйвера</h2>
+                  <p class="group-desc">I2C / SMI / SPI — настройки и диагностика драйверов.</p>
+                </div>
 
-                <form id="i2c-form" class="form" autocomplete="off">
-                  <label class="field">
-                    <span>Device</span>
-                    <select id="i2c-dev" aria-label="I2C device"></select>
-                  </label>
+                <div class="tiles" role="list">
+                  <article class="card" role="listitem" aria-label="I2C настройки">
+                    <h3 class="section-title">I2C</h3>
+                    <p class="section-desc">Выбор устройства и изменение параметров конфигурации.</p>
 
-                  <label class="field">
-                    <span>Policy</span>
-                    <select id="i2c-policy">
-                      <option value="whitelist">whitelist</option>
-                      <option value="blacklist">blacklist</option>
-                    </select>
-                  </label>
+                    <form id="i2c-form" class="form" autocomplete="off">
+                      <label class="field">
+                        <span>Device</span>
+                        <select id="i2c-dev" aria-label="I2C device"></select>
+                      </label>
 
-                  <label class="check">
-                    <input id="i2c-autopoll-enabled" type="checkbox" />
-                    <span>Autopoll enabled</span>
-                  </label>
+                      <label class="field">
+                        <span>Policy</span>
+                        <select id="i2c-policy">
+                          <option value="whitelist">whitelist</option>
+                          <option value="blacklist">blacklist</option>
+                        </select>
+                      </label>
 
-                  <label class="field">
-                    <span>Autopoll regs (comma separated)</span>
-                    <input id="i2c-autopoll-regs" inputmode="text" placeholder="0, 49, 50, 72, 73" />
-                  </label>
+                      <label class="check">
+                        <input id="i2c-autopoll-enabled" type="checkbox" />
+                        <span>Autopoll enabled</span>
+                      </label>
 
-                  <label class="field">
-                    <span>Whitelist rules (one per line: reg=val)</span>
-                    <textarea id="i2c-whitelist" placeholder="19=16&#10;19=17"></textarea>
-                  </label>
+                      <label class="field">
+                        <span>Autopoll regs (comma separated)</span>
+                        <input id="i2c-autopoll-regs" inputmode="text" placeholder="0, 49, 50, 72, 73" />
+                      </label>
 
-                  <label class="field">
-                    <span>Blacklist rules (one per line: reg=val)</span>
-                    <textarea id="i2c-blacklist" placeholder=""></textarea>
-                  </label>
+                      <label class="field">
+                        <span>Whitelist rules (one per line: reg=val)</span>
+                        <textarea id="i2c-whitelist" placeholder="19=16&#10;19=17"></textarea>
+                      </label>
 
-                  <label class="field">
-                    <span>Reg delay (ms)</span>
-                    <input id="i2c-reg-delay" inputmode="numeric" placeholder="5" />
-                  </label>
+                      <label class="field">
+                        <span>Blacklist rules (one per line: reg=val)</span>
+                        <textarea id="i2c-blacklist" placeholder=""></textarea>
+                      </label>
 
-                  <label class="field">
-                    <span>Cycle delay (ms)</span>
-                    <input id="i2c-cycle-delay" inputmode="numeric" placeholder="200" />
-                  </label>
+                      <label class="field">
+                        <span>Reg delay (ms)</span>
+                        <input id="i2c-reg-delay" inputmode="numeric" placeholder="5" />
+                      </label>
 
-                  <div class="actions">
-                    <button id="i2c-save" type="submit">Сохранить</button>
-                    <span id="i2c-status" class="status">—</span>
-                  </div>
-                </form>
-              </article>
+                      <label class="field">
+                        <span>Cycle delay (ms)</span>
+                        <input id="i2c-cycle-delay" inputmode="numeric" placeholder="200" />
+                      </label>
 
-              <article class="card" role="listitem" aria-label="SMI настройки">
-                <h2 class="section-title">SMI</h2>
-                <p class="section-desc">Заглушка для будущих настроек PHY/MDIO (SMI).</p>
-                <form class="form" autocomplete="off">
-                  <label class="field">
-                    <span>PHY address</span>
-                    <input disabled placeholder="0" />
-                  </label>
-                  <label class="field">
-                    <span>Link mode</span>
-                    <select disabled>
-                      <option>auto</option>
-                    </select>
-                  </label>
-                  <div class="actions">
-                    <button type="button" disabled>Сохранить</button>
-                    <span class="status">coming soon</span>
-                  </div>
-                </form>
-              </article>
+                      <div class="actions">
+                        <button id="i2c-save" type="submit">Сохранить</button>
+                        <span id="i2c-status" class="status">—</span>
+                      </div>
+                    </form>
+                  </article>
 
-              <article class="card" role="listitem" aria-label="SPI настройки">
-                <h2 class="section-title">SPI</h2>
-                <p class="section-desc">Заглушка для будущих настроек SPI‑драйвера.</p>
-                <form class="form" autocomplete="off">
-                  <label class="field">
-                    <span>Mode</span>
-                    <select disabled>
-                      <option>MODE0</option>
-                    </select>
-                  </label>
-                  <label class="field">
-                    <span>Clock (Hz)</span>
-                    <input disabled placeholder="1000000" />
-                  </label>
-                  <div class="actions">
-                    <button type="button" disabled>Сохранить</button>
-                    <span class="status">coming soon</span>
-                  </div>
-                </form>
-              </article>
+                  <article class="card" role="listitem" aria-label="SMI настройки">
+                    <h3 class="section-title">SMI</h3>
+                    <p class="section-desc">Заглушка для будущих настроек PHY/MDIO (SMI).</p>
+                    <form class="form" autocomplete="off">
+                      <label class="field">
+                        <span>PHY address</span>
+                        <input disabled placeholder="0" />
+                      </label>
+                      <label class="field">
+                        <span>Link mode</span>
+                        <select disabled>
+                          <option>auto</option>
+                        </select>
+                      </label>
+                      <div class="actions">
+                        <button type="button" disabled>Сохранить</button>
+                        <span class="status">coming soon</span>
+                      </div>
+                    </form>
+                  </article>
+
+                  <article class="card" role="listitem" aria-label="SPI настройки">
+                    <h3 class="section-title">SPI</h3>
+                    <p class="section-desc">Заглушка для будущих настроек SPI‑драйвера.</p>
+                    <form class="form" autocomplete="off">
+                      <label class="field">
+                        <span>Mode</span>
+                        <select disabled>
+                          <option>MODE0</option>
+                        </select>
+                      </label>
+                      <label class="field">
+                        <span>Clock (Hz)</span>
+                        <input disabled placeholder="1000000" />
+                      </label>
+                      <div class="actions">
+                        <button type="button" disabled>Сохранить</button>
+                        <span class="status">coming soon</span>
+                      </div>
+                    </form>
+                  </article>
+                </div>
+              </section>
             </div>
           </section>
         </div>
