@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import os
 import socket
 import sys
@@ -207,6 +209,33 @@ class _Progress:
         sys.stderr.flush()
 
 
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        while True:
+            b = f.read(128 * 1024)
+            if not b:
+                break
+            h.update(b)
+    return h.hexdigest()
+
+
+def _http_get_small(*, host: str, port: int, url_path: str, max_bytes: int = 512 * 1024) -> tuple[int, bytes]:
+    conn = HTTPConnection(host, port, timeout=10)
+    try:
+        conn.request("GET", url_path, headers={"Connection": "close"})
+        resp = conn.getresponse()
+        data = resp.read(max_bytes + 1)
+        if len(data) > max_bytes:
+            raise RuntimeError(f"GET {url_path}: response too large (> {max_bytes} bytes)")
+        return resp.status, data
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
 def _http_put_file(
     *,
     host: str,
@@ -258,6 +287,29 @@ def _http_put_file(
             pass
 
 
+def _parse_manifest(data: bytes) -> dict:
+    try:
+        obj = json.loads(data.decode("utf-8"))
+    except Exception as e:
+        raise RuntimeError(f"Invalid manifest JSON: {e}") from e
+    if not isinstance(obj, dict):
+        raise RuntimeError("Invalid manifest JSON: expected object")
+    return obj
+
+
+def _build_manifest(files: list[LocalFile]) -> dict:
+    m: dict[str, object] = {"version": 1, "generated_at_unix": int(time.time()), "files": {}}
+    out_files: dict[str, object] = {}
+    for f in files:
+        out_files[f.rel_posix] = {"sha256": _sha256_file(f.abs_path), "size": f.size}
+    m["files"] = out_files
+    return m
+
+
+def _manifest_bytes(manifest_obj: dict) -> bytes:
+    return (json.dumps(manifest_obj, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description="Upload ~/Zynq/bvstk/web/assets/ contents to device flash:/www/ (mkdir via TCP console, PUT via HTTP)."
@@ -280,6 +332,16 @@ def main() -> int:
         default="/flash/www",
         help="HTTP PUT prefix (default: /flash/www)",
     )
+    ap.add_argument(
+        "--manifest",
+        default="manifest.json",
+        help="Manifest file name stored under flash:/www (default: manifest.json)",
+    )
+    ap.add_argument(
+        "--force",
+        action="store_true",
+        help="Upload all files (ignore remote manifest and overwrite)",
+    )
     ap.add_argument("--no-mkdir", action="store_true", help="Do not create directories via TCP console")
     ap.add_argument("--dry-run", action="store_true", help="Print actions without uploading")
     args = ap.parse_args()
@@ -301,13 +363,69 @@ def main() -> int:
         print(f"No files found under {src_dir}", file=sys.stderr)
         return 1
 
-    total_bytes = sum(f.size for f in files)
+    prefix = args.http_prefix.rstrip("/")
+    manifest_name = args.manifest.strip().lstrip("/")
+    if not manifest_name:
+        print("ERROR: --manifest must not be empty", file=sys.stderr)
+        return 2
+    manifest_url_path = prefix + "/" + quote(manifest_name, safe="/")
+
+    remote_manifest: dict | None = None
+    remote_manifest_raw: bytes | None = None
+    if not args.force and not args.dry_run:
+        try:
+            st, data = _http_get_small(host=args.host, port=args.http_port, url_path=manifest_url_path)
+            if st == 200 and data:
+                remote_manifest = _parse_manifest(data)
+                remote_manifest_raw = data
+            elif st == 404:
+                remote_manifest = None
+            else:
+                # Non-404 errors should be visible early.
+                if st != 200:
+                    raise RuntimeError(f"GET {manifest_url_path}: HTTP {st}")
+        except Exception as e:
+            print(f"WARN: cannot load remote manifest ({manifest_url_path}): {e}", file=sys.stderr)
+            remote_manifest = None
+
+    remote_files: dict[str, dict] = {}
+    if isinstance(remote_manifest, dict):
+        rf = remote_manifest.get("files")
+        if isinstance(rf, dict):
+            for k, v in rf.items():
+                if isinstance(k, str) and isinstance(v, dict):
+                    remote_files[k] = v
+
+    # Decide which files need upload (hash-based).
+    to_upload: list[LocalFile] = []
+    skipped = 0
+    if args.force:
+        to_upload = list(files)
+    else:
+        for f in files:
+            r = remote_files.get(f.rel_posix)
+            if not r:
+                to_upload.append(f)
+                continue
+            rsha = r.get("sha256")
+            rsz = r.get("size")
+            if isinstance(rsha, str) and isinstance(rsz, int) and rsz == f.size:
+                lsha = _sha256_file(f.abs_path)
+                if lsha == rsha:
+                    skipped += 1
+                    continue
+            to_upload.append(f)
+
+    local_manifest = _build_manifest(files)
+    local_manifest_bytes = _manifest_bytes(local_manifest)
+
+    total_bytes = sum(f.size for f in to_upload)
     progress = _Progress()
 
     # Prepare directories (required for nested files: HTTP PUT does not mkdir parents).
     if not args.no_mkdir:
         dirs: set[str] = set()
-        for f in files:
+        for f in to_upload:
             for d in _iter_parent_dirs(f.rel_posix):
                 dirs.add(d)
         dir_list = sorted(dirs, key=lambda s: (s.count("/"), s))
@@ -332,16 +450,18 @@ def main() -> int:
 
     # Upload files.
     done_bytes = 0
-    files_total = len(files)
+    files_total = len(to_upload)
     try:
-        for i, lf in enumerate(files, start=1):
+        for i, lf in enumerate(to_upload, start=1):
             rel = lf.rel_posix
             # Build /flash/www/<rel> with URL-encoding.
-            prefix = args.http_prefix.rstrip("/")
             url_path = prefix + "/" + quote(rel, safe="/")
 
             if args.dry_run:
-                print(f"Would PUT {lf.abs_path} -> http://{args.host}:{args.http_port}{url_path}", file=sys.stderr)
+                if args.force:
+                    print(f"Would PUT {lf.abs_path} -> http://{args.host}:{args.http_port}{url_path}", file=sys.stderr)
+                else:
+                    print(f"Would PUT (changed) {lf.abs_path} -> http://{args.host}:{args.http_port}{url_path}", file=sys.stderr)
                 done_bytes += lf.size
                 continue
 
@@ -370,6 +490,31 @@ def main() -> int:
             )
             done_bytes += lf.size
 
+        # Upload manifest if needed.
+        if args.dry_run:
+            print(f"Would PUT manifest -> http://{args.host}:{args.http_port}{manifest_url_path}", file=sys.stderr)
+        else:
+            should_put_manifest = True
+            if remote_manifest_raw is not None and remote_manifest_raw == local_manifest_bytes:
+                should_put_manifest = False
+            if should_put_manifest:
+                conn = HTTPConnection(args.host, args.http_port, timeout=10)
+                try:
+                    conn.putrequest("PUT", manifest_url_path)
+                    conn.putheader("Content-Length", str(len(local_manifest_bytes)))
+                    conn.putheader("Content-Type", "application/json; charset=utf-8")
+                    conn.endheaders()
+                    conn.send(local_manifest_bytes)
+                    resp = conn.getresponse()
+                    _ = resp.read(256)
+                    if resp.status != 200:
+                        raise RuntimeError(f"PUT manifest: HTTP {resp.status} {resp.reason}")
+                finally:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+
         progress.render(
             overall_done=total_bytes,
             overall_total=total_bytes,
@@ -385,7 +530,13 @@ def main() -> int:
     finally:
         progress.close()
 
-    print(f"OK: uploaded {files_total} files, {_human_bytes(total_bytes)} -> flash:/www", file=sys.stderr)
+    if args.force:
+        print(f"OK: uploaded {files_total} files, {_human_bytes(total_bytes)} -> flash:/www", file=sys.stderr)
+    else:
+        print(
+            f"OK: uploaded {files_total} changed files, skipped {skipped}, {_human_bytes(total_bytes)} -> flash:/www",
+            file=sys.stderr,
+        )
     return 0
 
 
