@@ -22,6 +22,8 @@
 #include "xstatus.h"
 
 #include "../config/config_store.h"
+#include "../bvstk_i2c/bvstk_i2c.h"
+#include "../bvstk_smi/bvstk_smi.h"
 #include "../fs/fs_devices.h"
 #include "../fs/fs_shared.h"
 #include "../qspi_fs/qspi_fs.h"
@@ -359,7 +361,7 @@ static int json_get_u32_val(const char *json, const char *key, uint32_t *out)
     if (out) *out = 0;
     const char *p = json_find_key(json, key);
     if (!p) return 0;
-    unsigned long v = strtoul(p, NULL, 10);
+    unsigned long v = strtoul(p, NULL, 0);
     if (out) *out = (uint32_t)v;
     return 1;
 }
@@ -912,6 +914,230 @@ static void api_handle_i2c_put(http_conn_t *conn)
     http_write_str(conn->fd, "}\n");
 }
 
+static bool i2c_find_idx_and_name(const char *name, uint32_t addr_7b, size_t *out_idx, char out_name[I2C_CFG_NAME_MAX])
+{
+    if (out_idx) *out_idx = 0;
+    if (out_name) out_name[0] = '\0';
+
+    if (name && name[0]) {
+        size_t idx = 0;
+        if (!i2cdev_find_device_index_by_name(name, &idx)) return false;
+        if (out_idx) *out_idx = idx;
+        if (out_name) {
+            strncpy(out_name, name, I2C_CFG_NAME_MAX - 1);
+            out_name[I2C_CFG_NAME_MAX - 1] = '\0';
+        }
+        return true;
+    }
+
+    if (addr_7b <= 0x7Fu) {
+        size_t idx = 0;
+        if (!i2cdev_find_device_index_by_addr((uint8_t)addr_7b, &idx)) return false;
+        if (out_idx) *out_idx = idx;
+        if (out_name) {
+            i2cdev_device_info_t info;
+            if (!i2cdev_device_get_info(idx, &info) || !info.name) return false;
+            strncpy(out_name, info.name, I2C_CFG_NAME_MAX - 1);
+            out_name[I2C_CFG_NAME_MAX - 1] = '\0';
+        }
+        return true;
+    }
+    return false;
+}
+
+static void api_diag_i2c_read(http_conn_t *conn)
+{
+    if (!conn) return;
+    char body[512];
+    size_t blen = 0;
+    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
+        return;
+    }
+
+    char name[I2C_CFG_NAME_MAX];
+    name[0] = '\0';
+    (void)json_get_string_val(body, "name", name, sizeof(name));
+    uint32_t addr = 0xFFFFFFFFu;
+    (void)json_get_u32_val(body, "addr_7b", &addr);
+    uint32_t reg = 0;
+    if (!json_get_u32_val(body, "reg", &reg) || reg > 0xFFu) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "missing/bad reg\r\n");
+        return;
+    }
+
+    size_t idx = 0;
+    char dev_name[I2C_CFG_NAME_MAX];
+    if (!i2c_find_idx_and_name(name[0] ? name : NULL, addr, &idx, dev_name)) {
+        http_reply_simple(conn->fd, 404, "Not Found", "device not found\r\n");
+        return;
+    }
+    uint8_t val = 0;
+    if (!i2cdev_read_reg_dev(idx, (uint8_t)reg, &val)) {
+        http_reply_simple(conn->fd, 500, "ERR", "i2c read failed\r\n");
+        return;
+    }
+
+    http_reply_json_hdr(conn->fd, 200, "OK");
+    http_write_str(conn->fd, "{");
+    json_write_kv_bool(conn->fd, "ok", true, true);
+    http_write_str(conn->fd, "\"name\":");
+    json_write_escaped(conn->fd, dev_name);
+    http_write_str(conn->fd, ",\"reg\":");
+    {
+        char b[16];
+        int n = snprintf(b, sizeof(b), "%u", (unsigned)reg);
+        if (n > 0) http_write_str(conn->fd, b);
+    }
+    http_write_str(conn->fd, ",\"val\":");
+    {
+        char b[16];
+        int n = snprintf(b, sizeof(b), "%u", (unsigned)val);
+        if (n > 0) http_write_str(conn->fd, b);
+    }
+    http_write_str(conn->fd, "}\n");
+}
+
+static void api_diag_i2c_write(http_conn_t *conn)
+{
+    if (!conn) return;
+    char body[512];
+    size_t blen = 0;
+    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
+        return;
+    }
+
+    char name[I2C_CFG_NAME_MAX];
+    name[0] = '\0';
+    (void)json_get_string_val(body, "name", name, sizeof(name));
+    uint32_t addr = 0xFFFFFFFFu;
+    (void)json_get_u32_val(body, "addr_7b", &addr);
+    uint32_t reg = 0, val = 0;
+    if (!json_get_u32_val(body, "reg", &reg) || reg > 0xFFu) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "missing/bad reg\r\n");
+        return;
+    }
+    if (!json_get_u32_val(body, "val", &val) || val > 0xFFu) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "missing/bad val\r\n");
+        return;
+    }
+
+    size_t idx = 0;
+    char dev_name[I2C_CFG_NAME_MAX];
+    if (!i2c_find_idx_and_name(name[0] ? name : NULL, addr, &idx, dev_name)) {
+        http_reply_simple(conn->fd, 404, "Not Found", "device not found\r\n");
+        return;
+    }
+    if (!i2cdev_write_reg_dev(idx, (uint8_t)reg, (uint8_t)val)) {
+        http_reply_simple(conn->fd, 403, "Forbidden", "DENIED\r\n");
+        return;
+    }
+    http_reply_json_hdr(conn->fd, 200, "OK");
+    http_write_str(conn->fd, "{\"ok\":true}\n");
+}
+
+static void api_diag_smi_read(http_conn_t *conn)
+{
+    if (!conn) return;
+    char body[256];
+    size_t blen = 0;
+    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
+        return;
+    }
+    uint32_t phy = 0, reg = 0;
+    if (!json_get_u32_val(body, "phy", &phy) || phy > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad phy\r\n"); return; }
+    if (!json_get_u32_val(body, "reg", &reg) || reg > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad reg\r\n"); return; }
+    uint16_t val = 0;
+    if (!mdio_read_blocking((uint8_t)phy, (uint8_t)reg, &val, pdMS_TO_TICKS(100))) {
+        http_reply_simple(conn->fd, 500, "ERR", "smi read failed\r\n");
+        return;
+    }
+    http_reply_json_hdr(conn->fd, 200, "OK");
+    http_write_str(conn->fd, "{");
+    json_write_kv_bool(conn->fd, "ok", true, true);
+    http_write_str(conn->fd, "\"val\":");
+    {
+        char b[16];
+        int n = snprintf(b, sizeof(b), "%u", (unsigned)val);
+        if (n > 0) http_write_str(conn->fd, b);
+    }
+    http_write_str(conn->fd, "}\n");
+}
+
+static void api_diag_smi_write(http_conn_t *conn)
+{
+    if (!conn) return;
+    char body[256];
+    size_t blen = 0;
+    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
+        return;
+    }
+    uint32_t phy = 0, reg = 0, val = 0;
+    if (!json_get_u32_val(body, "phy", &phy) || phy > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad phy\r\n"); return; }
+    if (!json_get_u32_val(body, "reg", &reg) || reg > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad reg\r\n"); return; }
+    if (!json_get_u32_val(body, "val", &val) || val > 0xFFFFu) { http_reply_simple(conn->fd, 400, "Bad Request", "bad val\r\n"); return; }
+    mdio_write((uint8_t)phy, (uint8_t)reg, (uint16_t)val);
+    http_reply_json_hdr(conn->fd, 200, "OK");
+    http_write_str(conn->fd, "{\"ok\":true}\n");
+}
+
+static void api_diag_mem_read(http_conn_t *conn)
+{
+    if (!conn) return;
+    char body[256];
+    size_t blen = 0;
+    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
+        return;
+    }
+    uint32_t addr = 0;
+    if (!json_get_u32_val(body, "addr", &addr)) { http_reply_simple(conn->fd, 400, "Bad Request", "bad addr\r\n"); return; }
+    uintptr_t a = (uintptr_t)addr;
+    http_reply_json_hdr(conn->fd, 200, "OK");
+    if ((a & 3U) == 0U) {
+        uint32_t v = Xil_In32((UINTPTR)a);
+        char out[96];
+        int n = snprintf(out, sizeof(out), "{\"ok\":true,\"width\":32,\"val\":%lu}\n", (unsigned long)v);
+        if (n > 0) http_write_str(conn->fd, out);
+    } else {
+        uint8_t v = Xil_In8((UINTPTR)a);
+        char out[96];
+        int n = snprintf(out, sizeof(out), "{\"ok\":true,\"width\":8,\"val\":%u}\n", (unsigned)v);
+        if (n > 0) http_write_str(conn->fd, out);
+    }
+}
+
+static void api_diag_mem_write(http_conn_t *conn)
+{
+    if (!conn) return;
+    char body[256];
+    size_t blen = 0;
+    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
+        return;
+    }
+    int confirm = 0;
+    (void)json_get_bool_val(body, "confirm", &confirm);
+    if (!confirm) { http_reply_simple(conn->fd, 400, "Bad Request", "confirm required\r\n"); return; }
+    uint32_t addr = 0, val = 0;
+    if (!json_get_u32_val(body, "addr", &addr)) { http_reply_simple(conn->fd, 400, "Bad Request", "bad addr\r\n"); return; }
+    if (!json_get_u32_val(body, "val", &val)) { http_reply_simple(conn->fd, 400, "Bad Request", "bad val\r\n"); return; }
+    uintptr_t a = (uintptr_t)addr;
+    if ((a & 3U) == 0U) {
+        Xil_Out32((UINTPTR)a, (uint32_t)val);
+        http_reply_json_hdr(conn->fd, 200, "OK");
+        http_write_str(conn->fd, "{\"ok\":true,\"width\":32}\n");
+        return;
+    }
+    if (val > 0xFFu) { http_reply_simple(conn->fd, 400, "Bad Request", "unaligned requires 8-bit val\r\n"); return; }
+    Xil_Out8((UINTPTR)a, (uint8_t)val);
+    http_reply_json_hdr(conn->fd, 200, "OK");
+    http_write_str(conn->fd, "{\"ok\":true,\"width\":8}\n");
+}
+
 static bool map_url_to_fatfs(const char *url_path, char *out_fat, size_t out_sz,
                              const fs_device_info_t **out_dev, bool *out_tar_mode)
 {
@@ -1232,6 +1458,12 @@ int http_handle_request(const http_request_t *req, http_conn_t *conn)
             }
             if (strcmp(api_path, "/api/net") == 0) { api_handle_net_put(conn); return 1; }
             if (strcmp(api_path, "/api/i2c") == 0) { api_handle_i2c_put(conn); return 1; }
+            if (strcmp(api_path, "/api/diag/i2c/read") == 0) { api_diag_i2c_read(conn); return 1; }
+            if (strcmp(api_path, "/api/diag/i2c/write") == 0) { api_diag_i2c_write(conn); return 1; }
+            if (strcmp(api_path, "/api/diag/smi/read") == 0) { api_diag_smi_read(conn); return 1; }
+            if (strcmp(api_path, "/api/diag/smi/write") == 0) { api_diag_smi_write(conn); return 1; }
+            if (strcmp(api_path, "/api/diag/mem/read") == 0) { api_diag_mem_read(conn); return 1; }
+            if (strcmp(api_path, "/api/diag/mem/write") == 0) { api_diag_mem_write(conn); return 1; }
             http_reply_simple(conn->fd, 404, "Not Found", "api not found\r\n");
             return 1;
         }

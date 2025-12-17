@@ -4,6 +4,21 @@ async function fetchJson(path) {
   return await res.json();
 }
 
+async function putJson(path, payload) {
+  const res = await fetch(path, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`PUT ${path}: HTTP ${res.status}: ${text.trim() || "failed"}`);
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: true };
+  }
+}
+
 export function apiGetNet() {
   return fetchJson("/api/net");
 }
@@ -22,31 +37,33 @@ export function apiGetI2c(name) {
 }
 
 export async function apiPutI2c(payload) {
-  const res = await fetch("/api/i2c", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`PUT /api/i2c: HTTP ${res.status}: ${text.trim() || "failed"}`);
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { ok: true };
-  }
+  return putJson("/api/i2c", payload);
 }
 
 export async function apiPutNet(payload) {
-  const res = await fetch("/api/net", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`PUT /api/net: HTTP ${res.status}: ${text.trim() || "failed"}`);
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { ok: true };
-  }
+  return putJson("/api/net", payload);
+}
+
+export function apiDiagI2cRead(payload) {
+  return putJson("/api/diag/i2c/read", payload);
+}
+
+export function apiDiagI2cWrite(payload) {
+  return putJson("/api/diag/i2c/write", payload);
+}
+
+export function apiDiagSmiRead(payload) {
+  return putJson("/api/diag/smi/read", payload);
+}
+
+export function apiDiagSmiWrite(payload) {
+  return putJson("/api/diag/smi/write", payload);
+}
+
+export function apiDiagMemRead(payload) {
+  return putJson("/api/diag/mem/read", payload);
+}
+
+export function apiDiagMemWrite(payload) {
+  return putJson("/api/diag/mem/write", payload);
 }

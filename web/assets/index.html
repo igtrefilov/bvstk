@@ -74,9 +74,80 @@
             </div>
           </section>
 
-          <section id="tab-diag" class="card hidden section" aria-label="Диагностика">
-            <h2 class="section-title">Диагностика</h2>
-            <p class="section-desc">Раздел в разработке.</p>
+          <section id="tab-diag" class="hidden section" aria-label="Диагностика">
+            <div class="tiles" role="list">
+              <article class="card" role="listitem" aria-label="I2C регистры">
+                <h2 class="section-title">I2C</h2>
+                <p class="section-desc">Чтение/запись регистров выбранного I2C устройства.</p>
+                <form id="diag-i2c" class="form" autocomplete="off">
+                  <label class="field">
+                    <span>Device</span>
+                    <select id="diag-i2c-dev"></select>
+                  </label>
+                  <label class="field">
+                    <span>Reg (0..255)</span>
+                    <input id="diag-i2c-reg" inputmode="numeric" placeholder="19" />
+                  </label>
+                  <label class="field">
+                    <span>Val (0..255)</span>
+                    <input id="diag-i2c-val" inputmode="numeric" placeholder="16" />
+                  </label>
+                  <div class="actions">
+                    <button id="diag-i2c-read" type="button">Read</button>
+                    <button id="diag-i2c-write" type="button">Write</button>
+                    <span id="diag-i2c-out" class="status">—</span>
+                  </div>
+                </form>
+              </article>
+
+              <article class="card" role="listitem" aria-label="SMI регистры">
+                <h2 class="section-title">SMI</h2>
+                <p class="section-desc">Чтение/запись PHY регистров по MDIO (phy/reg 0..31).</p>
+                <form id="diag-smi" class="form" autocomplete="off">
+                  <label class="field">
+                    <span>PHY (0..31)</span>
+                    <input id="diag-smi-phy" inputmode="numeric" placeholder="1" />
+                  </label>
+                  <label class="field">
+                    <span>Reg (0..31)</span>
+                    <input id="diag-smi-reg" inputmode="numeric" placeholder="0" />
+                  </label>
+                  <label class="field">
+                    <span>Val (0..65535)</span>
+                    <input id="diag-smi-val" inputmode="numeric" placeholder="0" />
+                  </label>
+                  <div class="actions">
+                    <button id="diag-smi-read" type="button">Read</button>
+                    <button id="diag-smi-write" type="button">Write</button>
+                    <span id="diag-smi-out" class="status">—</span>
+                  </div>
+                </form>
+              </article>
+
+              <article class="card" role="listitem" aria-label="MEM регистры">
+                <h2 class="section-title">MEM</h2>
+                <p class="section-desc">Опасно: чтение/запись MMIO памяти. Запись требует подтверждения.</p>
+                <form id="diag-mem" class="form" autocomplete="off">
+                  <label class="field">
+                    <span>Address (hex or dec)</span>
+                    <input id="diag-mem-addr" inputmode="text" placeholder="0xE000A000" />
+                  </label>
+                  <label class="field">
+                    <span>Value (hex or dec)</span>
+                    <input id="diag-mem-val" inputmode="text" placeholder="0x00000001" />
+                  </label>
+                  <label class="check">
+                    <input id="diag-mem-confirm" type="checkbox" />
+                    <span>Confirm write</span>
+                  </label>
+                  <div class="actions">
+                    <button id="diag-mem-read" type="button">Read</button>
+                    <button id="diag-mem-write" type="button">Write</button>
+                    <span id="diag-mem-out" class="status">—</span>
+                  </div>
+                </form>
+              </article>
+            </div>
           </section>
 
           <section id="tab-settings" class="hidden section" aria-label="Настройки">
