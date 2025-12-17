@@ -177,6 +177,11 @@
         width: 40%;
       }
 
+      .kv td.mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 13px;
+      }
+
       .pill {
         display: inline-flex;
         align-items: center;
@@ -207,6 +212,12 @@
       .dot.bad {
         background: #cc3a3a;
         box-shadow: 0 0 0 4px rgba(204, 58, 58, 0.2);
+      }
+
+      .scroll {
+        max-height: 160px;
+        overflow: auto;
+        padding-right: 6px;
       }
 
       @media (min-width: 920px) {
@@ -273,29 +284,18 @@
                 </table>
               </article>
 
-              <article class="card" role="listitem" aria-label="QSPI">
-                <div class="pill"><span id="qspi-dot" class="dot"></span>QSPI</div>
-                <table class="kv" aria-label="QSPI">
-                  <tr><th>Ready</th><td id="qspi-ready">—</td></tr>
-                  <tr><th>FS base</th><td id="qspi-base">—</td></tr>
-                  <tr><th>FS size</th><td id="qspi-size">—</td></tr>
-                </table>
-              </article>
-
-              <article class="card" role="listitem" aria-label="Версия">
-                <div class="pill"><span id="ver-dot" class="dot"></span>Версия</div>
-                <table class="kv" aria-label="Версия">
-                  <tr><th>Build</th><td id="ver-build">—</td></tr>
-                  <tr><th>HTTP</th><td id="ver-http">—</td></tr>
-                </table>
-              </article>
-
               <article class="card" role="listitem" aria-label="I2C">
                 <div class="pill"><span id="i2c-dot" class="dot"></span>I2C</div>
-                <p class="section-desc" style="margin-top: 10px">Доступные устройства и их настройки (из config_store).</p>
-                <div id="i2c-list" style="margin-top: 12px; font-size: 14px; color: rgba(30, 36, 48, 0.86)">
-                  —
-                </div>
+                <table class="kv" aria-label="I2C">
+                  <tr><th>Ready</th><td id="i2c-ready">—</td></tr>
+                  <tr><th>Devices</th><td id="i2c-count">—</td></tr>
+                  <tr>
+                    <th>List</th>
+                    <td class="mono">
+                      <div id="i2c-list" class="scroll">—</div>
+                    </td>
+                  </tr>
+                </table>
               </article>
             </div>
           </section>
@@ -424,44 +424,27 @@
           }
         }
 
-        async function loadQspi() {
-          try {
-            const j = await fetchJson("/api/qspi");
-            byId("qspi-ready").textContent = j.ready ? "yes" : "no";
-            byId("qspi-base").textContent = typeof j.fs_base_bytes === "number" ? fmtBytes(j.fs_base_bytes) : "—";
-            byId("qspi-size").textContent = typeof j.fs_size_bytes === "number" ? fmtBytes(j.fs_size_bytes) : "—";
-            setDot("qspi-dot", j.ready ? "ok" : "bad");
-          } catch (_) {
-            setDot("qspi-dot", "bad");
-          }
-        }
-
-        async function loadVersion() {
-          try {
-            const j = await fetchJson("/api/version");
-            byId("ver-build").textContent = `${j.build_date || "—"} ${j.build_time || ""}`.trim();
-            byId("ver-http").textContent = j.http_port ? `:${j.http_port}` : "—";
-            setDot("ver-dot", "ok");
-          } catch (_) {
-            setDot("ver-dot", "bad");
-          }
-        }
-
         async function loadI2c() {
           try {
             const j = await fetchJson("/api/i2c");
             const el = byId("i2c-list");
             const devices = Array.isArray(j.devices) ? j.devices : [];
             if (!j.ready) {
+              byId("i2c-ready").textContent = "no";
+              byId("i2c-count").textContent = "—";
               el.textContent = "config_store not ready";
               setDot("i2c-dot", "bad");
               return;
             }
             if (devices.length === 0) {
+              byId("i2c-ready").textContent = "yes";
+              byId("i2c-count").textContent = "0";
               el.textContent = "no devices";
               setDot("i2c-dot", "ok");
               return;
             }
+            byId("i2c-ready").textContent = "yes";
+            byId("i2c-count").textContent = String(devices.length);
             const rows = devices
               .map((d) => {
                 const addr = typeof d.addr_7b === "number" ? `0x${d.addr_7b.toString(16).padStart(2, "0")}` : "—";
@@ -470,11 +453,11 @@
                 return `${d.name || "—"} (${addr}) — ${pol}, ${ap}, settings:${d.settings_len ?? "—"}`;
               })
               .slice(0, 32);
-            el.innerHTML = `<div style="display:grid;gap:8px">${rows
-              .map((r) => `<div>${r}</div>`)
-              .join("")}</div>`;
+            el.innerHTML = rows.map((r) => `<div style="padding:4px 0">${r}</div>`).join("");
             setDot("i2c-dot", "ok");
           } catch (_) {
+            byId("i2c-ready").textContent = "—";
+            byId("i2c-count").textContent = "—";
             setDot("i2c-dot", "bad");
           }
         }
@@ -486,8 +469,6 @@
         loadNet();
         loadRtos();
         loadFs();
-        loadQspi();
-        loadVersion();
         loadI2c();
       })();
     </script>
