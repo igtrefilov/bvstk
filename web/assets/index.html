@@ -5,233 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <title>BVSTK</title>
-    <style>
-      :root {
-        --bg: #f4f7ff;
-        --text: #1e2430;
-        --muted: rgba(30, 36, 48, 0.68);
-        --card: rgba(255, 255, 255, 0.72);
-        --card-border: rgba(255, 255, 255, 0.46);
-        --shadow: 0 14px 32px rgba(38, 69, 145, 0.14);
-        --radius: 18px;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        height: 100%;
-      }
-
-      body {
-        margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans",
-          "Liberation Sans", sans-serif;
-        color: var(--text);
-        background: var(--bg) url("./bg.png") center / cover no-repeat;
-      }
-
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
-
-      .wrap {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-      }
-
-      header {
-        padding: 22px 24px 0;
-      }
-
-      .container {
-        width: min(1120px, calc(100% - 48px));
-        margin: 0 auto;
-      }
-
-      .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 18px;
-      }
-
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 220px;
-      }
-
-      .brand img {
-        width: 46px;
-        height: 46px;
-        object-fit: contain;
-        filter: drop-shadow(0 12px 18px rgba(38, 69, 145, 0.25));
-      }
-
-      .brand span {
-        letter-spacing: 0.06em;
-        font-weight: 700;
-        opacity: 0.85;
-      }
-
-      nav ul {
-        display: flex;
-        align-items: center;
-        gap: 26px;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        font-weight: 600;
-        color: rgba(30, 36, 48, 0.72);
-      }
-
-      nav a {
-        position: relative;
-        padding: 10px 2px;
-        transition: color 160ms ease;
-      }
-
-      nav a:hover {
-        color: rgba(30, 36, 48, 0.92);
-      }
-
-      nav a.active {
-        color: rgba(30, 36, 48, 0.92);
-      }
-
-      nav a.active::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 2px;
-        height: 2px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #6aa6ff, #2f66d9);
-        opacity: 0.85;
-      }
-
-      main {
-        flex: 1;
-        padding: 54px 24px 28px;
-      }
-
-      .card {
-        border-radius: var(--radius);
-        background: var(--card);
-        border: 1px solid var(--card-border);
-        box-shadow: var(--shadow);
-        padding: 20px 20px 18px;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-      }
-
-      .section-title {
-        margin: 0;
-        font-size: 22px;
-        letter-spacing: 0.02em;
-      }
-
-      .section-desc {
-        margin: 10px 0 0;
-        color: var(--muted);
-        font-size: 14px;
-        line-height: 1.55;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      .tiles {
-        display: grid;
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-        gap: 18px;
-      }
-
-      .kv {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 12px;
-        font-size: 14px;
-      }
-
-      .kv th,
-      .kv td {
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(30, 36, 48, 0.08);
-        vertical-align: top;
-      }
-
-      .kv th {
-        text-align: left;
-        font-weight: 700;
-        color: rgba(30, 36, 48, 0.78);
-        padding-right: 14px;
-        width: 40%;
-      }
-
-      .kv td.mono {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        font-size: 13px;
-      }
-
-      .pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        border: 1px solid rgba(30, 36, 48, 0.12);
-        background: rgba(255, 255, 255, 0.5);
-        font-weight: 700;
-        font-size: 12px;
-        letter-spacing: 0.02em;
-        color: rgba(30, 36, 48, 0.82);
-      }
-
-      .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #9aa6bf;
-        box-shadow: 0 0 0 4px rgba(154, 166, 191, 0.22);
-      }
-
-      .dot.ok {
-        background: #2f9b4c;
-        box-shadow: 0 0 0 4px rgba(47, 155, 76, 0.22);
-      }
-
-      .dot.bad {
-        background: #cc3a3a;
-        box-shadow: 0 0 0 4px rgba(204, 58, 58, 0.2);
-      }
-
-      .scroll {
-        max-height: 160px;
-        overflow: auto;
-        padding-right: 6px;
-      }
-
-      @media (min-width: 920px) {
-        .tiles {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
-
-      @media (min-width: 1180px) {
-        .tiles {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="./css/app.css" />
   </head>
   <body>
     <div class="wrap">
@@ -262,7 +36,7 @@
                   <tr><th>Mode</th><td id="net-mode">—</td></tr>
                   <tr><th>Netmask</th><td id="net-netmask">—</td></tr>
                   <tr><th>Gateway</th><td id="net-gateway">—</td></tr>
-                  <tr><th>MAC</th><td id="net-mac">—</td></tr>
+                  <tr><th>MAC</th><td id="net-mac" class="mono">—</td></tr>
                 </table>
               </article>
 
@@ -300,297 +74,56 @@
             </div>
           </section>
 
-          <section id="tab-diag" class="card hidden" aria-label="Диагностика" style="margin-top: 18px">
+          <section id="tab-diag" class="card hidden section" aria-label="Диагностика">
             <h2 class="section-title">Диагностика</h2>
-            <p class="section-desc">Статусы подсистем и проверки.</p>
+            <p class="section-desc">Раздел в разработке.</p>
           </section>
 
-          <section id="tab-settings" class="hidden" aria-label="Настройки" style="margin-top: 18px">
-            <div class="tiles" role="list">
-              <article class="card" role="listitem" aria-label="Сетевые настройки">
-                <h2 class="section-title">Сеть</h2>
-                <p class="section-desc">
-                  Изменение IP/маски/шлюза/MAC. При применении IP текущая сессия может оборваться.
-                </p>
+          <section id="tab-settings" class="hidden section" aria-label="Настройки">
+            <article class="card" aria-label="Сетевые настройки">
+              <h2 class="section-title">Сеть</h2>
+              <p class="section-desc">
+                Изменение IP/маски/шлюза/MAC. При применении IP текущая сессия может оборваться.
+              </p>
 
-                <div style="display:grid; gap: 12px; margin-top: 14px">
-                  <label style="display:grid; gap:6px">
-                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">IP</span>
-                    <input id="cfg-ip" inputmode="decimal" placeholder="192.168.0.10" />
-                  </label>
+              <form id="net-form" class="form" autocomplete="off">
+                <label class="field">
+                  <span>IP</span>
+                  <input id="cfg-ip" inputmode="decimal" placeholder="192.168.0.10" />
+                </label>
 
-                  <label style="display:grid; gap:6px">
-                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">Netmask</span>
-                    <input id="cfg-netmask" inputmode="decimal" placeholder="255.255.255.0" />
-                  </label>
+                <label class="field">
+                  <span>Netmask</span>
+                  <input id="cfg-netmask" inputmode="decimal" placeholder="255.255.255.0" />
+                </label>
 
-                  <label style="display:grid; gap:6px">
-                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">Gateway</span>
-                    <input id="cfg-gateway" inputmode="decimal" placeholder="192.168.0.1" />
-                  </label>
+                <label class="field">
+                  <span>Gateway</span>
+                  <input id="cfg-gateway" inputmode="decimal" placeholder="192.168.0.1" />
+                </label>
 
-                  <label style="display:grid; gap:6px">
-                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">MAC</span>
-                    <input id="cfg-mac" inputmode="text" placeholder="00:0a:35:00:01:02" />
-                  </label>
+                <label class="field">
+                  <span>MAC</span>
+                  <input id="cfg-mac" inputmode="text" placeholder="00:0a:35:00:01:02" />
+                </label>
 
-                  <label style="display:flex; align-items:center; gap:10px">
-                    <input id="cfg-apply" type="checkbox" checked />
-                    <span style="font-weight:700; color: rgba(30, 36, 48, 0.78)">Применить сразу</span>
-                  </label>
+                <label class="check">
+                  <input id="cfg-apply" type="checkbox" checked />
+                  <span>Применить сразу</span>
+                </label>
 
-                  <div style="display:flex; align-items:center; gap: 12px; flex-wrap: wrap">
-                    <button id="cfg-save" type="button">Сохранить</button>
-                    <span id="cfg-status" style="color: rgba(30, 36, 48, 0.72)">—</span>
-                  </div>
+                <div class="actions">
+                  <button id="cfg-save" type="submit">Сохранить</button>
+                  <span id="cfg-status" class="status">—</span>
                 </div>
-              </article>
-            </div>
+              </form>
+            </article>
           </section>
         </div>
       </main>
     </div>
 
-    <script>
-      (function () {
-        const tabs = ["home", "diag", "settings"];
-        const navLinks = Array.from(document.querySelectorAll("a[data-tab]"));
-        const sections = new Map(
-          tabs.map((t) => [t, document.getElementById("tab-" + t)])
-        );
-
-        function setActive(tab) {
-          if (!sections.has(tab)) tab = "home";
-          navLinks.forEach((a) => a.classList.toggle("active", a.dataset.tab === tab));
-          sections.forEach((el, key) => el.classList.toggle("hidden", key !== tab));
-        }
-
-        function onHash() {
-          const raw = (location.hash || "#home").slice(1);
-          setActive(raw);
-        }
-
-        function byId(id) {
-          return document.getElementById(id);
-        }
-
-        function setDot(id, state) {
-          const el = byId(id);
-          if (!el) return;
-          el.classList.remove("ok", "bad");
-          if (state === "ok") el.classList.add("ok");
-          else if (state === "bad") el.classList.add("bad");
-        }
-
-        function fmtBytes(n) {
-          if (typeof n !== "number" || !isFinite(n)) return "—";
-          const units = ["B", "KiB", "MiB", "GiB"];
-          let v = n;
-          let u = 0;
-          while (v >= 1024 && u < units.length - 1) {
-            v /= 1024;
-            u++;
-          }
-          return `${v.toFixed(u === 0 ? 0 : 1)} ${units[u]}`;
-        }
-
-        function fmtUptime(ms) {
-          if (typeof ms !== "number" || !isFinite(ms)) return "—";
-          const s = Math.floor(ms / 1000);
-          const d = Math.floor(s / 86400);
-          const h = Math.floor((s % 86400) / 3600);
-          const m = Math.floor((s % 3600) / 60);
-          const ss = s % 60;
-          if (d > 0) return `${d}d ${h}h ${m}m`;
-          if (h > 0) return `${h}h ${m}m`;
-          return `${m}m ${ss}s`;
-        }
-
-        async function fetchJson(path) {
-          const res = await fetch(path, { cache: "no-store" });
-          if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
-          return await res.json();
-        }
-
-        function isIpv4(s) {
-          if (typeof s !== "string") return false;
-          const m = s.trim().match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-          if (!m) return false;
-          for (let i = 1; i <= 4; i++) {
-            const v = Number(m[i]);
-            if (!Number.isInteger(v) || v < 0 || v > 255) return false;
-          }
-          return true;
-        }
-
-        function isMac(s) {
-          if (typeof s !== "string") return false;
-          return /^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$/.test(s.trim());
-        }
-
-        async function loadNetConfigToForm() {
-          try {
-            const j = await fetchJson("/api/net");
-            const ip = (j.ip || "").trim();
-            const nm = (j.netmask || "").trim();
-            const gw = (j.gateway || "").trim();
-            const mac = (j.mac || "").trim();
-            if (ip) byId("cfg-ip").value = ip;
-            if (nm) byId("cfg-netmask").value = nm;
-            if (gw) byId("cfg-gateway").value = gw;
-            if (mac) byId("cfg-mac").value = mac;
-            byId("cfg-status").textContent = "loaded";
-          } catch (_) {
-            byId("cfg-status").textContent = "failed to load";
-          }
-        }
-
-        async function saveNetConfig() {
-          const ip = byId("cfg-ip").value.trim();
-          const netmask = byId("cfg-netmask").value.trim();
-          const gateway = byId("cfg-gateway").value.trim();
-          const mac = byId("cfg-mac").value.trim();
-          const apply = !!byId("cfg-apply").checked;
-
-          if (!isIpv4(ip)) {
-            byId("cfg-status").textContent = "bad IP";
-            return;
-          }
-          if (!isIpv4(netmask)) {
-            byId("cfg-status").textContent = "bad netmask";
-            return;
-          }
-          if (!isIpv4(gateway)) {
-            byId("cfg-status").textContent = "bad gateway";
-            return;
-          }
-          if (!isMac(mac)) {
-            byId("cfg-status").textContent = "bad MAC";
-            return;
-          }
-
-          byId("cfg-status").textContent = "saving...";
-          try {
-            const res = await fetch("/api/net", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ip, netmask, gateway, mac, apply }),
-            });
-            const text = await res.text();
-            if (!res.ok) {
-              byId("cfg-status").textContent = `ERR ${res.status}: ${text.trim() || "failed"}`;
-              return;
-            }
-            byId("cfg-status").textContent = apply ? "saved (applied)" : "saved";
-            // Refresh tiles (may fail if IP changed).
-            setTimeout(() => {
-              loadNet();
-            }, 300);
-          } catch (e) {
-            byId("cfg-status").textContent = `save failed (${e && e.message ? e.message : "error"})`;
-          }
-        }
-
-        async function loadNet() {
-          try {
-            const j = await fetchJson("/api/net");
-            byId("net-ip").textContent = j.ip || "—";
-            byId("net-netmask").textContent = j.netmask || "—";
-            byId("net-gateway").textContent = j.gateway || "—";
-            byId("net-mac").textContent = j.mac || "—";
-            byId("net-mode").textContent = j.mode || "—";
-            const ok = !!j.up && !!j.link_up && !!j.ip;
-            setDot("net-dot", ok ? "ok" : "bad");
-          } catch (_) {
-            setDot("net-dot", "bad");
-          }
-        }
-
-        async function loadRtos() {
-          try {
-            const j = await fetchJson("/api/rtos");
-            byId("rtos-uptime").textContent = fmtUptime(j.uptime_ms);
-            byId("rtos-heap-free").textContent = fmtBytes(j.heap_free);
-            byId("rtos-heap-min").textContent = fmtBytes(j.heap_min_ever);
-            byId("rtos-tick").textContent = (j.tick_rate_hz ? `${j.tick_rate_hz} Hz` : "—");
-            setDot("rtos-dot", "ok");
-          } catch (_) {
-            setDot("rtos-dot", "bad");
-          }
-        }
-
-        async function loadFs() {
-          try {
-            const j = await fetchJson("/api/fs");
-            const vols = Array.isArray(j.volumes) ? j.volumes : [];
-            function fmtVol(name) {
-              const v = vols.find((x) => x && x.name === name);
-              if (!v) return "—";
-              if (!v.ready) return "not ready";
-              return `${fmtBytes(v.free_bytes)} free / ${fmtBytes(v.total_bytes)}`;
-            }
-            byId("fs-flash").textContent = fmtVol("flash");
-            byId("fs-sd").textContent = fmtVol("sd");
-            setDot("fs-dot", "ok");
-          } catch (_) {
-            setDot("fs-dot", "bad");
-          }
-        }
-
-        async function loadI2c() {
-          try {
-            const j = await fetchJson("/api/i2c");
-            const el = byId("i2c-list");
-            const devices = Array.isArray(j.devices) ? j.devices : [];
-            if (!j.ready) {
-              byId("i2c-ready").textContent = "no";
-              byId("i2c-count").textContent = "—";
-              el.textContent = "config_store not ready";
-              setDot("i2c-dot", "bad");
-              return;
-            }
-            if (devices.length === 0) {
-              byId("i2c-ready").textContent = "yes";
-              byId("i2c-count").textContent = "0";
-              el.textContent = "no devices";
-              setDot("i2c-dot", "ok");
-              return;
-            }
-            byId("i2c-ready").textContent = "yes";
-            byId("i2c-count").textContent = String(devices.length);
-            const rows = devices
-              .map((d) => {
-                const addr = typeof d.addr_7b === "number" ? `0x${d.addr_7b.toString(16).padStart(2, "0")}` : "—";
-                const pol = d.policy || "—";
-                const ap = d.autopoll_enabled ? "autopoll on" : "autopoll off";
-                const wl = typeof d.whitelist_len === "number" ? d.whitelist_len : "—";
-                const bl = typeof d.blacklist_len === "number" ? d.blacklist_len : "—";
-                const boot = typeof d.settings_len === "number" ? d.settings_len : "—";
-                return `${d.name || "—"} (${addr}) — ${pol}, ${ap}, wl:${wl}, bl:${bl}, boot:${boot}`;
-              })
-              .slice(0, 32);
-            el.innerHTML = rows.map((r) => `<div style="padding:4px 0">${r}</div>`).join("");
-            setDot("i2c-dot", "ok");
-          } catch (_) {
-            byId("i2c-ready").textContent = "—";
-            byId("i2c-count").textContent = "—";
-            setDot("i2c-dot", "bad");
-          }
-        }
-
-        window.addEventListener("hashchange", onHash);
-        onHash();
-
-        // Load tiles
-        loadNet();
-        loadRtos();
-        loadFs();
-        loadI2c();
-        loadNetConfigToForm();
-
-        const btn = byId("cfg-save");
-        if (btn) btn.addEventListener("click", saveNetConfig);
-      })();
-    </script>
+    <script type="module" src="./js/main.js"></script>
   </body>
 </html>
+
