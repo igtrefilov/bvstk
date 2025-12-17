@@ -6,6 +6,11 @@ function setStatus(btn, text) {
   if (el) el.textContent = text;
 }
 
+function isExpectedFetchDrop(e) {
+  const msg = e?.message ? String(e.message) : String(e);
+  return msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("Load failed");
+}
+
 export function initRebootButtons() {
   const buttons = document.querySelectorAll('[data-action="reboot"]');
   for (const btn of buttons) {
@@ -18,10 +23,17 @@ export function initRebootButtons() {
 
       try {
         setStatus(btn, "Перезагрузка...");
-        await apiReboot({ confirm: true, delay_ms: 200 });
-        setStatus(btn, "Перезагрузка...");
+        btn.disabled = true;
+        await apiReboot({ confirm: true, delay_ms: 1500 });
+        setStatus(btn, "Команда отправлена");
       } catch (e) {
+        if (isExpectedFetchDrop(e)) {
+          setStatus(btn, "Перезагрузка...");
+          return;
+        }
         setStatus(btn, e?.message ? String(e.message) : String(e));
+      } finally {
+        btn.disabled = false;
       }
     });
   }

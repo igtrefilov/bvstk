@@ -1182,7 +1182,7 @@ static void api_handle_reboot_put(http_conn_t *conn)
         http_reply_simple(conn->fd, 400, "Bad Request", "confirm required\r\n");
         return;
     }
-    uint32_t delay_ms = 200;
+    uint32_t delay_ms = 1000;
     (void)json_get_u32_val(body, "delay_ms", &delay_ms);
     if (delay_ms > 5000U) delay_ms = 5000U;
 
