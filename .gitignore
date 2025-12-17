@@ -14,6 +14,11 @@
 !src/
 !src/**
 
+# Track web upload helpers (but keep web content untracked by default)
+!web/
+web/**
+!web/upload*
+
 # Editor metadata
 src/.obsidian/
 src/.obsidian/**
