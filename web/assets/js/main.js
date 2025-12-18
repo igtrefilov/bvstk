@@ -4,10 +4,12 @@ import { initDiag } from "./sections/diag.js";
 import { initI2cSettings } from "./sections/i2c_settings.js";
 import { initSettings } from "./sections/settings.js";
 import { initRebootButtons } from "./reboot.js";
+import { initLiquidGlassTiles } from "./liquid_glass.js";
 
 initRouter();
 initSettings();
 initI2cSettings(loadHomeTiles);
 initDiag();
 initRebootButtons();
+initLiquidGlassTiles();
 loadHomeTiles();
