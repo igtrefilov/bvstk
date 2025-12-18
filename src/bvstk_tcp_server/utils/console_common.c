@@ -32,6 +32,7 @@ void console_print_banner(int fd)
         "| mem            | Memory info/tools           |\r\n",
         "| i2c            | I2C device shell            |\r\n",
         "| help           | List available utilities    |\r\n",
+        "| reboot         | Reboot via watchdog         |\r\n",
         "| quit / exit    | Close session               |\r\n",
         "+----------------+-----------------------------+\r\n",
         "\r\n",
