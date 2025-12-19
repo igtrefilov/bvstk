@@ -130,6 +130,21 @@ static void cmd_policy(int fd, size_t idx, const i2c_device_config_t *cfg, const
     write_str(fd, "ERR\r\n");
 }
 
+static void cmd_addr(int fd, size_t idx, const i2c_device_config_t *cfg, const char *s_addr)
+{
+    (void)idx;
+    if (!cfg || !s_addr) { write_str(fd, "ERR\r\n"); return; }
+    bool ok = false;
+    unsigned long a = parse_num(s_addr, &ok);
+    if (!ok || a > 0x7Ful) { write_str(fd, "ERR\r\n"); return; }
+    i2c_device_config_t *mut = (i2c_device_config_t *)cfg;
+    taskENTER_CRITICAL();
+    mut->addr_7b = (uint8_t)(a & 0x7Fu);
+    taskEXIT_CRITICAL();
+    persist_cfg(fd, cfg);
+    write_str(fd, "OK\r\n");
+}
+
 static void cmd_rule_edit(int fd, size_t idx, const i2c_device_config_t *cfg, const char *op, const char *s_reg, const char *s_val)
 {
     if (!op || !s_reg || !s_val) { write_str(fd, "ERR\r\n"); return; }
@@ -197,6 +212,7 @@ bool i2c_handle(char *tok, char **save, int fd)
     if (strcasecmp(cmd, "info") == 0) { cmd_info(fd, idx); return true; }
     if (strcasecmp(cmd, "r") == 0) { cmd_r(fd, idx, strtok_r(NULL, " \t", save)); return true; }
     if (strcasecmp(cmd, "w") == 0) { cmd_w(fd, idx, strtok_r(NULL, " \t", save), strtok_r(NULL, " \t", save)); return true; }
+    if (strcasecmp(cmd, "addr") == 0 || strcasecmp(cmd, "address") == 0) { cmd_addr(fd, idx, cfg, strtok_r(NULL, " \t", save)); return true; }
     if (strcasecmp(cmd, "policy") == 0) { cmd_policy(fd, idx, cfg, strtok_r(NULL, " \t", save)); return true; }
     if (strcasecmp(cmd, "rules") == 0) { cmd_rules(fd, idx, cfg); return true; }
     if (strcasecmp(cmd, "allow") == 0 || strcasecmp(cmd, "deny") == 0 || strcasecmp(cmd, "clear") == 0) {
@@ -217,6 +233,7 @@ void i2c_help(int fd)
     write_str(fd, "  i2c <name> [info]\r\n");
     write_str(fd, "  i2c <name> r <reg>\r\n");
     write_str(fd, "  i2c <name> w <reg> <val>\r\n");
+    write_str(fd, "  i2c <name> addr <addr_7b>   (set 7-bit address, persists)\r\n");
     write_str(fd, "  i2c <name> rules\r\n");
     write_str(fd, "  i2c <name> policy <whitelist|blacklist>\r\n");
     write_str(fd, "  i2c <name> allow <reg> <val>\r\n");

@@ -159,6 +159,19 @@ static void cmd_policy(int fd, smi_phy_config_t *cfg, const char *mode)
     write_str(fd, "ERR\r\n");
 }
 
+static void cmd_phy_addr(int fd, smi_phy_config_t *cfg, const char *s_phy)
+{
+    if (!cfg || !s_phy) { write_str(fd, "ERR\r\n"); return; }
+    bool ok = false;
+    unsigned long phy = parse_num(s_phy, &ok);
+    if (!ok || phy > 31ul) { write_str(fd, "ERR\r\n"); return; }
+    taskENTER_CRITICAL();
+    cfg->phy_addr = (uint8_t)(phy & 0x1Fu);
+    taskEXIT_CRITICAL();
+    persist_cfg(fd, cfg);
+    write_str(fd, "OK\r\n");
+}
+
 static int u8_list_contains(const uint8_t *a, size_t len, uint8_t v)
 {
     if (!a) return 0;
@@ -333,6 +346,7 @@ static void cmd_help_smi(int fd)
     write_str(fd, "  smi <sel> r <reg>\r\n");
     write_str(fd, "  smi <sel> w <reg> <data>\r\n");
     write_str(fd, "  smi <sel> rules\r\n");
+    write_str(fd, "  smi <sel> phy <phy_addr>   (set PHY address, persists)\r\n");
     write_str(fd, "  smi <sel> policy <whitelist|blacklist>\r\n");
     write_str(fd, "  smi <sel> allow <reg>\r\n");
     write_str(fd, "  smi <sel> deny <reg>\r\n");
@@ -384,6 +398,7 @@ bool smi_handle(char *tok, char **save, int fd)
     if (strcasecmp(cmd, "info") == 0) { cmd_info(fd, cfg); return true; }
     if (strcasecmp(cmd, "r") == 0) { cmd_r(fd, cfg->phy_addr, strtok_r(NULL, " \t", save)); return true; }
     if (strcasecmp(cmd, "w") == 0) { cmd_w(fd, cfg->phy_addr, strtok_r(NULL, " \t", save), strtok_r(NULL, " \t", save)); return true; }
+    if (strcasecmp(cmd, "phy") == 0 || strcasecmp(cmd, "addr") == 0 || strcasecmp(cmd, "address") == 0) { cmd_phy_addr(fd, cfg, strtok_r(NULL, " \t", save)); return true; }
     if (strcasecmp(cmd, "policy") == 0) { cmd_policy(fd, cfg, strtok_r(NULL, " \t", save)); return true; }
     if (strcasecmp(cmd, "rules") == 0) { cmd_rules(fd, cfg); return true; }
     if (strcasecmp(cmd, "allow") == 0 || strcasecmp(cmd, "deny") == 0 || strcasecmp(cmd, "clear") == 0) {
