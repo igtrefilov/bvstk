@@ -20,6 +20,7 @@
 #define CONFIG_DIR_FALLBACK "configs"
 #define NETWORK_CFG_NAME "network.json"
 #define I2C_CFG_SUBDIR_NAME "i2c"
+#define SMI_CFG_SUBDIR_NAME "smi"
 
 static void build_flash_path(char *out, size_t out_sz, const char *suffix_no_slash);
 static int file_exists(const char *path);
@@ -66,8 +67,11 @@ static volatile int s_ready = 0;
 static network_config_t s_net_cfg;
 static i2c_device_config_t s_i2c_cfgs[I2C_CFG_MAX_DEVICES];
 static size_t s_i2c_cfg_count = 0;
+static smi_phy_config_t s_smi_cfgs[SMI_CFG_MAX_DEVICES];
+static size_t s_smi_cfg_count = 0;
 static char s_cfg_buf[16384];
 static char s_i2c_save_buf[16384];
+static char s_smi_save_buf[8192];
 
 static void config_apply_defaults(network_config_t *cfg)
 {
@@ -380,6 +384,67 @@ static int json_parse_rules_array(const char *p, i2c_rule_entry_t *out, size_t o
     return 1;
 }
 
+static int json_parse_smi_settings_array(const char *p, smi_setting_entry_t *out, size_t out_max, size_t *out_len)
+{
+    if (out_len) *out_len = 0;
+    if (!p || !out || out_max == 0) return 0;
+    p = skip_ws(p);
+    if (*p != '[') return 0;
+    p++;
+    size_t n = 0;
+    for (;;) {
+        p = skip_ws(p);
+        if (!*p) return 0;
+        if (*p == ']') { p++; break; }
+        if (*p != '{') return 0;
+        p++;
+        int have_reg = 0, have_val = 0;
+        uint32_t reg = 0, val = 0;
+        for (;;) {
+            p = skip_ws(p);
+            if (!*p) return 0;
+            if (*p == '}') { p++; break; }
+            char key[24];
+            int okk = 0;
+            p = parse_json_string_inplace(p, key, sizeof(key), &okk);
+            if (!okk) return 0;
+            p = skip_ws(p);
+            if (*p != ':') return 0;
+            p++;
+            if (strcmp(key, "reg") == 0) {
+                int okn = 0;
+                p = parse_json_u32_inplace(p, &reg, &okn);
+                have_reg = okn;
+            } else if (strcmp(key, "val") == 0) {
+                int okn = 0;
+                p = parse_json_u32_inplace(p, &val, &okn);
+                have_val = okn;
+            } else {
+                int okv = 0;
+                p = skip_json_value_simple(p, &okv);
+                if (!okv) return 0;
+            }
+
+            p = skip_ws(p);
+            if (*p == ',') { p++; continue; }
+            if (*p == '}') { p++; break; }
+            return 0;
+        }
+        if (have_reg && have_val && n < out_max) {
+            if (reg > 31u || val > 0xFFFFu) return 0;
+            out[n].reg = (uint8_t)(reg & 0xFFu);
+            out[n].val = (uint16_t)(val & 0xFFFFu);
+            n++;
+        }
+        p = skip_ws(p);
+        if (*p == ',') { p++; continue; }
+        if (*p == ']') { p++; break; }
+        return 0;
+    }
+    if (out_len) *out_len = n;
+    return 1;
+}
+
 static int parse_mac(const char *s, uint8_t out_mac[6])
 {
     if (!s || !out_mac) return 0;
@@ -566,6 +631,127 @@ static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
     return 1;
 }
 
+static void smi_cfg_clear(smi_phy_config_t *cfg)
+{
+    if (!cfg) return;
+    memset(cfg, 0, sizeof(*cfg));
+    cfg->policy = SMI_POLICY_WHITELIST;
+    cfg->autopoll_enabled = false;
+    cfg->autopoll_cycle_delay_ms = 1000u;
+    cfg->reg_count = 32u;
+}
+
+static int parse_smi_phy_json(const char *json, smi_phy_config_t *cfg)
+{
+    if (!json || !cfg) return 0;
+    smi_cfg_clear(cfg);
+
+    const char *p = find_key(json, "name");
+    if (!p) return 0;
+    {
+        int ok = 0;
+        (void)parse_json_string_inplace(p, cfg->name, sizeof(cfg->name), &ok);
+        if (!ok || !cfg->name[0]) return 0;
+    }
+
+    p = find_key(json, "phy_addr");
+    if (!p) return 0;
+    {
+        uint32_t v = 0;
+        int ok = 0;
+        (void)parse_json_u32_inplace(p, &v, &ok);
+        if (!ok || v > 31u) return 0;
+        cfg->phy_addr = (uint8_t)v;
+    }
+
+    p = find_key(json, "reg_count");
+    if (!p) return 0;
+    {
+        uint32_t v = 0;
+        int ok = 0;
+        (void)parse_json_u32_inplace(p, &v, &ok);
+        if (!ok || v == 0u || v > 32u) return 0;
+        cfg->reg_count = (uint8_t)v;
+    }
+
+    p = find_key(json, "policy");
+    if (!p) return 0;
+    {
+        char pol[16];
+        int ok = 0;
+        (void)parse_json_string_inplace(p, pol, sizeof(pol), &ok);
+        if (!ok) return 0;
+        if (strcasecmp(pol, "whitelist") == 0) cfg->policy = SMI_POLICY_WHITELIST;
+        else if (strcasecmp(pol, "blacklist") == 0) cfg->policy = SMI_POLICY_BLACKLIST;
+        else return 0;
+    }
+
+    int b = 0;
+    if (find_key(json, "autopoll_enabled")) {
+        if (!json_get_bool(json, "autopoll_enabled", &b)) return 0;
+        cfg->autopoll_enabled = (b != 0);
+    }
+
+    p = find_key(json, "autopoll_reg_delay_ms");
+    if (p) {
+        uint32_t v = 0;
+        int ok = 0;
+        (void)parse_json_u32_inplace(p, &v, &ok);
+        if (!ok) return 0;
+        cfg->autopoll_reg_delay_ms = v;
+    }
+    p = find_key(json, "autopoll_cycle_delay_ms");
+    if (p) {
+        uint32_t v = 0;
+        int ok = 0;
+        (void)parse_json_u32_inplace(p, &v, &ok);
+        if (!ok) return 0;
+        cfg->autopoll_cycle_delay_ms = v;
+    }
+
+    p = find_key(json, "autopoll_regs");
+    if (p) {
+        size_t n = 0;
+        if (!json_parse_num_array_u8(p, cfg->autopoll_regs, SMI_CFG_AUTOPOLL_REGS_MAX, &n)) return 0;
+        cfg->autopoll_regs_len = n;
+    }
+
+    p = find_key(json, "write_allow_regs");
+    if (p) {
+        size_t n = 0;
+        if (!json_parse_num_array_u8(p, cfg->write_allow_regs, SMI_CFG_WRITE_REGS_MAX, &n)) return 0;
+        cfg->write_allow_regs_len = n;
+    }
+    p = find_key(json, "write_deny_regs");
+    if (p) {
+        size_t n = 0;
+        if (!json_parse_num_array_u8(p, cfg->write_deny_regs, SMI_CFG_WRITE_REGS_MAX, &n)) return 0;
+        cfg->write_deny_regs_len = n;
+    }
+
+    p = find_key(json, "settings");
+    if (p) {
+        size_t n = 0;
+        if (!json_parse_smi_settings_array(p, cfg->settings, SMI_CFG_SETTINGS_MAX, &n)) return 0;
+        cfg->settings_len = n;
+    }
+
+    for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
+        if (cfg->autopoll_regs[i] >= cfg->reg_count) return 0;
+    }
+    for (size_t i = 0; i < cfg->write_allow_regs_len; ++i) {
+        if (cfg->write_allow_regs[i] >= cfg->reg_count) return 0;
+    }
+    for (size_t i = 0; i < cfg->write_deny_regs_len; ++i) {
+        if (cfg->write_deny_regs[i] >= cfg->reg_count) return 0;
+    }
+    for (size_t i = 0; i < cfg->settings_len; ++i) {
+        if (cfg->settings[i].reg >= cfg->reg_count) return 0;
+    }
+
+    return 1;
+}
+
 static void config_task(void *arg)
 {
     (void)arg;
@@ -579,11 +765,16 @@ static void config_task(void *arg)
     char dir_path[96], dir_path_fb[96];
     char net_cfg_path[128], net_cfg_path_fb[128];
     char i2c_dir_path[128], i2c_dir_path_fb[128];
+    char smi_dir_path[128], smi_dir_path_fb[128];
     build_cfg_path(dir_path, sizeof(dir_path), dir_path_fb, sizeof(dir_path_fb), "");
     build_cfg_path(net_cfg_path, sizeof(net_cfg_path), net_cfg_path_fb, sizeof(net_cfg_path_fb), NETWORK_CFG_NAME);
     build_cfg_path(i2c_dir_path, sizeof(i2c_dir_path), i2c_dir_path_fb, sizeof(i2c_dir_path_fb), I2C_CFG_SUBDIR_NAME);
+    build_cfg_path(smi_dir_path, sizeof(smi_dir_path), smi_dir_path_fb, sizeof(smi_dir_path_fb), SMI_CFG_SUBDIR_NAME);
 
-    if (!dir_path[0] || !dir_path_fb[0] || !net_cfg_path[0] || !net_cfg_path_fb[0] || !i2c_dir_path[0] || !i2c_dir_path_fb[0]) {
+    if (!dir_path[0] || !dir_path_fb[0] ||
+        !net_cfg_path[0] || !net_cfg_path_fb[0] ||
+        !i2c_dir_path[0] || !i2c_dir_path_fb[0] ||
+        !smi_dir_path[0] || !smi_dir_path_fb[0]) {
         xil_printf("CFG: path build failed\r\n");
         goto done;
     }
@@ -603,6 +794,23 @@ static void config_task(void *arg)
             char cfg_path[160], cfg_path_fb[160];
             char suf[96];
             snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_SUBDIR_NAME, d->file_name);
+            build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
+            if (!cfg_path[0] || !cfg_path_fb[0]) continue;
+            if (!file_exists(cfg_path) && !file_exists(cfg_path_fb)) {
+                if (!write_file_atomic(cfg_path, d->json, d->json_len)) {
+                    xil_printf("CFG: failed to write default %s\r\n", cfg_path);
+                } else {
+                    xil_printf("CFG: wrote default %s\r\n", cfg_path);
+                }
+            }
+        }
+
+        (void)ensure_dir_exists(smi_dir_path);
+        for (unsigned i = 0; i < DEFAULT_SMI_CONFIG_FILES_COUNT; ++i) {
+            const default_json_file_t *d = &DEFAULT_SMI_CONFIG_FILES[i];
+            char cfg_path[160], cfg_path_fb[160];
+            char suf[96];
+            snprintf(suf, sizeof(suf), "%s/%s", SMI_CFG_SUBDIR_NAME, d->file_name);
             build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
             if (!cfg_path[0] || !cfg_path_fb[0]) continue;
             if (!file_exists(cfg_path) && !file_exists(cfg_path_fb)) {
@@ -639,6 +847,36 @@ static void config_task(void *arg)
                     char src_p[200], dst_p[200];
                     int sn = snprintf(src_p, sizeof(src_p), "%s/%s", i2c_dir_path_fb, fn);
                     int dn = snprintf(dst_p, sizeof(dst_p), "%s/%s", i2c_dir_path, fn);
+                    if (sn <= 0 || dn <= 0) continue;
+                    if ((size_t)sn >= sizeof(src_p) || (size_t)dn >= sizeof(dst_p)) continue;
+                    if (file_exists(dst_p)) continue;
+                    if (copy_file_atomic(src_p, dst_p, s_cfg_buf, sizeof(s_cfg_buf))) {
+                        xil_printf("CFG: migrated %s -> %s\r\n", src_p, dst_p);
+                    }
+                }
+                (void)f_closedir(&d);
+            }
+        }
+
+        if (!dir_exists(smi_dir_path) && dir_exists(smi_dir_path_fb)) {
+            (void)ensure_dir_exists(smi_dir_path);
+        }
+        if (dir_exists(smi_dir_path_fb)) {
+            DIR d;
+            FILINFO fno;
+            if (f_opendir(&d, smi_dir_path_fb) == FR_OK) {
+                for (;;) {
+                    if (f_readdir(&d, &fno) != FR_OK) break;
+                    if (!fno.fname[0]) break;
+                    if (fno.fattrib & AM_DIR) continue;
+                    const char *fn = fno.fname;
+                    size_t fl = strlen(fn);
+                    if (fl < 6) continue;
+                    if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
+
+                    char src_p[200], dst_p[200];
+                    int sn = snprintf(src_p, sizeof(src_p), "%s/%s", smi_dir_path_fb, fn);
+                    int dn = snprintf(dst_p, sizeof(dst_p), "%s/%s", smi_dir_path, fn);
                     if (sn <= 0 || dn <= 0) continue;
                     if ((size_t)sn >= sizeof(src_p) || (size_t)dn >= sizeof(dst_p)) continue;
                     if (file_exists(dst_p)) continue;
@@ -714,6 +952,56 @@ static void config_task(void *arg)
         }
     }
 
+    s_smi_cfg_count = 0;
+    if (qspi_fs_is_ready()) {
+        for (int pass = 0; pass < 2; ++pass) {
+            const char *scan_dir = (pass == 0) ? smi_dir_path : smi_dir_path_fb;
+            if (!scan_dir || !scan_dir[0] || !dir_exists(scan_dir)) continue;
+            DIR d;
+            FILINFO fno;
+            if (f_opendir(&d, scan_dir) != FR_OK) continue;
+            for (;;) {
+                if (f_readdir(&d, &fno) != FR_OK) break;
+                if (!fno.fname[0]) break;
+                if (fno.fattrib & AM_DIR) continue;
+                const char *fn = fno.fname;
+                size_t fl = strlen(fn);
+                if (fl < 6) continue;
+                if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
+                if (s_smi_cfg_count >= SMI_CFG_MAX_DEVICES) break;
+
+                char pth[200];
+                int pn = snprintf(pth, sizeof(pth), "%s/%s", scan_dir, fn);
+                if (pn <= 0 || (size_t)pn >= sizeof(pth)) continue;
+                if (!read_file_to_buf(pth, s_cfg_buf, sizeof(s_cfg_buf), &blen)) continue;
+                smi_phy_config_t tmp;
+                if (!parse_smi_phy_json(s_cfg_buf, &tmp)) continue;
+
+                /* Avoid duplicates by device name (primary dir wins). */
+                bool dup = false;
+                for (size_t j = 0; j < s_smi_cfg_count; ++j) {
+                    if (strcasecmp(s_smi_cfgs[j].name, tmp.name) == 0) { dup = true; break; }
+                }
+                if (dup) continue;
+
+                strncpy(tmp.file_name, fn, sizeof(tmp.file_name) - 1);
+                tmp.file_name[sizeof(tmp.file_name) - 1] = '\0';
+                s_smi_cfgs[s_smi_cfg_count++] = tmp;
+            }
+            (void)f_closedir(&d);
+        }
+    }
+    if (s_smi_cfg_count == 0) {
+        for (unsigned i = 0; i < DEFAULT_SMI_CONFIG_FILES_COUNT && s_smi_cfg_count < SMI_CFG_MAX_DEVICES; ++i) {
+            const default_json_file_t *d = &DEFAULT_SMI_CONFIG_FILES[i];
+            smi_phy_config_t tmp;
+            if (!parse_smi_phy_json(d->json, &tmp)) continue;
+            strncpy(tmp.file_name, d->file_name, sizeof(tmp.file_name) - 1);
+            tmp.file_name[sizeof(tmp.file_name) - 1] = '\0';
+            s_smi_cfgs[s_smi_cfg_count++] = tmp;
+        }
+    }
+
 done:
     s_ready = 1;
     vTaskDelete(NULL);
@@ -726,6 +1014,8 @@ int start_config_store(void)
     memset(&s_net_cfg, 0, sizeof(s_net_cfg));
     memset(s_i2c_cfgs, 0, sizeof(s_i2c_cfgs));
     s_i2c_cfg_count = 0;
+    memset(s_smi_cfgs, 0, sizeof(s_smi_cfgs));
+    s_smi_cfg_count = 0;
     BaseType_t rc = xTaskCreate(config_task, "cfg", CONFIG_TASK_STACK, NULL, CONFIG_TASK_PRIO, &s_task);
     return (rc == pdPASS) ? 1 : 0;
 }
@@ -804,6 +1094,56 @@ int config_store_set_i2c_device(const i2c_device_config_t *cfg)
     }
     if (s_i2c_cfg_count < I2C_CFG_MAX_DEVICES) {
         s_i2c_cfgs[s_i2c_cfg_count++] = *cfg;
+        return 1;
+    }
+    return 0;
+}
+
+size_t config_store_get_smi_device_count(void)
+{
+    return config_store_is_ready() ? s_smi_cfg_count : 0u;
+}
+
+const smi_phy_config_t *config_store_get_smi_devices(void)
+{
+    return config_store_is_ready() ? s_smi_cfgs : NULL;
+}
+
+const smi_phy_config_t *config_store_find_smi_device_by_name(const char *name)
+{
+    if (!config_store_is_ready() || !name || !name[0]) return NULL;
+    for (size_t i = 0; i < s_smi_cfg_count; ++i) {
+        if (strcasecmp(s_smi_cfgs[i].name, name) == 0) return &s_smi_cfgs[i];
+    }
+    return NULL;
+}
+
+const smi_phy_config_t *config_store_find_smi_device_by_phy(uint8_t phy_addr)
+{
+    if (!config_store_is_ready()) return NULL;
+    uint8_t phy = (uint8_t)(phy_addr & 0x1Fu);
+    for (size_t i = 0; i < s_smi_cfg_count; ++i) {
+        if ((s_smi_cfgs[i].phy_addr & 0x1Fu) == phy) return &s_smi_cfgs[i];
+    }
+    return NULL;
+}
+
+int config_store_set_smi_device(const smi_phy_config_t *cfg)
+{
+    if (!config_store_is_ready() || !cfg || !cfg->name[0]) return 0;
+    for (size_t i = 0; i < s_smi_cfg_count; ++i) {
+        if (strcasecmp(s_smi_cfgs[i].name, cfg->name) == 0) {
+            char fn[SMI_CFG_FILE_NAME_MAX];
+            strncpy(fn, s_smi_cfgs[i].file_name, sizeof(fn) - 1);
+            fn[sizeof(fn) - 1] = '\0';
+            s_smi_cfgs[i] = *cfg;
+            strncpy(s_smi_cfgs[i].file_name, fn, sizeof(s_smi_cfgs[i].file_name) - 1);
+            s_smi_cfgs[i].file_name[sizeof(s_smi_cfgs[i].file_name) - 1] = '\0';
+            return 1;
+        }
+    }
+    if (s_smi_cfg_count < SMI_CFG_MAX_DEVICES) {
+        s_smi_cfgs[s_smi_cfg_count++] = *cfg;
         return 1;
     }
     return 0;
@@ -982,6 +1322,124 @@ int config_store_save_i2c_device(const i2c_device_config_t *cfg)
     if (ok && dir_exists(root_dir_path_fb)) {
         (void)ensure_dir_exists(root_dir_path_fb);
         (void)ensure_dir_exists(i2c_dir_path_fb);
+        (void)write_file_atomic(cfg_path_fb, json, pos);
+    }
+    return ok;
+}
+
+int config_store_save_smi_device(const smi_phy_config_t *cfg)
+{
+    if (!config_store_is_ready() || !cfg || !cfg->name[0]) return 0;
+
+    if (!qspi_fs_is_ready()) return 0;
+
+    char root_dir_path[96], root_dir_path_fb[96];
+    char smi_dir_path[128], smi_dir_path_fb[128];
+    build_cfg_path(root_dir_path, sizeof(root_dir_path), root_dir_path_fb, sizeof(root_dir_path_fb), "");
+    build_cfg_path(smi_dir_path, sizeof(smi_dir_path), smi_dir_path_fb, sizeof(smi_dir_path_fb), SMI_CFG_SUBDIR_NAME);
+    if (!root_dir_path[0] || !root_dir_path_fb[0] || !smi_dir_path[0] || !smi_dir_path_fb[0]) return 0;
+    if (!ensure_dir_exists(root_dir_path)) return 0;
+    if (!ensure_dir_exists(smi_dir_path)) return 0;
+
+    char *json = s_smi_save_buf;
+    const size_t json_cap = sizeof(s_smi_save_buf);
+    size_t pos = 0;
+    const char *pol = (cfg->policy == SMI_POLICY_BLACKLIST) ? "blacklist" : "whitelist";
+    int n = snprintf(json + pos, json_cap - pos,
+        "{\n"
+        "  \"name\": \"%s\",\n"
+        "  \"phy_addr\": %u,\n"
+        "  \"reg_count\": %u,\n"
+        "  \"policy\": \"%s\",\n"
+        "  \"autopoll_enabled\": %s,\n"
+        "  \"autopoll_reg_delay_ms\": %u,\n"
+        "  \"autopoll_cycle_delay_ms\": %u,\n"
+        "  \"autopoll_regs\": [",
+        cfg->name,
+        (unsigned)(cfg->phy_addr & 0x1Fu),
+        (unsigned)cfg->reg_count,
+        pol,
+        cfg->autopoll_enabled ? "true" : "false",
+        (unsigned)cfg->autopoll_reg_delay_ms,
+        (unsigned)cfg->autopoll_cycle_delay_ms);
+    if (n <= 0) return 0;
+    pos += (size_t)n;
+    if (pos >= json_cap) return 0;
+
+    for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
+        n = snprintf(json + pos, json_cap - pos, "%s%u",
+                     (i == 0) ? "" : ", ",
+                     (unsigned)cfg->autopoll_regs[i]);
+        if (n <= 0) return 0;
+        pos += (size_t)n;
+        if (pos >= json_cap) return 0;
+    }
+
+    n = snprintf(json + pos, json_cap - pos, "],\n  \"write_allow_regs\": [");
+    if (n <= 0) return 0;
+    pos += (size_t)n;
+    if (pos >= json_cap) return 0;
+
+    for (size_t i = 0; i < cfg->write_allow_regs_len; ++i) {
+        n = snprintf(json + pos, json_cap - pos, "%s%u",
+                     (i == 0) ? "" : ", ",
+                     (unsigned)cfg->write_allow_regs[i]);
+        if (n <= 0) return 0;
+        pos += (size_t)n;
+        if (pos >= json_cap) return 0;
+    }
+
+    n = snprintf(json + pos, json_cap - pos, "],\n  \"write_deny_regs\": [");
+    if (n <= 0) return 0;
+    pos += (size_t)n;
+    if (pos >= json_cap) return 0;
+
+    for (size_t i = 0; i < cfg->write_deny_regs_len; ++i) {
+        n = snprintf(json + pos, json_cap - pos, "%s%u",
+                     (i == 0) ? "" : ", ",
+                     (unsigned)cfg->write_deny_regs[i]);
+        if (n <= 0) return 0;
+        pos += (size_t)n;
+        if (pos >= json_cap) return 0;
+    }
+
+    n = snprintf(json + pos, json_cap - pos, "],\n  \"settings\": [\n");
+    if (n <= 0) return 0;
+    pos += (size_t)n;
+    if (pos >= json_cap) return 0;
+
+    for (size_t i = 0; i < cfg->settings_len; ++i) {
+        n = snprintf(json + pos, json_cap - pos,
+                     "    { \"reg\": %u, \"val\": %u }%s\n",
+                     (unsigned)cfg->settings[i].reg,
+                     (unsigned)cfg->settings[i].val,
+                     (i + 1 == cfg->settings_len) ? "" : ",");
+        if (n <= 0) return 0;
+        pos += (size_t)n;
+        if (pos >= json_cap) return 0;
+    }
+
+    n = snprintf(json + pos, json_cap - pos, "  ]\n}\n");
+    if (n <= 0) return 0;
+    pos += (size_t)n;
+    if (pos >= json_cap) return 0;
+
+    char cfg_path[160], cfg_path_fb[160];
+    char suf[96];
+    const char *fn = (cfg->file_name[0] ? cfg->file_name : NULL);
+    char tmp_fn[SMI_CFG_FILE_NAME_MAX];
+    if (!fn) {
+        snprintf(tmp_fn, sizeof(tmp_fn), "%s.json", cfg->name);
+        fn = tmp_fn;
+    }
+    snprintf(suf, sizeof(suf), "%s/%s", SMI_CFG_SUBDIR_NAME, fn);
+    build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
+    if (!cfg_path[0] || !cfg_path_fb[0]) return 0;
+
+    int ok = write_file_atomic(cfg_path, json, pos) ? 1 : 0;
+    if (ok && dir_exists(root_dir_path_fb)) {
+        (void)ensure_dir_exists(root_dir_path_fb);
+        (void)ensure_dir_exists(smi_dir_path_fb);
         (void)write_file_atomic(cfg_path_fb, json, pos);
     }
     return ok;

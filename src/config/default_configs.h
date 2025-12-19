@@ -20,4 +20,12 @@ static const default_json_file_t DEFAULT_I2C_CONFIG_FILES[] = {
 };
 static const unsigned int DEFAULT_I2C_CONFIG_FILES_COUNT = 1u;
 
+static const char DEFAULT_SMI_LAN8720_JSON[] = "{\n  \"name\": \"lan8720\",\n  \"phy_addr\": 1,\n  \"reg_count\": 32,\n  \"policy\": \"whitelist\",\n  \"autopoll_enabled\": true,\n  \"autopoll_reg_delay_ms\": 0,\n  \"autopoll_cycle_delay_ms\": 1000,\n  \"autopoll_regs\": [0, 1, 4, 5, 17, 31],\n  \"write_allow_regs\": [0, 4, 18, 30, 31],\n  \"write_deny_regs\": [],\n  \"settings\": []\n}\n";
+static const unsigned int DEFAULT_SMI_LAN8720_JSON_LEN = 304u;
+
+static const default_json_file_t DEFAULT_SMI_CONFIG_FILES[] = {
+    { "lan8720.json", DEFAULT_SMI_LAN8720_JSON, DEFAULT_SMI_LAN8720_JSON_LEN },
+};
+static const unsigned int DEFAULT_SMI_CONFIG_FILES_COUNT = 1u;
+
 #endif /* DEFAULT_CONFIGS_H */

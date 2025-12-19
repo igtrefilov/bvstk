@@ -46,9 +46,9 @@ void smi_task(void *pvParameters);
 void mdio_write(uint8_t phy, uint8_t reg, uint16_t data);
 void mdio_read (uint8_t phy, uint8_t reg);
 bool mdio_read_blocking(uint8_t phy, uint8_t reg, uint16_t *out_value, TickType_t timeout_ticks);
+bool smi_write_checked(uint8_t phy, uint8_t reg, uint16_t data);
 void timeout_write(uint16_t timeout);
 uint16_t timeout_read();
 void smi_irq_install(void);
 
 #endif
-

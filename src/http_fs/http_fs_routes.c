@@ -1082,7 +1082,10 @@ static void api_diag_smi_write(http_conn_t *conn)
     if (!json_get_u32_val(body, "phy", &phy) || phy > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad phy\r\n"); return; }
     if (!json_get_u32_val(body, "reg", &reg) || reg > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad reg\r\n"); return; }
     if (!json_get_u32_val(body, "val", &val) || val > 0xFFFFu) { http_reply_simple(conn->fd, 400, "Bad Request", "bad val\r\n"); return; }
-    mdio_write((uint8_t)phy, (uint8_t)reg, (uint16_t)val);
+    if (!smi_write_checked((uint8_t)phy, (uint8_t)reg, (uint16_t)val)) {
+        http_reply_simple(conn->fd, 403, "Forbidden", "DENIED\r\n");
+        return;
+    }
     http_reply_json_hdr(conn->fd, 200, "OK");
     http_write_str(conn->fd, "{\"ok\":true}\n");
 }
