@@ -63,14 +63,6 @@
   - [Веб‑ресурсы и деплой](#web-resursy-i-deploy)
     - [Структура web/assets](#web-struktura-webassets)
     - [Загрузка в flash:/www/](#web-zagruzka-v-flashwww)
-  - [Диагностика и безопасность](#diagnostika-i-bezopasnost)
-    - [Диагностические команды/эндпоинты и риски](#diagnostika-komandy-endpointy-i-riski)
-    - [Рекомендации по ограничению доступа](#diagnostika-rekomendatsii-po-ogranicheniyu-dostupa)
-  - [FAQ / Troubleshooting](#faq--troubleshooting)
-    - [xsct/окружение](#faq-xsct-okruzhenie)
-    - [Bitstream/PS init](#faq-bitstream-ps-init)
-    - [QSPI FS и разметка](#faq-qspi-fs-i-razmetka)
-    - [Сеть/консоль/HTTP](#faq-set-konsol-http)
   - [Приложения](#prilozheniya)
     - [Карта директорий](#prilozheniya-karta-direktoriy)
     - [Таблица портов/протоколов](#prilozheniya-tablitsa-portov-protokolov)
@@ -1803,16 +1795,193 @@ HTTP‑сервер — это тонкий слой поверх lwIP sockets, 
 
 **Ограничения**
 - API‑`PUT` читает тело в фиксированный буфер (порядка сотен/тысяч байт); передавайте компактный JSON. Файловые `PUT`/`tar` идут потоково и не требуют “влезать” в буфер.
-- Роутинг и фильтрация путей **не заменяют** модель безопасности: файловые `PUT` и диагностические `PUT /api/diag/*` предполагают доверенный контур (см. раздел “Диагностика и безопасность”).
+- Роутинг и фильтрация путей **не заменяют** модель безопасности: файловые `PUT` и диагностические `PUT /api/diag/*` предполагают доверенный контур и осторожное применение.
 
 <a id="http-api"></a>
 ### /api/*
 
+`/api/*` — это небольшой JSON‑API для управления устройством и получения статуса. Он специально “плоский”: без авторизации/сессий, без keep‑alive, без стриминга JSON. Для операций, где нужна безопасность, используются явные “опасные” эндпоинты (`/api/diag/*`) и флаг подтверждения.
+
+Общее:
+- Методы: только `GET` и `PUT` (иначе `405`).
+- `PUT` требует `Content-Length` или `Transfer-Encoding: chunked` (иначе `411`).
+- Успешные ответы — `200` + JSON, ошибки — чаще `text/plain` с кодом `4xx/5xx` (см. “Роутинг и форматы ответов”).
+
+#### `GET /api/version`
+Сборочная информация.
+- Ответ (пример):
+  - `{"build_date":"Jan 14 2026","build_time":"13:21:09","http_port":80}`
+
+#### `GET /api/rtos`
+Статус FreeRTOS/памяти.
+- Ответ:
+  - `uptime_ms` — аптайм в миллисекундах.
+  - `tick_rate_hz` — `configTICK_RATE_HZ`.
+  - `heap_free`, `heap_min_ever` — текущий/минимальный за жизнь free heap.
+
+#### `GET /api/net`
+Текущее состояние сети (по `netif`).
+- Ответ:
+  - `ip`, `netmask`, `gateway`, `mac` — строки.
+  - `mode` — `"dhcp"` или `"static"`.
+  - `dhcp`, `up`, `link_up` — bool.
+
+#### `PUT /api/net`
+Записать сетевые настройки в `config_store` (и опционально применить на лету).
+- Входной JSON:
+  - `ip` — `"a.b.c.d"` или `"a.b.c.d/prefix"`.
+  - `netmask` — `"a.b.c.d"` (если `ip` без `/prefix`).
+  - `prefix` — число 0..32 (альтернатива `netmask`, если `ip` без `/prefix`).
+  - `gateway` — `"a.b.c.d"`.
+  - `mac` — `"aa:bb:cc:dd:ee:ff"`.
+  - `apply` — `true|false` (по умолчанию `true`): применить к `netif` сразу.
+- Ответ:
+  - `{"ok":true,"saved":true|false,"applied":true|false}`
+- Пример:
+  - `curl -X PUT -H 'Content-Type: application/json' --data '{\"ip\":\"192.168.1.10/24\",\"gateway\":\"192.168.1.1\",\"mac\":\"02:12:34:56:78:9a\",\"apply\":true}' http://<ip>/api/net`
+
+#### `GET /api/fs`
+Состояние томов `flash`/`sd`.
+- Ответ:
+  - `{"volumes":[{"name":"flash","ready":true,"total_bytes":...,"free_bytes":...}, ...]}`
+
+#### `GET /api/qspi`
+Состояние QSPI FS и её диапазон во флеше.
+- Ответ:
+  - `ready` — готов ли `flash:/` (QSPI том).
+  - `fs_base_bytes`, `fs_size_bytes` — базовый оффсет/размер FS (в байтах).
+
+#### `GET /api/i2c` и `GET /api/i2c?name=<device>`
+Конфигурация I²C‑устройств из `config_store`.
+- Общий ответ содержит `ready` (готов ли `config_store`).
+- `GET /api/i2c` возвращает “список”:
+  - `count` и `devices[]` (краткая сводка: `name`, `addr_7b`, `file_name`, `policy`, длины списков/настроек).
+- `GET /api/i2c?name=...` возвращает “одно устройство”:
+  - `device{ name, addr_7b, file_name, policy, autopoll_enabled, autopoll_reg_delay_ms, autopoll_cycle_delay_ms, autopoll_regs[], whitelist[], blacklist[] }`
+  - Если имя неизвестно, сервер всё равно отвечает `200` и кладёт `error:"unknown device"` в JSON.
+- Примеры:
+  - `curl http://<ip>/api/i2c`
+  - `curl 'http://<ip>/api/i2c?name=rtc'`
+
+#### `PUT /api/i2c`
+Обновить конфиг одного I²C‑устройства (частичное обновление).
+- Требуется `name` (имя устройства в `config_store`), иначе `400`; неизвестное имя → `404`.
+- Изменяемые поля (передайте только то, что хотите поменять):
+  - `policy`: `"whitelist"` или `"blacklist"`.
+  - `autopoll_enabled`: bool.
+  - `autopoll_reg_delay_ms`, `autopoll_cycle_delay_ms`: числа.
+  - `autopoll_regs`: массив **десятичных** чисел 0..255 (полностью заменяет список).
+  - `whitelist`/`blacklist`: массивы объектов `{reg,val}` (0..255, допускаются `0x..`), полностью заменяют соответствующий список.
+- Не меняются через API: `addr_7b`, `file_name` (они берутся из существующего конфига).
+- Ответ:
+  - `{"ok":true,"saved":true|false}`
+- Пример:
+  - `curl -X PUT -H 'Content-Type: application/json' --data '{\"name\":\"rtc\",\"policy\":\"whitelist\",\"autopoll_enabled\":true,\"autopoll_regs\":[0,1,2]}' http://<ip>/api/i2c`
+
+#### `PUT /api/reboot`
+Инициировать перезагрузку (через watchdog) из отдельной задачи.
+- Входной JSON:
+  - `confirm:true` — обязательно.
+  - `delay_ms` — задержка перед перезагрузкой (по умолчанию `1000`, максимум `5000`).
+- Ответ:
+  - `{"ok":true,"rebooting":true}`
+- Пример:
+  - `curl -X PUT -H 'Content-Type: application/json' --data '{\"confirm\":true,\"delay_ms\":1000}' http://<ip>/api/reboot`
+
+#### Диагностика: `PUT /api/diag/*` (опасно)
+Эндпоинты прямого доступа для проверки “железа”:
+- `PUT /api/diag/i2c/read|write` — прямое чтение/запись I²C регистров (write подчиняется политике).
+- `PUT /api/diag/smi/read|write` — прямое чтение/запись MDIO регистров (write подчиняется политике).
+- `PUT /api/diag/mem/read|write` — MMIO/BRAM чтение/запись (требует `confirm:true` для write).
+
+Используйте диагностические эндпоинты только в доверенном контуре: они предназначены для проверки “железа” и дают доступ к реальным шинам/памяти.
+
 <a id="http-faylovyy-api"></a>
 ### Файловый API
 
+Файловый API даёт доступ к томам FatFs по HTTP и используется для:
+- загрузки/выгрузки отдельных файлов (`/sd/...`, `/flash/...`);
+- пакетной загрузки/выгрузки каталогов через tar (`/tar/...`).
+
+Поддерживаемые маршруты:
+- `GET/PUT /sd/<path>` → `sd:/<path>` (SD‑карта)
+- `GET/PUT /flash/<path>` → `flash:/<path>` (QSPI FS)
+- `GET/PUT /tar/sd/<dir>` → tar‑поток каталога `sd:/<dir>`
+- `GET/PUT /tar/flash/<dir>` → tar‑поток каталога `flash:/<dir>`
+
+**Правила путей**
+- URL‑путь декодируется (`%xx`, `+` → пробел).
+- Запрещены `..` и `:` (чтобы нельзя было выйти из корня тома/указать “диск” вручную).
+- Для Web UI дополнительно запрещён `\\`, но в файловом API используйте только `/`.
+
+#### Одиночные файлы: `/sd/...` и `/flash/...`
+**GET**: отдать файл как бинарный поток.
+- Если путь указывает на каталог — будет `404` (листинга директорий нет).
+- `Content-Type: application/octet-stream`, `Content-Length: <size>`.
+- Пример (скачать конфиг):
+  - `curl -o network.json http://<ip>/flash/config/network.json`
+
+**PUT**: записать/перезаписать файл.
+- Требуется `Content-Length` или `Transfer-Encoding: chunked` (иначе `411`).
+- Файл создаётся/перезаписывается целиком (`CREATE_ALWAYS`).
+- Промежуточные каталоги **не создаются**: если `flash:/config/...` не существует, получите `500 open failed`.
+- Пример (залить файл):
+  - `curl -T network.json http://<ip>/flash/config/network.json`
+
+#### Каталоги как tar: `/tar/...`
+Tar‑режим нужен, когда надо перенести дерево файлов (например, Web UI или набор конфигов) без десятков отдельных запросов.
+
+**GET**: “упаковать каталог в tar” и отдать поток.
+- `Content-Type: application/x-tar` (без `Content-Length`, поток до закрытия соединения).
+- Примеры:
+  - `curl -o www.tar http://<ip>/tar/flash/www`
+  - `curl -o cfg.tar http://<ip>/tar/flash/config`
+
+**PUT**: принять tar‑поток и распаковать *в указанный каталог*.
+- Требуется `Content-Length` или `chunked` (иначе `411`).
+- Каталог назначения создаётся рекурсивно (mkdir -p); внутри создаются подкаталоги и файлы.
+- Внутри tar запрещены абсолютные пути, `..` и `:` (защита от “выхода” из каталога назначения).
+- Примеры:
+  - `curl -T www.tar http://<ip>/tar/flash/www`
+  - `curl -T cfg.tar http://<ip>/tar/flash/config`
+
+**Практика**
+- Для обновления Web UI обычно удобнее tar‑PUT в `flash:/www/` (см. “Веб‑ресурсы и деплой”).
+- Для создания каталогов без tar используйте TCP‑консоль (`mkdir`) — файловый API сам по себе каталоги не создаёт.
+
 <a id="http-razdacha-web-ui"></a>
 ### Раздача Web UI
+
+Web UI раздаётся HTTP‑сервером как статика с QSPI‑тома: `flash:/www/` (см. также “Web UI в flash:/www/” и “Веб‑ресурсы и деплой”).
+
+Маршрут:
+- `GET /...` (любой путь, не попавший в `/api/*` и файловый API) маппится в файл внутри `flash:/www/`.
+- Методы кроме `GET` для Web UI не поддерживаются.
+
+Правила маппинга:
+- `/` → `flash:/www/index.html`.
+- `/dir/` → `flash:/www/dir/index.html` (если путь заканчивается `/`, подставляется `index.html`).
+- `?query` и `#fragment` игнорируются при выборе файла.
+- URL‑путь декодируется (`%xx`, `+` → пробел), но запрещены `..`, `:` и `\\` (защита от выхода из `www` и “windows‑путей”).
+
+Content‑Type:
+- Определяется по расширению файла:
+  - `.html/.htm` → `text/html; charset=utf-8`
+  - `.css` → `text/css; charset=utf-8`
+  - `.js` → `application/javascript; charset=utf-8`
+  - `.json` → `application/json; charset=utf-8`
+  - `.png` → `image/png`
+  - `.jpg/.jpeg` → `image/jpeg`
+  - `.svg` → `image/svg+xml`
+  - `.ico` → `image/x-icon`
+  - `.txt` → `text/plain; charset=utf-8`
+  - прочее → `application/octet-stream`
+
+Примеры:
+- Открыть главную страницу:
+  - `http://<ip>/`
+- Открыть страницу в подкаталоге:
+  - `http://<ip>/ui/` → `flash:/www/ui/index.html`
 
 <a id="web-resursy-i-deploy"></a>
 ## Веб‑ресурсы и деплой
@@ -1820,32 +1989,68 @@ HTTP‑сервер — это тонкий слой поверх lwIP sockets, 
 <a id="web-struktura-webassets"></a>
 ### Структура web/assets
 
+Каталог `web/assets/` — это **готовая статика** (без сборки): HTML/CSS/JS и картинки, которые должны оказаться на устройстве в `flash:/www/` и отдаваться HTTP‑сервером как Web UI.
+
+Минимально ожидаемая структура:
+- `web/assets/index.html` — точка входа (главная страница).
+- `web/assets/css/` — стили (например, `css/app.css`).
+- `web/assets/js/` — логика UI:
+  - `js/main.js` — входной модуль.
+  - `js/api.js` — клиент для `/api/*` (и диагностических `/api/diag/*`).
+  - `js/sections/*.js` — отдельные “вкладки/секции” интерфейса.
+- `web/assets/*.png|*.jpg|*.svg|*.ico` — статические ресурсы (логотип/фон и т.п.).
+
+Требование к путям внутри HTML:
+- Используйте **относительные** ссылки (`./css/...`, `./js/...`), чтобы одинаково работало при раздаче из `flash:/www/` и при открытии файла локально.
+
+Примечание про `manifest.json`:
+- При загрузке через `web/upload_flash_www.py` на устройстве создаётся `flash:/www/manifest.json` (sha256/размеры), чтобы в следующий раз грузить только изменившиеся файлы.
+
 <a id="web-zagruzka-v-flashwww"></a>
 ### Загрузка в flash:/www/
 
-<a id="diagnostika-i-bezopasnost"></a>
-## Диагностика и безопасность
+Ниже — практические способы положить содержимое `web/assets/` в `flash:/www/` (QSPI FS), чтобы оно стало доступно по `http://<ip>/`.
 
-<a id="diagnostika-komandy-endpointy-i-riski"></a>
-### Диагностические команды/эндпоинты и риски
+**Предусловия**
+- Устройство доступно по сети (HTTP: `:80`, TCP‑консоль: `:8888`).
+- QSPI том смонтирован (`flash:/` готов). Проверка:
+  - `GET /api/fs` (поле `volumes[].ready` для `flash`), или
+  - в TCP‑консоли: `fs` / `ls flash:/`.
 
-<a id="diagnostika-rekomendatsii-po-ogranicheniyu-dostupa"></a>
-### Рекомендации по ограничению доступа
+#### Способ A (рекомендуется): `upload_flash_www.sh` / `upload_flash_www.py`
+Скрипт создаёт директории через TCP‑консоль и загружает файлы через HTTP `PUT` в `/flash/www/...`.
 
-<a id="faq--troubleshooting"></a>
-## FAQ / Troubleshooting
+- Быстрый старт:
+  - `./web/upload_flash_www.sh <device-ip>`
+- То же напрямую (с опциями):
+  - `python3 ./web/upload_flash_www.py <device-ip> --src ./web/assets`
 
-<a id="faq-xsct-okruzhenie"></a>
-### xsct/окружение
+Полезные опции `upload_flash_www.py`:
+- `--dry-run` — показать, что будет загружено, без записи.
+- `--force` — загрузить всё, игнорируя `manifest.json`.
+- `--no-mkdir` — не создавать каталоги через консоль (если структура уже есть).
+- `--http-port`, `--console-port` — если порты нестандартные.
+- `--http-prefix` (по умолчанию `/flash/www`) и `--dst` (по умолчанию `flash:/www`) — если меняете путь назначения.
 
-<a id="faq-bitstream-ps-init"></a>
-### Bitstream/PS init
+#### Способ B: tar‑деплой через HTTP файловый API
+Подходит для пакетного обновления каталога одной операцией (см. “HTTP‑сервер → Файловый API”).
 
-<a id="faq-qspi-fs-i-razmetka"></a>
-### QSPI FS и разметка
+1) Собрать tar на хосте:
+   - `tar -C web/assets -cf www.tar .`
+2) Загрузить и распаковать на устройство:
+   - `curl -T www.tar http://<ip>/tar/flash/www`
 
-<a id="faq-set-konsol-http"></a>
-### Сеть/консоль/HTTP
+#### Способ C: вручную (консоль/SD/HTTP‑PUT)
+Когда нужен полный контроль (или отладка):
+- Через TCP‑консоль:
+  - создать каталог: `mkdir flash:/www`
+  - копировать с SD: `cp -r sd:/www flash:/www`
+- Через HTTP файловый API — грузить отдельные файлы:
+  - `curl -T web/assets/index.html http://<ip>/flash/www/index.html`
+
+**Проверка**
+- Откройте `http://<ip>/` (должен отдаться `flash:/www/index.html`).
+- Если UI “пустой”, проверьте доступность `/api/*` (например, `GET /api/version`) и права/доступность QSPI (`GET /api/qspi`).
 
 <a id="prilozheniya"></a>
 ## Приложения
@@ -1853,8 +2058,120 @@ HTTP‑сервер — это тонкий слой поверх lwIP sockets, 
 <a id="prilozheniya-karta-direktoriy"></a>
 ### Карта директорий
 
+Ключевые каталоги репозитория `bvstk/`:
+- `src/` — исходники прошивки (FreeRTOS/lwIP/FatFs, TCP‑консоль, HTTP‑сервер, PL‑подсистемы `bvstk_i2c`/`bvstk_smi`, `config_store`).
+- `configs/` — исходные JSON‑конфиги (сеть + `i2c/*.json`, `smi/*.json`), из которых при сборке генерируются дефолты в `src/config/default_configs.h`.
+- `web/`
+  - `web/assets/` — статические файлы Web UI (кладутся на устройство в `flash:/www/`).
+  - `web/upload_flash_www.sh`, `web/upload_flash_www.py` — утилиты загрузки `web/assets/` в `flash:/www/` (mkdir через TCP‑консоль, PUT через HTTP).
+- `vitis_ws/` — Vitis workspace (артефакт сборки; пересоздаётся скриптами, вручную обычно не редактируется).
+- `dot/` — вспомогательные материалы/диаграммы (если используются в проекте).
+- `build.sh`, `build.tcl` — сборка (XSCT/Vitis).
+- `run_jtag.sh`, `run_jtag.tcl` — запуск/прошивка по JTAG.
+
 <a id="prilozheniya-tablitsa-portov-protokolov"></a>
 ### Таблица портов/протоколов
 
+Порты, на которых прошивка слушает входящие подключения:
+
+| Назначение | Протокол | Порт | Где описано |
+|---|---:|---:|---|
+| TCP‑консоль | TCP | 8888 | раздел “TCP‑консоль (порт 8888)” |
+| HTTP‑сервер (API + файловый доступ + Web UI) | TCP | 80 | раздел “HTTP‑сервер (порт 80)” |
+
+Клиентские (исходящие) сетевые протоколы могут использоваться опционально (зависит от конфигурации/сборки): DHCP, DNS, SNTP, MQTT и т.п. — они не “слушают” порт, а инициируют исходящие запросы.
+
 <a id="prilozheniya-primery-komand-i-zaprosov"></a>
 ### Примеры команд и запросов
+
+Ниже — короткие практические примеры для типовых операций (подставляйте IP устройства вместо `<ip>`).
+
+**TCP‑консоль**
+```sh
+# Подключиться (любой вариант)
+nc <ip> 8888
+# или
+telnet <ip> 8888
+
+# Мини‑проверка FS и конфигов
+pwd
+ls flash:/
+ls flash:/config
+```
+
+**HTTP API**
+```sh
+# Версия/аптайм
+curl http://<ip>/api/version
+curl http://<ip>/api/rtos
+
+# Текущее состояние сети
+curl http://<ip>/api/net
+
+# Задать IP/маску/шлюз/MAC и применить сразу (может оборвать текущую сессию)
+curl -X PUT -H 'Content-Type: application/json' \
+  --data '{"ip":"192.168.1.10/24","gateway":"192.168.1.1","mac":"02:12:34:56:78:9a","apply":true}' \
+  http://<ip>/api/net
+```
+
+**I²C конфигурация (через HTTP)**
+```sh
+# Список устройств из config_store
+curl http://<ip>/api/i2c
+
+# Конкретное устройство
+curl 'http://<ip>/api/i2c?name=rtc'
+
+# Изменить policy/autopoll (частичное обновление по name)
+curl -X PUT -H 'Content-Type: application/json' \
+  --data '{"name":"rtc","policy":"whitelist","autopoll_enabled":true,"autopoll_regs":[0,1,2]}' \
+  http://<ip>/api/i2c
+```
+
+**Файловый API**
+```sh
+# Скачать файл с устройства
+curl -o network.json http://<ip>/flash/config/network.json
+
+# Залить файл на устройство (перезапишет)
+curl -T network.json http://<ip>/flash/config/network.json
+```
+
+**Tar‑деплой каталога**
+```sh
+# Выкачать каталог flash:/www целиком
+curl -o www.tar http://<ip>/tar/flash/www
+
+# Залить каталог (распаковка в flash:/www)
+curl -T www.tar http://<ip>/tar/flash/www
+```
+
+**Деплой Web UI (готовым скриптом)**
+```sh
+./web/upload_flash_www.sh <ip>
+```
+
+**Перезагрузка по HTTP**
+```sh
+curl -X PUT -H 'Content-Type: application/json' \
+  --data '{"confirm":true,"delay_ms":1000}' \
+  http://<ip>/api/reboot
+```
+
+**Диагностика (опасно, только доверенный контур)**
+```sh
+# Прямое чтение I2C регистра
+curl -X PUT -H 'Content-Type: application/json' \
+  --data '{"name":"rtc","reg":19}' \
+  http://<ip>/api/diag/i2c/read
+
+# Прямое чтение MDIO (phy/reg)
+curl -X PUT -H 'Content-Type: application/json' \
+  --data '{"phy":1,"reg":0}' \
+  http://<ip>/api/diag/smi/read
+
+# Чтение MMIO (32-бит если выровнено; иначе 8-бит)
+curl -X PUT -H 'Content-Type: application/json' \
+  --data '{"addr":1073741824}' \
+  http://<ip>/api/diag/mem/read
+```
