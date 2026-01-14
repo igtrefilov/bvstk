@@ -21,7 +21,6 @@
   - [Запуск и отладка](#zapusk-i-otladka)
     - [Запуск по JTAG](#zapusk-po-jtag)
     - [Подключение к TCP‑консоли](#podklyuchenie-k-tcp-konsoli)
-    - [Типовые проблемы](#tipovye-problemy)
   - [Сеть (lwIP)](#set-lwip)
     - [Инициализация интерфейса](#initsializatsiya-interfeysa)
     - [Настройка IP/MAC и сохранение](#nastroyka-ip-mac-i-sokhranenie)
@@ -414,11 +413,78 @@ flowchart TB
 <a id="trebovaniya"></a>
 ### Требования
 
+Для сборки и запуска через JTAG требуется окружение Xilinx и несколько утилит на хост‑ПК.
+
+**Обязательное**
+- **Xilinx Vitis / XSCT**: `xsct` должен быть доступен в `PATH` (обычно после `source <Vitis-install>/settings64.sh`).
+- **Python 3**: используется вспомогательными скриптами сборки (генерация дефолтных конфигов и патчи FatFs).
+- **Hardware Export (`*.xsa`)**: соответствует вашему HW‑design (адреса/IRQ/периферия должны совпадать с прошивкой).
+
+**Для запуска по JTAG**
+- **hw_server** и драйверы JTAG‑кабеля (Xilinx Cable Drivers).
+- **Bitstream (`*.bit`)** для программирования PL.
+
+**Проверка окружения**
+```sh
+source <Vitis-install>/settings64.sh
+xsct -version
+python3 --version
+```
+
 <a id="vkhodnye-hw-artefakty"></a>
 ### Входные HW‑артефакты
 
+Прошивка собирается и запускается поверх конкретного HW‑design. Поэтому нужны артефакты аппаратной части:
+
+**1) Hardware Export (`*.xsa`)**
+- Используется при сборке платформы Vitis (создание `plat_bvstk` и BSP).
+- Должен соответствовать вашему bitstream’у и адресной карте (PS‑периферия, IRQ, MMIO/BRAM для PL‑ядер).
+- Как передать:
+  - через переменную окружения для сборки: `XSA=/abs/path/design.xsa ./build.sh`
+  - если `XSA` не задан, по умолчанию берётся путь из `build.sh`/`build.tcl` (см. `DEFAULT_XSA`).
+
+**2) Bitstream (`*.bit`)**
+- Нужен для программирования PL при запуске по JTAG.
+- Как передать:
+  - аргументом: `./run_jtag.sh /abs/path/design.bit`
+  - либо через `BITSTREAM_FILE=/abs/path/design.bit` (учитывается в `run_jtag.sh`)
+  - либо через жёстко заданный `BITSTREAM_PATH_OVERRIDE` в `run_jtag.tcl` (если он не пустой)
+  - иначе используется `vitis_ws/plat_bvstk/export/.../hw/*.bit` (если такой файл есть).
+
+**3) PS7 init (`ps7_init.tcl`)**
+- Требуется для JTAG‑старта: инициализация PS перед загрузкой ELF.
+- Скрипт берётся из export’а платформы: `vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl`.
+- Появляется после успешной сборки `./build.sh`.
+
+**4) (Опционально) Device/board‑specific файлы**
+- В зависимости от HW‑design могут потребоваться дополнительные файлы/настройки вне репозитория (например, проекты Vivado, constraints, генерация XSA/bit).
+
 <a id="struktura-repozitoriya"></a>
 ### Структура репозитория
+
+Ключевые каталоги и файлы:
+
+- `build.sh` — обёртка для сборки: проверяет наличие `xsct` и запускает `xsct build.tcl`.
+- `build.tcl` — “one‑stop” XSCT‑скрипт: создаёт `vitis_ws/`, генерирует платформу/BSP, подключает исходники `src/` и собирает ELF.
+- `run_jtag.sh` — обёртка запуска по JTAG: принимает `.bit` как аргумент (опционально) и запускает `xsct run_jtag.tcl`.
+- `run_jtag.tcl` — сценарий JTAG‑запуска: connect → reset/halt → `fpga -f` → `ps7_init` → `dow` ELF → `con`.
+- `configs/` — шаблоны JSON, которые встраиваются в прошивку как дефолты (сеть, I2C, SMI).
+- `src/` — исходники прошивки (линкуются в Vitis‑проект как `vitis_ws/app_bvstk/src -> ./src`).
+  - `src/main.c` — порядок инициализации и запуск планировщика.
+  - `src/config/` — `config_store` (загрузка/миграция/сохранение JSON) и `default_configs.h` (генерируется при сборке).
+  - `src/fs/` — общий слой FatFs (`fs_shared`, `fs_devices`), `diskio.c` (SD + QSPI как тома), FreeRTOS glue.
+  - `src/sd_card/` — SDIO + задача монтирования SD.
+  - `src/qspi_flash/` — низкоуровневый доступ к QSPI NOR и self‑test.
+  - `src/qspi_fs/` — задача монтирования QSPI‑тома и разметка окна в флеше.
+  - `src/bvstk_lan/` — инициализация lwIP/netif (MAC/IP из config_store).
+  - `src/bvstk_tcp_server/` — TCP‑консоль и утилиты (`fs/ip/i2c/smi/mem/tar`).
+  - `src/http/` и `src/http_fs/` — HTTP‑сервер, API `/api/*`, файловый доступ `/sd|/flash|/tar`, раздача `flash:/www/`.
+  - `src/bvstk_i2c/`, `src/bvstk_smi/` — подсистемы кастомных PL‑ядер I2C и SMI/MDIO.
+  - `src/mqtt_proc/`, `src/sntp_proc/` — дополнительные сетевые обработчики (если включены/используются).
+  - `src/tar/` — tar‑упаковка/распаковка (используется для `/tar/*`).
+- `vitis_ws/` — генерируемая рабочая область Vitis (платформа/BSP/ELF). Может быть удалена и пересоздана сборкой.
+- `web/` — утилиты загрузки web‑ресурсов в `flash:/www/` (скрипты + `web/assets/`).
+- `dot/` — вспомогательные материалы/черновики (не участвует в сборке прошивки).
 
 <a id="sborka"></a>
 ## Сборка
@@ -426,11 +492,114 @@ flowchart TB
 <a id="bystryy-start"></a>
 ### Быстрый старт
 
+Минимальный сценарий сборки (с нуля):
+
+1) Активировать окружение Xilinx:
+```sh
+source <Vitis-install>/settings64.sh
+```
+
+2) Собрать прошивку, указав `*.xsa`:
+```sh
+XSA=/abs/path/to/design.xsa ./build.sh
+```
+
+Примечание:
+- В `build.sh` задан “дефолтный” путь `DEFAULT_XSA=...`. Если вы не хотите каждый раз указывать `XSA=...`, можно **отредактировать `DEFAULT_XSA` прямо в `build.sh`** под ваш локальный путь.
+- Аналогично, для JTAG‑старта в `run_jtag.tcl` есть `BITSTREAM_PATH_OVERRIDE`. Если он не пустой — используется именно он (его тоже можно поменять под вашу систему).
+
+Результат:
+- ELF приложения: `vitis_ws/app_bvstk/Debug/app_bvstk.elf`
+- Экспорт платформы (в т.ч. `ps7_init.tcl`): `vitis_ws/plat_bvstk/export/plat_bvstk/hw/`
+
+Если нужно пересобирать без удаления `vitis_ws/`:
+```sh
+XSA=/abs/path/to/design.xsa CLEAN=0 ./build.sh
+```
+
 <a id="peremennye-sborki"></a>
 ### Переменные сборки
 
+Скрипты сборки/запуска читают настройки из **переменных окружения** (environment variables).
+
+Как задавать переменные (в bash):
+
+1) **Только для одной команды**:
+```sh
+XSA=/abs/path/to/design.xsa CLEAN=0 ./build.sh
+```
+
+2) **Экспортировать в текущую сессию**:
+```sh
+export XSA=/abs/path/to/design.xsa
+export CLEAN=0
+./build.sh
+```
+
+3) Эквивалент через `env`:
+```sh
+env XSA=/abs/path/to/design.xsa CLEAN=0 ./build.sh
+```
+
+**`XSA`**
+- Путь к Hardware Export (`*.xsa`), который используется для создания платформы Vitis.
+- Если не задан, берётся `DEFAULT_XSA` из `build.sh` (и аналогичный default внутри `build.tcl`).
+- Пример:
+```sh
+XSA=/abs/path/to/design.xsa ./build.sh
+```
+
+**`CLEAN`**
+- Управляет пересозданием `vitis_ws/`.
+- `CLEAN=1` (по умолчанию) — удалить `vitis_ws/` перед сборкой.
+- `CLEAN=0` — оставить существующий `vitis_ws/` и пересобрать внутри него.
+- Пример:
+```sh
+XSA=/abs/path/to/design.xsa CLEAN=0 ./build.sh
+```
+
+**`LWIP_LIB`**
+- Выбор имени lwIP‑библиотеки в BSP (зависит от установленной версии Vitis/BSP).
+- Если не задан, скрипт пробует по очереди `lwip220`, затем `lwip211`.
+- Пример:
+```sh
+XSA=/abs/path/to/design.xsa LWIP_LIB=lwip220 ./build.sh
+```
+
+**`BITSTREAM_FILE`** (JTAG‑запуск)
+- Путь к `.bit`, который будет использован `run_jtag.tcl`.
+- Учитывается, только если в `run_jtag.tcl` переменная `BITSTREAM_PATH_OVERRIDE` пустая, и если не передан путь через аргумент `run_jtag.sh`.
+- Пример:
+```sh
+BITSTREAM_FILE=/abs/path/to/design.bit ./run_jtag.sh
+```
+
 <a id="artefakty-i-struktura-vitis_ws"></a>
 ### Артефакты и структура vitis_ws
+
+`vitis_ws/` — генерируемая рабочая область Vitis/XSCT. По умолчанию `build.sh` удаляет её и создаёт заново (см. `CLEAN`).
+
+Типовая структура:
+
+- `vitis_ws/app_bvstk/` — проект приложения.
+  - `vitis_ws/app_bvstk/src` — **symlink** на `./src` репозитория (исходники не копируются).
+  - `vitis_ws/app_bvstk/Debug/app_bvstk.elf` — собранный ELF приложения.
+  - `vitis_ws/app_bvstk/_ide/` — служебные артефакты IDE (в т.ч. копии `.bit`/`ps7_init.tcl`).
+
+- `vitis_ws/plat_bvstk/` — платформа (hardware + domains + BSP).
+  - `vitis_ws/plat_bvstk/hw/` — локальная копия/снимок hardware (`*.xsa`, `*.bit`, `ps7_init.tcl`).
+  - `vitis_ws/plat_bvstk/export/plat_bvstk/hw/` — export платформы, используемый `run_jtag.tcl`:
+    - `ps7_init.tcl` — инициализация PS7 для JTAG‑старта
+    - `*.bit` — bitstream (если присутствует)
+    - `*.xsa` — hardware export
+  - `vitis_ws/plat_bvstk/ps7_cortexa9_0/freertos10_xilinx_domain/bsp/` — BSP FreeRTOS‑домена (Makefile, `system.mss`, `libsrc/...`).
+
+- `vitis_ws/plat_bvstk/zynq_fsbl/` — проект FSBL (может собираться/использоваться отдельно).
+  - `vitis_ws/plat_bvstk/zynq_fsbl/fsbl.elf` — ELF FSBL.
+
+Замечания:
+- `src/config/default_configs.h` генерируется при сборке и входит в `app_bvstk` через symlink на `src/`.
+- Скрипты сборки патчат файлы FatFs в BSP (LFN + FreeRTOS) внутри `.../bsp/.../libsrc/` — это нормально, но значит, что состояние `vitis_ws/` зависит от прогонов сборки (поэтому `CLEAN=1` полезен для “чистой” пересборки).
 
 <a id="zapusk-i-otladka"></a>
 ## Запуск и отладка
@@ -438,11 +607,58 @@ flowchart TB
 <a id="zapusk-po-jtag"></a>
 ### Запуск по JTAG
 
+JTAG‑запуск используется для разработки/отладки: программируется PL (bitstream), инициализируется PS7, загружается ELF приложения и выполняется `con` (run).
+
+**Предусловия**
+- Активировано окружение Xilinx (чтобы `xsct` был в `PATH`): `source <Vitis-install>/settings64.sh`
+- Запущен `hw_server` (локально или на удалённой машине) и доступен JTAG‑кабель.
+- Собран ELF: `vitis_ws/app_bvstk/Debug/app_bvstk.elf`
+
+**Команда**
+```sh
+./run_jtag.sh /abs/path/to/design.bit
+```
+Если не передавать аргумент, `run_jtag.sh` использует настройки внутри `run_jtag.tcl` (см. `BITSTREAM_PATH_OVERRIDE`) или пытается взять `.bit` из `vitis_ws/plat_bvstk/export/.../hw/`.
+
+**Что делает `run_jtag.tcl` (упрощённо)**
+1. `connect` к `hw_server`
+2. `rst -system` + остановка CPU
+3. `fpga -f <bit>` — программирование PL
+4. `source ps7_init.tcl`, затем `ps7_init` и `ps7_post_config`
+5. `dow <app_bvstk.elf>` — загрузка ELF в core0
+6. `con` — запуск выполнения
+
+**Замечания**
+- Путь к ELF фиксирован: `vitis_ws/app_bvstk/Debug/app_bvstk.elf`.
+- Путь к `ps7_init.tcl` берётся из export платформы: `vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl`.
+- При проблемах с `.bit` проверьте приоритет: аргумент `run_jtag.sh` → `BITSTREAM_PATH_OVERRIDE` → `BITSTREAM_FILE` → `BITSTREAM_DEFAULT`.
+
 <a id="podklyuchenie-k-tcp-konsoli"></a>
 ### Подключение к TCP‑консоли
 
-<a id="tipovye-problemy"></a>
-### Типовые проблемы
+TCP‑консоль — основной интерактивный канал управления (порт `8888`). Подключение похоже на telnet‑сессию: ввод команд строками, вывод — текст с `OK/ERR`.
+
+**Подключение**
+```sh
+telnet <device-ip> 8888
+```
+
+Если `telnet` не установлен, можно использовать `nc`:
+```sh
+nc <device-ip> 8888
+```
+
+**Первичные проверки**
+```
+help
+ip addr show
+fs pwd
+fs ls
+```
+
+**Важно**
+- Если вы меняете IP через `ip addr set ...`, текущая сессия может оборваться — это ожидаемо, переподключайтесь к новому адресу.
+- Для работы команд `fs` должны быть смонтированы тома `sd:/` и/или `flash:/` (монтирование делается фоновыми задачами).
 
 <a id="set-lwip"></a>
 ## Сеть (lwIP)
@@ -450,11 +666,162 @@ flowchart TB
 <a id="initsializatsiya-interfeysa"></a>
 ### Инициализация интерфейса
 
+Инициализация сетевого интерфейса выполняется в `src/bvstk_lan/bvstk_lan.c` и запускается из `main()` через `start_lan()`.
+
+Поток `lan_thrd` делает следующее:
+
+```mermaid
+flowchart TD
+  A["start_lan()"] --> B["lan_thrd"]
+  B --> C{"config_store готов?\n(до ~5s)"}
+  C -- да --> D["MAC из config_store"]
+  C -- нет --> E["MAC по умолчанию"]
+  D --> F["lwip_init()"]
+  E --> F
+  F --> G{"IP cfg готов?\n(ip/mask/gw)"}
+  G -- да --> H["IP/mask/gw из config_store"]
+  G -- нет --> I["IP=192.168.0.10/24\nGW=192.168.0.1"]
+  H --> J["xemac_add()"]
+  I --> J
+  J --> K["netif_set_default()\nnetif_set_up()"]
+  K --> L["sys_thread_new()\n(xemacif_input_thread)"]
+  L --> M["vTaskDelete()\nlan_thrd"]
+```
+
+1) **Подхватывает MAC из конфигурации (если успела загрузиться)**  
+`lan_thread()` ждёт готовность `config_store` до ~5 секунд и, если в конфиге задан MAC, копирует его в глобальный `mac_ethernet_address[]`.
+
+2) **Поднимает lwIP**  
+Вызывается `lwip_init()`.
+
+3) **Настраивает IPv4 адресацию**  
+Если `config_store` готов и есть `ip/netmask/gateway`, они применяются. Иначе используются дефолты:
+- IP: `192.168.0.10`
+- mask: `255.255.255.0`
+- gw: `192.168.0.1`
+
+4) **Создаёт netif на PS Ethernet (GEM)**  
+Вызов `xemac_add(..., XPAR_XEMACPS_0_BASEADDR)` добавляет интерфейс, после чего делается:
+- `netif_set_default(netif)`
+- `netif_set_up(netif)`
+
+5) **Запускает input‑поток драйвера**  
+Создаётся `xemacif_input_thread` (через `sys_thread_new("xemacif_input_thread", ...)`) для приёма/обработки входящих пакетов.
+
+После успешной инициализации `lan_thrd` завершает работу (`vTaskDelete(NULL)`).
+
 <a id="nastroyka-ip-mac-i-sokhranenie"></a>
 ### Настройка IP/MAC и сохранение
 
+Параметры сети хранятся в `config_store` (и сохраняются в `flash:/config/network.json`) и могут применяться:
+- **в рантайме** (на текущий `netif`) — чтобы изменения вступили сразу;
+- **персистентно** — чтобы применялись после перезагрузки.
+
+Доступные способы изменения:
+
+**1) TCP‑консоль: команда `ip`**
+
+Показать текущие значения:
+```
+ip addr show
+ip link show
+ip route show
+```
+
+Задать IP/маску (CIDR) и применить сразу:
+```
+ip addr set 192.168.0.10/24
+```
+
+Задать default gateway и применить сразу:
+```
+ip route set default via 192.168.0.1
+```
+
+Задать MAC и применить сразу:
+```
+ip link set address 00:0a:35:00:01:02
+```
+
+Сохранить *текущие* runtime‑параметры `netif` в `flash:/config/network.json` (без изменения адресов):
+```
+ip save
+```
+
+Как это реализовано:
+- Парсинг и команды — `src/bvstk_tcp_server/utils/ip_shell.c`
+- Сохранение — `config_store_save_network()` (`src/config/config_store.c`)
+- Runtime‑применение — `netif_set_ipaddr/netif_set_netmask/netif_set_gw` + обновление `mac_ethernet_address` и `netif->hwaddr` (если доступно)
+
+**2) HTTP API: `PUT /api/net`**
+
+Эндпоинт принимает JSON и может (опционально) применить конфиг сразу.
+
+Пример (применить сразу):
+```sh
+curl -X PUT http://<device-ip>/api/net \
+  -H 'Content-Type: application/json' \
+  --data '{"ip":"192.168.0.10/24","gateway":"192.168.0.1","mac":"00:0a:35:00:01:02","apply":true}'
+```
+
+Пример (только сохранить, не применять):
+```sh
+curl -X PUT http://<device-ip>/api/net \
+  -H 'Content-Type: application/json' \
+  --data '{"ip":"192.168.0.10/24","gateway":"192.168.0.1","mac":"00:0a:35:00:01:02","apply":false}'
+```
+
+Замечания по формату:
+- `ip` можно задавать как `"a.b.c.d/prefix"`, либо `"ip"+"netmask"` (или `"prefix"` числом).
+- `gateway` и `mac` обязательны для `PUT /api/net`.
+- Реализация: `api_handle_net_put()` в `src/http_fs/http_fs_routes.c`.
+
+**3) Файловый способ (через `flash:/config/network.json`)**
+
+Если удобнее управлять конфигом как файлом, можно заменить `flash:/config/network.json` через файловый API:
+- `PUT /flash/config/network.json` (запись файла на QSPI)
+
+Важно: замена файла сама по себе не гарантирует немедленное применение в рантайме — для “живого” применения используйте `ip ... set` или `PUT /api/net` с `"apply":true`.
+
+**Поведение при смене IP**
+- Любое runtime‑применение IP может разорвать текущие TCP/HTTP соединения — это нормально; переподключайтесь к новому адресу.
+
 <a id="smena-ip-i-vosstanovlenie-dostupa"></a>
 ### Смена IP и восстановление доступа
+
+Смена IP выполняется “на лету” (в рантайме) и почти всегда приводит к потере текущих соединений (TCP‑консоль и/или HTTP), потому что удалённая сторона продолжает слать пакеты на старый адрес.
+
+**Как сменить IP**
+
+Через TCP‑консоль:
+```
+ip addr set 192.168.0.20/24
+ip route set default via 192.168.0.1
+ip link set address 00:0a:35:00:01:02
+ip save
+```
+
+Через HTTP (с немедленным применением):
+```sh
+curl -X PUT http://<old-ip>/api/net \
+  -H 'Content-Type: application/json' \
+  --data '{"ip":"192.168.0.20/24","gateway":"192.168.0.1","mac":"00:0a:35:00:01:02","apply":true}'
+```
+
+**Как восстановить доступ**
+1. Подключитесь к **новому адресу**:
+   - `telnet 192.168.0.20 8888`
+   - `curl http://192.168.0.20/api/net`
+2. Если вы потеряли адрес устройства:
+   - проверьте таблицу ARP на ПК (по MAC): `ip neigh` / `arp -a`
+   - используйте сканирование подсети (например, `nmap -sn 192.168.0.0/24`) и затем проверьте порт `8888` или `80`.
+3. Если устройство перестало отвечать после смены параметров:
+   - верните конфиг через JTAG‑старт и TCP‑консоль,
+   - либо замените `flash:/config/network.json` на корректный файл (через SD или HTTP‑файловый API, если доступен).
+
+**Примечания**
+- Изменения, записанные через `ip save` или `PUT /api/net` (saved), применятся и после перезагрузки.
+- Если `config_store`/QSPI недоступны, устройство может стартовать с дефолтным IP (см. раздел про инициализацию интерфейса).
 
 <a id="faylovye-sistemy-fatfs"></a>
 ## Файловые системы (FatFs)
@@ -462,14 +829,102 @@ flowchart TB
 <a id="toma-i-puti"></a>
 ### Тома и пути
 
+В прошивке используется FatFs с двумя логическими томами:
+
+- **SD**: `0:/` (псевдоним **`sd:/`**) — том на SD‑карте (PS SDIO).  
+  Корень задаётся как `SD_ROOT="0:/"` (`src/sd_card/sd_card.h`).
+
+- **QSPI**: `1:/` (псевдоним **`flash:/`**) — том внутри QSPI NOR (окно во флеше).  
+  Корень задаётся как `QSPI_ROOT="<N>:/"`, где `<N>=XPAR_XSDPS_NUM_INSTANCES` (`src/qspi_fs/qspi_fs.h`). На типовой конфигурации с одним SD‑контроллером это даёт `1:/`.
+
+Псевдонимы `sd:/` и `flash:/` реализованы через слой устройств `fs_devices`:
+- список устройств: `sd`, `flash` (`src/fs/fs_devices.c`)
+- привязка контекстов выполняется в `fs_devices_init()` (вызывается из `main()`).
+
+Где используются пути:
+- **TCP‑консоль (`fs`)** понимает:
+  - явные пути `0:/...`, `1:/...`
+  - псевдонимы `sd:/...`, `flash:/...`
+  - “переключение” устройства командами `fs cd sd` / `fs cd flash`
+- **HTTP файловый API** маппит:
+  - `GET/PUT /sd/<path>` → `sd:/<path>`
+  - `GET/PUT /flash/<path>` → `flash:/<path>`
+  - `GET/PUT /tar/sd/<dir>` и `.../tar/flash/<dir>` → tar‑поток в/из каталога
+- **Web UI** раздаётся как статика из `flash:/www/` (каталог `www` внутри QSPI‑тома).
+
 <a id="montirovanie-i-avtoformatirovanie"></a>
 ### Монтирование и автоформатирование
+
+Монтирование томов выполняется фоновыми задачами `sd_card` и `qspi_fs`. Оба тома используют общий слой `fs_shared` и считаются “готовыми” только после успешного `f_mount(...)`.
+
+**Как устроено монтирование**
+- `start_sd_card()` создаёт задачу `sd_card`, которая раз в 1 секунду пытается примонтировать `SD_ROOT` (`0:/`). Код: `src/sd_card/sd_card.c`.
+- `start_qspi_fs()` создаёт задачу `qspi_fs`, которая раз в 1 секунду пытается примонтировать `QSPI_ROOT` (обычно `1:/`). Перед монтированием выполняется `qspi_flash_init()`. Код: `src/qspi_fs/qspi_fs.c`.
+- Фактическая операция монтирования делегируется в `fs_shared_mount(ctx, label)` (`src/fs/fs_shared.c`).
+- Ряд потребителей (HTTP файловый API, консольные команды) дополнительно вызывают `fs_device_prepare()` (`src/fs/fs_devices.c`), чтобы сделать несколько быстрых попыток монтирования перед операцией.
+
+**Автоформатирование (важно)**
+В `fs_shared_mount()` при `FR_NO_FILESYSTEM` выполняется форматирование:
+- `f_mkfs(ctx->root, FM_ANY|FM_SFD, ...)`, затем повторный `f_mount(...)`.
+
+Это означает:
+- если носитель “чистый” или таблица FAT повреждена, прошивка может **создать новую файловую систему** автоматически;
+- данные на соответствующем томе при этом будут **потеряны**.
+
+**Сигналы готовности**
+- Готовность тома хранится как `ctx->ready` и выставляется в `1` после успешного монтирования.
+- При обращении к ФС до готовности команды возвращают “FS not ready” / ошибку, пока фоновые задачи не смонтируют том.
 
 <a id="razmetka-qspi-fs"></a>
 ### Разметка QSPI FS
 
+QSPI‑том `flash:/` не занимает весь флеш “с нуля”: чтобы не затронуть загрузочные образы (например, `BOOT.bin`), FatFs для QSPI отображается на **окно** внутри QSPI NOR.
+
+**Параметры окна**
+Определены в `src/qspi_fs/qspi_fs_layout.h`:
+- `QSPI_FS_BASE_BYTES` — смещение начала окна (по умолчанию **8 MiB**).
+- `QSPI_FS_SIZE_BYTES` — размер окна (по умолчанию `QSPI_FLASH_SIZE_BYTES - QSPI_FS_BASE_BYTES`).
+
+**Ограничения (проверяются на этапе компиляции)**
+- `QSPI_FS_BASE_BYTES` должен быть выровнен на размер сектора стирания `QSPI_FLASH_SECTOR_SIZE` (в текущем драйвере это **4 KiB**).
+- `QSPI_FS_SIZE_BYTES` должен быть кратен 512 (размер сектора FatFs).
+- Окно не должно выходить за `QSPI_FLASH_SIZE_BYTES` (в текущем драйвере это **32 MiB**).
+
+**Как это применяется**
+- `src/fs/diskio.c` для QSPI‑диска вычисляет физический адрес как:
+  - `flash_addr = QSPI_FS_BASE_BYTES + byte_addr_within_fs`
+  и ограничивает операции размером `QSPI_FS_SIZE_BYTES`.
+- Логический “диск” QSPI назначается на drive number `DISKIO_QSPI_PDRV`, который равен `DISKIO_SD_PDRV_COUNT` (т.е. обычно `1:/` при одном SD‑инстансе).
+
+**Практические рекомендации**
+- Установите `QSPI_FS_BASE_BYTES` так, чтобы он гарантированно перекрывал все boot‑области (BOOT.bin/образы, таблицы и т.п.) в вашей разметке.
+- Если меняете размер/смещение окна, делайте это согласованно с содержимым флеша: автоформатирование может создать новую FAT в начале окна.
+
 <a id="web-ui-v-flashwww"></a>
 ### Web UI в flash:/www/
+
+Веб‑интерфейс хранится на QSPI‑томе в каталоге **`flash:/www/`** и раздаётся HTTP‑сервером как статика.
+
+**Как работает раздача**
+- Любой `GET /...`, который **не** начинается с `/api/`, `/sd/`, `/flash/`, `/tar/`, рассматривается как запрос статического файла.
+- Путь маппится на `flash:/www/<path>` (root dir `www` задаётся как `WEB_ROOT_DIR="www"` в `src/http_fs/http_fs_routes.c`).
+- Если запрошен `/` (пустой путь), отдаётся `index.html`.
+- Если запрошенный путь оканчивается на `/`, также добавляется `index.html`.
+
+**Где лежат исходники UI**
+- Хост‑каталог: `web/assets/` (HTML/CSS/JS/картинки).
+
+**Как загрузить UI на устройство**
+1) Убедитесь, что устройство доступно по сети и QSPI‑том (`flash:/`) смонтирован.
+2) Запустите загрузку:
+```sh
+./web/upload_flash_www.sh <device-ip>
+```
+Скрипт создаёт директории через TCP‑консоль (`:8888`) и загружает файлы через HTTP PUT в `/flash/www/...` (т.е. в `flash:/www/...`).
+
+Примечание:
+- В `web/upload_flash_www.sh` IP по умолчанию прописан в переменной `DEVICE_IP` (можно поменять).
+- Также доступен `web/upload_flash_www.py` (более “умная” загрузка с manifest/sha256).
 
 <a id="konfiguratsiya-json-config_store"></a>
 ## Конфигурация (JSON / config_store)
@@ -477,8 +932,57 @@ flowchart TB
 <a id="raspolozhenie-i-prioritety"></a>
 ### Расположение и приоритеты
 
+Конфигурация хранится на QSPI‑томе `flash:/` в виде JSON‑файлов и загружается модулем `config_store` (`src/config/config_store.c`).
+
+**Каталоги конфигурации**
+- Основной (primary): **`flash:/config/`**
+- Legacy (fallback): **`flash:/configs/`**
+
+`config_store` всегда строит пару путей (primary+fallback) и читает “первый доступный” (primary имеет приоритет).
+
+**Ключевые файлы**
+- Сеть: `flash:/config/network.json` (fallback: `flash:/configs/network.json`)
+- I2C устройства: `flash:/config/i2c/*.json` (fallback: `flash:/configs/i2c/*.json`)
+- SMI/MDIO устройства: `flash:/config/smi/*.json` (fallback: `flash:/configs/smi/*.json`)
+
+**Приоритет и поведение**
+- Если файл существует в `flash:/config/...`, используется он.
+- Если в primary файла нет, но он есть в legacy `flash:/configs/...`, используется legacy.
+- При старте `config_store` может выполнить **одноразовую миграцию** legacy → primary (копированием файлов), чтобы дальше всё жило в `flash:/config/`.
+
+**Fallback на “вшитые” дефолты**
+- Если QSPI‑том не смонтирован/недоступен, или файлы отсутствуют/не читаются, `config_store` использует дефолты, встроенные в прошивку (генерируются из `configs/` при сборке в `src/config/default_configs.h`).
+
 <a id="defolty-i-generatsiya"></a>
 ### Дефолты и генерация
+
+Дефолтные конфиги нужны для “первого старта” (когда `flash:/config/` ещё пустой) и как fallback, если QSPI недоступен.
+
+**Источник дефолтов**
+- `configs/network.json`
+- `configs/i2c/*.json`
+- `configs/smi/*.json`
+
+**Как генерируются дефолты в прошивку**
+1. При сборке `build.tcl` запускает скрипт:
+   - `src/scripts/gen_default_configs.py`
+2. Скрипт читает файлы из `configs/` и генерирует заголовок:
+   - `src/config/default_configs.h`
+3. `src/config/config_store.c` включает `default_configs.h` и использует:
+   - `DEFAULT_NETWORK_JSON` / `DEFAULT_NETWORK_JSON_LEN`
+   - `DEFAULT_I2C_CONFIG_FILES[]` (список `{file_name, json, json_len}`)
+   - `DEFAULT_SMI_CONFIG_FILES[]`
+
+**Как дефолты применяются на устройстве**
+- Если QSPI‑том смонтирован:
+  - при отсутствии `flash:/config/network.json` и legacy‑файла, `config_store` создаёт `flash:/config/network.json` из `DEFAULT_NETWORK_JSON`;
+  - аналогично создаются дефолтные `flash:/config/i2c/*.json` и `flash:/config/smi/*.json` (если нет ни primary, ни legacy).
+- Если QSPI‑том не готов:
+  - `config_store` использует дефолты “в памяти” и не пытается записывать их в QSPI до появления тома.
+
+**Что важно**
+- `src/config/default_configs.h` — артефакт сборки (его содержимое зависит от `configs/` на момент сборки).
+- Если вы меняете файлы в `configs/`, нужно пересобрать проект, чтобы обновились вшитые дефолты.
 
 <a id="migratsiya-legacy--primary"></a>
 ### Миграция legacy → primary
