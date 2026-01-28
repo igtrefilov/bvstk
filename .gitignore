@@ -9,10 +9,19 @@
 !build.sh
 !run_jtag.sh
 !run_jtag.tcl
+!scripts/
+!scripts/**
 !configs/
 !configs/**
 !src/
 !src/**
+
+# VSCode project settings (for Xilinx/Vitis navigation setup)
+!.vscode/
+!.vscode/**
+
+# Local generated compilation database (keep untracked)
+compile_commands.json
 
 # Track web upload helpers (but keep web content untracked by default)
 !web/
@@ -20,6 +29,10 @@ web/**
 !web/upload*
 !web/assets/
 !web/assets/**
+
+# Documentation
+!docs/
+!docs/**
 
 # Editor metadata
 src/.obsidian/

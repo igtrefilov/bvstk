@@ -1,0 +1,13 @@
+{
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json",
+  "C_Cpp.default.compilerPath": "arm-none-eabi-gcc",
+  "C_Cpp.default.intelliSenseMode": "gcc-arm",
+
+  "C_Cpp.loggingLevel": "Warning",
+
+  "files.associations": {
+    "xparameters.h": "c",
+    "xil_types.h": "c",
+    "xil_io.h": "c"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "Zynq Cortex-A9 (Vitis)",
+      "compilerPath": "arm-none-eabi-gcc",
+      "intelliSenseMode": "gcc-arm",
+      "cStandard": "gnu11",
+      "cppStandard": "gnu++17",
+      "compileCommands": "${workspaceFolder}/compile_commands.json",
+      "includePath": [
+        "${workspaceFolder}/src/**",
+        "${workspaceFolder}/vitis_ws/app_bvstk/src/**",
+
+        "${workspaceFolder}/vitis_ws/plat_bvstk/export/**/bspinclude/include",
+        "${workspaceFolder}/vitis_ws/plat_bvstk/ps7_cortexa9_0/**/bsp/**/include",
+        "${workspaceFolder}/vitis_ws/plat_bvstk/ps7_cortexa9_0/**/bsp/**/libsrc/**/src/include",
+        "${workspaceFolder}/vitis_ws/plat_bvstk/ps7_cortexa9_0/**/bsp/**/libsrc/**/src/**/include",
+
+        "${workspaceFolder}/vitis_ws/plat_bvstk/zynq_fsbl/**/include",
+        "${workspaceFolder}/vitis_ws/plat_bvstk/zynq_fsbl/**/src/include",
+
+        "${workspaceFolder}/vitis_ws/plat_bvstk/**/lwip-*/src/include"
+      ]
+    }
+  ]
+}
