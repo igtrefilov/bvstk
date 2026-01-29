@@ -1,0 +1,44 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach: Zynq-7000 (core0, after ./run_jtag.sh --debug)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/vitis_ws/app_bvstk/Debug/app_bvstk.elf",
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "miDebuggerPath": "${workspaceFolder}/scripts/arm-none-eabi-gdb.sh",
+      "launchCompleteCommand": "None",
+      "environment": [
+        {
+          "name": "GDB_CWD",
+          "value": "${workspaceFolder}"
+        }
+      ],
+      "stopAtEntry": false,
+      "setupCommands": [
+        {
+          "description": "Select local ELF (required before `load`)",
+          "text": "file vitis_ws/app_bvstk/Debug/app_bvstk.elf"
+        },
+        {
+          "description": "Disable pagination",
+          "text": "set pagination off"
+        },
+        {
+          "description": "Connect to hw_server GDB port (ARM32 is usually base port 3000)",
+          "text": "target remote localhost:3000"
+        },
+        {
+          "description": "Load ELF to target (PS7 init already done by ./run_jtag.sh --debug)",
+          "text": "load"
+        },
+        {
+          "description": "Temporary break at main",
+          "text": "tbreak main"
+        }
+      ]
+    }
+  ]
+}

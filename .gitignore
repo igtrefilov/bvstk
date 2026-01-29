@@ -16,6 +16,9 @@
 !src/
 !src/**
 
+# Top-level docs
+!README.md
+
 # VSCode project settings (for Xilinx/Vitis navigation setup)
 !.vscode/
 !.vscode/**

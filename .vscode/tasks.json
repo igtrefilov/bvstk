@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Xilinx: hw_server (background)",
+      "type": "shell",
+      "command": "hw_server -s tcp::3121 -p 3000 -L-",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "owner": "xilinx-hw-server",
+          "pattern": [
+            {
+              "regexp": "^(.*)$",
+              "file": 1,
+              "message": 1
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "INFO: hw_server application started",
+            "endsPattern": "INFO: To connect to this hw_server instance use url:"
+          }
+        }
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": false
+      }
+    },
+    {
+      "label": "Xilinx: JTAG prepare for debug (xsct)",
+      "type": "shell",
+      "command": "xsct ${workspaceFolder}/scripts/jtag_prepare_debug.tcl",
+      "dependsOn": "Xilinx: hw_server (background)",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    }
+  ]
+}
