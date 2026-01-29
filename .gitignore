@@ -40,6 +40,8 @@ web/**
 # Editor metadata
 src/.obsidian/
 src/.obsidian/**
+docs/.obsidian/
+docs/.obsidian/**
 
 # Python caches
 **/__pycache__/
