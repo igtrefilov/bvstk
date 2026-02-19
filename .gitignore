@@ -23,8 +23,8 @@
 !.vscode/
 !.vscode/**
 
-# Local generated compilation database (used by VSCode C/C++)
-!compile_commands.json
+# Local generated compilation database (generated per-machine, keep untracked)
+compile_commands.json
 
 # Track web upload helpers (but keep web content untracked by default)
 !web/

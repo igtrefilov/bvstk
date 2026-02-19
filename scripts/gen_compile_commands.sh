@@ -7,17 +7,20 @@ OUT="${ROOT_DIR}/compile_commands.json"
 # Override if you use a different Vitis version or installed path.
 TOOLCHAIN_BIN="${VITIS_ARM_GCC_BIN:-}"
 if [[ -z "${TOOLCHAIN_BIN}" ]]; then
-  if [[ -d /home/ilya/Xilinx/Vitis/2024.2/gnu/aarch32/lin/gcc-arm-none-eabi/bin ]]; then
-    TOOLCHAIN_BIN="/home/ilya/Xilinx/Vitis/2024.2/gnu/aarch32/lin/gcc-arm-none-eabi/bin"
-  elif [[ -d /home/ilya/Xilinx/Vitis/2021.2/gnu/aarch32/lin/gcc-arm-none-eabi/bin ]]; then
-    TOOLCHAIN_BIN="/home/ilya/Xilinx/Vitis/2021.2/gnu/aarch32/lin/gcc-arm-none-eabi/bin"
+  if GCC_PATH="$(command -v arm-none-eabi-gcc 2>/dev/null)"; then
+    TOOLCHAIN_BIN="$(dirname "${GCC_PATH}")"
   else
-    TOOLCHAIN_BIN="$(ls -1d /home/ilya/Xilinx/Vitis/*/gnu/aarch32/lin/gcc-arm-none-eabi/bin 2>/dev/null | sort -V | tail -n 1 || true)"
+    TOOLCHAIN_BIN="$(
+      ls -1d \
+        "${HOME}/Xilinx/Vitis"/*/gnu/aarch32/lin/gcc-arm-none-eabi/bin \
+        /opt/Xilinx/Vitis/*/gnu/aarch32/lin/gcc-arm-none-eabi/bin \
+        2>/dev/null | sort -V | tail -n 1 || true
+    )"
   fi
 fi
 
 if [[ -z "${TOOLCHAIN_BIN}" || ! -x "${TOOLCHAIN_BIN}/arm-none-eabi-gcc" ]]; then
-  echo "ERROR: arm-none-eabi-gcc not found. Set VITIS_ARM_GCC_BIN to the toolchain bin dir." >&2
+  echo "ERROR: arm-none-eabi-gcc not found. Add it to PATH or set VITIS_ARM_GCC_BIN to the toolchain bin dir." >&2
   exit 1
 fi
 export PATH="${TOOLCHAIN_BIN}:${PATH}"
