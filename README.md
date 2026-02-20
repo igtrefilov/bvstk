@@ -413,8 +413,7 @@ flowchart TB
   - Ubuntu/Debian: `sudo apt install -y bear`
   - затем: `./scripts/vscode/gen_compile_commands.sh`
 - Инструкции:
-  - навигация/индексация: `docs/VSCODE_XILINX.md`
-  - JTAG step‑debug: `docs/VSCODE_DEBUG_ZYNQ7000_JTAG.md`
+  - единая инструкция: `scripts/vscode/README.md`
 
 **Проверка окружения**
 ```sh
@@ -465,7 +464,7 @@ python3 --version
   - `scripts/vscode/jtag_prepare_debug.tcl` — XSCT подготовка JTAG для отладки (PL + `ps7_init` + halt core0)
   - `scripts/vscode/arm-none-eabi-gdb.sh` — враппер для поиска `arm-none-eabi-gdb` (удобно для VSCode)
 - `.vscode/` — настройки VSCode (IntelliSense + debug)
-- `docs/` — документация (в т.ч. `docs/VSCODE_XILINX.md`, `docs/VSCODE_DEBUG_ZYNQ7000_JTAG.md`)
+- `docs/` — дополнительная документация по проекту.
 - `configs/` — шаблоны JSON, которые встраиваются в прошивку как дефолты (сеть, I2C, SMI).
 - `src/` — исходники прошивки (линкуются в Vitis‑проект как `vitis_ws/app_bvstk/src -> ./src`).
   - `src/main.c` — порядок инициализации и запуск планировщика.
