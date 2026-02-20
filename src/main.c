@@ -17,6 +17,7 @@ int main()
 	start_http_server();
 	start_smi();
 	start_i2c();
+	start_spi();
 
 	vTaskStartScheduler();
 	while (1);

@@ -5,6 +5,7 @@
 #include "bvstk_tcp_server/bvstk_tcp_server.h"
 #include "bvstk_smi/bvstk_smi.h"
 #include "bvstk_i2c/bvstk_i2c.h"
+#include "bvstk_spi/bvstk_spi.h"
 #include "sd_card/sd_card.h"
 #include "qspi_flash/qspi_flash.h"
 

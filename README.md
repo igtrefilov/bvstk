@@ -94,7 +94,7 @@
 - **SD на PS**: SDIO (`XPAR_XSDPS_0_DEVICE_ID`) — для тома `sd:/` (FatFs).
 - **QSPI NOR**: предполагается флеш объёмом **32 MiB** (см. `src/qspi_flash/qspi_flash.c`), для тома `flash:/` (FatFs в окне внутри флеша).
 - **JTAG**: для старта по JTAG нужен доступ к `hw_server` и рабочий кабель/драйверы.
-- **PL‑ядра**: кастомные ядра для I2C и SMI/MDIO (см. `src/bvstk_i2c/`, `src/bvstk_smi/`) должны быть включены в bitstream и иметь адреса/IRQ, соответствующие прошивке.
+- **PL‑ядра**: кастомные ядра для I2C, SMI/MDIO и SPI (см. `src/bvstk_i2c/`, `src/bvstk_smi/`, `src/bvstk_spi/`) должны быть включены в bitstream и иметь адреса/IRQ, соответствующие прошивке.
 
 Ограничения и важные замечания:
 - **Аппаратная часть не генерируется** этой репой: `*.xsa` и `*.bit` должны быть предоставлены извне и соответствовать ожидаемой адресной карте.
@@ -245,7 +245,7 @@ flowchart TB
 Расшифровка групп:
 
 - **Init (main)** — *не задача*: синхронный код в `src/main.c` до `vTaskStartScheduler()`, который вызывает `start_*()` и тем самым создаёт задачи ниже.
-  - Создаёт/запускает: `sd_card`, `qspi_fs`, `cfg`, `lan_thrd`, `tcp_server_thrd`, `http`, а также задачи I2C/SMI.
+  - Создаёт/запускает: `sd_card`, `qspi_fs`, `cfg`, `lan_thrd`, `tcp_server_thrd`, `http`, а также подсистемы I2C/SMI/SPI.
 - **Config (cfg)** — задача `cfg` (`src/config/config_store.c`): загрузка/миграция JSON и выставление `config_store_is_ready()`.
   - Задачи: `cfg`
 - **FS (sd/qspi)** — фоновые задачи, которые монтируют тома и держат флаги готовности.
@@ -1117,6 +1117,7 @@ flowchart LR
 **Форматы команд (на стороне PS → `*_master`)**
 - **I²C master** получает поток 32‑битных слов в TX‑регистре/FIFO: заголовок `I2C_MAKE_HEADER(addr7, op, num_bytes)`, затем данные. Запуск — через биты `CSR_START_BIT`/`CSR_RP_START_BIT` (см. `src/bvstk_i2c/bvstk_i2c.h`).
 - **SMI master** получает по TX FIFO одно слово на транзакцию: `{rw, phy_addr, reg_addr, data}` (см. формирование слова в `mdio_read()/mdio_write()` в `src/bvstk_smi/bvstk_smi.c`). Запуск/режимы — через `CSR_m`/`TIMEOUT_m`, подтверждение — через `IRQ_m`.
+- **SPI master** получает поток 32‑битных слов в `TX_FIFO_ADDR` (`0x10`); режимы/тайминги задаются через `PACKET_ADDR` (`0x08`), `TIMEOUT_ADDR` (`0x0C`) и `SPI_SIG_ADDR` (`0x18`), запуск — через `CSR_ADDR` (`0x00`). См. `src/bvstk_spi/bvstk_spi.h`.
 
 **Ограничения/важные замечания**
 - Прошивка предполагает, что HW‑design согласован с `xparameters.h` (baseaddr/IRQ/BRAM layout). Несовпадение адресов или размеров BRAM приводит к некорректной работе/падениям.
@@ -1685,6 +1686,20 @@ nc <device-ip> 8888
     - Примеры: `smi lan8720 settings`, `smi lan8720 settings clear`
   - `smi <sel> save` — сохранить текущий конфиг PHY в `flash:/config/smi/<...>.json`.
     - Пример: `smi lan8720 save`
+
+**6.5) SPI (spi)**
+- `spi info` — показать текущий runtime‑конфиг SPI драйвера.
+  - Пример: `spi info`
+- `spi cfg mode <single|multi|fallthrough>` — выбрать пакетный режим.
+  - Пример: `spi cfg mode multi`
+- `spi cfg timeout <ticks>` — выставить `TIMEOUT_ADDR` (в тактах PL).
+  - Пример: `spi cfg timeout 1`
+- `spi cfg div <N>` — выставить `SPI_SIG_ADDR.p_clk_div` (рекомендуется чётное `N>=2`).
+  - Пример: `spi cfg div 512`
+- `spi cfg read <on|off>` — включить/выключить приём (бит `read_en` в `CSR`).
+  - Пример: `spi cfg read on`
+- `spi xfer <w0> [w1 ...]` — отправить 32‑битные слова и вывести RX слова из BRAM окна SPI.
+  - Пример: `spi xfer 0x40AA5500 0x11223344`
 
 **7) Память/регистры (mem, опасно)**
 - `mem -h|--help` — справка.

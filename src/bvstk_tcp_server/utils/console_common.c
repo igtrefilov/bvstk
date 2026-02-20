@@ -29,6 +29,7 @@ void console_print_banner(int fd)
         "| tar            | Tar archive utility         |\r\n",
         "| ip             | Network configuration       |\r\n",
         "| smi            | MDIO/SMI access             |\r\n",
+        "| spi            | SPI PL master shell         |\r\n",
         "| mem            | Memory info/tools           |\r\n",
         "| i2c            | I2C device shell            |\r\n",
         "| help           | List available utilities    |\r\n",
