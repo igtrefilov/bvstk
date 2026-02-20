@@ -6,12 +6,13 @@ set -euo pipefail
 # Resolution order:
 #  1) $VITIS_ARM_GDB (full path)
 #  2) $VITIS_ARM_GCC_BIN/arm-none-eabi-gdb
-#  3) /home/ilya/Xilinx/Vitis/<latest>/gnu/aarch32/lin/gcc-arm-none-eabi/bin/arm-none-eabi-gdb
-#  4) arm-none-eabi-gdb from PATH
+#  3) $HOME/Xilinx/Vitis/<latest>/gnu/aarch32/lin/gcc-arm-none-eabi/bin/arm-none-eabi-gdb
+#  4) /opt/Xilinx/Vitis/<latest>/gnu/aarch32/lin/gcc-arm-none-eabi/bin/arm-none-eabi-gdb
+#  5) arm-none-eabi-gdb from PATH
 
 # VSCode sometimes starts the MI debugger with an unexpected working directory.
 # Ensure GDB runs from the repo root so relative paths (like `vitis_ws/...`) work.
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 if [[ -n "${GDB_CWD:-}" ]]; then
   cd "${GDB_CWD}"
 else
@@ -26,7 +27,12 @@ if [[ -n "${VITIS_ARM_GCC_BIN:-}" && -x "${VITIS_ARM_GCC_BIN}/arm-none-eabi-gdb"
   exec "${VITIS_ARM_GCC_BIN}/arm-none-eabi-gdb" "$@"
 fi
 
-candidate="$(ls -1d /home/ilya/Xilinx/Vitis/*/gnu/aarch32/lin/gcc-arm-none-eabi/bin 2>/dev/null | sort -V | tail -n 1 || true)"
+candidate="$(
+  ls -1d \
+    "${HOME}/Xilinx/Vitis"/*/gnu/aarch32/lin/gcc-arm-none-eabi/bin \
+    /opt/Xilinx/Vitis/*/gnu/aarch32/lin/gcc-arm-none-eabi/bin \
+    2>/dev/null | sort -V | tail -n 1 || true
+)"
 if [[ -n "${candidate}" && -x "${candidate}/arm-none-eabi-gdb" ]]; then
   exec "${candidate}/arm-none-eabi-gdb" "$@"
 fi

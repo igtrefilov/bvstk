@@ -2,9 +2,20 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CONFIG_FILE="${RUN_JTAG_CONFIG:-$SCRIPT_DIR/run_jtag.conf}"
 
 BITSTREAM_OVERRIDE=""
 MODE="run"
+
+if [[ -f "$CONFIG_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$CONFIG_FILE"
+fi
+
+if [[ -n "${BITSTREAM_FILE:-}" ]]; then export BITSTREAM_FILE; fi
+if [[ -n "${ELF_FILE:-}" ]]; then export ELF_FILE; fi
+if [[ -n "${PS7_INIT_TCL:-}" ]]; then export PS7_INIT_TCL; fi
 
 usage() {
   cat >&2 <<'EOF'
@@ -72,12 +83,12 @@ if [[ "$MODE" == "debug" ]]; then
       fi
     fi
   fi
-  xsct "$SCRIPT_DIR/scripts/jtag_prepare_debug.tcl"
+  xsct "$REPO_ROOT/scripts/vscode/jtag_prepare_debug.tcl"
   echo ""
   echo "Next steps:"
   echo "  - Start VSCode debug config: Attach: Zynq-7000 (hw_server GDB, core0)"
   echo "  - Or CLI GDB:"
-  echo "      arm-none-eabi-gdb \"$SCRIPT_DIR/vitis_ws/app_bvstk/Debug/app_bvstk.elf\" \\"
+  echo "      arm-none-eabi-gdb \"$REPO_ROOT/vitis_ws/app_bvstk/Debug/app_bvstk.elf\" \\"
   echo "        -ex \"target remote :3000\" -ex \"load\" -ex \"tbreak main\" -ex \"continue\""
 else
   xsct "$SCRIPT_DIR/run_jtag.tcl"

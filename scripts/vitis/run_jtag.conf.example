@@ -1,0 +1,6 @@
+# JTAG run configuration (sourced by scripts/vitis/run_jtag.sh)
+# Export these vars before invoking XSCT/TCL if you want custom paths.
+
+# BITSTREAM_FILE="/abs/path/to/design.bit"
+# ELF_FILE="/abs/path/to/app_bvstk.elf"
+# PS7_INIT_TCL="/abs/path/to/ps7_init.tcl"

@@ -1,0 +1,12 @@
+# Copy this file to build_fpga.conf and edit values for your machine.
+# build_fpga.sh sources this file via bash.
+# Tip: use absolute paths for portability across different clone locations.
+
+VIVADO_BIN="$HOME/Xilinx/Vivado/2021.2/bin/vivado"
+# Example absolute path: /data/work/hw_platform/fpga
+FPGA_DIR="$SCRIPT_DIR/../../../hw_platform/fpga"
+PROJ_NAME="Burevestnik_21"
+JOBS="8"
+# Example absolute path: /data/work/bvstk_hw/tmp
+OUTPUT_DIR="$SCRIPT_DIR/../../../bvstk_hw/tmp"
+CLEAN="0"

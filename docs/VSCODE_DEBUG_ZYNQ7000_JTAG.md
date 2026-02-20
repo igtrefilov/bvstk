@@ -50,13 +50,13 @@ arm-none-eabi-gdb --version
 
 Эти шаги выполняет скрипт:
 
-- `scripts/jtag_prepare_debug.tcl`
+- `scripts/vscode/jtag_prepare_debug.tcl`
 
 ## 3) Как запускать дебаг из VSCode
 
 В репозитории уже добавлены:
 
-- `.vscode/tasks.json` — стартует `hw_server` и выполняет `xsct scripts/jtag_prepare_debug.tcl`
+- `.vscode/tasks.json` — стартует `hw_server` и выполняет `xsct scripts/vscode/jtag_prepare_debug.tcl`
 - `.vscode/launch.json` — подключает `arm-none-eabi-gdb` к `hw_server` и делает `load` + `tbreak main`
 
 Порядок действий:

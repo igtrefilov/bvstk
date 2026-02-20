@@ -4,7 +4,7 @@
 # links the firmware sources from ./src, and builds the application ELF.
 #
 # You can override XSA and CLEAN via environment variables:
-#   env XSA=/path/to/design.xsa CLEAN=0 xsct build.tcl
+#   env XSA=/path/to/design.xsa CLEAN=0 xsct scripts/vitis/build.tcl
 #
 
 # Helper to delete a path even if previous tools left odd permissions behind.
@@ -22,8 +22,12 @@ proc safe_delete {path} {
     }
 }
 
+# Resolve repo root from script location.
+set SCRIPT_DIR [file dirname [file normalize [info script]]]
+set REPO_ROOT [file normalize [file join $SCRIPT_DIR .. ..]]
+
 # Workspace / project names
-set WS        [file normalize "[file dirname [info script]]/vitis_ws"]
+set WS        [file normalize [file join $REPO_ROOT vitis_ws]]
 set PLAT_NAME plat_bvstk
 set APP_NAME  app_bvstk
 
@@ -31,7 +35,13 @@ set APP_NAME  app_bvstk
 if {[info exists ::env(XSA)]} {
     set XSA [file normalize $::env(XSA)]
 } else {
-    set XSA [file normalize "/home/ilya/Zynq/bvstk_hw/Burevestnik_top.xsa"]
+    set XSA_CANDIDATE_1 [file normalize [file join $REPO_ROOT .. bvstk_hw tmp design.xsa]]
+    set XSA_CANDIDATE_2 [file normalize [file join $REPO_ROOT .. bvstk_hw Burevestnik_top.xsa]]
+    if {[file exists $XSA_CANDIDATE_1]} {
+        set XSA $XSA_CANDIDATE_1
+    } else {
+        set XSA $XSA_CANDIDATE_2
+    }
 }
 set PROC      ps7_cortexa9_0
 set OS_RTOS   freertos10_xilinx
@@ -47,10 +57,9 @@ if {$do_clean && [file exists $WS]} {
 }
 file mkdir $WS
 
-set SCRIPT_DIR [file dirname [file normalize [info script]]]
-set PATCH_FFCONF_SCRIPT [file join $SCRIPT_DIR src scripts patch_ffconf_lfn.py]
-set GEN_DEFAULT_CONFIGS_SCRIPT [file join $SCRIPT_DIR src scripts gen_default_configs.py]
-set DEFAULT_CONFIGS_HDR [file join $SCRIPT_DIR src config default_configs.h]
+set PATCH_FFCONF_SCRIPT [file join $REPO_ROOT src scripts patch_ffconf_lfn.py]
+set GEN_DEFAULT_CONFIGS_SCRIPT [file join $REPO_ROOT src scripts gen_default_configs.py]
+set DEFAULT_CONFIGS_HDR [file join $REPO_ROOT src config default_configs.h]
 
 proc gen_default_configs {script repo_root out_hdr} {
     if {![file exists $script]} {
@@ -73,7 +82,7 @@ proc ensure_ffconf_lfn {script ws} {
 }
 
 setws $WS
-gen_default_configs $GEN_DEFAULT_CONFIGS_SCRIPT $SCRIPT_DIR $DEFAULT_CONFIGS_HDR
+gen_default_configs $GEN_DEFAULT_CONFIGS_SCRIPT $REPO_ROOT $DEFAULT_CONFIGS_HDR
 platform create -name $PLAT_NAME -hw $XSA -proc $PROC -os $OS_RTOS -out $WS
 platform active $PLAT_NAME
 
@@ -109,7 +118,7 @@ if {[catch {bsp setlib -name xilffs} msg]} {
     puts "xilffs library not found: $msg"
 } else {
     # Replace the generated diskio implementation with our shared version.
-    set CUSTOM_DISKIO [file join $SCRIPT_DIR src fs diskio.c]
+    set CUSTOM_DISKIO [file join $REPO_ROOT src fs diskio.c]
     set TARGET_DISKIO [file join $WS plat_bvstk/ps7_cortexa9_0/freertos10_xilinx_domain/bsp/ps7_cortexa9_0/libsrc/xilffs_v5_3/src/diskio.c]
     exec mkdir -p [file dirname $TARGET_DISKIO]
     file copy -force $CUSTOM_DISKIO $TARGET_DISKIO
@@ -125,7 +134,7 @@ app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
 set app_src   [file join $WS $APP_NAME src]
 file delete -force $app_src
 
-set SRC_REAL   [file normalize [file join $SCRIPT_DIR src]]
+set SRC_REAL   [file normalize [file join $REPO_ROOT src]]
 
 puts "Linking $app_src -> $SRC_REAL"
 
@@ -137,8 +146,13 @@ ensure_ffconf_lfn $PATCH_FFCONF_SCRIPT $WS
 app build -name $APP_NAME
 ensure_ffconf_lfn $PATCH_FFCONF_SCRIPT $WS
 
+set ELF_PATH [file join $WS $APP_NAME Debug ${APP_NAME}.elf]
+if {![file exists $ELF_PATH]} {
+    error "Application build did not produce ELF: $ELF_PATH"
+}
+
 puts ""
 puts "Build completed."
 puts "Workspace : $WS"
 puts "Platform  : $PLAT_NAME"
-puts "Application ELF: [file join $WS $APP_NAME Debug ${APP_NAME}.elf]"
+puts "Application ELF: $ELF_PATH"

@@ -32,7 +32,7 @@
     {
       "label": "Xilinx: JTAG prepare for debug (xsct)",
       "type": "shell",
-      "command": "xsct ${workspaceFolder}/scripts/jtag_prepare_debug.tcl",
+      "command": "xsct ${workspaceFolder}/scripts/vscode/jtag_prepare_debug.tcl",
       "dependsOn": "Xilinx: hw_server (background)",
       "presentation": {
         "reveal": "always",

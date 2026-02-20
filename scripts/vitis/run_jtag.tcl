@@ -25,22 +25,31 @@ proc reset_and_halt {} {
 
 # --- Paths -----------------------------------------------------------
 
-# Hardcode bitstream here if you want; set "" to use env(BITSTREAM_FILE) or default.
-set BITSTREAM_PATH_OVERRIDE "/home/ilya/Zynq/bvstk_hw/Burevestnik_top.bit"
-
 set SCRIPT_DIR [file dirname [file normalize [info script]]]
-set ELF_FILE [file join $SCRIPT_DIR vitis_ws app_bvstk Debug app_bvstk.elf]
-set BITSTREAM_DEFAULT [file join $SCRIPT_DIR vitis_ws plat_bvstk export plat_bvstk hw Burevestnik_top.bit]
+set REPO_ROOT [file normalize [file join $SCRIPT_DIR .. ..]]
 
-if {$BITSTREAM_PATH_OVERRIDE ne ""} {
-    set BITSTREAM_FILE $BITSTREAM_PATH_OVERRIDE
-} elseif {[info exists env(BITSTREAM_FILE)] && $env(BITSTREAM_FILE) ne ""} {
-    set BITSTREAM_FILE $env(BITSTREAM_FILE)
+if {[info exists env(ELF_FILE)] && $env(ELF_FILE) ne ""} {
+    set ELF_FILE [file normalize $env(ELF_FILE)]
 } else {
-    set BITSTREAM_FILE $BITSTREAM_DEFAULT
+    set ELF_FILE [file join $REPO_ROOT vitis_ws app_bvstk Debug app_bvstk.elf]
 }
 
-set PS7_INIT_TCL [file join $SCRIPT_DIR vitis_ws plat_bvstk export plat_bvstk hw ps7_init.tcl]
+set BITSTREAM_DEFAULT_1 [file join $REPO_ROOT .. bvstk_hw tmp design.bit]
+set BITSTREAM_DEFAULT_2 [file join $REPO_ROOT vitis_ws plat_bvstk export plat_bvstk hw Burevestnik_top.bit]
+
+if {[info exists env(BITSTREAM_FILE)] && $env(BITSTREAM_FILE) ne ""} {
+    set BITSTREAM_FILE $env(BITSTREAM_FILE)
+} elseif {[file exists $BITSTREAM_DEFAULT_1]} {
+    set BITSTREAM_FILE $BITSTREAM_DEFAULT_1
+} else {
+    set BITSTREAM_FILE $BITSTREAM_DEFAULT_2
+}
+
+if {[info exists env(PS7_INIT_TCL)] && $env(PS7_INIT_TCL) ne ""} {
+    set PS7_INIT_TCL [file normalize $env(PS7_INIT_TCL)]
+} else {
+    set PS7_INIT_TCL [file join $REPO_ROOT vitis_ws plat_bvstk export plat_bvstk hw ps7_init.tcl]
+}
 
 # --- Sanity checks ---------------------------------------------------
 
@@ -91,4 +100,3 @@ puts "Starting application (core0)..."
 con
 
 puts "Done."
-

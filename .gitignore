@@ -4,11 +4,7 @@
 # Keep repo metadata
 !.gitignore
 
-# Track build script and source tree
-!build.tcl
-!build.sh
-!run_jtag.sh
-!run_jtag.tcl
+# Track scripts and source tree
 !scripts/
 !scripts/**
 !configs/
@@ -42,6 +38,10 @@ src/.obsidian/
 src/.obsidian/**
 docs/.obsidian/
 docs/.obsidian/**
+
+# XSCT/Vitis generated local metadata inside script directories
+scripts/vitis/.Xil/
+scripts/vitis/.Xil/**
 
 # Python caches
 **/__pycache__/

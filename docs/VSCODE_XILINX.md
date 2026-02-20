@@ -50,7 +50,7 @@ export VITIS_ARM_GCC_BIN=/path/to/Vitis/.../gcc-arm-none-eabi/bin
 
 В репозитории есть скрипт:
 
-- `scripts/gen_compile_commands.sh`
+- `scripts/vscode/gen_compile_commands.sh`
 
 Он запускает `make` для `app`, `fsbl` и `bsp` через `bear` и пишет итоговую compilation database в:
 
@@ -60,13 +60,13 @@ export VITIS_ARM_GCC_BIN=/path/to/Vitis/.../gcc-arm-none-eabi/bin
 
 ```bash
 cd <repo-root>
-./scripts/gen_compile_commands.sh
+./scripts/vscode/gen_compile_commands.sh
 ```
 
 Примечание:
 
 - `compile_commands.json` специально **не коммитится** (генерируемый файл, зависит от путей на машине).
-- После `git clone` файл обычно отсутствует, это нормально. Сгенерируй его локально командой `./scripts/gen_compile_commands.sh`.
+- После `git clone` файл обычно отсутствует, это нормально. Сгенерируй его локально командой `./scripts/vscode/gen_compile_commands.sh`.
 - Внутри базы могут быть абсолютные пути к локальному toolchain (например к `arm-none-eabi-gcc`), поэтому файл должен генерироваться на каждой машине отдельно.
 
 ## 3) Настройка VSCode

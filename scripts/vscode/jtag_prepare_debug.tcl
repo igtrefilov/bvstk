@@ -28,14 +28,14 @@ set SCRIPT_DIR [file dirname [file normalize [info script]]]
 # Bitstream selection:
 # - if env(BITSTREAM_FILE) is set, use it
 # - else use the exported platform bitstream (default Vitis export location)
-set BITSTREAM_DEFAULT [file join $SCRIPT_DIR .. vitis_ws plat_bvstk export plat_bvstk hw Burevestnik_top.bit]
+set BITSTREAM_DEFAULT [file join $SCRIPT_DIR .. .. vitis_ws plat_bvstk export plat_bvstk hw Burevestnik_top.bit]
 if {[info exists env(BITSTREAM_FILE)] && $env(BITSTREAM_FILE) ne ""} {
     set BITSTREAM_FILE $env(BITSTREAM_FILE)
 } else {
     set BITSTREAM_FILE $BITSTREAM_DEFAULT
 }
 
-set PS7_INIT_TCL [file join $SCRIPT_DIR .. vitis_ws plat_bvstk export plat_bvstk hw ps7_init.tcl]
+set PS7_INIT_TCL [file join $SCRIPT_DIR .. .. vitis_ws plat_bvstk export plat_bvstk hw ps7_init.tcl]
 
 if {![file exists $BITSTREAM_FILE]} {
     error "Bitstream not found at $BITSTREAM_FILE. Build hardware platform first or set BITSTREAM_FILE."
@@ -66,4 +66,3 @@ targets -set -nocase -filter {name =~ "*Cortex-A9*#0*"}
 safe_stop
 
 puts "JTAG prepare done (core0 halted). Now attach GDB from VSCode."
-
