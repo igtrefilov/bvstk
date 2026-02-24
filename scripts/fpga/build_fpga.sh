@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Wrapper that recreates the Vivado project and produces design.bit/design.xsa
-# Outputs are placed in ../bvstk_hw/tmp relative to this script.
+# Outputs are placed in ../../artifacts/fpga relative to this script by default.
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # Default config location. Can be overridden via --config or BUILD_FPGA_CONFIG.
@@ -27,12 +27,12 @@ Precedence:
 EOF
 }
 
-# Built-in defaults (may be overridden by config and CLI flags).
+# Built-in defaults (safety net; normal workflow is config-driven).
 FPGA_DIR="$SCRIPT_DIR/../../../hw_platform/fpga"
 PROJ_NAME="Burevestnik_21"
 JOBS="8"
 VIVADO_BIN="vivado"
-OUTPUT_DIR="$SCRIPT_DIR/../../../bvstk_hw/tmp"
+OUTPUT_DIR="$SCRIPT_DIR/../../artifacts/fpga"
 CLEAN="0"
 
 # First pass: allow selecting config file before loading settings.
@@ -58,13 +58,13 @@ while [[ $idx -lt ${#args[@]} ]]; do
   esac
 done
 
-if [[ -f "$CONFIG_FILE" ]]; then
-  # shellcheck disable=SC1090
-  source "$CONFIG_FILE"
-elif [[ "${BUILD_FPGA_CONFIG:-}" != "" ]]; then
-  echo "Config file '$CONFIG_FILE' not found (from BUILD_FPGA_CONFIG)." >&2
+if [[ ! -f "$CONFIG_FILE" ]]; then
+  echo "Config file '$CONFIG_FILE' not found." >&2
+  echo "Create it (for example from build_fpga.conf.example) and set required paths." >&2
   exit 1
 fi
+# shellcheck disable=SC1090
+source "$CONFIG_FILE"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -79,6 +79,21 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown option: $1" >&2; exit 1 ;;
   esac
 done
+
+require_nonempty() {
+  local name="$1"
+  local value="$2"
+  if [[ -z "$value" ]]; then
+    echo "Required config value '$name' is empty (config: $CONFIG_FILE)." >&2
+    exit 1
+  fi
+}
+
+require_nonempty "VIVADO_BIN" "$VIVADO_BIN"
+require_nonempty "FPGA_DIR" "$FPGA_DIR"
+require_nonempty "PROJ_NAME" "$PROJ_NAME"
+require_nonempty "JOBS" "$JOBS"
+require_nonempty "OUTPUT_DIR" "$OUTPUT_DIR"
 
 if ! command -v "$VIVADO_BIN" >/dev/null 2>&1; then
   echo "Vivado executable '$VIVADO_BIN' not found" >&2
@@ -98,6 +113,6 @@ echo "Creating/refreshing Vivado project in $FPGA_DIR..."
 "$VIVADO_BIN" -mode batch -source "$FPGA_DIR/Burevestnik_21.tcl" -tclargs --origin_dir "$FPGA_DIR" --project_name "$PROJ_NAME"
 
 echo "Running implementation and exporting hardware..."
-"$VIVADO_BIN" -mode batch -source "$SCRIPT_DIR/build_hw.tcl" -tclargs --fpga_dir "$FPGA_DIR" --project_name "$PROJ_NAME" --jobs "$JOBS"
+"$VIVADO_BIN" -mode batch -source "$SCRIPT_DIR/build_hw.tcl" -tclargs --fpga_dir "$FPGA_DIR" --project_name "$PROJ_NAME" --jobs "$JOBS" --output_dir "$OUTPUT_DIR"
 
 echo "Done. Outputs in $OUTPUT_DIR:"; ls -1 "$OUTPUT_DIR" | sed 's/^/  /'

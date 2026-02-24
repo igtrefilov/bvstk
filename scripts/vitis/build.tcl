@@ -35,13 +35,8 @@ set APP_NAME  app_bvstk
 if {[info exists ::env(XSA)]} {
     set XSA [file normalize $::env(XSA)]
 } else {
-    set XSA_CANDIDATE_1 [file normalize [file join $REPO_ROOT .. bvstk_hw tmp design.xsa]]
-    set XSA_CANDIDATE_2 [file normalize [file join $REPO_ROOT .. bvstk_hw Burevestnik_top.xsa]]
-    if {[file exists $XSA_CANDIDATE_1]} {
-        set XSA $XSA_CANDIDATE_1
-    } else {
-        set XSA $XSA_CANDIDATE_2
-    }
+    set XSA_CANDIDATE_1 [file normalize [file join $REPO_ROOT artifacts fpga design.xsa]]
+    set XSA $XSA_CANDIDATE_1
 }
 set PROC      ps7_cortexa9_0
 set OS_RTOS   freertos10_xilinx

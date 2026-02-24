@@ -7,6 +7,6 @@ VIVADO_BIN="$HOME/Xilinx/Vivado/2021.2/bin/vivado"
 FPGA_DIR="$SCRIPT_DIR/../../../hw_platform/fpga"
 PROJ_NAME="Burevestnik_21"
 JOBS="8"
-# Example absolute path: /data/work/bvstk_hw/tmp
-OUTPUT_DIR="$SCRIPT_DIR/../../../bvstk_hw/tmp"
+# Example absolute path: /data/work/bvstk/artifacts/fpga
+OUTPUT_DIR="$SCRIPT_DIR/../../artifacts/fpga"
 CLEAN="0"

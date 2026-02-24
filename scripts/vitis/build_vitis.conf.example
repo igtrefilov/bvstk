@@ -1,8 +1,9 @@
 # Vitis build configuration (sourced by scripts/vitis/build.sh)
 # You can point BUILD_VITIS_CONFIG to another file if needed.
 
-# Absolute path to XSA file. If empty, build.sh tries defaults.
-# XSA="/abs/path/to/design.xsa"
+# XSA path for repository-local FPGA artifacts.
+# You can replace with an absolute path if needed.
+XSA="$SCRIPT_DIR/../../artifacts/fpga/design.xsa"
 
 # 1 = delete vitis_ws before build, 0 = keep workspace.
 CLEAN_DEFAULT="1"

@@ -6,8 +6,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 CONFIG_FILE="${BUILD_VITIS_CONFIG:-$SCRIPT_DIR/build_vitis.conf}"
 
 # Portable defaults (can be overridden in config/env)
-DEFAULT_XSA="$REPO_ROOT/../bvstk_hw/tmp/design.xsa"
-DEFAULT_XSA_FALLBACK="$REPO_ROOT/../bvstk_hw/Burevestnik_top.xsa"
+DEFAULT_XSA="$REPO_ROOT/artifacts/fpga/design.xsa"
 CLEAN_DEFAULT="1"
 
 if [[ -f "$CONFIG_FILE" ]]; then
@@ -16,11 +15,7 @@ if [[ -f "$CONFIG_FILE" ]]; then
 fi
 
 if [[ -z "${XSA:-}" ]]; then
-  if [[ -f "$DEFAULT_XSA" ]]; then
-    XSA="$DEFAULT_XSA"
-  else
-    XSA="$DEFAULT_XSA_FALLBACK"
-  fi
+  XSA="$DEFAULT_XSA"
 fi
 : "${CLEAN:=${CLEAN_DEFAULT}}"
 

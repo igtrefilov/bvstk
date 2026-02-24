@@ -1,12 +1,15 @@
 # Build bitstream and XSA for the Burevestnik Zynq design.
 # Defaults assume repository at ../hw_platform/fpga relative to this script.
-# Usage: vivado -mode batch -source build_hw.tcl -tclargs --jobs 8
+# Usage:
+#   vivado -mode batch -source build_hw.tcl -tclargs \
+#     --fpga_dir <dir> --project_name <name> --jobs <n> --output_dir <dir>
 
 # Resolve repository root containing Vivado project scripts (default: ../../../hw_platform/fpga)
 set script_dir [file dirname [info script]]
 set fpga_dir [file normalize "$script_dir/../../../hw_platform/fpga"]
 set proj_name "Burevestnik_21"
 set jobs 8
+set output_dir [file normalize "$script_dir/../../artifacts/fpga"]
 
 # Parse -tclargs
 for {set i 0} {$i < $::argc} {incr i} {
@@ -15,6 +18,7 @@ for {set i 0} {$i < $::argc} {incr i} {
     --fpga_dir { incr i; set fpga_dir [file normalize [lindex $::argv $i]] }
     --project_name { incr i; set proj_name [lindex $::argv $i] }
     --jobs { incr i; set jobs [lindex $::argv $i] }
+    --output_dir { incr i; set output_dir [file normalize [lindex $::argv $i]] }
     default {}
   }
 }
@@ -26,7 +30,6 @@ if { ![file exists $proj_path] } {
   exit 1
 }
 
-set output_dir [file normalize "$script_dir/../../../bvstk_hw/tmp"]
 file mkdir $output_dir
 
 open_project $proj_path

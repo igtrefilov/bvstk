@@ -20,6 +20,10 @@ cp -n run_jtag.conf.example run_jtag.conf
 - `build_vitis.conf`: set `XSA` and/or `CLEAN_DEFAULT`
 - `run_jtag.conf`: set `BITSTREAM_FILE`, `ELF_FILE`, `PS7_INIT_TCL`
 
+Default XSA path:
+- `<repo>/artifacts/fpga/design.xsa`
+Override it in `build_vitis.conf` if your artifacts are elsewhere.
+
 3. Build firmware:
 
 ```bash
