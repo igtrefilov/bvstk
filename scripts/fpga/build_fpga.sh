@@ -80,6 +80,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ -n "${XILINX_SETTINGS:-}" ]]; then
+  if [[ ! -f "$XILINX_SETTINGS" ]]; then
+    echo "Xilinx settings script '$XILINX_SETTINGS' not found." >&2
+    exit 1
+  fi
+  # shellcheck disable=SC1090
+  source "$XILINX_SETTINGS"
+fi
+
 require_nonempty() {
   local name="$1"
   local value="$2"

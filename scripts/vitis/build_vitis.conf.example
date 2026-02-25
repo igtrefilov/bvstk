@@ -1,6 +1,10 @@
 # Vitis build configuration (sourced by scripts/vitis/build.sh)
 # You can point BUILD_VITIS_CONFIG to another file if needed.
 
+# Optional: source this script before checking xsct.
+# Example: XILINX_SETTINGS="$HOME/Xilinx/Vitis/2021.2/settings64.sh"
+XILINX_SETTINGS=""
+
 # XSA path for repository-local FPGA artifacts.
 # You can replace with an absolute path if needed.
 XSA="$SCRIPT_DIR/../../artifacts/fpga/design.xsa"

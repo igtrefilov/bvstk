@@ -14,6 +14,15 @@ if [[ -f "$CONFIG_FILE" ]]; then
   source "$CONFIG_FILE"
 fi
 
+if [[ -n "${XILINX_SETTINGS:-}" ]]; then
+  if [[ ! -f "$XILINX_SETTINGS" ]]; then
+    echo "Xilinx settings script '$XILINX_SETTINGS' not found" >&2
+    exit 1
+  fi
+  # shellcheck disable=SC1090
+  source "$XILINX_SETTINGS"
+fi
+
 if [[ -z "${XSA:-}" ]]; then
   XSA="$DEFAULT_XSA"
 fi

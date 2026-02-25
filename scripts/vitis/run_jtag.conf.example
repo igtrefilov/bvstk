@@ -1,6 +1,10 @@
 # JTAG run configuration (sourced by scripts/vitis/run_jtag.sh)
 # Export these vars before invoking XSCT/TCL if you want custom paths.
 
+# Optional: source this script before checking xsct/hw_server.
+# Example: XILINX_SETTINGS="$HOME/Xilinx/Vitis/2021.2/settings64.sh"
+XILINX_SETTINGS=""
+
 # BITSTREAM_FILE="/abs/path/to/design.bit"
 # ELF_FILE="/abs/path/to/app_bvstk.elf"
 # PS7_INIT_TCL="/abs/path/to/ps7_init.tcl"

@@ -34,15 +34,18 @@ if {[info exists env(ELF_FILE)] && $env(ELF_FILE) ne ""} {
     set ELF_FILE [file join $REPO_ROOT vitis_ws app_bvstk Debug app_bvstk.elf]
 }
 
-set BITSTREAM_DEFAULT_1 [file join $REPO_ROOT .. bvstk_hw tmp design.bit]
-set BITSTREAM_DEFAULT_2 [file join $REPO_ROOT vitis_ws plat_bvstk export plat_bvstk hw Burevestnik_top.bit]
+set BITSTREAM_DEFAULT_1 [file join $REPO_ROOT artifacts fpga design.bit]
+set BITSTREAM_DEFAULT_2 [file join $REPO_ROOT .. bvstk_hw tmp design.bit]
+set BITSTREAM_DEFAULT_3 [file join $REPO_ROOT vitis_ws plat_bvstk export plat_bvstk hw Burevestnik_top.bit]
 
 if {[info exists env(BITSTREAM_FILE)] && $env(BITSTREAM_FILE) ne ""} {
     set BITSTREAM_FILE $env(BITSTREAM_FILE)
 } elseif {[file exists $BITSTREAM_DEFAULT_1]} {
     set BITSTREAM_FILE $BITSTREAM_DEFAULT_1
-} else {
+} elseif {[file exists $BITSTREAM_DEFAULT_2]} {
     set BITSTREAM_FILE $BITSTREAM_DEFAULT_2
+} else {
+    set BITSTREAM_FILE $BITSTREAM_DEFAULT_3
 }
 
 if {[info exists env(PS7_INIT_TCL)] && $env(PS7_INIT_TCL) ne ""} {

@@ -13,6 +13,15 @@ if [[ -f "$CONFIG_FILE" ]]; then
   source "$CONFIG_FILE"
 fi
 
+if [[ -n "${XILINX_SETTINGS:-}" ]]; then
+  if [[ ! -f "$XILINX_SETTINGS" ]]; then
+    echo "Xilinx settings script '$XILINX_SETTINGS' not found" >&2
+    exit 1
+  fi
+  # shellcheck disable=SC1090
+  source "$XILINX_SETTINGS"
+fi
+
 if [[ -n "${BITSTREAM_FILE:-}" ]]; then export BITSTREAM_FILE; fi
 if [[ -n "${ELF_FILE:-}" ]]; then export ELF_FILE; fi
 if [[ -n "${PS7_INIT_TCL:-}" ]]; then export PS7_INIT_TCL; fi

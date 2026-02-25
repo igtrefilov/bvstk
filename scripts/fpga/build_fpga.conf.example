@@ -3,6 +3,9 @@
 # Tip: use absolute paths for portability across different clone locations.
 
 VIVADO_BIN="$HOME/Xilinx/Vivado/2021.2/bin/vivado"
+# Optional: source this before checking Vivado.
+# Example: XILINX_SETTINGS="$HOME/Xilinx/Vivado/2021.2/settings64.sh"
+XILINX_SETTINGS=""
 # Example absolute path: /data/work/hw_platform/fpga
 FPGA_DIR="$SCRIPT_DIR/../../../hw_platform/fpga"
 PROJ_NAME="Burevestnik_21"

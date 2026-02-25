@@ -5,7 +5,7 @@ These scripts build Vivado project **Burevestnik_21** and produce:
 - `design.bit`
 - `design.xsa`
 
-Output defaults to `../bvstk_hw/tmp` relative to the repository root.
+Output defaults to `<repo>/artifacts/fpga`.
 
 ## Files
 
@@ -28,6 +28,7 @@ cp -n build_fpga.conf.example build_fpga.conf
 2. Edit `build_fpga.conf`:
 
 - `VIVADO_BIN` — absolute path to Vivado executable
+- `XILINX_SETTINGS` — optional path to `settings64.sh` (if Vivado is not in PATH)
 - `FPGA_DIR` — absolute path to `hw_platform/fpga` (where `Burevestnik_21.tcl` is)
 - `OUTPUT_DIR` — absolute path for generated `design.bit` and `design.xsa`
 - optional: `JOBS`, `PROJ_NAME`, `CLEAN`
@@ -51,7 +52,7 @@ cp -n build_fpga.conf.example build_fpga.conf
 
 ## If directory layout differs
 
-Default values assume sibling repos (`../hw_platform` and `../bvstk_hw` near this repo).
+Default values assume sibling repos (`../hw_platform`) and repository-local artifacts (`./artifacts/fpga`).
 If your layout is different, set `FPGA_DIR` and `OUTPUT_DIR` explicitly in `build_fpga.conf`.
 
 ## CLI overrides (optional)
