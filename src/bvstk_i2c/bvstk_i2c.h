@@ -63,16 +63,17 @@ void i2cdev_autopoll_set(const i2cdev_autopoll_profile_t *p);
 #define STATUS_OFFSET         0x08
 #define TX_DATA_OFFSET        0x0C
 
-#define BRAM_BASE_ADDR        XPAR_AXI_BRAM_CTRL_0_S_AXI_BASEADDR
+/* BRAM window for I2C mailbox/buffer exchange. */
+#define BRAM_BASE_ADDR        XPAR_AXI_BRAM_CTRL_1_S_AXI_BASEADDR
+
 #define I2C_BRAM_MASTER       0x0500
 #define I2C_BRAM_SLAVE_WR     0x0000
 #define I2C_BRAM_SLAVE_RD     0x1000
 
-#define I2C_MASTER_BASE       XPAR_I2C_M_PMIC_BASEADDR
-#define I2C_SLAVE_BASE        XPAR_I2C_S_MCU_BASEADDR
-
-#define IRQ_I2C_MASTER        XPAR_FABRIC_I2C_M_PMIC_IRQ_INTR
-#define IRQ_I2C_SLAVE         XPAR_FABRIC_I2C_S_MCU_IRQ_INTR
+#define I2C_MASTER_BASE       XPAR_SMI_MASTER_0_BASEADDR
+#define I2C_SLAVE_BASE        XPAR_SMI_SLAVE_0_BASEADDR
+#define IRQ_I2C_MASTER        XPAR_FABRIC_SMI_MASTER_0_IRQ_INTR
+#define IRQ_I2C_SLAVE         XPAR_FABRIC_SMI_SLAVE_0_IRQ_INTR
 
 #define CSR_START_BIT    (1u << 0)
 #define CSR_RP_START_BIT (1u << 1)

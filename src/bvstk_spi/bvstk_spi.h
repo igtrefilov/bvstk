@@ -16,37 +16,10 @@
 #define SPI_TASK_STACK_SIZE     (768U)
 #define SPI_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
 
-/* SPI PL base address compatibility. */
-#if defined(XPAR_SPI_MASTER_0_BASEADDR)
 #define SPI_BASEADDR            XPAR_SPI_MASTER_0_BASEADDR
-#elif defined(XPAR_SPI_MASTER_BASEADDR)
-#define SPI_BASEADDR            XPAR_SPI_MASTER_BASEADDR
-#else
-/* Vivado tcl maps SPI master S_AXI to 0x43C30000. */
-#define SPI_BASEADDR            0x43C30000U
-#endif
-
-/* SPI BRAM window compatibility. */
-#if defined(XPAR_AXI_BRAM_CTRL_2_S_AXI_BASEADDR)
 #define SPI_BRAM_BASEADDR       XPAR_AXI_BRAM_CTRL_2_S_AXI_BASEADDR
-#elif defined(XPAR_AXI_BRAM_CTRL_2_BASEADDR)
-#define SPI_BRAM_BASEADDR       XPAR_AXI_BRAM_CTRL_2_BASEADDR
-#elif defined(XPAR_BRAM_2_BASEADDR)
-#define SPI_BRAM_BASEADDR       XPAR_BRAM_2_BASEADDR
-#else
-/* Vivado tcl maps SPI BRAM to 0x42000000. */
-#define SPI_BRAM_BASEADDR       0x42000000U
-#endif
-
-#if defined(XPAR_FABRIC_SPI_MASTER_0_IRQ_INTR)
 #define SPI_IRQ_INTR            XPAR_FABRIC_SPI_MASTER_0_IRQ_INTR
 #define SPI_HAS_IRQ             1
-#elif defined(XPAR_FABRIC_SPI_MASTER_0_VEC_ID)
-#define SPI_IRQ_INTR            XPAR_FABRIC_SPI_MASTER_0_VEC_ID
-#define SPI_HAS_IRQ             1
-#else
-#define SPI_HAS_IRQ             0
-#endif
 
 /* SPI register map. */
 #define SPI_CSR_REG_OFFSET      0x00U

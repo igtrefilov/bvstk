@@ -3,6 +3,7 @@
 #include "fs/fs_devices.h"
 #include "qspi_fs/qspi_fs.h"
 #include "http/http_server.h"
+#include "pl_spi_dbg/pl_spi_dbg_examples.h"
 
 int main()
 {
@@ -17,7 +18,7 @@ int main()
 	start_http_server();
 	start_smi();
 	start_i2c();
-	start_spi();
+	start_pl_spi_dbg();
 
 	vTaskStartScheduler();
 	while (1);
