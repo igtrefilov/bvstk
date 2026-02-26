@@ -7,6 +7,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/vitis_ws/app_bvstk/Debug/app_bvstk.elf",
       "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Xilinx: JTAG prepare for debug (xsct)",
       "MIMode": "gdb",
       "miDebuggerPath": "${workspaceFolder}/scripts/vscode/arm-none-eabi-gdb.sh",
       "launchCompleteCommand": "None",

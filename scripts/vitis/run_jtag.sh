@@ -89,6 +89,12 @@ if [[ "$MODE" == "debug" ]]; then
         echo "Starting hw_server with GDB ports enabled (-p 3000)..."
         (hw_server -s tcp::3121 -p 3000 -L- >/tmp/hw_server.log 2>&1 &) || true
         sleep 1
+      elif ! ss -ltn 2>/dev/null | grep -qE '[:.]3000\\b'; then
+        echo "ERROR: hw_server is running on port 3121, but GDB port 3000 is not open." >&2
+        echo "Stop existing hw_server and restart with GDB ports enabled:" >&2
+        echo "  pkill -f hw_server" >&2
+        echo "  hw_server -s tcp::3121 -p 3000 -L-" >&2
+        exit 1
       fi
     fi
   fi

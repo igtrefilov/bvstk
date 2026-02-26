@@ -27,12 +27,15 @@ set SCRIPT_DIR [file dirname [file normalize [info script]]]
 
 # Bitstream selection:
 # - if env(BITSTREAM_FILE) is set, use it
-# - else use the exported platform bitstream (default Vitis export location)
-set BITSTREAM_DEFAULT [file join $SCRIPT_DIR .. .. vitis_ws plat_bvstk export plat_bvstk hw Burevestnik_top.bit]
+# - else prefer repository artifact, then fallback to Vitis export location
+set BITSTREAM_DEFAULT_1 [file join $SCRIPT_DIR .. .. artifacts fpga design.bit]
+set BITSTREAM_DEFAULT_2 [file join $SCRIPT_DIR .. .. vitis_ws plat_bvstk export plat_bvstk hw Burevestnik_top.bit]
 if {[info exists env(BITSTREAM_FILE)] && $env(BITSTREAM_FILE) ne ""} {
     set BITSTREAM_FILE $env(BITSTREAM_FILE)
+} elseif {[file exists $BITSTREAM_DEFAULT_1]} {
+    set BITSTREAM_FILE $BITSTREAM_DEFAULT_1
 } else {
-    set BITSTREAM_FILE $BITSTREAM_DEFAULT
+    set BITSTREAM_FILE $BITSTREAM_DEFAULT_2
 }
 
 set PS7_INIT_TCL [file join $SCRIPT_DIR .. .. vitis_ws plat_bvstk export plat_bvstk hw ps7_init.tcl]
