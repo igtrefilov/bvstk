@@ -193,7 +193,13 @@ static void master_evt_task(void *arg);
 static void slave_evt_task (void *arg);
 static void master_ISR     (void *CallBackRef);
 static void slave_ISR      (void *CallBackRef);
-static inline void i2c_irq_enable(void) { vPortEnableInterrupt(IRQ_I2C_MASTER); vPortEnableInterrupt(IRQ_I2C_SLAVE); }
+static inline void i2c_irq_enable(void)
+{
+    if (I2C_HAS_IRQ != 0U) {
+        vPortEnableInterrupt(IRQ_I2C_MASTER);
+        vPortEnableInterrupt(IRQ_I2C_SLAVE);
+    }
+}
 static bool i2cdev_read_reg_idx(size_t dev_idx, uint8_t reg, uint8_t *out_val);
 
 extern size_t xPortGetFreeHeapSize(void);
@@ -346,10 +352,12 @@ void start_i2c(void)
     configASSERT(q_master);
     configASSERT(q_slave);
     configASSERT(i2c_bus_mutex);
-    reg_write32(I2C_MASTER_BASE, IRQ_REG_OFFSET, 0x01);
-    reg_write32(I2C_SLAVE_BASE,  IRQ_REG_OFFSET, 0x01);
-    xPortInstallInterruptHandler(IRQ_I2C_MASTER, master_ISR, NULL);
-    xPortInstallInterruptHandler(IRQ_I2C_SLAVE,  slave_ISR,  NULL);
+    if (I2C_HAS_IRQ != 0U) {
+        reg_write32(I2C_MASTER_BASE, IRQ_REG_OFFSET, 0x01);
+        reg_write32(I2C_SLAVE_BASE,  IRQ_REG_OFFSET, 0x01);
+        xPortInstallInterruptHandler(IRQ_I2C_MASTER, master_ISR, NULL);
+        xPortInstallInterruptHandler(IRQ_I2C_SLAVE,  slave_ISR,  NULL);
+    }
     configASSERT(xTaskCreate(master_evt_task, "i2c_master_evt", I2C_TASK_STACK_SIZE, NULL, I2C_TASK_PRIORITY, NULL) == pdPASS);
     configASSERT(xTaskCreate(slave_evt_task,  "i2c_slave_evt",  I2C_TASK_STACK_SIZE, NULL, I2C_TASK_PRIORITY, NULL) == pdPASS);
     configASSERT(xTaskCreate(i2c_task,        "i2c_task",       I2C_TASK_STACK_SIZE, NULL, I2C_TASK_PRIORITY,       NULL) == pdPASS);

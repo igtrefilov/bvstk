@@ -63,16 +63,19 @@ void i2cdev_autopoll_set(const i2cdev_autopoll_profile_t *p);
 #define STATUS_OFFSET         0x08
 #define TX_DATA_OFFSET        0x0C
 
-#define BRAM_BASE_ADDR        XPAR_AXI_BRAM_CTRL_0_S_AXI_BASEADDR
+#define BRAM_BASE_ADDR        XPAR_AXI_BRAM_CTRL_1_S_AXI_BASEADDR
 #define I2C_BRAM_MASTER       0x0500
 #define I2C_BRAM_SLAVE_WR     0x0000
 #define I2C_BRAM_SLAVE_RD     0x1000
 
-#define I2C_MASTER_BASE       XPAR_I2C_M_PMIC_BASEADDR
-#define I2C_SLAVE_BASE        XPAR_I2C_S_MCU_BASEADDR
+/* Current HW platform exposes a single I2C master instance. */
+#define I2C_MASTER_BASE       XPAR_I2C_MASTER_0_BASEADDR
+#define I2C_SLAVE_BASE        XPAR_I2C_MASTER_0_BASEADDR
 
-#define IRQ_I2C_MASTER        XPAR_FABRIC_I2C_M_PMIC_IRQ_INTR
-#define IRQ_I2C_SLAVE         XPAR_FABRIC_I2C_S_MCU_IRQ_INTR
+/* Current HW platform has no fabric I2C IRQ lines in xparameters.h. */
+#define I2C_HAS_IRQ           0U
+#define IRQ_I2C_MASTER        0U
+#define IRQ_I2C_SLAVE         0U
 
 #define CSR_START_BIT    (1u << 0)
 #define CSR_RP_START_BIT (1u << 1)
