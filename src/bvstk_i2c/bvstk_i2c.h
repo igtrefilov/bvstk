@@ -134,6 +134,7 @@ void i2cdev_autopoll_set(const i2cdev_autopoll_profile_t *p);
 
 #define I2C_MASTER_RECOVER_DELAY_MS 10u
 #define I2C_MASTER_RECOVER_RETRIES  3u
+#define I2C_MASTER_SETTLE_DELAY_MS  10u
 
 #define MSTR_DBG2_SCL_I_BIT     19u
 #define MSTR_DBG2_SDA_I_BIT     18u
@@ -169,6 +170,7 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size, uint8_t op_read);
 bool i2cdev_read_reg(uint8_t reg, uint8_t *out_val);
 bool i2cdev_write_reg(uint8_t reg, uint8_t val);
 bool i2cdev_read_reg_cached(uint8_t reg, uint8_t *out_val);
+bool i2cdev_read_reg_cached_dev(size_t dev_idx, uint8_t reg, uint8_t *out_val);
 
 bool i2cdev_read_reg_dev(size_t dev_idx, uint8_t reg, uint8_t *out_val);
 bool i2cdev_write_reg_dev(size_t dev_idx, uint8_t reg, uint8_t val);

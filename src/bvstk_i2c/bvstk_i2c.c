@@ -197,8 +197,9 @@ static bool i2cdev_is_value_permitted_cfg(const i2c_device_config_t *cfg, uint8_
 static inline void reg_write32(uint32_t base, uint32_t ofs, uint32_t v) { Xil_Out32(base + ofs, v); }
 static inline uint32_t reg_read32(uint32_t base, uint32_t ofs) { return Xil_In32(base + ofs); }
 
-static inline void i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val);
+static bool i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val);
 static void i2c_slave_fill_read_window(const uint8_t *src, uint32_t nbytes);
+static bool i2c_master_read_reg_to_bram(size_t dev_idx, uint8_t addr7, uint8_t reg, uint32_t rd_len);
 
 static void master_evt_task(void *arg);
 static void slave_evt_task (void *arg);
@@ -604,6 +605,12 @@ bool i2c_master_send(uint8_t addr_7b, uint8_t op_read, uint32_t num_bytes, const
             i2c_master_print_lowlevel("ok");
             break;
         }
+        vTaskDelay(pdMS_TO_TICKS(I2C_MASTER_SETTLE_DELAY_MS));
+        if (i2c_master_wait_ready(I2C_MASTER_SETTLE_DELAY_MS)) {
+            ok = true;
+            i2c_master_print_lowlevel("late_ok");
+            break;
+        }
         i2c_master_print_lowlevel("fail");
         i2c_master_recover_after_timeout();
     }
@@ -611,7 +618,7 @@ bool i2c_master_send(uint8_t addr_7b, uint8_t op_read, uint32_t num_bytes, const
     return ok;
 }
 
-static inline void i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val)
+static bool i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val)
 {
     uint8_t payload[2] = { reg, val };
     if (!i2c_master_send(addr7, 0, 2, payload, 2, MSTR_CSR_START_BIT)) {
@@ -619,7 +626,7 @@ static inline void i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg,
                    (unsigned)(addr7 & 0x7Fu),
                    (unsigned)reg,
                    (unsigned)val);
-        return;
+        return false;
     }
     if (dev_idx < I2CDEV_MAX_DEVICES && reg < I2CDEV_MAX_REG_COUNT) {
         s_reg_cache[dev_idx][reg] = val;
@@ -643,6 +650,7 @@ static inline void i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg,
         }
         taskEXIT_CRITICAL();
     }
+    return true;
 }
 
 static void i2c_slave_fill_read_window(const uint8_t *src, uint32_t nbytes)
@@ -660,12 +668,14 @@ static void i2c_slave_fill_read_window(const uint8_t *src, uint32_t nbytes)
     }
 }
 
-static void i2c_master_read_reg_to_bram(size_t dev_idx, uint8_t addr7, uint8_t reg, uint32_t rd_len)
+static bool i2c_master_read_reg_to_bram(size_t dev_idx, uint8_t addr7, uint8_t reg, uint32_t rd_len)
 {
     if (i2c_bus_mutex && xSemaphoreTake(i2c_bus_mutex, pdMS_TO_TICKS(100)) != pdTRUE) {
         xil_printf("[I2C][MSTR][rd] mutex timeout\r\n");
-        return;
+        return false;
     }
+    uint8_t trace_buf[4] = { reg, 0u, 0u, 0u };
+    i2c_master_print_transaction(addr7, 1u, rd_len, trace_buf);
     bool ok = false;
     for (uint32_t attempt = 0; attempt < I2C_MASTER_RECOVER_RETRIES; ++attempt) {
         if (!i2c_master_wait_ready(100u)) {
@@ -681,22 +691,35 @@ static void i2c_master_read_reg_to_bram(size_t dev_idx, uint8_t addr7, uint8_t r
         reg_write32(I2C_MASTER_BASE, MSTR_CSR_REG_OFFSET, MSTR_CSR_START_BIT);
         if (i2c_master_wait_ready(100u)) {
             ok = true;
+            i2c_master_print_lowlevel("rd_ok");
             break;
         }
+        vTaskDelay(pdMS_TO_TICKS(I2C_MASTER_SETTLE_DELAY_MS));
+        if (i2c_master_wait_ready(I2C_MASTER_SETTLE_DELAY_MS)) {
+            ok = true;
+            i2c_master_print_lowlevel("rd_late_ok");
+            break;
+        }
+        i2c_master_print_lowlevel("rd_fail");
         i2c_master_recover_after_timeout();
     }
     if (!ok) {
         if (i2c_bus_mutex) xSemaphoreGive(i2c_bus_mutex);
-        return;
+        xil_printf("[I2C][MSTR][rd] start failed a=0x%02X r=0x%02X n=%lu\r\n",
+                   (unsigned)(addr7 & 0x7Fu),
+                   (unsigned)reg,
+                   (unsigned long)rd_len);
+        return false;
     }
     s_pending_dev = (dev_idx < 0xFFu) ? (uint8_t)dev_idx : 0xFFu;
     s_pending_reg = reg;
     if (i2c_bus_mutex) xSemaphoreGive(i2c_bus_mutex);
+    return true;
 }
 
 static inline void i2cdev_read_byte_to_master_bram(size_t dev_idx, uint8_t addr7, uint8_t reg)
 {
-    i2c_master_read_reg_to_bram(dev_idx, addr7, reg, 1u);
+    (void)i2c_master_read_reg_to_bram(dev_idx, addr7, reg, 1u);
 }
 
 void i2cdev_init_full_scan(void)
@@ -721,6 +744,7 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size, uint8_t op_read)
     if (reg_ptr >= cfg->reg_count) reg_ptr = 0;
 
     if (op_read) {
+        uint8_t refresh_reg = reg_ptr;
         uint32_t n = (size == 0u) ? 1u : size;
         if ((uint32_t)reg_ptr + n > cfg->reg_count) n = (uint32_t)cfg->reg_count - reg_ptr;
         if (n == 0u) n = 1u;
@@ -728,6 +752,8 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size, uint8_t op_read)
         reg_ptr = (uint8_t)((uint32_t)reg_ptr + n);
         if (reg_ptr >= cfg->reg_count) reg_ptr = 0;
         s_slave_reg_ptr[sel] = reg_ptr;
+        /* Serve host from cache immediately, then refresh the first requested register from PHY. */
+        (void)i2c_master_read_reg_to_bram(sel, cfg->addr_7b, refresh_reg, 1u);
         return;
     }
 
@@ -875,7 +901,9 @@ static bool i2cdev_read_reg_idx(size_t dev_idx, uint8_t reg, uint8_t *out_val)
     i2c_device_config_t *cfg = s_cfgs[dev_idx];
     if (!cfg) return false;
     if (reg >= cfg->reg_count) return false;
-    i2cdev_read_byte_to_master_bram(dev_idx, cfg->addr_7b, reg);
+    if (!i2c_master_read_reg_to_bram(dev_idx, cfg->addr_7b, reg, 1u)) {
+        return false;
+    }
     vTaskDelay(pdMS_TO_TICKS(2));
     *out_val = s_reg_cache[dev_idx][reg];
     return true;
@@ -884,6 +912,17 @@ static bool i2cdev_read_reg_idx(size_t dev_idx, uint8_t reg, uint8_t *out_val)
 bool i2cdev_read_reg_dev(size_t dev_idx, uint8_t reg, uint8_t *out_val)
 {
     return i2cdev_read_reg_idx(dev_idx, reg, out_val);
+}
+
+bool i2cdev_read_reg_cached_dev(size_t dev_idx, uint8_t reg, uint8_t *out_val)
+{
+    if (!out_val) return false;
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
+    uint8_t *cache = i2cdev_cache_by_idx(dev_idx);
+    if (!cfg || !cache) return false;
+    if (reg >= cfg->reg_count) return false;
+    *out_val = cache[reg];
+    return true;
 }
 
 bool i2cdev_read_reg_cached(uint8_t reg, uint8_t *out_val)
@@ -908,8 +947,7 @@ bool i2cdev_write_reg(uint8_t reg, uint8_t val)
     if (!cfg) return false;
     if (reg >= cfg->reg_count) return false;
     if (!i2cdev_is_value_permitted_cfg(cfg, reg, val)) return false;
-    i2cdev_write_byte(i2cdev_selected_idx(), cfg->addr_7b, reg, val);
-    return true;
+    return i2cdev_write_byte(i2cdev_selected_idx(), cfg->addr_7b, reg, val);
 }
 
 bool i2cdev_write_reg_dev(size_t dev_idx, uint8_t reg, uint8_t val)
@@ -918,6 +956,5 @@ bool i2cdev_write_reg_dev(size_t dev_idx, uint8_t reg, uint8_t val)
     if (!cfg) return false;
     if (reg >= cfg->reg_count) return false;
     if (!i2cdev_is_value_permitted_cfg(cfg, reg, val)) return false;
-    i2cdev_write_byte(dev_idx, cfg->addr_7b, reg, val);
-    return true;
+    return i2cdev_write_byte(dev_idx, cfg->addr_7b, reg, val);
 }
