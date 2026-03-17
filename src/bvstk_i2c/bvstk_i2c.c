@@ -6,7 +6,7 @@
 #include "../config/config_store.h"
 
 #ifndef I2C_BOOT_SCAN_ENABLE
-#define I2C_BOOT_SCAN_ENABLE 0
+#define I2C_BOOT_SCAN_ENABLE 1
 #endif
 #ifndef I2C_AUTOPOLL_ENABLE
 #define I2C_AUTOPOLL_ENABLE 0
@@ -724,6 +724,7 @@ static inline void i2cdev_read_byte_to_master_bram(size_t dev_idx, uint8_t addr7
 
 void i2cdev_init_full_scan(void)
 {
+    xil_printf("I2C: full scan start\r\n");
     for (size_t di = 0; di < s_cfg_count; ++di) {
         i2c_device_config_t *cfg = s_cfgs[di];
         if (!cfg) continue;
@@ -732,6 +733,7 @@ void i2cdev_init_full_scan(void)
             vTaskDelay(pdMS_TO_TICKS(2));
         }
     }
+    xil_printf("I2C: full scan done\r\n");
 }
 
 void slave_check_and_exec(const uint8_t *frame, uint32_t size, uint8_t op_read)
