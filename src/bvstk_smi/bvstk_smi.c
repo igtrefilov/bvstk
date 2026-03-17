@@ -2,6 +2,17 @@
 
 #include "../config/config_store.h"
 
+#ifndef SMI_ENABLE_MASTER_IRQ
+#define SMI_ENABLE_MASTER_IRQ 0
+#endif
+#ifndef SMI_ENABLE_SLAVE_IRQ
+#define SMI_ENABLE_SLAVE_IRQ 1
+#endif
+
+#ifndef SMI_DIAG_IDLE_TASK
+#define SMI_DIAG_IDLE_TASK 0
+#endif
+
 uint32_t bram_master_data = 0;
 uint32_t bram_master_addr = 0;
 uint32_t bram_slave_data  = 0;
@@ -46,7 +57,15 @@ static void master_evt_task(void *arg);
 static void slave_evt_task (void *arg);
 static void master_ISR     (void *CallBackRef);
 static void slave_ISR      (void *CallBackRef);
-static inline void smi_irq_enable(void) { vPortEnableInterrupt(IRQ_MASTER); vPortEnableInterrupt(IRQ_SLAVE); }
+static inline void smi_irq_enable(void)
+{
+#if SMI_ENABLE_MASTER_IRQ
+    vPortEnableInterrupt(IRQ_MASTER);
+#endif
+#if SMI_ENABLE_SLAVE_IRQ
+    vPortEnableInterrupt(IRQ_SLAVE);
+#endif
+}
 
 void start_smi(void)
 {
@@ -81,6 +100,12 @@ void smi_task(void *pvParameters)
     timeout_write(4321);
     (void)timeout_read();
 
+#if SMI_DIAG_IDLE_TASK
+    for (;;) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+#else
+
     bool settings_applied = false;
 
     for (;;) {
@@ -100,16 +125,11 @@ void smi_task(void *pvParameters)
         const smi_phy_config_t *cfgs = config_store_is_ready() ? config_store_get_smi_devices() : NULL;
         size_t cfg_n = config_store_is_ready() ? config_store_get_smi_device_count() : 0u;
 
-        if (!cfgs || cfg_n == 0u) {
+    if (!cfgs || cfg_n == 0u) {
             /* Legacy fallback: scan PHY=1 regs 0..31. */
             for (uint8_t i = 0; i < 32; i++) {
-                if (smi_bus_mutex) xSemaphoreTake(smi_bus_mutex, portMAX_DELAY);
-                mdio_read(0x01, i);
-                if (s2h_filter_en == 0) {
-                    uint32_t dummy;
-                    xQueueReceive(q_s2h_evt, &dummy, 0);
-                }
-                if (smi_bus_mutex) xSemaphoreGive(smi_bus_mutex);
+                uint16_t dummy_val = 0;
+                (void)mdio_read_blocking(0x01, i, &dummy_val, pdMS_TO_TICKS(20));
             }
             vTaskDelay(pdMS_TO_TICKS(1000));
             continue;
@@ -122,24 +142,14 @@ void smi_task(void *pvParameters)
             if (cfg->autopoll_enabled && cfg->autopoll_regs_len > 0u) {
                 for (size_t ri = 0; ri < cfg->autopoll_regs_len; ++ri) {
                     uint8_t reg = cfg->autopoll_regs[ri];
-                    if (smi_bus_mutex) xSemaphoreTake(smi_bus_mutex, portMAX_DELAY);
-                    mdio_read(phy, reg);
-                    if (s2h_filter_en == 0) {
-                        uint32_t dummy;
-                        xQueueReceive(q_s2h_evt, &dummy, 0);
-                    }
-                    if (smi_bus_mutex) xSemaphoreGive(smi_bus_mutex);
+                    uint16_t dummy_val = 0;
+                    (void)mdio_read_blocking(phy, reg, &dummy_val, pdMS_TO_TICKS(20));
                     if (cfg->autopoll_reg_delay_ms) vTaskDelay(pdMS_TO_TICKS(cfg->autopoll_reg_delay_ms));
                 }
             } else {
                 for (uint8_t reg = 0; reg < cfg->reg_count; ++reg) {
-                    if (smi_bus_mutex) xSemaphoreTake(smi_bus_mutex, portMAX_DELAY);
-                    mdio_read(phy, reg);
-                    if (s2h_filter_en == 0) {
-                        uint32_t dummy;
-                        xQueueReceive(q_s2h_evt, &dummy, 0);
-                    }
-                    if (smi_bus_mutex) xSemaphoreGive(smi_bus_mutex);
+                    uint16_t dummy_val = 0;
+                    (void)mdio_read_blocking(phy, reg, &dummy_val, pdMS_TO_TICKS(20));
                     if (cfg->autopoll_reg_delay_ms) vTaskDelay(pdMS_TO_TICKS(cfg->autopoll_reg_delay_ms));
                 }
             }
@@ -147,6 +157,7 @@ void smi_task(void *pvParameters)
             vTaskDelay(pdMS_TO_TICKS(cd));
         }
     }
+#endif
 }
 
 void mdio_write(uint8_t phy, uint8_t reg, uint16_t data)
@@ -245,22 +256,27 @@ static void master_ISR(void *CallBackRef)
 {
     (void)CallBackRef;
 
-    if (q_master == NULL) { Xil_Out32(MASTER_BASEADDR + IRQ_m, 1U); return; }
+    if (q_master == NULL) {
+        (void)Xil_In32(MASTER_BASEADDR + MEM_AADR_m);
+        Xil_Out32(MASTER_BASEADDR + IRQ_m, 1U);
+        return;
+    }
 
     uint32_t csr = Xil_In32(MASTER_BASEADDR + CSR_m);
+    uint32_t mem_addr = Xil_In32(MASTER_BASEADDR + MEM_AADR_m);
+    /* SMI master IRQ is level-like: acknowledge by MEM_ADDR read + IRQ reset write. */
+    Xil_Out32(MASTER_BASEADDR + IRQ_m, 1U);
 
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     master_evt_t evt = (master_evt_t){ .csr = csr, .mem_addr = 0, .type = MASTER_EVT_OVERFLOW };
 
-    if ((csr & 0x28U) != 0U) {
+    if ((csr & 0x01U) != 0U) {
+        evt.type = MASTER_EVT_DATA;
+        evt.mem_addr = mem_addr;
+        (void)xQueueSendFromISR(q_master, &evt, &xHigherPriorityTaskWoken);
+    } else if ((csr & 0x28U) != 0U) {
         evt.type = MASTER_EVT_OVERFLOW;
         (void)xQueueSendFromISR(q_master, &evt, &xHigherPriorityTaskWoken);
-        Xil_Out32(MASTER_BASEADDR + CSR_m, 0x01U);
-    } else if ((csr & 0x01U) != 0U) {
-        evt.type = MASTER_EVT_DATA;
-        evt.mem_addr = Xil_In32(MASTER_BASEADDR + MEM_AADR_m);
-        (void)xQueueSendFromISR(q_master, &evt, &xHigherPriorityTaskWoken);
-        Xil_Out32(MASTER_BASEADDR + IRQ_m, 1U);
     }
 
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -294,8 +310,12 @@ static void slave_ISR(void *CallBackRef)
 
 void smi_irq_install(void)
 {
+#if SMI_ENABLE_MASTER_IRQ
     xPortInstallInterruptHandler(IRQ_MASTER, master_ISR, NULL);
+#endif
+#if SMI_ENABLE_SLAVE_IRQ
     xPortInstallInterruptHandler(IRQ_SLAVE,  slave_ISR,  NULL);
+#endif
 }
 
 static void master_evt_task(void *arg)
@@ -310,7 +330,6 @@ static void master_evt_task(void *arg)
         if (xQueueReceive(q_master, &evt, portMAX_DELAY) == pdTRUE) {
             switch (evt.type) {
             case MASTER_EVT_OVERFLOW:
-                xil_printf("One of the buffers is full, you idiot\n\r");
                 break;
             case MASTER_EVT_DATA:
                 bram_master_addr = evt.mem_addr;
@@ -340,9 +359,7 @@ static void slave_evt_task(void *arg)
                 uint8_t phy_addr = (uint8_t)(phy_reg_field >> 5);
                 bram_slave_data = Xil_In32(bram_slave_addr);
                 uint16_t data = (uint16_t)(bram_slave_data & 0xFFFFU);
-                xil_printf("[IRQ slave->task]: Host write data = 0x%04X reg_addr=%u phy_addr=%u \n\r", data, reg_addr, phy_addr);
                 if (!smi_write_checked(phy_addr, reg_addr, data)) {
-                    xil_printf("[SMI] DENIED: phy=%u reg=%u val=0x%04X\r\n", phy_addr, reg_addr, data);
                 }
                 break;
             }
@@ -351,8 +368,7 @@ static void slave_evt_task(void *arg)
                 uint16_t data      = (uint16_t)( slave2host_data        & 0xFFFFU);
                 uint8_t  reg_addr  = (uint8_t) ((slave2host_data >> 16) & 0x1FU);
                 uint8_t  phy_addr  = (uint8_t) ((slave2host_data >> 21) & 0x1FU);
-                uint8_t  rw        = (uint8_t) ((slave2host_data >> 26) & 0x01U);
-                xil_printf("[IRQ slave->task]: Host read data=0x%04X reg_addr=%u phy_addr=%u %s\r\n", data, reg_addr, phy_addr, rw ? "write" : "read");
+                (void)data;
                 if (s2h_filter_en && phy_addr == s2h_filter_phy && reg_addr == s2h_filter_reg) {
                     xQueueOverwrite(q_s2h_evt, &evt.s2h);
                 }
