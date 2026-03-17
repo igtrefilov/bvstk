@@ -132,6 +132,12 @@ void i2cdev_autopoll_set(const i2cdev_autopoll_profile_t *p);
 #define MSTR_CSR_SOFT_RESET_BIT (1u << 0)
 #define MSTR_CSR_START_BIT      (1u << 1)
 
+#define I2C_MASTER_RECOVER_DELAY_MS 10u
+#define I2C_MASTER_RECOVER_RETRIES  3u
+
+#define MSTR_DBG2_SCL_I_BIT     19u
+#define MSTR_DBG2_SDA_I_BIT     18u
+
 static inline uint32_t I2C_MAKE_HEADER(uint8_t addr7, uint8_t op_read, uint32_t num_bytes)
 {
     return (((uint32_t)(num_bytes & 0xFFFFFFu)) << 8) | (((uint32_t)(op_read ? 1u : 0u)) << 7) | ((uint32_t)(addr7 & 0x7Fu));
