@@ -18,6 +18,7 @@ int main()
 	start_lan();
 	start_tcp_server();
 	start_http_server();
+	start_dcp2_server();
 	//start_smi();
 	start_i2c();
 	start_spi();
