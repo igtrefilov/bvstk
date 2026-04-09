@@ -9,6 +9,7 @@
 
 #include "../../bvstk_i2c/bvstk_i2c.h"
 #include "../../config/config_store.h"
+#include "../../dcp2/dcp2_notify.h"
 
 static void i2c_writef(int fd, const char *fmt, ...)
 {
@@ -148,7 +149,7 @@ static void cmd_w(int fd, size_t idx, const i2c_device_config_t *cfg, const char
                    (unsigned)cfg->max_value_code);
         return;
     }
-    if (!i2cdev_write_reg_dev(idx, (uint8_t)reg, (uint8_t)val)) {
+    if (!i2cdev_write_reg_dev_source(idx, (uint8_t)reg, (uint8_t)val, (uint8_t)DCP2_NOTIFY_SOURCE_TELNET)) {
         const bool allowed = (cfg->policy == I2C_POLICY_WHITELIST)
             ? rule_contains(cfg->whitelist, cfg->whitelist_len, (uint8_t)reg, (uint8_t)val)
             : !rule_contains(cfg->blacklist, cfg->blacklist_len, (uint8_t)reg, (uint8_t)val);

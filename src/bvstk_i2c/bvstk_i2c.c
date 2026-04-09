@@ -4,6 +4,7 @@
 #include <strings.h>
 
 #include "../config/config_store.h"
+#include "../dcp2/dcp2_notify.h"
 
 #ifndef I2C_BOOT_SCAN_ENABLE
 #define I2C_BOOT_SCAN_ENABLE 1
@@ -197,7 +198,7 @@ static bool i2cdev_is_value_permitted_cfg(const i2c_device_config_t *cfg, uint8_
 static inline void reg_write32(uint32_t base, uint32_t ofs, uint32_t v) { Xil_Out32(base + ofs, v); }
 static inline uint32_t reg_read32(uint32_t base, uint32_t ofs) { return Xil_In32(base + ofs); }
 
-static bool i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val);
+static bool i2cdev_write_byte_source(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val, uint8_t source);
 static void i2c_slave_fill_read_window(const uint8_t *src, uint32_t nbytes);
 static bool i2c_master_read_reg_to_bram(size_t dev_idx, uint8_t addr7, uint8_t reg, uint32_t rd_len);
 
@@ -521,7 +522,7 @@ void i2c_task(void *pvParameters)
             uint8_t reg = cfg->settings[si].reg;
             uint8_t val = cfg->settings[si].val;
             if (reg >= cfg->reg_count) continue;
-            i2cdev_write_byte(di, cfg->addr_7b, reg, val);
+            i2cdev_write_byte_source(di, cfg->addr_7b, reg, val, (uint8_t)DCP2_NOTIFY_SOURCE_INTERNAL);
             vTaskDelay(pdMS_TO_TICKS(2));
         }
     }
@@ -618,14 +619,30 @@ bool i2c_master_send(uint8_t addr_7b, uint8_t op_read, uint32_t num_bytes, const
     return ok;
 }
 
-static bool i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val)
+static bool i2cdev_write_byte_source(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val, uint8_t source)
 {
     uint8_t payload[2] = { reg, val };
+    dcp2_notify_publish_simple(DCP2_NOTIFY_EV_REG_ATTEMPT,
+                               0u,
+                               (dcp2_notify_source_t)source,
+                               DCP2_NOTIFY_BUS_I2C,
+                               DCP2_NOTIFY_OP_WRITE,
+                               (uint32_t)(addr7 & 0x7Fu),
+                               (uint32_t)reg,
+                               (uint32_t)val);
     if (!i2c_master_send(addr7, 0, 2, payload, 2, MSTR_CSR_START_BIT)) {
         xil_printf("[I2C][MSTR][wr] send failed a=0x%02X r=0x%02X v=0x%02X\r\n",
                    (unsigned)(addr7 & 0x7Fu),
                    (unsigned)reg,
                    (unsigned)val);
+        dcp2_notify_publish_simple(DCP2_NOTIFY_EV_FAULT,
+                                   0x0007u,
+                                   (dcp2_notify_source_t)source,
+                                   DCP2_NOTIFY_BUS_I2C,
+                                   DCP2_NOTIFY_OP_WRITE,
+                                   (uint32_t)(addr7 & 0x7Fu),
+                                   (uint32_t)reg,
+                                   (uint32_t)val);
         return false;
     }
     if (dev_idx < I2CDEV_MAX_DEVICES && reg < I2CDEV_MAX_REG_COUNT) {
@@ -650,6 +667,14 @@ static bool i2cdev_write_byte(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_
         }
         taskEXIT_CRITICAL();
     }
+    dcp2_notify_publish_simple(DCP2_NOTIFY_EV_REG_COMMIT,
+                               0x0000u,
+                               (dcp2_notify_source_t)source,
+                               DCP2_NOTIFY_BUS_I2C,
+                               DCP2_NOTIFY_OP_WRITE,
+                               (uint32_t)(addr7 & 0x7Fu),
+                               (uint32_t)reg,
+                               (uint32_t)val);
     return true;
 }
 
@@ -773,7 +798,7 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size, uint8_t op_read)
             uint8_t val = frame[1 + i];
             uint8_t r   = (uint8_t)(reg + i);
             if (i2cdev_is_value_permitted_cfg(cfg, r, val)) {
-                i2cdev_write_byte(sel, cfg->addr_7b, r, val);
+                i2cdev_write_byte_source(sel, cfg->addr_7b, r, val, (uint8_t)DCP2_NOTIFY_SOURCE_HOST);
             }
         }
         /* Keep pointer at the requested register for SMBus read-after-write behavior. */
@@ -945,18 +970,52 @@ bool i2cdev_read_reg(uint8_t reg, uint8_t *out_val)
 
 bool i2cdev_write_reg(uint8_t reg, uint8_t val)
 {
-    i2c_device_config_t *cfg = i2cdev_selected_cfg();
-    if (!cfg) return false;
-    if (reg >= cfg->reg_count) return false;
-    if (!i2cdev_is_value_permitted_cfg(cfg, reg, val)) return false;
-    return i2cdev_write_byte(i2cdev_selected_idx(), cfg->addr_7b, reg, val);
+    return i2cdev_write_reg_source(reg, val, (uint8_t)DCP2_NOTIFY_SOURCE_INTERNAL);
 }
 
 bool i2cdev_write_reg_dev(size_t dev_idx, uint8_t reg, uint8_t val)
 {
+    return i2cdev_write_reg_dev_source(dev_idx, reg, val, (uint8_t)DCP2_NOTIFY_SOURCE_INTERNAL);
+}
+
+bool i2cdev_write_reg_source(uint8_t reg, uint8_t val, uint8_t source)
+{
+    return i2cdev_write_reg_dev_source(i2cdev_selected_idx(), reg, val, source);
+}
+
+bool i2cdev_write_reg_dev_source(size_t dev_idx, uint8_t reg, uint8_t val, uint8_t source)
+{
     i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
     if (!cfg) return false;
-    if (reg >= cfg->reg_count) return false;
-    if (!i2cdev_is_value_permitted_cfg(cfg, reg, val)) return false;
-    return i2cdev_write_byte(dev_idx, cfg->addr_7b, reg, val);
+    if (reg >= cfg->reg_count) {
+        dcp2_notify_publish_simple(DCP2_NOTIFY_EV_FAULT,
+                                   0x0006u,
+                                   (dcp2_notify_source_t)source,
+                                   DCP2_NOTIFY_BUS_I2C,
+                                   DCP2_NOTIFY_OP_WRITE,
+                                   (uint32_t)(cfg->addr_7b & 0x7Fu),
+                                   (uint32_t)reg,
+                                   (uint32_t)val);
+        return false;
+    }
+    if (!i2cdev_is_value_permitted_cfg(cfg, reg, val)) {
+        dcp2_notify_publish_simple(DCP2_NOTIFY_EV_REG_ATTEMPT,
+                                   0u,
+                                   (dcp2_notify_source_t)source,
+                                   DCP2_NOTIFY_BUS_I2C,
+                                   DCP2_NOTIFY_OP_WRITE,
+                                   (uint32_t)(cfg->addr_7b & 0x7Fu),
+                                   (uint32_t)reg,
+                                   (uint32_t)val);
+        dcp2_notify_publish_simple(DCP2_NOTIFY_EV_REG_DENIED,
+                                   0x0003u,
+                                   (dcp2_notify_source_t)source,
+                                   DCP2_NOTIFY_BUS_I2C,
+                                   DCP2_NOTIFY_OP_WRITE,
+                                   (uint32_t)(cfg->addr_7b & 0x7Fu),
+                                   (uint32_t)reg,
+                                   (uint32_t)val);
+        return false;
+    }
+    return i2cdev_write_byte_source(dev_idx, cfg->addr_7b, reg, val, source);
 }

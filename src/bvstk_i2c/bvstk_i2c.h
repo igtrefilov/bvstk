@@ -174,6 +174,8 @@ bool i2cdev_read_reg_cached_dev(size_t dev_idx, uint8_t reg, uint8_t *out_val);
 
 bool i2cdev_read_reg_dev(size_t dev_idx, uint8_t reg, uint8_t *out_val);
 bool i2cdev_write_reg_dev(size_t dev_idx, uint8_t reg, uint8_t val);
+bool i2cdev_write_reg_dev_source(size_t dev_idx, uint8_t reg, uint8_t val, uint8_t source);
+bool i2cdev_write_reg_source(uint8_t reg, uint8_t val, uint8_t source);
 
 void i2cdev_policy_reset_defaults(void);
 void i2cdev_policy_clear_all(void);

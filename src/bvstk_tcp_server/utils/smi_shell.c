@@ -13,6 +13,7 @@
 
 #include "../../bvstk_smi/bvstk_smi.h"
 #include "../../config/config_store.h"
+#include "../../dcp2/dcp2_notify.h"
 
 static void smi_writef(int fd, const char *fmt, ...)
 {
@@ -130,7 +131,7 @@ static void cmd_w(int fd, uint8_t phy, const char *s_reg, const char *s_val)
     unsigned long reg = parse_num(s_reg, &okr);
     unsigned long val = parse_num(s_val, &okv);
     if (!okr || !okv || reg > 31ul || val > 0xFFFFul) { write_str(fd, "ERR\r\n"); return; }
-    if (!smi_write_checked((uint8_t)(phy & 0x1Fu), (uint8_t)reg, (uint16_t)val)) {
+    if (!smi_write_checked_source((uint8_t)(phy & 0x1Fu), (uint8_t)reg, (uint16_t)val, (uint8_t)DCP2_NOTIFY_SOURCE_TELNET)) {
         write_str(fd, "ERR DENIED\r\n");
         return;
     }

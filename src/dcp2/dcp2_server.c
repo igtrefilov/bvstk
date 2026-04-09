@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -19,11 +20,12 @@
 #include "../bvstk_smi/bvstk_smi.h"
 #include "../bvstk_spi/bvstk_spi.h"
 #include "../config/config_store.h"
+#include "dcp2_notify.h"
 
 enum {
     DCP2_PORT_DEFAULT = 8889,
     DCP2_THREAD_STACK = 8192,
-    DCP2_VER = 0x0001,
+    DCP2_VER = 0x0002,
     DCP2_HDR_LEN = 8,
     DCP2_MAX_PAYLOAD = 4096,
     DCP2_MIN_PAYLOAD = 4,
@@ -36,6 +38,7 @@ enum {
     DCP2_SRV_SMI = 0x03,
     DCP2_SRV_SPI = 0x04,
     DCP2_SRV_UART = 0x05,
+    DCP2_SRV_NOTIFY = 0x06,
     DCP2_SRV_VENDOR = 0x7F,
 };
 
@@ -48,6 +51,8 @@ enum {
     DCP2_OP_I2C_POLICY_SET = 0x02,
     DCP2_OP_SMI_READ = 0x00,
     DCP2_OP_SMI_WRITE = 0x01,
+    DCP2_OP_NOTIFY_SUBSCRIBE = 0x10,
+    DCP2_OP_NOTIFY_UNSUBSCRIBE = 0x11,
     DCP2_OP_PL_SUBSCRIBE_STREAM = 0x10,
     DCP2_OP_PL_UNSUBSCRIBE_STREAM = 0x11,
 };
@@ -79,6 +84,8 @@ enum {
 typedef struct {
     bool stream_enabled[4];
     uint8_t stream_flags[4];
+    bool notify_enabled;
+    dcp2_notify_filter_t notify_filter;
 } dcp2_conn_state_t;
 
 typedef struct {
@@ -153,6 +160,21 @@ static int sock_write_all(int fd, const void *buf, size_t len)
     return 0;
 }
 
+static int dcp2_wait_readable(int fd, long timeout_ms)
+{
+    fd_set rfds;
+    struct timeval tv;
+    int rc;
+
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    tv.tv_sec = timeout_ms / 1000;
+    tv.tv_usec = (timeout_ms % 1000) * 1000;
+    rc = lwip_select(fd + 1, &rfds, NULL, NULL, &tv);
+    if (rc <= 0) return rc;
+    return FD_ISSET(fd, &rfds) ? 1 : 0;
+}
+
 static int dcp2_send_response(int fd,
                               uint8_t srv,
                               uint8_t opcode,
@@ -182,7 +204,29 @@ static int dcp2_send_response(int fd,
     return sock_write_all(fd, s_tx_buf, frame_len);
 }
 
-static bool dcp2_rule_contains_i2c(const i2c_rule_entry_t *rules, size_t len, uint8_t reg, uint8_t val)
+static int dcp2_send_event(int fd, uint8_t srv, uint8_t opcode, const uint8_t *body, uint16_t body_len)
+{
+    uint16_t payload_len = (uint16_t)(1u + 1u + 2u + body_len);
+    size_t frame_len = (size_t)DCP2_HDR_LEN + (size_t)payload_len;
+
+    if ((size_t)payload_len > DCP2_MAX_PAYLOAD) return -1;
+
+    s_tx_buf[0] = 'D';
+    s_tx_buf[1] = 'C';
+    s_tx_buf[2] = 'P';
+    s_tx_buf[3] = '2';
+    be16_write(s_tx_buf + 4, DCP2_VER);
+    be16_write(s_tx_buf + 6, payload_len);
+    s_tx_buf[8] = srv;
+    s_tx_buf[9] = (uint8_t)(DCP2_OP_EVENT_BIT | (opcode & DCP2_OP_CODE_MASK));
+    be16_write(s_tx_buf + 10, 0u);
+    if (body_len && body) {
+        memcpy(s_tx_buf + 12, body, body_len);
+    }
+    return sock_write_all(fd, s_tx_buf, frame_len);
+}
+
+static bool dcp2_i2c_rule_contains(const i2c_rule_entry_t *rules, size_t len, uint8_t reg, uint8_t val)
 {
     size_t i;
     if (!rules) return false;
@@ -192,32 +236,68 @@ static bool dcp2_rule_contains_i2c(const i2c_rule_entry_t *rules, size_t len, ui
     return false;
 }
 
-static bool dcp2_i2c_value_allowed(const i2c_device_config_t *cfg, uint8_t reg, uint8_t val)
+static bool dcp2_i2c_write_allowed(const i2c_device_config_t *cfg, uint8_t reg, uint8_t val)
 {
     if (!cfg) return false;
     if (cfg->policy == I2C_POLICY_WHITELIST) {
-        return dcp2_rule_contains_i2c(cfg->whitelist, cfg->whitelist_len, reg, val);
+        return dcp2_i2c_rule_contains(cfg->whitelist, cfg->whitelist_len, reg, val);
     }
-    return !dcp2_rule_contains_i2c(cfg->blacklist, cfg->blacklist_len, reg, val);
+    return !dcp2_i2c_rule_contains(cfg->blacklist, cfg->blacklist_len, reg, val);
 }
 
-static bool dcp2_smi_reg_in_list(const uint8_t *regs, size_t len, uint8_t reg)
+static bool dcp2_notify_filter_match(const dcp2_conn_state_t *state, const dcp2_notify_event_t *event)
 {
-    size_t i;
-    if (!regs) return false;
-    for (i = 0; i < len; ++i) {
-        if (regs[i] == reg) return true;
-    }
-    return false;
+    uint32_t class_mask;
+    uint32_t source_mask;
+    uint32_t bus_mask;
+
+    if (!state || !state->notify_enabled || !event) return false;
+    class_mask = dcp2_notify_event_class_mask(event->ev_type);
+    source_mask = (event->source < 32u) ? (1u << event->source) : 0u;
+    bus_mask = (event->bus < 32u) ? (1u << event->bus) : 0u;
+
+    if ((state->notify_filter.class_mask & class_mask) == 0u) return false;
+    if ((state->notify_filter.source_mask & source_mask) == 0u) return false;
+    if ((state->notify_filter.bus_mask & bus_mask) == 0u) return false;
+    return true;
 }
 
-static bool dcp2_smi_write_allowed(const smi_phy_config_t *cfg, uint8_t reg)
+static int dcp2_send_notify_event(int fd, const dcp2_conn_state_t *state, const dcp2_notify_event_t *event)
 {
-    if (!cfg) return false;
-    if (cfg->policy == SMI_POLICY_WHITELIST) {
-        return dcp2_smi_reg_in_list(cfg->write_allow_regs, cfg->write_allow_regs_len, reg);
+    uint8_t body[26];
+    uint16_t body_len = 0u;
+
+    if ((state->notify_filter.flags & DCP2_NOTIFY_FLAG_WITH_TIMESTAMP) != 0u) {
+        be64_write(body + body_len, event->time_us);
+        body_len = (uint16_t)(body_len + 8u);
     }
-    return !dcp2_smi_reg_in_list(cfg->write_deny_regs, cfg->write_deny_regs_len, reg);
+    be16_write(body + body_len, event->ev_type);
+    body_len = (uint16_t)(body_len + 2u);
+    be16_write(body + body_len, event->status);
+    body_len = (uint16_t)(body_len + 2u);
+    body[body_len++] = event->source;
+    body[body_len++] = event->bus;
+    body[body_len++] = event->op_kind;
+    body[body_len++] = 0u;
+    be32_write(body + body_len, event->arg0);
+    body_len = (uint16_t)(body_len + 4u);
+    be32_write(body + body_len, event->arg1);
+    body_len = (uint16_t)(body_len + 4u);
+    be32_write(body + body_len, event->arg2);
+    body_len = (uint16_t)(body_len + 4u);
+
+    return dcp2_send_event(fd, DCP2_SRV_NOTIFY, DCP2_OP_NOTIFY_SUBSCRIBE, body, body_len);
+}
+
+static int dcp2_drain_notify_events(int fd, dcp2_conn_state_t *state)
+{
+    dcp2_notify_event_t event;
+
+    while (dcp2_notify_receive(&event, 0)) {
+        if (!dcp2_notify_filter_match(state, &event)) continue;
+        if (dcp2_send_notify_event(fd, state, &event) < 0) return -1;
+    }
+    return 0;
 }
 
 static int dcp2_stream_index(uint8_t srv)
@@ -434,10 +514,10 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
         if (!cfg || body[1] >= cfg->reg_count || body[2] > cfg->max_value_code) {
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
         }
-        if (!dcp2_i2c_value_allowed(cfg, body[1], body[2])) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_DENIED, NULL, 0);
-        }
-        if (!i2cdev_write_reg_dev(dev_idx, body[1], body[2])) {
+        if (!i2cdev_write_reg_dev_source(dev_idx, body[1], body[2], (uint8_t)DCP2_NOTIFY_SOURCE_DCP)) {
+            if (!dcp2_i2c_write_allowed(cfg, body[1], body[2])) {
+                return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_DENIED, NULL, 0);
+            }
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_INTERNAL, NULL, 0);
         }
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
@@ -506,13 +586,69 @@ static int dcp2_handle_smi(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
         if (!cfg || body[1] >= cfg->reg_count) {
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
         }
-        if (!dcp2_smi_write_allowed(cfg, body[1])) {
+        val16 = be16_read(body + 2);
+        if (!smi_write_checked_source(body[0], body[1], val16, (uint8_t)DCP2_NOTIFY_SOURCE_DCP)) {
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_DENIED, NULL, 0);
         }
-        val16 = be16_read(body + 2);
-        if (!smi_write_checked(body[0], body[1], val16)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_INTERNAL, NULL, 0);
+        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
+    }
+
+    return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+}
+
+static int dcp2_handle_notify(int fd,
+                              dcp2_conn_state_t *state,
+                              uint8_t srv,
+                              uint8_t opcode,
+                              uint16_t seq,
+                              const uint8_t *body,
+                              uint16_t body_len)
+{
+    if (opcode == DCP2_OP_NOTIFY_SUBSCRIBE) {
+        uint32_t class_mask;
+        uint32_t source_mask;
+        uint32_t bus_mask;
+        uint8_t flags;
+
+        if (body_len != 13u) {
+            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
         }
+        class_mask = be32_read(body + 0);
+        source_mask = be32_read(body + 4);
+        bus_mask = be32_read(body + 8);
+        flags = body[12];
+
+        if (class_mask == 0u || source_mask == 0u || bus_mask == 0u) {
+            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
+        }
+        if ((class_mask & ~((uint32_t)DCP2_NOTIFY_CLASS_REG_ATTEMPT |
+                            (uint32_t)DCP2_NOTIFY_CLASS_REG_COMMIT |
+                            (uint32_t)DCP2_NOTIFY_CLASS_REG_DENIED |
+                            (uint32_t)DCP2_NOTIFY_CLASS_STATE_CHANGED |
+                            (uint32_t)DCP2_NOTIFY_CLASS_FAULT)) != 0u) {
+            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
+        }
+        if ((source_mask & ~0x0Fu) != 0u || (bus_mask & ~0x1Fu) != 0u) {
+            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
+        }
+        if ((flags & (uint8_t)~(DCP2_NOTIFY_FLAG_WITH_TIMESTAMP | DCP2_NOTIFY_FLAG_SNAPSHOT_ON_SUBSCRIBE)) != 0u) {
+            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
+        }
+
+        state->notify_enabled = true;
+        state->notify_filter.class_mask = class_mask;
+        state->notify_filter.source_mask = source_mask;
+        state->notify_filter.bus_mask = bus_mask;
+        state->notify_filter.flags = flags;
+        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
+    }
+
+    if (opcode == DCP2_OP_NOTIFY_UNSUBSCRIBE) {
+        if (body_len != 0u) {
+            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
+        }
+        memset(&state->notify_filter, 0, sizeof(state->notify_filter));
+        state->notify_enabled = false;
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
     }
 
@@ -569,6 +705,8 @@ static int dcp2_dispatch_request(int fd,
         return dcp2_handle_ping(fd, srv, opcode, seq, body, body_len);
     case DCP2_SRV_MEM:
         return dcp2_handle_mem(fd, srv, opcode, seq, body, body_len);
+    case DCP2_SRV_NOTIFY:
+        return dcp2_handle_notify(fd, state, srv, opcode, seq, body, body_len);
     case DCP2_SRV_I2C:
         if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
             return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
@@ -630,6 +768,12 @@ static void dcp2_handle_client(int fd)
         uint8_t hdr[DCP2_HDR_LEN];
         uint16_t ver;
         uint16_t payload_len;
+        int ready;
+
+        if (dcp2_drain_notify_events(fd, &state) < 0) return;
+        ready = dcp2_wait_readable(fd, 100);
+        if (ready < 0) return;
+        if (ready == 0) continue;
 
         if (sock_read_exact(fd, hdr, sizeof(hdr)) < 0) return;
         if (hdr[0] != 'D' || hdr[1] != 'C' || hdr[2] != 'P' || hdr[3] != '2') return;
@@ -693,5 +837,6 @@ uint16_t dcp2_server_port(void)
 
 void start_dcp2_server(void)
 {
+    (void)dcp2_notify_init();
     sys_thread_new("dcp2", dcp2_server_thread, 0, DCP2_THREAD_STACK, tskIDLE_PRIORITY + 1);
 }

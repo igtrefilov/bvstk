@@ -1,6 +1,7 @@
 #include "bvstk_smi.h"
 
 #include "../config/config_store.h"
+#include "../dcp2/dcp2_notify.h"
 
 #ifndef SMI_ENABLE_MASTER_IRQ
 #define SMI_ENABLE_MASTER_IRQ 0
@@ -171,11 +172,29 @@ void mdio_write(uint8_t phy, uint8_t reg, uint16_t data)
     if (smi_bus_mutex) xSemaphoreGive(smi_bus_mutex);
 }
 
-bool smi_write_checked(uint8_t phy, uint8_t reg, uint16_t data)
+bool smi_write_checked_source(uint8_t phy, uint8_t reg, uint16_t data, uint8_t source)
 {
-    if (!smi_is_write_allowed((uint8_t)(phy & 0x1Fu), (uint8_t)(reg & 0x1Fu))) return false;
     uint8_t phy5 = (uint8_t)(phy & 0x1Fu);
     uint8_t reg5 = (uint8_t)(reg & 0x1Fu);
+    dcp2_notify_publish_simple(DCP2_NOTIFY_EV_REG_ATTEMPT,
+                               0u,
+                               (dcp2_notify_source_t)source,
+                               DCP2_NOTIFY_BUS_SMI,
+                               DCP2_NOTIFY_OP_WRITE,
+                               (uint32_t)phy5,
+                               (uint32_t)reg5,
+                               (uint32_t)data);
+    if (!smi_is_write_allowed(phy5, reg5)) {
+        dcp2_notify_publish_simple(DCP2_NOTIFY_EV_REG_DENIED,
+                                   0x0003u,
+                                   (dcp2_notify_source_t)source,
+                                   DCP2_NOTIFY_BUS_SMI,
+                                   DCP2_NOTIFY_OP_WRITE,
+                                   (uint32_t)phy5,
+                                   (uint32_t)reg5,
+                                   (uint32_t)data);
+        return false;
+    }
     mdio_write(phy5, reg5, data);
 
     /* Track persisted settings in config (like i2c does). */
@@ -198,7 +217,20 @@ bool smi_write_checked(uint8_t phy, uint8_t reg, uint16_t data)
         }
         taskEXIT_CRITICAL();
     }
+    dcp2_notify_publish_simple(DCP2_NOTIFY_EV_REG_COMMIT,
+                               0x0000u,
+                               (dcp2_notify_source_t)source,
+                               DCP2_NOTIFY_BUS_SMI,
+                               DCP2_NOTIFY_OP_WRITE,
+                               (uint32_t)phy5,
+                               (uint32_t)reg5,
+                               (uint32_t)data);
     return true;
+}
+
+bool smi_write_checked(uint8_t phy, uint8_t reg, uint16_t data)
+{
+    return smi_write_checked_source(phy, reg, data, (uint8_t)DCP2_NOTIFY_SOURCE_INTERNAL);
 }
 
 void mdio_read(uint8_t phy, uint8_t reg)
@@ -359,7 +391,7 @@ static void slave_evt_task(void *arg)
                 uint8_t phy_addr = (uint8_t)(phy_reg_field >> 5);
                 bram_slave_data = Xil_In32(bram_slave_addr);
                 uint16_t data = (uint16_t)(bram_slave_data & 0xFFFFU);
-                if (!smi_write_checked(phy_addr, reg_addr, data)) {
+                if (!smi_write_checked_source(phy_addr, reg_addr, data, (uint8_t)DCP2_NOTIFY_SOURCE_HOST)) {
                 }
                 break;
             }
