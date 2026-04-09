@@ -9,7 +9,7 @@
 
 int main()
 {
-	xil_printf("Hello from bvstk\n");
+	xil_printf("Hello from bvstk\r\n");
 	qspi_flash_self_test();
 	start_sd_card();
 	start_qspi_fs();
@@ -31,6 +31,7 @@ int main()
 
 void vApplicationMallocFailedHook(void)
 {
+    xil_printf("FREERTOS: malloc failed\r\n");
     taskDISABLE_INTERRUPTS();
     for (;;) {
     }
@@ -39,7 +40,8 @@ void vApplicationMallocFailedHook(void)
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
 {
     (void)xTask;
-    (void)pcTaskName;
+    xil_printf("FREERTOS: stack overflow task=%s\r\n",
+               pcTaskName ? pcTaskName : "(null)");
     taskDISABLE_INTERRUPTS();
     for (;;) {
     }

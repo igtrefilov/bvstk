@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-enum { DCP2_NOTIFY_QUEUE_LEN = 64 };
+enum { DCP2_NOTIFY_QUEUE_LEN = 16 };
 
 static QueueHandle_t s_notify_queue = NULL;
 

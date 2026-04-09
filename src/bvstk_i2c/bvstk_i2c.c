@@ -377,10 +377,12 @@ static bool i2c_master_wait_bus_idle(uint32_t timeout_ms)
 
 static void i2c_master_print_transaction(uint8_t addr_7b, uint8_t op_read, uint32_t num_bytes, const uint8_t *payload)
 {
+    enum { I2C_MASTER_TRACE_VERBOSE = 0 };
     uint8_t b0 = (payload && num_bytes > 0u) ? payload[0] : 0u;
     uint8_t b1 = (payload && num_bytes > 1u) ? payload[1] : 0u;
     uint8_t b2 = (payload && num_bytes > 2u) ? payload[2] : 0u;
     uint8_t b3 = (payload && num_bytes > 3u) ? payload[3] : 0u;
+    if (!I2C_MASTER_TRACE_VERBOSE) return;
     xil_printf("[I2C][MSTR][tx] a=0x%02X rw=%u n=%lu b=%02X %02X %02X %02X\r\n",
                (unsigned)(addr_7b & 0x7Fu),
                (unsigned)(op_read ? 1u : 0u),
@@ -390,10 +392,12 @@ static void i2c_master_print_transaction(uint8_t addr_7b, uint8_t op_read, uint3
 
 static void i2c_master_print_lowlevel(const char *tag)
 {
+    enum { I2C_MASTER_TRACE_VERBOSE = 0 };
     uint32_t dbg0 = reg_read32(I2C_MASTER_BASE, MSTR_DBG0_OFFSET);
     uint32_t dbg1 = reg_read32(I2C_MASTER_BASE, MSTR_DBG1_OFFSET);
     uint32_t dbg2 = reg_read32(I2C_MASTER_BASE, MSTR_DBG2_OFFSET);
     uint32_t dbg3 = reg_read32(I2C_MASTER_BASE, MSTR_DBG3_OFFSET);
+    if (!I2C_MASTER_TRACE_VERBOSE) return;
     xil_printf("[I2C][MSTR][ll] %s d0=0x%08lX d1=0x%08lX d2=0x%08lX d3=0x%08lX\r\n",
                tag ? tag : "?",
                (unsigned long)dbg0,

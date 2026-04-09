@@ -9,7 +9,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "lwip/inet.h"
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 
@@ -17,6 +16,7 @@
 #include "xil_printf.h"
 
 #include "../bvstk_i2c/bvstk_i2c.h"
+#include "../bvstk_lan/bvstk_lan.h"
 #include "../bvstk_smi/bvstk_smi.h"
 #include "../bvstk_spi/bvstk_spi.h"
 #include "../config/config_store.h"
@@ -24,7 +24,7 @@
 
 enum {
     DCP2_PORT_DEFAULT = 8889,
-    DCP2_THREAD_STACK = 8192,
+    DCP2_THREAD_STACK = 3072,
     DCP2_VER = 0x0002,
     DCP2_HDR_LEN = 8,
     DCP2_MAX_PAYLOAD = 4096,
@@ -264,7 +264,7 @@ static bool dcp2_notify_filter_match(const dcp2_conn_state_t *state, const dcp2_
 
 static int dcp2_send_notify_event(int fd, const dcp2_conn_state_t *state, const dcp2_notify_event_t *event)
 {
-    uint8_t body[26];
+    uint8_t body[28];
     uint16_t body_len = 0u;
 
     if ((state->notify_filter.flags & DCP2_NOTIFY_FLAG_WITH_TIMESTAMP) != 0u) {
@@ -817,7 +817,11 @@ static void dcp2_server_thread(void *arg)
         return;
     }
 
-    lwip_listen(s, 1);
+    if (lwip_listen(s, 1) < 0) {
+        lwip_close(s);
+        vTaskDelete(NULL);
+        return;
+    }
     xil_printf("DCP2: listening on %u\r\n", (unsigned)s_port);
 
     for (;;) {
@@ -837,6 +841,11 @@ uint16_t dcp2_server_port(void)
 
 void start_dcp2_server(void)
 {
-    (void)dcp2_notify_init();
-    sys_thread_new("dcp2", dcp2_server_thread, 0, DCP2_THREAD_STACK, tskIDLE_PRIORITY + 1);
+    bool notify_ok = dcp2_notify_init();
+    sys_thread_t th;
+
+    th = sys_thread_new("dcp2", dcp2_server_thread, 0, DCP2_THREAD_STACK, tskIDLE_PRIORITY + 1);
+    if (!notify_ok || !th) {
+        xil_printf("DCP2: failed to start\r\n");
+    }
 }
