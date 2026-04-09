@@ -26,6 +26,7 @@
     - [5.4. Правила использования `seq`](#toc-022)
     - [5.5. Таймауты и повторные попытки](#toc-023)
     - [5.6. Обнаружение возможностей сервера](#toc-023a)
+    - [5.7. Политика версионирования](#toc-023b)
 - [Часть II. Формальная спецификация DCP2](#toc-024)
 - [1. Структура DCP2_HDR](#toc-025)
   - [1.1. Поле `magic`](#toc-026)
@@ -49,10 +50,16 @@
         - [2.2.3.6.1. Поле `policy`](#toc-044)
       - [2.2.3.7. Структура `SMI_READ_REQUEST`](#toc-045)
       - [2.2.3.8. Структура `SMI_WRITE_REQUEST`](#toc-046)
-      - [2.2.3.9. Структура `PL_SUBSCRIBE_STREAM_REQUEST`](#toc-047)
-        - [2.2.3.9.1. Поле `flags`](#toc-048)
-      - [2.2.3.10. Структура `PL_UNSUBSCRIBE_STREAM_REQUEST`](#toc-049)
-      - [2.2.3.11. Структура `VENDOR_REQUEST`](#toc-050)
+      - [2.2.3.9. Структура `NOTIFY_SUBSCRIBE_REQUEST`](#toc-046a)
+        - [2.2.3.9.1. Поле `class_mask`](#toc-046b)
+        - [2.2.3.9.2. Поле `source_mask`](#toc-046c)
+        - [2.2.3.9.3. Поле `bus_mask`](#toc-046d)
+        - [2.2.3.9.4. Поле `flags`](#toc-046e)
+      - [2.2.3.10. Структура `NOTIFY_UNSUBSCRIBE_REQUEST`](#toc-046f)
+      - [2.2.3.11. Структура `PL_SUBSCRIBE_STREAM_REQUEST`](#toc-047)
+        - [2.2.3.11.1. Поле `flags`](#toc-048)
+      - [2.2.3.12. Структура `PL_UNSUBSCRIBE_STREAM_REQUEST`](#toc-049)
+      - [2.2.3.13. Структура `VENDOR_REQUEST`](#toc-050)
     - [2.2.4. Структура `SRV_RESPONSE_BODY`](#toc-051)
       - [2.2.4.1. Поле `status`](#toc-052)
       - [2.2.4.2. Структура `PING_RESPONSE`](#toc-053)
@@ -63,15 +70,25 @@
       - [2.2.4.7. Структура `I2C_POLICY_SET_RESPONSE`](#toc-058)
       - [2.2.4.8. Структура `SMI_READ_RESPONSE`](#toc-059)
       - [2.2.4.9. Структура `SMI_WRITE_RESPONSE`](#toc-060)
-      - [2.2.4.10. Структура `PL_SUBSCRIBE_STREAM_RESPONSE`](#toc-061)
-      - [2.2.4.11. Структура `PL_UNSUBSCRIBE_STREAM_RESPONSE`](#toc-062)
-      - [2.2.4.12. Структура `VENDOR_RESPONSE`](#toc-063)
+      - [2.2.4.10. Структура `NOTIFY_SUBSCRIBE_RESPONSE`](#toc-060a)
+      - [2.2.4.11. Структура `NOTIFY_UNSUBSCRIBE_RESPONSE`](#toc-060b)
+      - [2.2.4.12. Структура `PL_SUBSCRIBE_STREAM_RESPONSE`](#toc-061)
+      - [2.2.4.13. Структура `PL_UNSUBSCRIBE_STREAM_RESPONSE`](#toc-062)
+      - [2.2.4.14. Структура `VENDOR_RESPONSE`](#toc-063)
     - [2.2.5. Структура `SRV_EVENT_BODY`](#toc-064)
-      - [2.2.5.1. Структура `PL_STREAM_EVENT`](#toc-065)
-        - [2.2.5.1.1. Поле `ev_flags`](#toc-066)
-        - [2.2.5.1.2. Поле `lost_delta`](#toc-067)
-        - [2.2.5.1.3. Поле `data_len`](#toc-068)
-      - [2.2.5.2. Структура `VENDOR_EVENT`](#toc-069)
+      - [2.2.5.1. Структура `NOTIFY_EVENT`](#toc-064a)
+        - [2.2.5.1.1. Поле `time_us`](#toc-064b)
+        - [2.2.5.1.2. Поле `ev_type`](#toc-064c)
+        - [2.2.5.1.3. Поле `status`](#toc-064d)
+        - [2.2.5.1.4. Поле `source`](#toc-064e)
+        - [2.2.5.1.5. Поле `bus`](#toc-064f)
+        - [2.2.5.1.6. Поле `op_kind`](#toc-064g)
+        - [2.2.5.1.7. Поля `arg0/arg1/arg2`](#toc-064h)
+      - [2.2.5.2. Структура `PL_STREAM_EVENT`](#toc-065)
+        - [2.2.5.2.1. Поле `ev_flags`](#toc-066)
+        - [2.2.5.2.2. Поле `lost_delta`](#toc-067)
+        - [2.2.5.2.3. Поле `data_len`](#toc-068)
+      - [2.2.5.3. Структура `VENDOR_EVENT`](#toc-069)
 
 
 <a id="toc-001"></a>
@@ -138,6 +155,7 @@ TCP_APP_DATA (byte stream)
         │   ├── 0x03 -> SMI
         │   ├── 0x04 -> SPI
         │   ├── 0x05 -> UART
+        │   ├── 0x06 -> NOTIFY
         │   └── 0x7F -> VENDOR
         └── SRV_MESSAGE (формат зависит от srv)
             ├── op   (RESP/EVENT/OPCODE)
@@ -170,6 +188,14 @@ TCP_APP_DATA (byte stream)
             │       │   └── 0x01 SMI_WRITE
             │       │       ├── request  -> SMI_WRITE_REQUEST
             │       │       └── response -> SMI_WRITE_RESPONSE
+            │       ├── srv=NOTIFY (0x06)
+            │       │   ├── 0x10 SUBSCRIBE
+            │       │   │   ├── request  -> NOTIFY_SUBSCRIBE_REQUEST
+            │       │   │   ├── response -> NOTIFY_SUBSCRIBE_RESPONSE
+            │       │   │   └── event    -> NOTIFY_EVENT
+            │       │   └── 0x11 UNSUBSCRIBE
+            │       │       ├── request  -> NOTIFY_UNSUBSCRIBE_REQUEST
+            │       │       └── response -> NOTIFY_UNSUBSCRIBE_RESPONSE
             │       └── srv=PL (I2C/SMI/SPI/UART)
             │           ├── 0x10 SUBSCRIBE_STREAM
             │           │   ├── request  -> PL_SUBSCRIBE_STREAM_REQUEST
@@ -265,7 +291,7 @@ TCP_APP_DATA (byte stream)
 Кадр, обрабатываемый сервером (hex):
 
 ```text
-44 43 50 32 | 00 01 | 00 0C | 01 | 00 | 01 01 | 00 20 40 00 00 00 00 02
+44 43 50 32 | 00 02 | 00 0C | 01 | 00 | 01 01 | 00 20 40 00 00 00 00 02
 magic       | ver   | dcp_len|srv| op | seq   | MEM_READ_REQUEST
 ```
 
@@ -274,7 +300,7 @@ magic       | ver   | dcp_len|srv| op | seq   | MEM_READ_REQUEST
 | Поле                     | Значение                                    |
 | ------------------------ | ------------------------------------------- |
 | `DCP2_HDR.magic`         | `44 43 50 32` (`"DCP2"`)                    |
-| `DCP2_HDR.ver`           | `00 01`                                     |
+| `DCP2_HDR.ver`           | `00 02`                                     |
 | `DCP2_HDR.dcp_len`       | `00 0C`                                     |
 | `DCP2_PAYLOAD.srv`       | `01` (`MEM`)                                |
 | `SRV_MESSAGE.op`         | `00` (`request`, `OPCODE=0x00`, `MEM_READ`) |
@@ -287,7 +313,7 @@ magic       | ver   | dcp_len|srv| op | seq   | MEM_READ_REQUEST
 Кадр, обрабатываемый клиентом (hex):
 
 ```text
-44 43 50 32 | 00 01 | 00 0A | 01 | 80 | 01 01 | 00 00 | DE AD BE EF
+44 43 50 32 | 00 02 | 00 0A | 01 | 80 | 01 01 | 00 00 | DE AD BE EF
 magic       | ver   | dcp_len|srv| op | seq   |status | data
 ```
 
@@ -296,7 +322,7 @@ magic       | ver   | dcp_len|srv| op | seq   |status | data
 | Поле                     | Значение                                     |
 | ------------------------ | -------------------------------------------- |
 | `DCP2_HDR.magic`         | `44 43 50 32` (`"DCP2"`)                     |
-| `DCP2_HDR.ver`           | `00 01`                                      |
+| `DCP2_HDR.ver`           | `00 02`                                      |
 | `DCP2_HDR.dcp_len`       | `00 0A`                                      |
 | `DCP2_PAYLOAD.srv`       | `01` (`MEM`)                                 |
 | `SRV_MESSAGE.op`         | `80` (`response`, `OPCODE=0x00`, `MEM_READ`) |
@@ -312,7 +338,7 @@ magic       | ver   | dcp_len|srv| op | seq   |status | data
 Кадр, обрабатываемый сервером (hex):
 
 ```text
-44 43 50 32 | 00 01 | 00 04 | 02 | 3F | 01 02
+44 43 50 32 | 00 02 | 00 04 | 02 | 3F | 01 02
 magic       | ver   | dcp_len|srv| op | seq
 ```
 
@@ -321,7 +347,7 @@ magic       | ver   | dcp_len|srv| op | seq
 | Поле               | Значение                                                    |
 | ------------------ | ----------------------------------------------------------- |
 | `DCP2_HDR.magic`   | `44 43 50 32` (`"DCP2"`)                                    |
-| `DCP2_HDR.ver`     | `00 01`                                                     |
+| `DCP2_HDR.ver`     | `00 02`                                                     |
 | `DCP2_HDR.dcp_len` | `00 04`                                                     |
 | `DCP2_PAYLOAD.srv` | `02` (`I2C`)                                                |
 | `SRV_MESSAGE.op`   | `3F` (`request`, `OPCODE=0x3F`, операция не поддерживается) |
@@ -330,7 +356,7 @@ magic       | ver   | dcp_len|srv| op | seq
 Кадр, обрабатываемый клиентом (hex):
 
 ```text
-44 43 50 32 | 00 01 | 00 06 | 02 | BF | 01 02 | 00 02
+44 43 50 32 | 00 02 | 00 06 | 02 | BF | 01 02 | 00 02
 magic       | ver   | dcp_len|srv| op | seq   | status
 ```
 
@@ -339,7 +365,7 @@ magic       | ver   | dcp_len|srv| op | seq   | status
 | Поле                  | Значение                         |
 | --------------------- | -------------------------------- |
 | `DCP2_HDR.magic`      | `44 43 50 32` (`"DCP2"`)         |
-| `DCP2_HDR.ver`        | `00 01`                          |
+| `DCP2_HDR.ver`        | `00 02`                          |
 | `DCP2_HDR.dcp_len`    | `00 06`                          |
 | `DCP2_PAYLOAD.srv`    | `02` (`I2C`)                     |
 | `SRV_MESSAGE.op`      | `BF` (`response`, `OPCODE=0x3F`) |
@@ -354,7 +380,7 @@ magic       | ver   | dcp_len|srv| op | seq   | status
 Кадр, обрабатываемый сервером (hex):
 
 ```text
-44 43 50 32 | 00 01 | 00 0E | 01 | 01 | 01 03 | 00 20 40 00 00 00 00 02 AA BB
+44 43 50 32 | 00 02 | 00 0E | 01 | 01 | 01 03 | 00 20 40 00 00 00 00 02 AA BB
 magic       | ver   | dcp_len|srv| op | seq   | MEM_WRITE_REQUEST (invalid data len)
 ```
 
@@ -363,7 +389,7 @@ magic       | ver   | dcp_len|srv| op | seq   | MEM_WRITE_REQUEST (invalid data 
 | Поле                      | Значение                                               |
 | ------------------------- | ------------------------------------------------------ |
 | `DCP2_HDR.magic`          | `44 43 50 32` (`"DCP2"`)                               |
-| `DCP2_HDR.ver`            | `00 01`                                                |
+| `DCP2_HDR.ver`            | `00 02`                                                |
 | `DCP2_HDR.dcp_len`        | `00 0E`                                                |
 | `DCP2_PAYLOAD.srv`        | `01` (`MEM`)                                           |
 | `SRV_MESSAGE.op`          | `01` (`request`, `OPCODE=0x01`, `MEM_WRITE`)           |
@@ -377,7 +403,7 @@ magic       | ver   | dcp_len|srv| op | seq   | MEM_WRITE_REQUEST (invalid data 
 Кадр, обрабатываемый клиентом (hex):
 
 ```text
-44 43 50 32 | 00 01 | 00 06 | 01 | 81 | 01 03 | 00 01
+44 43 50 32 | 00 02 | 00 06 | 01 | 81 | 01 03 | 00 01
 magic       | ver   | dcp_len|srv| op | seq   | status
 ```
 
@@ -386,7 +412,7 @@ magic       | ver   | dcp_len|srv| op | seq   | status
 | Поле                  | Значение                                      |
 | --------------------- | --------------------------------------------- |
 | `DCP2_HDR.magic`      | `44 43 50 32` (`"DCP2"`)                      |
-| `DCP2_HDR.ver`        | `00 01`                                       |
+| `DCP2_HDR.ver`        | `00 02`                                       |
 | `DCP2_HDR.dcp_len`    | `00 06`                                       |
 | `DCP2_PAYLOAD.srv`    | `01` (`MEM`)                                  |
 | `SRV_MESSAGE.op`      | `81` (`response`, `OPCODE=0x01`, `MEM_WRITE`) |
@@ -401,7 +427,7 @@ magic       | ver   | dcp_len|srv| op | seq   | status
 Кадр, обрабатываемый клиентом (hex):
 
 ```text
-44 43 50 32 | 00 01 | 00 0F | 02 | 50 | 00 00
+44 43 50 32 | 00 02 | 00 0F | 02 | 50 | 00 00
 magic       | ver   | dcp_len|srv| op | seq
 
 00 | 00 00 00 00 | 00 04 | 11 22 33 44
@@ -413,7 +439,7 @@ evf| lost_delta  | data_len | data
 | Поле                         | Значение                                        |
 | ---------------------------- | ----------------------------------------------- |
 | `DCP2_HDR.magic`             | `44 43 50 32` (`"DCP2"`)                        |
-| `DCP2_HDR.ver`               | `00 01`                                         |
+| `DCP2_HDR.ver`               | `00 02`                                         |
 | `DCP2_HDR.dcp_len`           | `00 0F`                                         |
 | `DCP2_PAYLOAD.srv`           | `02` (`I2C`)                                    |
 | `SRV_MESSAGE.op`             | `50` (`event`, `OPCODE=0x10`, `STREAM`)         |
@@ -496,6 +522,27 @@ evf| lost_delta  | data_len | data
 
 Операция `CAPABILITIES` может быть добавлена в будущих версиях как опциональное расширение, если потребуется динамическое согласование возможностей.
 
+<a id="toc-023b"></a>
+#### 5.7. Политика версионирования
+
+Поле `ver` в `DCP2_HDR` определяет версию базового wire-контракта протокола.
+
+Таблица версий:
+
+| `ver` | Статус | Содержание |
+|---|---|---|
+| `0x0001` | legacy baseline | Базовый каркас DCP2: `PING`, `MEM`, `I2C`, `SMI`, `SPI`, `UART`, `VENDOR` |
+| `0x0002` | current | Добавлена формальная политика версионирования и сервис `NOTIFY` для асинхронных control/state уведомлений |
+
+Нормативные правила:
+
+1. Сервер обязан проверять `ver` до обработки `DCP2_PAYLOAD` и отклонять неподдерживаемую версию кадра.
+2. Клиент обязан трактовать `ver` как основной признак совместимости wire-формата.
+3. Изменения документации без изменения бинарного формата и семантики кадров не меняют `ver`.
+4. Обратно-совместимые расширения могут сохранять `ver`, только если не меняют формат и семантику уже существующих `srv`, `OPCODE`, `status` и обязательных полей.
+5. Изменения, затрагивающие формат `DCP2_HDR`, существующие `body`-структуры, семантику существующих полей или вводящие новый обязательный для корректной совместимости сервис, обязаны повышать `ver`.
+6. Для версии `0x0002` сервис `NOTIFY` считается частью формального контракта протокола.
+
 ---
 
 <a id="toc-024"></a>
@@ -527,8 +574,11 @@ typedef struct {
 ### 1.2. Поле `ver`
 
 **Размер**: 2 байта
-**Назначение**: Версия протокола DCP
-**Пример**: `00 01`
+**Назначение**: Версия wire-контракта протокола DCP2.
+**Допустимые значения**:
+- `0x0001` — legacy baseline
+- `0x0002` — текущая версия документа
+**Пример**: `00 02`
 
 <a id="toc-028"></a>
 ### 1.3. Поле `dcp_len`
@@ -568,6 +618,7 @@ typedef struct {
 |0x03|SMI|
 |0x04|SPI|
 |0x05|UART|
+|0x06|NOTIFY|
 |0x7F|VENDOR|
 
 <a id="toc-031"></a>
@@ -637,6 +688,9 @@ typedef struct {
 
         SMI_READ_REQUEST  smi_read;
         SMI_WRITE_REQUEST smi_write;
+
+        NOTIFY_SUBSCRIBE_REQUEST   notify_subscribe;
+        NOTIFY_UNSUBSCRIBE_REQUEST notify_unsubscribe;
 
         PL_SUBSCRIBE_STREAM_REQUEST   pl_subscribe_stream;
         PL_UNSUBSCRIBE_STREAM_REQUEST pl_unsubscribe_stream;
@@ -821,8 +875,97 @@ typedef struct {
 **Назначение**: Определяет параметры операции записи MDIO-регистра PHY.
 **Примечание**: Контекст использования — `srv = 0x03` (`SMI`), `RESP = 0`, `EVENT = 0`, `OPCODE = 0x01`.
 
+<a id="toc-046a"></a>
+##### 2.2.3.9. Структура `NOTIFY_SUBSCRIBE_REQUEST`
+
+```c
+typedef struct {
+    u32 class_mask;
+    u32 source_mask;
+    u32 bus_mask;
+    u8  flags;
+} NOTIFY_SUBSCRIBE_REQUEST;
+```
+
+**Размер**: 13 байт
+**Назначение**: Включает асинхронную доставку control/state событий для выбранных классов, источников и шин.
+**Примечание**: Контекст использования — `srv = 0x06` (`NOTIFY`), `RESP = 0`, `EVENT = 0`, `OPCODE = 0x10`.
+
+<a id="toc-046b"></a>
+###### 2.2.3.9.1. Поле `class_mask`
+
+**Размер**: 4 байта
+**Назначение**: Маска классов событий, которые клиент хочет получать.
+
+Битовое представление:
+- `bit0` — `REG_ATTEMPT`
+- `bit1` — `REG_COMMIT`
+- `bit2` — `REG_DENIED`
+- `bit3` — `STATE_CHANGED`
+- `bit4` — `FAULT`
+- `bit31..5` — зарезервированы
+
+**Примечание**: Нулевая маска недопустима и должна приводить к `ERR_RANGE`.
+
+<a id="toc-046c"></a>
+###### 2.2.3.9.2. Поле `source_mask`
+
+**Размер**: 4 байта
+**Назначение**: Маска источников, от которых клиент хочет получать события.
+
+Битовое представление:
+- `bit0` — `TELNET`
+- `bit1` — `HOST`
+- `bit2` — `DCP`
+- `bit3` — `INTERNAL`
+- `bit31..4` — зарезервированы
+
+**Примечание**: Нулевая маска недопустима и должна приводить к `ERR_RANGE`.
+
+<a id="toc-046d"></a>
+###### 2.2.3.9.3. Поле `bus_mask`
+
+**Размер**: 4 байта
+**Назначение**: Маска подсистем/шин, для которых клиент хочет получать уведомления.
+
+Битовое представление:
+- `bit0` — `I2C`
+- `bit1` — `SMI`
+- `bit2` — `SPI`
+- `bit3` — `UART`
+- `bit4` — `SYS`
+- `bit31..5` — зарезервированы
+
+**Примечание**: Нулевая маска недопустима и должна приводить к `ERR_RANGE`.
+
+<a id="toc-046e"></a>
+###### 2.2.3.9.4. Поле `flags`
+
+**Размер**: 1 байт
+**Назначение**: Дополнительные параметры подписки.
+
+Битовое представление:
+- `bit0` — `WITH_TIMESTAMP` (`1` — включать `time_us` в `NOTIFY_EVENT`)
+- `bit1` — `SNAPSHOT_ON_SUBSCRIBE` (`1` — сервер может немедленно отправить служебное событие о текущем состоянии подписки)
+- `bit7..2` — зарезервированы
+
+**Примечание**: Если зарезервированные биты установлены → `ERR_MALFORMED`.
+
+<a id="toc-046f"></a>
+##### 2.2.3.10. Структура `NOTIFY_UNSUBSCRIBE_REQUEST`
+
+```c
+typedef struct {
+    /* пусто */
+} NOTIFY_UNSUBSCRIBE_REQUEST;
+```
+
+**Размер**: 0 байт
+**Назначение**: Отключает асинхронную доставку событий сервиса `NOTIFY`.
+**Примечание**: Запрос состоит только из общего заголовка `SRV_MESSAGE`.
+
 <a id="toc-047"></a>
-##### 2.2.3.9. Структура `PL_SUBSCRIBE_STREAM_REQUEST`
+##### 2.2.3.11. Структура `PL_SUBSCRIBE_STREAM_REQUEST`
 
 ```c
 typedef struct {
@@ -835,7 +978,7 @@ typedef struct {
 **Примечание**: Контекст использования — `srv = 0x02, 0x03, 0x04, 0x05`, `RESP = 0`, `EVENT = 0`, `OPCODE = 0x10`.
 
 <a id="toc-048"></a>
-###### 2.2.3.9.1. Поле `flags`
+###### 2.2.3.11.1. Поле `flags`
 
 **Размер**: 1 байт
 **Назначение**: Определяет дополнительные параметры подписки на стрим.
@@ -849,7 +992,7 @@ typedef struct {
 **Примечание**: Если зарезервированные биты установлены → `ERR_MALFORMED`.
 
 <a id="toc-049"></a>
-##### 2.2.3.10. Структура `PL_UNSUBSCRIBE_STREAM_REQUEST`
+##### 2.2.3.12. Структура `PL_UNSUBSCRIBE_STREAM_REQUEST`
 
 ```c
 typedef struct {
@@ -862,7 +1005,7 @@ typedef struct {
 **Примечание:** Запрос состоит только из общего заголовка `SRV_MESSAGE`.
 
 <a id="toc-050"></a>
-##### 2.2.3.11. Структура `VENDOR_REQUEST`
+##### 2.2.3.13. Структура `VENDOR_REQUEST`
 
 ```c
 typedef struct {
@@ -893,6 +1036,9 @@ typedef struct {
 
         SMI_READ_RESPONSE  smi_read;
         SMI_WRITE_RESPONSE smi_write;
+
+        NOTIFY_SUBSCRIBE_RESPONSE   notify_subscribe;
+        NOTIFY_UNSUBSCRIBE_RESPONSE notify_unsubscribe;
 
         PL_SUBSCRIBE_STREAM_RESPONSE   pl_subscribe_stream;
         PL_UNSUBSCRIBE_STREAM_RESPONSE pl_unsubscribe_stream;
@@ -1022,8 +1168,32 @@ typedef struct {
 **Размер**: 0 байт
 **Назначение**: Подтверждает выполнение операции записи MDIO-регистра PHY.
 
+<a id="toc-060a"></a>
+##### 2.2.4.10. Структура `NOTIFY_SUBSCRIBE_RESPONSE`
+
+```c
+typedef struct {
+    /* пусто */
+} NOTIFY_SUBSCRIBE_RESPONSE;
+```
+
+**Размер**: 0 байт
+**Назначение**: Подтверждает установку подписки на асинхронные control/state события.
+
+<a id="toc-060b"></a>
+##### 2.2.4.11. Структура `NOTIFY_UNSUBSCRIBE_RESPONSE`
+
+```c
+typedef struct {
+    /* пусто */
+} NOTIFY_UNSUBSCRIBE_RESPONSE;
+```
+
+**Размер**: 0 байт
+**Назначение**: Подтверждает снятие подписки с сервиса `NOTIFY`.
+
 <a id="toc-061"></a>
-##### 2.2.4.10. Структура `PL_SUBSCRIBE_STREAM_RESPONSE`
+##### 2.2.4.12. Структура `PL_SUBSCRIBE_STREAM_RESPONSE`
 
 ```c
 typedef struct {
@@ -1035,7 +1205,7 @@ typedef struct {
 **Назначение**: Подтверждает установку подписки на асинхронный стрим.
 
 <a id="toc-062"></a>
-##### 2.2.4.11. Структура `PL_UNSUBSCRIBE_STREAM_RESPONSE`
+##### 2.2.4.13. Структура `PL_UNSUBSCRIBE_STREAM_RESPONSE`
 
 ```c
 typedef struct {
@@ -1047,7 +1217,7 @@ typedef struct {
 **Назначение**: Подтверждает снятие подписки на асинхронный стрим.
 
 <a id="toc-063"></a>
-##### 2.2.4.12. Структура `VENDOR_RESPONSE`
+##### 2.2.4.14. Структура `VENDOR_RESPONSE`
 
 ```c
 typedef struct {
@@ -1065,6 +1235,7 @@ typedef struct {
 ```c
 typedef struct {
     union {
+        NOTIFY_EVENT    notify;
         PL_STREAM_EVENT pl_stream;
         VENDOR_EVENT    vendor;
     } u;
@@ -1075,8 +1246,107 @@ typedef struct {
 **Назначение**: Содержит тело асинхронного события, инициированного сервером.
 **Примечание**: Для событий должны быть установлены биты `RESP=0`, `EVENT=1` в поле `op`.
 
+<a id="toc-064a"></a>
+##### 2.2.5.1. Структура `NOTIFY_EVENT`
+
+```c
+typedef struct {
+    u64 time_us;    /* опционально, если WITH_TIMESTAMP=1 */
+    u16 ev_type;
+    u16 status;
+    u8  source;
+    u8  bus;
+    u8  op_kind;
+    u8  reserved;
+    u32 arg0;
+    u32 arg1;
+    u32 arg2;
+} NOTIFY_EVENT;
+```
+
+**Размер**: 18 байт без `time_us`; 26 байт с `time_us`
+**Назначение**: Передаёт структурированное уведомление об изменении состояния системы, попытке регистровой транзакции, её результате или ошибке.
+**Примечание**: Контекст использования — `srv = 0x06` (`NOTIFY`), `RESP = 0`, `EVENT = 1`, `OPCODE = 0x10`.
+
+<a id="toc-064b"></a>
+###### 2.2.5.1.1. Поле `time_us`
+
+**Размер**: 8 байт
+**Назначение**: Микросекундная метка времени события.
+**Примечание**: Поле присутствует только если подписка была установлена с `WITH_TIMESTAMP=1`.
+
+<a id="toc-064c"></a>
+###### 2.2.5.1.2. Поле `ev_type`
+
+**Размер**: 2 байта
+**Назначение**: Тип события control/state уровня.
+
+Допустимые значения:
+- `0x0001` — `REG_ATTEMPT`
+- `0x0002` — `REG_COMMIT`
+- `0x0003` — `REG_DENIED`
+- `0x0004` — `STATE_CHANGED`
+- `0x0005` — `FAULT`
+
+<a id="toc-064d"></a>
+###### 2.2.5.1.3. Поле `status`
+
+**Размер**: 2 байта
+**Назначение**: Код результата, связанного с событием.
+**Примечание**: Используются те же значения, что и в `SRV_RESPONSE_BODY.status`.
+
+<a id="toc-064e"></a>
+###### 2.2.5.1.4. Поле `source`
+
+**Размер**: 1 байт
+**Назначение**: Источник, инициировавший действие.
+
+Допустимые значения:
+- `0x00` — `TELNET`
+- `0x01` — `HOST`
+- `0x02` — `DCP`
+- `0x03` — `INTERNAL`
+
+<a id="toc-064f"></a>
+###### 2.2.5.1.5. Поле `bus`
+
+**Размер**: 1 байт
+**Назначение**: Целевая подсистема/шина.
+
+Допустимые значения:
+- `0x00` — `I2C`
+- `0x01` — `SMI`
+- `0x02` — `SPI`
+- `0x03` — `UART`
+- `0x04` — `SYS`
+
+<a id="toc-064g"></a>
+###### 2.2.5.1.6. Поле `op_kind`
+
+**Размер**: 1 байт
+**Назначение**: Вид действия, породившего событие.
+
+Допустимые значения:
+- `0x00` — `READ`
+- `0x01` — `WRITE`
+- `0x02` — `POLICY_CHANGE`
+- `0x03` — `CONFIG_APPLY`
+- `0x04` — `STATE_TOGGLE`
+
+<a id="toc-064h"></a>
+###### 2.2.5.1.7. Поля `arg0/arg1/arg2`
+
+**Размер**: 12 байт
+**Назначение**: Обобщённые аргументы события, интерпретируемые по контексту `bus + op_kind + ev_type`.
+
+Рекомендуемая интерпретация:
+- для `I2C WRITE`: `arg0 = addr7`, `arg1 = reg`, `arg2 = val`
+- для `SMI WRITE`: `arg0 = phy`, `arg1 = reg`, `arg2 = val16`
+- для системных событий: значения определяются реализацией
+**Примечание**: Все поля передаются в big-endian.
+
 <a id="toc-065"></a>
-##### 2.2.5.1. Структура `PL_STREAM_EVENT`
+##### 2.2.5.2. Структура `PL_STREAM_EVENT`
 
 ```c
 typedef struct {
@@ -1092,7 +1362,7 @@ typedef struct {
 **Назначение**: Передаёт порцию данных стрима выбранного PL-сервиса (`I2C`, `SMI`, `SPI`, `UART`) и диагностику потерь.
 
 <a id="toc-066"></a>
-###### 2.2.5.1.1. Поле `ev_flags`
+###### 2.2.5.2.1. Поле `ev_flags`
 
 **Размер**: 1 байт
 **Назначение**: Флаги состояния стрима для текущего события.
@@ -1102,13 +1372,13 @@ typedef struct {
 - `bit7..1` — зарезервированы (должны быть равны 0)
 
 <a id="toc-067"></a>
-###### 2.2.5.1.2. Поле `lost_delta`
+###### 2.2.5.2.2. Поле `lost_delta`
 
 **Размер**: 4 байта
 **Назначение**: Количество потерянных единиц данных с момента предыдущего события (или с момента подписки/сброса счётчиков).
 
 <a id="toc-068"></a>
-###### 2.2.5.1.3. Поле `data_len`
+###### 2.2.5.2.3. Поле `data_len`
 
 **Размер**: 2 байта
 **Назначение**: Длина поля `data` в байтах.
@@ -1116,7 +1386,7 @@ typedef struct {
 **Примечание**: При использовании режима `RAW_WORDS` значение `data_len` должно быть кратно 4.
 
 <a id="toc-069"></a>
-##### 2.2.5.2. Структура `VENDOR_EVENT`
+##### 2.2.5.3. Структура `VENDOR_EVENT`
 
 ```c
 typedef struct {
