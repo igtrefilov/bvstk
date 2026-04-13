@@ -7,7 +7,7 @@
 #include "../dcp2/dcp2_notify.h"
 
 #ifndef I2C_BOOT_SCAN_ENABLE
-#define I2C_BOOT_SCAN_ENABLE 1
+#define I2C_BOOT_SCAN_ENABLE 0
 #endif
 #ifndef I2C_AUTOPOLL_ENABLE
 #define I2C_AUTOPOLL_ENABLE 0
@@ -32,6 +32,7 @@ static size_t s_selected = 0;
 
 static uint8_t s_reg_cache[I2CDEV_MAX_DEVICES][I2CDEV_MAX_REG_COUNT];
 static uint8_t s_slave_reg_ptr[I2CDEV_MAX_DEVICES];
+static bool s_slave_read_armed[I2CDEV_MAX_DEVICES];
 static volatile uint8_t s_pending_dev = 0xFF;
 static volatile uint8_t s_pending_reg = 0xFF;
 
@@ -201,6 +202,9 @@ static inline uint32_t reg_read32(uint32_t base, uint32_t ofs) { return Xil_In32
 static bool i2cdev_write_byte_source(size_t dev_idx, uint8_t addr7, uint8_t reg, uint8_t val, uint8_t source);
 static void i2c_slave_fill_read_window(const uint8_t *src, uint32_t nbytes);
 static bool i2c_master_read_reg_to_bram(size_t dev_idx, uint8_t addr7, uint8_t reg, uint32_t rd_len);
+static void i2c_slave_snapshot_mailbox(uint32_t *wr0, uint32_t *wr1, uint32_t *wr2, uint32_t *wr3);
+static void i2cdev_cache_write_local(size_t dev_idx, uint8_t reg, uint8_t val);
+static bool i2cdev_verify_reg_value(size_t dev_idx, uint8_t reg, uint8_t expected);
 
 static void master_evt_task(void *arg);
 static void slave_evt_task (void *arg);
@@ -414,6 +418,22 @@ static void i2c_master_recover_after_timeout(void)
     (void)i2c_master_wait_bus_idle(I2C_MASTER_RECOVER_DELAY_MS * 2u);
 }
 
+static bool i2cdev_verify_reg_value(size_t dev_idx, uint8_t reg, uint8_t expected)
+{
+    uint8_t actual = 0u;
+
+    vTaskDelay(pdMS_TO_TICKS(2));
+    if (!i2cdev_read_reg_idx(dev_idx, reg, &actual)) {
+        return false;
+    }
+
+    if (actual != expected) {
+        return false;
+    }
+
+    return true;
+}
+
 void start_i2c(void)
 {
     q_master = xQueueCreate(64, sizeof(master_evt_t));
@@ -500,6 +520,7 @@ void i2c_task(void *pvParameters)
     for (size_t i = 0; i < s_cfg_count; ++i) {
         s_cfgs[i] = (i2c_device_config_t *)&cfgs[i];
         memset(s_reg_cache[i], 0, sizeof(s_reg_cache[i]));
+        s_slave_read_armed[i] = false;
 #if !I2C_AUTOPOLL_ENABLE
         s_cfgs[i]->autopoll_enabled = false;
         s_cfgs[i]->autopoll_regs_len = 0u;
@@ -649,28 +670,22 @@ static bool i2cdev_write_byte_source(size_t dev_idx, uint8_t addr7, uint8_t reg,
                                    (uint32_t)val);
         return false;
     }
-    if (dev_idx < I2CDEV_MAX_DEVICES && reg < I2CDEV_MAX_REG_COUNT) {
-        s_reg_cache[dev_idx][reg] = val;
-    }
-    /* Track persisted device settings (register writes) in the loaded config. */
-    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
-    if (cfg && reg < cfg->reg_count) {
-        taskENTER_CRITICAL();
-        bool updated = false;
-        for (size_t i = 0; i < cfg->settings_len; ++i) {
-            if (cfg->settings[i].reg == reg) {
-                cfg->settings[i].val = val;
-                updated = true;
-                break;
-            }
+
+    if (source == (uint8_t)DCP2_NOTIFY_SOURCE_HOST) {
+        if (!i2cdev_verify_reg_value(dev_idx, reg, val)) {
+            dcp2_notify_publish_simple(DCP2_NOTIFY_EV_FAULT,
+                                       0x0008u,
+                                       (dcp2_notify_source_t)source,
+                                       DCP2_NOTIFY_BUS_I2C,
+                                       DCP2_NOTIFY_OP_WRITE,
+                                       (uint32_t)(addr7 & 0x7Fu),
+                                       (uint32_t)reg,
+                                       (uint32_t)val);
+            return false;
         }
-        if (!updated && cfg->settings_len < I2C_CFG_SETTINGS_MAX) {
-            cfg->settings[cfg->settings_len].reg = reg;
-            cfg->settings[cfg->settings_len].val = val;
-            cfg->settings_len++;
-        }
-        taskEXIT_CRITICAL();
     }
+
+    i2cdev_cache_write_local(dev_idx, reg, val);
     dcp2_notify_publish_simple(DCP2_NOTIFY_EV_REG_COMMIT,
                                0x0000u,
                                (dcp2_notify_source_t)source,
@@ -746,6 +761,67 @@ static bool i2c_master_read_reg_to_bram(size_t dev_idx, uint8_t addr7, uint8_t r
     return true;
 }
 
+static void i2cdev_cache_write_local(size_t dev_idx, uint8_t reg, uint8_t val)
+{
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
+    if (!cfg) return;
+    if (reg >= cfg->reg_count) return;
+
+    if (dev_idx < I2CDEV_MAX_DEVICES && reg < I2CDEV_MAX_REG_COUNT) {
+        s_reg_cache[dev_idx][reg] = val;
+    }
+
+    taskENTER_CRITICAL();
+    bool updated = false;
+    for (size_t i = 0; i < cfg->settings_len; ++i) {
+        if (cfg->settings[i].reg == reg) {
+            cfg->settings[i].val = val;
+            updated = true;
+            break;
+        }
+    }
+    if (!updated && cfg->settings_len < I2C_CFG_SETTINGS_MAX) {
+        cfg->settings[cfg->settings_len].reg = reg;
+        cfg->settings[cfg->settings_len].val = val;
+        cfg->settings_len++;
+    }
+    taskEXIT_CRITICAL();
+}
+
+static void i2c_slave_snapshot_mailbox(uint32_t *wr0, uint32_t *wr1, uint32_t *wr2, uint32_t *wr3)
+{
+    uint32_t cur0 = 0, cur1 = 0, cur2 = 0, cur3 = 0;
+    uint32_t prev0 = 0xFFFFFFFFu, prev1 = 0xFFFFFFFFu, prev2 = 0xFFFFFFFFu, prev3 = 0xFFFFFFFFu;
+    unsigned stable = 0;
+
+    for (unsigned i = 0; i < 256; ++i) {
+        cur0 = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_WR + 0x00);
+        cur1 = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_WR + 0x04);
+        cur2 = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_WR + 0x08);
+        cur3 = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_WR + 0x0C);
+
+        if (cur0 == prev0 && cur1 == prev1 && cur2 == prev2 && cur3 == prev3) {
+            stable++;
+        } else {
+            stable = 0;
+        }
+
+        prev0 = cur0;
+        prev1 = cur1;
+        prev2 = cur2;
+        prev3 = cur3;
+
+        if ((cur2 != 0u) || (cur3 != 0u) || stable >= 8u) {
+            break;
+        }
+    }
+
+    if (wr0) *wr0 = cur0;
+    if (wr1) *wr1 = cur1;
+    if (wr2) *wr2 = cur2;
+    if (wr3) *wr3 = cur3;
+}
+
 static inline void i2cdev_read_byte_to_master_bram(size_t dev_idx, uint8_t addr7, uint8_t reg)
 {
     (void)i2c_master_read_reg_to_bram(dev_idx, addr7, reg, 1u);
@@ -794,6 +870,7 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size, uint8_t op_read)
         return;
     }
     s_slave_reg_ptr[sel] = reg;
+    s_slave_read_armed[sel] = true;
 
     if (size >= 2u) {
         uint32_t n = size - 1;
@@ -801,12 +878,11 @@ void slave_check_and_exec(const uint8_t *frame, uint32_t size, uint8_t op_read)
         for (uint32_t i = 0; i < n; ++i) {
             uint8_t val = frame[1 + i];
             uint8_t r   = (uint8_t)(reg + i);
-            if (i2cdev_is_value_permitted_cfg(cfg, r, val)) {
-                i2cdev_write_byte_source(sel, cfg->addr_7b, r, val, (uint8_t)DCP2_NOTIFY_SOURCE_HOST);
-            }
+            (void)i2cdev_write_reg_dev_source(sel, r, val, (uint8_t)DCP2_NOTIFY_SOURCE_HOST);
         }
         /* Keep pointer at the requested register for SMBus read-after-write behavior. */
         s_slave_reg_ptr[sel] = reg;
+        s_slave_read_armed[sel] = false;
     }
 
     /* For a plain pointer write (size==1) or after writes, preload BRAM read window. */
@@ -836,7 +912,6 @@ static void slave_ISR(void *CallBackRef)
 {
     (void)CallBackRef;
     if (q_slave == NULL) { reg_write32(I2C_SLAVE_BASE, SLV_IRQ_REG_OFFSET, 0x01); return; }
-    uint32_t word0 = reg_read32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_WR);
     uint32_t sts   = reg_read32(I2C_SLAVE_BASE, SLV_STATUS_OFFSET);
     uint32_t tx_words = I2C_STS_TX_FIFO_CNT(sts);
     uint32_t size  = (tx_words > 0u) ? (tx_words - 1u) : 0u; /* words after address marker */
@@ -890,30 +965,34 @@ static void slave_evt_task(void *arg)
     for (;;) {
         if (xQueueReceive(q_slave, &evt, portMAX_DELAY) == pdTRUE) {
             if (evt.type == SLAVE_EVT_FRAME) {
+                size_t sel = i2cdev_selected_idx();
                 i2c_device_config_t *cfg = i2cdev_selected_cfg();
                 if (!cfg) continue;
-                uint8_t reg = (uint8_t)(reg_read32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_WR + 0x04) & 0xFFu);
-                uint8_t val = (uint8_t)(reg_read32(BRAM_BASE_ADDR, I2C_BRAM_SLAVE_WR + 0x08) & 0xFFu);
+                uint32_t wr1 = 0, wr2 = 0, wr3 = 0;
+                i2c_slave_snapshot_mailbox(NULL, &wr1, &wr2, &wr3);
+                uint8_t reg = (uint8_t)(wr1 & 0xFFu);
+                uint8_t val = (uint8_t)(wr2 & 0xFFu);
                 uint8_t frame2[2] = { reg, val };
                 uint8_t frame1[1] = { reg };
                 bool reg_ok = (reg < cfg->reg_count);
-                bool val_ok = reg_ok && i2cdev_is_value_permitted_cfg(cfg, reg, val);
-                bool has_payload = (evt.size > 0u) || (reg != 0u) || (val != 0u);
-                bool do_ptr_or_write = reg_ok && has_payload;
-                bool do_write = do_ptr_or_write && val_ok;
-                bool do_read_only = evt.op_read && !do_ptr_or_write;
+                bool has_reg_word = (wr1 != 0u) || (wr2 != 0u) || (wr3 != 0u);
+                bool has_value_word = (wr2 != 0u) || (wr3 != 0u);
+                bool do_ptr_or_write = reg_ok && has_reg_word;
+                bool do_write = reg_ok && has_value_word;
+                bool do_read_only = evt.op_read && !do_write && s_slave_read_armed[sel];
 
                 /* Update pointer only when transaction has meaningful payload. */
                 if (do_ptr_or_write) {
                     slave_check_and_exec(frame1, 1u, 0u);
                 }
-                /* Apply write only for policy-allowed value to avoid stale-garbage writes. */
+                /* Route host writes through the shared write path so denied values also emit NOTIFY. */
                 if (do_write) {
                     slave_check_and_exec(frame2, 2u, 0u);
                 }
                 /* For pure read phase (no payload), serve current pointer value. */
                 if (do_read_only) {
                     slave_check_and_exec(NULL, 0u, 1u);
+                    s_slave_read_armed[sel] = false;
                 }
 
                 /* Prevent stale payload from affecting next short transaction. */
@@ -1020,6 +1099,9 @@ bool i2cdev_write_reg_dev_source(size_t dev_idx, uint8_t reg, uint8_t val, uint8
                                    (uint32_t)reg,
                                    (uint32_t)val);
         return false;
+    }
+    if (source == (uint8_t)DCP2_NOTIFY_SOURCE_HOST) {
+        i2cdev_cache_write_local(dev_idx, reg, val);
     }
     return i2cdev_write_byte_source(dev_idx, cfg->addr_7b, reg, val, source);
 }
