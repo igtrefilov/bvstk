@@ -457,9 +457,11 @@ static void run_client_session(int fd)
                     char cmd0[16] = {0};
                     char tok1[FS_NAME_MAX] = {0};
                     char tok2[FS_NAME_MAX] = {0};
+                    char tok3[FS_NAME_MAX] = {0};
                     tok_to_cstr(toks_before[0], cmd0, sizeof(cmd0));
                     if (tok_before_n > 1) tok_to_cstr(toks_before[1], tok1, sizeof(tok1));
                     if (tok_before_n > 2) tok_to_cstr(toks_before[2], tok2, sizeof(tok2));
+                    if (tok_before_n > 3) tok_to_cstr(toks_before[3], tok3, sizeof(tok3));
                     size_t token_index = tok_before_n; /* index of current token in command line */
 
                     int total = 0;
@@ -481,11 +483,22 @@ static void run_client_session(int fd)
                         if (token_index == 1) {
                             matches = complete_i2c_selector(prefix_part_token, s_dir_candidates, 16, &total);
                         } else if (token_index == 2 && strcasecmp(tok1, "list") != 0) {
-                            static const char *const i2c2[] = { "info", "r", "w", "addr", "address", "rules", "policy", "allow", "deny", "clear", "autopoll", "save" };
+                            static const char *const i2c2[] = { "info", "r", "w", "addr", "address", "policy", "autopoll" };
                             matches = complete_words(prefix_part_token, i2c2, sizeof(i2c2) / sizeof(i2c2[0]), s_dir_candidates, 16, &total);
-                        } else if (token_index == 3 && strcasecmp(tok2, "policy") == 0 && strcasecmp(tok1, "list") != 0) {
-                            static const char *const pol[] = { "whitelist", "blacklist" };
-                            matches = complete_words(prefix_part_token, pol, sizeof(pol) / sizeof(pol[0]), s_dir_candidates, 16, &total);
+                        } else if (strcasecmp(tok2, "policy") == 0 && strcasecmp(tok1, "list") != 0) {
+                            if (token_index == 3) {
+                                static const char *const pol[] = { "show", "set", "whitelist", "blacklist" };
+                                matches = complete_words(prefix_part_token, pol, sizeof(pol) / sizeof(pol[0]), s_dir_candidates, 16, &total);
+                            } else if (token_index == 4 && strcasecmp(tok3, "show") == 0) {
+                                static const char *const show[] = { "rules", "whitelist", "blacklist" };
+                                matches = complete_words(prefix_part_token, show, sizeof(show) / sizeof(show[0]), s_dir_candidates, 16, &total);
+                            } else if (token_index == 4 && strcasecmp(tok3, "set") == 0) {
+                                static const char *const setv[] = { "whitelist", "blacklist" };
+                                matches = complete_words(prefix_part_token, setv, sizeof(setv) / sizeof(setv[0]), s_dir_candidates, 16, &total);
+                            } else if (token_index == 4 && (strcasecmp(tok3, "whitelist") == 0 || strcasecmp(tok3, "blacklist") == 0)) {
+                                static const char *const edit[] = { "add", "del", "delete", "clear" };
+                                matches = complete_words(prefix_part_token, edit, sizeof(edit) / sizeof(edit[0]), s_dir_candidates, 16, &total);
+                            }
                         }
                     } else if (strcasecmp(cmd0, "smi") == 0) {
                         if (token_index == 1) {

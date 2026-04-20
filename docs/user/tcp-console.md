@@ -147,6 +147,37 @@ cp flash:/config/network.json sd:/backup/network.json
 
 На практике это означает, что `i2c` и `spi` в текущей системе являются нормальными живыми инструментами, а к `smi` лучше относиться осторожно: наличие shell-команды ещё не означает, что вся runtime-цепочка активна после обычной загрузки.
 
+## `i2c` policy
+
+У `i2c` в текущем shell политика доступа теперь оформлена как отдельный под-контекст `policy`. Это важный практический момент: просмотр текущей политики, просмотр списков правил и их редактирование больше не смешаны с короткими legacy-командами `allow`, `deny`, `rules` и `save`.
+
+Базовые команды выглядят так:
+
+| Команда | Что делает |
+|---|---|
+| `i2c <dev> policy` | показывает активную policy |
+| `i2c <dev> policy show rules` | показывает policy, whitelist и blacklist целиком |
+| `i2c <dev> policy show whitelist` | показывает только whitelist |
+| `i2c <dev> policy show blacklist` | показывает только blacklist |
+| `i2c <dev> policy set whitelist` | делает `whitelist` активной policy |
+| `i2c <dev> policy set blacklist` | делает `blacklist` активной policy |
+| `i2c <dev> policy whitelist add <reg> <val>` | добавляет пару в whitelist |
+| `i2c <dev> policy whitelist del <reg> <val>` | удаляет пару из whitelist |
+| `i2c <dev> policy whitelist clear` | очищает весь whitelist |
+| `i2c <dev> policy blacklist add <reg> <val>` | добавляет пару в blacklist |
+| `i2c <dev> policy blacklist del <reg> <val>` | удаляет пару из blacklist |
+| `i2c <dev> policy blacklist clear` | очищает весь blacklist |
+
+Например, если нужно посмотреть текущие правила `axp15060` и удалить пару `{ reg:0x14 val:0x17 }` из whitelist, последовательность будет такой:
+
+```text
+i2c axp15060 policy show rules
+i2c axp15060 policy whitelist del 0x14 0x17
+i2c axp15060 policy show whitelist
+```
+
+Отдельная команда `save` для `i2c` больше не нужна. Изменения policy и списков правил сохраняются автоматически в `flash:/config/i2c/<device>.json` сразу после успешной команды.
+
 ## `reboot`, `quit` и поведение закрытия
 
 `quit` и `exit` работают просто: сессия печатает `Bye!` и закрывается. `reboot` требует явного подтверждения. В текущем коде принимаются формы `reboot -y [delay_ms]` и `reboot confirm [delay_ms]`. Без подтверждения консоль вернёт сообщение об ошибке и ничего не сделает.

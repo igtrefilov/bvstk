@@ -102,7 +102,7 @@ SMI-конфиг описывает PHY через `phy_addr`, `reg_count`, по
 | `bvstk_lan` | MAC, IP, mask, gateway для инициализации сети |
 | `bvstk_i2c` | описание устройств, политики записи, `autopoll`, persisted settings |
 | `bvstk_smi` | описание PHY, правила `write_allow/write_deny`, `autopoll`, persisted settings |
-| TCP-консоль | список устройств и операции сохранения через `ip save`, `i2c ... save`, `smi ... save` |
+| TCP-консоль | список устройств и операции сохранения через `ip save`, auto-persist у `i2c policy ...` и `smi ... save` |
 | HTTP API | текущий network config и операции сохранения/обновления I2C-конфигов |
 | DCP2 | проверка ready-state и доступ к I2C/SMI-конфигам для валидации операций |
 

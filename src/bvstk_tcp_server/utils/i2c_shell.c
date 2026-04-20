@@ -156,11 +156,11 @@ static void cmd_w(int fd, size_t idx, const i2c_device_config_t *cfg, const char
         if (!allowed) {
             if (cfg->policy == I2C_POLICY_WHITELIST) {
                 i2c_writef(fd,
-                           "ERR DENIED policy=whitelist reg=0x%02lX val=0x%02lX whitelist_len=%u (see: i2c %s rules)\r\n",
+                           "ERR DENIED policy=whitelist reg=0x%02lX val=0x%02lX whitelist_len=%u (see: i2c %s policy show rules)\r\n",
                            reg, val, (unsigned)cfg->whitelist_len, cfg->name);
             } else {
                 i2c_writef(fd,
-                           "ERR DENIED policy=blacklist reg=0x%02lX val=0x%02lX is blocked (see: i2c %s rules)\r\n",
+                           "ERR DENIED policy=blacklist reg=0x%02lX val=0x%02lX is blocked (see: i2c %s policy show rules)\r\n",
                            reg, val, cfg->name);
             }
         } else {
@@ -195,23 +195,6 @@ static void cmd_addr(int fd, size_t idx, const i2c_device_config_t *cfg, const c
     write_str(fd, "OK\r\n");
 }
 
-static void cmd_rule_edit(int fd, size_t idx, const i2c_device_config_t *cfg, const char *op, const char *s_reg, const char *s_val)
-{
-    if (!op || !s_reg || !s_val) { write_str(fd, "ERR\r\n"); return; }
-    bool okr = false, okv = false;
-    unsigned long reg = parse_num(s_reg, &okr);
-    unsigned long val = parse_num(s_val, &okv);
-    if (!okr || !okv || reg > 0xFF || val > 0xFF) { write_str(fd, "ERR\r\n"); return; }
-    if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
-    bool ok = false;
-    if (strcasecmp(op, "allow") == 0) ok = i2cdev_rule_allow_dev(idx, (uint8_t)reg, (uint8_t)val);
-    else if (strcasecmp(op, "deny") == 0) ok = i2cdev_rule_deny_dev(idx, (uint8_t)reg, (uint8_t)val);
-    else if (strcasecmp(op, "clear") == 0) ok = i2cdev_rule_clear_dev(idx, (uint8_t)reg, (uint8_t)val);
-    else { write_str(fd, "ERR\r\n"); return; }
-    if (ok) persist_cfg(fd, cfg);
-    write_str(fd, ok ? "OK\r\n" : "ERR\r\n");
-}
-
 static void cmd_rules(int fd, size_t idx, const i2c_device_config_t *cfg)
 {
     if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
@@ -225,6 +208,115 @@ static void cmd_rules(int fd, size_t idx, const i2c_device_config_t *cfg)
     for (size_t i = 0; i < cfg->blacklist_len; ++i) {
         i2c_writef(fd, "  { reg:0x%02X val:0x%02X }\r\n", cfg->blacklist[i].reg, cfg->blacklist[i].val);
     }
+}
+
+static void cmd_rule_list_show(int fd, const char *title, const i2c_rule_entry_t *rules, size_t len)
+{
+    i2c_writef(fd, "%s (%u):\r\n", title, (unsigned)len);
+    for (size_t i = 0; i < len; ++i) {
+        i2c_writef(fd, "  { reg:0x%02X val:0x%02X }\r\n", rules[i].reg, rules[i].val);
+    }
+}
+
+static void cmd_policy_show(int fd, size_t idx, const i2c_device_config_t *cfg, const char *what)
+{
+    if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
+    if (!what) {
+        const char *pol = (i2cdev_get_policy_dev(idx) == I2CDEV_POLICY_BLACKLIST) ? "BLACKLIST" : "WHITELIST";
+        i2c_writef(fd, "POLICY=%s\r\n", pol);
+        return;
+    }
+    if (strcasecmp(what, "rules") == 0) {
+        cmd_rules(fd, idx, cfg);
+        return;
+    }
+    if (strcasecmp(what, "whitelist") == 0) {
+        cmd_rule_list_show(fd, "WHITELIST", cfg->whitelist, cfg->whitelist_len);
+        return;
+    }
+    if (strcasecmp(what, "blacklist") == 0) {
+        cmd_rule_list_show(fd, "BLACKLIST", cfg->blacklist, cfg->blacklist_len);
+        return;
+    }
+    write_str(fd, "ERR\r\n");
+}
+
+static void cmd_policy_list_edit(int fd, size_t idx, const i2c_device_config_t *cfg,
+                                 const char *list_name, const char *action,
+                                 const char *s_reg, const char *s_val)
+{
+    if (!cfg || !list_name || !action) { write_str(fd, "ERR\r\n"); return; }
+
+    if (strcasecmp(action, "clear") == 0) {
+        i2c_device_config_t *mut = (i2c_device_config_t *)cfg;
+        taskENTER_CRITICAL();
+        if (strcasecmp(list_name, "whitelist") == 0) {
+            mut->whitelist_len = 0;
+        } else if (strcasecmp(list_name, "blacklist") == 0) {
+            mut->blacklist_len = 0;
+        } else {
+            taskEXIT_CRITICAL();
+            write_str(fd, "ERR\r\n");
+            return;
+        }
+        taskEXIT_CRITICAL();
+        persist_cfg(fd, cfg);
+        write_str(fd, "OK\r\n");
+        return;
+    }
+
+    if (!s_reg || !s_val) { write_str(fd, "ERR\r\n"); return; }
+    bool okr = false, okv = false;
+    unsigned long reg = parse_num(s_reg, &okr);
+    unsigned long val = parse_num(s_val, &okv);
+    if (!okr || !okv || reg > 0xFF || val > 0xFF) { write_str(fd, "ERR\r\n"); return; }
+
+    bool ok = false;
+    if (strcasecmp(list_name, "whitelist") == 0) {
+        if (strcasecmp(action, "add") == 0) ok = i2cdev_rule_allow_dev(idx, (uint8_t)reg, (uint8_t)val);
+        else if (strcasecmp(action, "del") == 0 || strcasecmp(action, "delete") == 0) ok = i2cdev_rule_clear_dev(idx, (uint8_t)reg, (uint8_t)val);
+        else { write_str(fd, "ERR\r\n"); return; }
+    } else if (strcasecmp(list_name, "blacklist") == 0) {
+        if (strcasecmp(action, "add") == 0) ok = i2cdev_rule_deny_dev(idx, (uint8_t)reg, (uint8_t)val);
+        else if (strcasecmp(action, "del") == 0 || strcasecmp(action, "delete") == 0) ok = i2cdev_rule_clear_dev(idx, (uint8_t)reg, (uint8_t)val);
+        else { write_str(fd, "ERR\r\n"); return; }
+    } else {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
+
+    if (ok) persist_cfg(fd, cfg);
+    write_str(fd, ok ? "OK\r\n" : "ERR\r\n");
+}
+
+static void cmd_policy_dispatch(int fd, size_t idx, const i2c_device_config_t *cfg, char **save)
+{
+    char *sub = strtok_r(NULL, " \t", save);
+    if (!sub) {
+        cmd_policy_show(fd, idx, cfg, NULL);
+        return;
+    }
+
+    if (strcasecmp(sub, "show") == 0) {
+        cmd_policy_show(fd, idx, cfg, strtok_r(NULL, " \t", save));
+        return;
+    }
+
+    if (strcasecmp(sub, "set") == 0) {
+        cmd_policy(fd, idx, cfg, strtok_r(NULL, " \t", save));
+        return;
+    }
+
+    if (strcasecmp(sub, "whitelist") == 0 || strcasecmp(sub, "blacklist") == 0) {
+        char *action = strtok_r(NULL, " \t", save);
+        if (!action) { write_str(fd, "ERR\r\n"); return; }
+        cmd_policy_list_edit(fd, idx, cfg, sub, action,
+                             strtok_r(NULL, " \t", save),
+                             strtok_r(NULL, " \t", save));
+        return;
+    }
+
+    write_str(fd, "ERR\r\n");
 }
 
 static void cmd_autopoll_show(int fd, const i2c_device_config_t *cfg)
@@ -263,13 +355,7 @@ bool i2c_handle(char *tok, char **save, int fd)
     if (strcasecmp(cmd, "r") == 0) { cmd_r(fd, idx, strtok_r(NULL, " \t", save)); return true; }
     if (strcasecmp(cmd, "w") == 0) { cmd_w(fd, idx, cfg, strtok_r(NULL, " \t", save), strtok_r(NULL, " \t", save)); return true; }
     if (strcasecmp(cmd, "addr") == 0 || strcasecmp(cmd, "address") == 0) { cmd_addr(fd, idx, cfg, strtok_r(NULL, " \t", save)); return true; }
-    if (strcasecmp(cmd, "policy") == 0) { cmd_policy(fd, idx, cfg, strtok_r(NULL, " \t", save)); return true; }
-    if (strcasecmp(cmd, "rules") == 0) { cmd_rules(fd, idx, cfg); return true; }
-    if (strcasecmp(cmd, "allow") == 0 || strcasecmp(cmd, "deny") == 0 || strcasecmp(cmd, "clear") == 0) {
-        cmd_rule_edit(fd, idx, cfg, cmd, strtok_r(NULL, " \t", save), strtok_r(NULL, " \t", save));
-        return true;
-    }
-    if (strcasecmp(cmd, "save") == 0) { persist_cfg(fd, cfg); write_str(fd, "OK\r\n"); return true; }
+    if (strcasecmp(cmd, "policy") == 0) { cmd_policy_dispatch(fd, idx, cfg, save); return true; }
     if (strcasecmp(cmd, "autopoll") == 0) { cmd_autopoll_show(fd, cfg); return true; }
 
     write_str(fd, "ERR\r\n");
@@ -284,12 +370,15 @@ void i2c_help(int fd)
     write_str(fd, "  i2c <name> r <reg>\r\n");
     write_str(fd, "  i2c <name> w <reg> <val>\r\n");
     write_str(fd, "  i2c <name> addr <addr_7b>   (set 7-bit address, persists)\r\n");
-    write_str(fd, "  i2c <name> rules\r\n");
-    write_str(fd, "  i2c <name> policy <whitelist|blacklist>\r\n");
-    write_str(fd, "  i2c <name> allow <reg> <val>\r\n");
-    write_str(fd, "  i2c <name> deny <reg> <val>\r\n");
-    write_str(fd, "  i2c <name> clear <reg> <val>\r\n");
+    write_str(fd, "  i2c <name> policy\r\n");
+    write_str(fd, "  i2c <name> policy show [rules|whitelist|blacklist]\r\n");
+    write_str(fd, "  i2c <name> policy set <whitelist|blacklist>\r\n");
+    write_str(fd, "  i2c <name> policy whitelist add <reg> <val>\r\n");
+    write_str(fd, "  i2c <name> policy whitelist del <reg> <val>\r\n");
+    write_str(fd, "  i2c <name> policy whitelist clear\r\n");
+    write_str(fd, "  i2c <name> policy blacklist add <reg> <val>\r\n");
+    write_str(fd, "  i2c <name> policy blacklist del <reg> <val>\r\n");
+    write_str(fd, "  i2c <name> policy blacklist clear\r\n");
     write_str(fd, "  i2c <name> autopoll\r\n");
-    write_str(fd, "  i2c <name> save   (persist policy/rules + register settings)\r\n");
     write_str(fd, "  (address selector: use @0x.. instead of <name>, e.g. `i2c @0x36 r 0x10`)\r\n");
 }

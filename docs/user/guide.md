@@ -158,9 +158,18 @@ i2c axp15060 w 0x13 0x12
 ```text
 i2c list
 i2c axp15060 info
+i2c axp15060 policy show rules
 i2c axp15060 r 0x13
 i2c axp15060 w 0x13 0x12
 ```
+
+Если нужно отредактировать правила доступа, это делается через подкоманды `policy`. Например, чтобы удалить из whitelist пару `{ reg:0x14 val:0x17 }`, используется:
+
+```text
+i2c axp15060 policy whitelist del 0x14 0x17
+```
+
+Отдельный `i2c ... save` для этого не нужен: успешные изменения policy и rule lists сохраняются автоматически.
 
 Типичные команды для SMI:
 
