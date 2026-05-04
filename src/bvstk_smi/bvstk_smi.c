@@ -130,7 +130,7 @@ void smi_task(void *pvParameters)
             /* Legacy fallback: scan PHY=1 regs 0..31. */
             for (uint8_t i = 0; i < 32; i++) {
                 uint16_t dummy_val = 0;
-                (void)mdio_read_blocking(0x01, i, &dummy_val, pdMS_TO_TICKS(20));
+                (void)smi_read_blocking(0x01, i, &dummy_val, pdMS_TO_TICKS(20));
             }
             vTaskDelay(pdMS_TO_TICKS(1000));
             continue;
@@ -144,13 +144,13 @@ void smi_task(void *pvParameters)
                 for (size_t ri = 0; ri < cfg->autopoll_regs_len; ++ri) {
                     uint8_t reg = cfg->autopoll_regs[ri];
                     uint16_t dummy_val = 0;
-                    (void)mdio_read_blocking(phy, reg, &dummy_val, pdMS_TO_TICKS(20));
+                    (void)smi_read_blocking(phy, reg, &dummy_val, pdMS_TO_TICKS(20));
                     if (cfg->autopoll_reg_delay_ms) vTaskDelay(pdMS_TO_TICKS(cfg->autopoll_reg_delay_ms));
                 }
             } else {
                 for (uint8_t reg = 0; reg < cfg->reg_count; ++reg) {
                     uint16_t dummy_val = 0;
-                    (void)mdio_read_blocking(phy, reg, &dummy_val, pdMS_TO_TICKS(20));
+                    (void)smi_read_blocking(phy, reg, &dummy_val, pdMS_TO_TICKS(20));
                     if (cfg->autopoll_reg_delay_ms) vTaskDelay(pdMS_TO_TICKS(cfg->autopoll_reg_delay_ms));
                 }
             }
@@ -242,7 +242,7 @@ void mdio_read(uint8_t phy, uint8_t reg)
     Xil_Out32(MASTER_BASEADDR + TX_FIFO_m, x);
 }
 
-bool mdio_read_blocking(uint8_t phy, uint8_t reg, uint16_t *out_value, TickType_t timeout_ticks)
+bool smi_read_blocking(uint8_t phy, uint8_t reg, uint16_t *out_value, TickType_t timeout_ticks)
 {
     if (!out_value || !q_s2h_evt) return false;
 

@@ -117,7 +117,7 @@ static void cmd_r(int fd, uint8_t phy, const char *s_reg)
     unsigned long reg = parse_num(s_reg, &ok);
     if (!ok || reg > 31ul) { write_str(fd, "ERR\r\n"); return; }
     uint16_t val = 0;
-    if (!mdio_read_blocking((uint8_t)(phy & 0x1Fu), (uint8_t)reg, &val, pdMS_TO_TICKS(100))) {
+    if (!smi_read_blocking((uint8_t)(phy & 0x1Fu), (uint8_t)reg, &val, pdMS_TO_TICKS(100))) {
         write_str(fd, "ERR\r\n");
         return;
     }

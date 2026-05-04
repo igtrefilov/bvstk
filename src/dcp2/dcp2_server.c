@@ -570,7 +570,7 @@ static int dcp2_handle_smi(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
         if (!cfg || body[1] >= cfg->reg_count) {
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
         }
-        if (!mdio_read_blocking(body[0], body[1], &val, pdMS_TO_TICKS(100))) {
+        if (!smi_read_blocking(body[0], body[1], &val, pdMS_TO_TICKS(100))) {
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_TIMEOUT, NULL, 0);
         }
         be16_write(out, val);

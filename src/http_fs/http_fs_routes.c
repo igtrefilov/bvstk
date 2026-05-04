@@ -1053,7 +1053,7 @@ static void api_diag_smi_read(http_conn_t *conn)
     if (!json_get_u32_val(body, "phy", &phy) || phy > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad phy\r\n"); return; }
     if (!json_get_u32_val(body, "reg", &reg) || reg > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad reg\r\n"); return; }
     uint16_t val = 0;
-    if (!mdio_read_blocking((uint8_t)phy, (uint8_t)reg, &val, pdMS_TO_TICKS(100))) {
+    if (!smi_read_blocking((uint8_t)phy, (uint8_t)reg, &val, pdMS_TO_TICKS(100))) {
         http_reply_simple(conn->fd, 500, "ERR", "smi read failed\r\n");
         return;
     }
