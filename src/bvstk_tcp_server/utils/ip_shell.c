@@ -10,7 +10,6 @@
 #include "lwip/ip_addr.h"
 #include "lwip/ip4_addr.h"
 #include "lwip/netif.h"
-#include "lwip/sockets.h"
 
 #include "../../config/config_store.h"
  
@@ -27,7 +26,7 @@ static void ip_writef(int fd, const char *fmt, ...)
     va_end(ap);
     if (n <= 0) return;
     if (n >= (int)sizeof(buf)) n = (int)sizeof(buf) - 1;
-    (void)lwip_write(fd, buf, n);
+    (void)console_stream_write(fd, buf, (size_t)n);
 }
 
 static uint32_t ipv4_be_from_lwip(const ip4_addr_t *ip4)

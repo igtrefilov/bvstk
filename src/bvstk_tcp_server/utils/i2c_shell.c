@@ -5,8 +5,6 @@
 #include <string.h>
 #include <strings.h>
 
-#include "lwip/sockets.h"
-
 #include "../../bvstk_i2c/bvstk_i2c.h"
 #include "../../config/config_store.h"
 #include "../../dcp2/dcp2_notify.h"
@@ -20,7 +18,7 @@ static void i2c_writef(int fd, const char *fmt, ...)
     va_end(ap);
     if (n <= 0) return;
     if (n >= (int)sizeof(buf)) n = (int)sizeof(buf) - 1;
-    (void)lwip_write(fd, buf, n);
+    (void)console_stream_write(fd, buf, (size_t)n);
 }
 
 static bool rule_contains(const i2c_rule_entry_t *rules, size_t len, uint8_t reg, uint8_t val)

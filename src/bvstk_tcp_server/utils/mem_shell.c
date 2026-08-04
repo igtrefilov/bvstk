@@ -6,7 +6,6 @@
 #include <stdint.h>
 
 #include "xil_io.h"
-#include "lwip/sockets.h"
 
 static void cmd_help_mem(int fd)
 {
@@ -33,12 +32,12 @@ bool mem_handle(char *tok, char **save, int fd)
             uint32_t v = Xil_In32((UINTPTR)addr);
             char out[64];
             int n = snprintf(out, sizeof(out), "OK 0x%08" PRIX32 " %" PRIu32 "\r\n", v, v);
-            (void)lwip_write(fd, out, n);
+            (void)console_stream_write(fd, out, (size_t)n);
         } else {
             uint8_t v = Xil_In8((UINTPTR)addr);
             char out[64];
             int n = snprintf(out, sizeof(out), "OK 0x%02" PRIX8 " %" PRIu8 "\r\n", v, v);
-            (void)lwip_write(fd, out, n);
+            (void)console_stream_write(fd, out, (size_t)n);
         }
         return true;
     }

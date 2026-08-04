@@ -6,6 +6,7 @@
 
 #include "../../fs/fs_shared.h"
 #include "../../fs/fs_devices.h"
+#include "console_stream.h"
 
 #define CONSOLE_CWD_LEN 64
 typedef struct {

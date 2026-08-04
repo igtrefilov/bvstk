@@ -131,7 +131,7 @@ int fs_shared_fs_ls(const fs_shared_ctx_t *ctx, const char *path, int fd)
             name);
         size_t to_write = (n < 0) ? 0 : (size_t)n;
         if (to_write >= sizeof(line)) to_write = sizeof(line) - 1;
-        lwip_write(fd, line, to_write);
+        console_stream_write(fd, line, to_write);
     }
     f_closedir(&dir);
     fs_shared_unlock(ctx);
@@ -154,7 +154,7 @@ int fs_shared_fs_cat(const fs_shared_ctx_t *ctx, const char *path, int fd)
     do {
         res = f_read(&file, buf, sizeof(buf), &br);
         if (res != FR_OK) break;
-        if (br) lwip_write(fd, buf, br);
+        if (br) console_stream_write(fd, buf, br);
     } while (br == sizeof(buf));
     f_close(&file);
     write_str(fd, "\r\n");

@@ -3,6 +3,7 @@
 #include "fs/fs_devices.h"
 #include "qspi_fs/qspi_fs.h"
 #include "http/http_server.h"
+#include "ssh/bvstk_ssh_server.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -17,6 +18,7 @@ int main()
 	start_config_store();
 	start_lan();
 	start_tcp_server();
+	start_ssh_server();
 	start_http_server();
 	start_dcp2_server();
 	//start_smi();

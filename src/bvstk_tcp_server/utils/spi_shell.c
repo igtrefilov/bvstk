@@ -5,8 +5,6 @@
 #include <string.h>
 #include <strings.h>
 
-#include "lwip/sockets.h"
-
 #include "../../bvstk_spi/bvstk_spi.h"
 
 static void spi_writef(int fd, const char *fmt, ...)
@@ -18,7 +16,7 @@ static void spi_writef(int fd, const char *fmt, ...)
     va_end(ap);
     if (n <= 0) return;
     if (n >= (int)sizeof(buf)) n = (int)sizeof(buf) - 1;
-    (void)lwip_write(fd, buf, n);
+    (void)console_stream_write(fd, buf, (size_t)n);
 }
 
 static void cmd_info(int fd)

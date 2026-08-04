@@ -5,8 +5,6 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#include "lwip/sockets.h"
-
 #define PROMPT_MAX 80
 
 void console_print_banner(int fd)
@@ -83,7 +81,7 @@ void console_session_set_fs(console_session_t *s, const fs_shared_ctx_t *ctx, co
 
 void write_str(int fd, const char *s)
 {
-    (void)lwip_write(fd, s, strlen(s));
+    (void)console_stream_write(fd, s, strlen(s));
 }
 
 unsigned long parse_num(const char *s, bool *ok)

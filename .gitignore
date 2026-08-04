@@ -11,6 +11,7 @@
 !configs/**
 !src/
 !src/**
+src/ssh/bvstk_ssh_generated.h
 
 # Top-level docs
 !README.md

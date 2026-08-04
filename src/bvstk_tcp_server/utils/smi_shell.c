@@ -7,7 +7,6 @@
 #include <inttypes.h>
 #include <stdint.h>
 
-#include "lwip/sockets.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -24,7 +23,7 @@ static void smi_writef(int fd, const char *fmt, ...)
     va_end(ap);
     if (n <= 0) return;
     if (n >= (int)sizeof(buf)) n = (int)sizeof(buf) - 1;
-    (void)lwip_write(fd, buf, n);
+    (void)console_stream_write(fd, buf, (size_t)n);
 }
 
 static bool parse_selector(const char *tok, size_t *out_idx, const smi_phy_config_t **out_cfg)

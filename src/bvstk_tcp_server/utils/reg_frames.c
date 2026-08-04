@@ -1,7 +1,7 @@
 #include <stdint.h>
 
-#include "lwip/sockets.h"
 #include "xil_io.h"
+#include "console_stream.h"
 
 static void __attribute__((unused)) reg_write(uint8_t *data_buffer, int data_length, uint8_t auto_increment, int socket_fd)
 {
@@ -43,7 +43,7 @@ static void __attribute__((unused)) reg_read(uint8_t *data_buffer, int data_leng
     data_buffer[2] = (uint8_t)(total_bytes & 0xFF);
     data_buffer[1] = (uint8_t)(total_bytes >> 8);
     data_length = (int)total_bytes + 3;
-    (void)lwip_write(socket_fd, data_buffer, data_length);
+    (void)console_stream_write(socket_fd, data_buffer, (size_t)data_length);
 }
 
 static void __attribute__((unused)) select_reg_write_read(uint8_t *data_buffer, int data_length, int socket_fd)

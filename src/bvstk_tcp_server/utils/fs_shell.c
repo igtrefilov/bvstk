@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <strings.h>
 
-#include "lwip/sockets.h"
 #include "xstatus.h"
 #include "../../fs/fs_devices.h"
 
@@ -218,7 +217,7 @@ static void cmd_fs_pwd(int fd, console_session_t *session)
     const char *cwd = (session && session->cwd[0]) ? session->cwd : console_session_get_root(session);
     char out[CONSOLE_PATH_MAX];
     snprintf(out, sizeof(out), "%s\r\n", cwd);
-    (void)lwip_write(fd, out, strlen(out));
+    (void)console_stream_write(fd, out, strlen(out));
 }
 
 static void cmd_fs_ls(int fd, console_session_t *session, const char *path)

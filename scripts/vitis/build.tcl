@@ -55,6 +55,46 @@ file mkdir $WS
 set PATCH_FFCONF_SCRIPT [file join $REPO_ROOT src scripts patch_ffconf_lfn.py]
 set GEN_DEFAULT_CONFIGS_SCRIPT [file join $REPO_ROOT src scripts gen_default_configs.py]
 set DEFAULT_CONFIGS_HDR [file join $REPO_ROOT src config default_configs.h]
+set SSH_CONFIG_SCRIPT [file join $REPO_ROOT scripts ssh generate_config.py]
+set SSH_GENERATED_HDR [file join $REPO_ROOT src ssh bvstk_ssh_generated.h]
+
+set ssh_enabled 0
+if {[info exists ::env(BVSTK_SSH_ENABLE)] && $::env(BVSTK_SSH_ENABLE) == 1} {
+    set ssh_enabled 1
+}
+
+proc required_env {name} {
+    if {![info exists ::env($name)] || $::env($name) == ""} {
+        error "$name must be set when BVSTK_SSH_ENABLE=1"
+    }
+    return [file normalize $::env($name)]
+}
+
+if {$ssh_enabled} {
+    set WOLFSSL_ROOT [required_env BVSTK_WOLFSSL_ROOT]
+    set WOLFSSH_ROOT [required_env BVSTK_WOLFSSH_ROOT]
+    if {![info exists ::env(BVSTK_SSH_PASSWORD)] || $::env(BVSTK_SSH_PASSWORD) == ""} {
+        error "BVSTK_SSH_PASSWORD must be set when BVSTK_SSH_ENABLE=1"
+    }
+    if {![file exists [file join $WOLFSSL_ROOT include wolfssl options.h]] ||
+        ![file exists [file join $WOLFSSL_ROOT lib libwolfssl.a]]} {
+        error "BVSTK_WOLFSSL_ROOT must contain include/wolfssl and lib/libwolfssl.a"
+    }
+    if {[file exists [file join $WOLFSSH_ROOT lib libwolfssh.a]]} {
+        set WOLFSSH_LIB_DIR [file join $WOLFSSH_ROOT lib]
+    } elseif {[file exists [file join $WOLFSSH_ROOT src .libs libwolfssh.a]]} {
+        set WOLFSSH_LIB_DIR [file join $WOLFSSH_ROOT src .libs]
+    } else {
+        error "BVSTK_WOLFSSH_ROOT must contain lib/libwolfssh.a or src/.libs/libwolfssh.a"
+    }
+    if {![file exists [file join $WOLFSSH_ROOT wolfssh ssh.h]]} {
+        error "BVSTK_WOLFSSH_ROOT must contain wolfssh/ssh.h"
+    }
+    puts "Generating build-local SSH credentials..."
+    if {[catch {exec python3 -- $SSH_CONFIG_SCRIPT --output $SSH_GENERATED_HDR} err]} {
+        error "SSH credential generation failed: $err"
+    }
+}
 
 proc gen_default_configs {script repo_root out_hdr} {
     if {![file exists $script]} {
@@ -82,7 +122,11 @@ platform create -name $PLAT_NAME -hw $XSA -proc $PROC -os $OS_RTOS -out $WS
 platform active $PLAT_NAME
 
 # Increase FreeRTOS heap for all tasks
-catch {bsp config total_heap_size 131072}
+if {$ssh_enabled} {
+    catch {bsp config total_heap_size 524288}
+} else {
+    catch {bsp config total_heap_size 131072}
+}
 
 # Attach lwIP (prefer 2.2.0, but fall back to 2.1.1 if needed)
 set preferred_lwip_libs [list]
@@ -125,6 +169,17 @@ bsp regenerate
 ensure_ffconf_lfn $PATCH_FFCONF_SCRIPT $WS
 
 app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
+
+if {$ssh_enabled} {
+    app config -name $APP_NAME -add include-path [file join $WOLFSSL_ROOT include]
+    app config -name $APP_NAME -add include-path $WOLFSSH_ROOT
+    app config -name $APP_NAME -add compiler-misc "-DBVSTK_SSH_ENABLE -DWOLFSSH_TERM -DNO_TERMIOS -DWOLFSSL_LWIP -DNO_FILESYSTEM -DNO_WOLFSSL_DIR -DWC_RNG_SEED_CB"
+    app config -name $APP_NAME -add library-search-path [file join $WOLFSSL_ROOT lib]
+    app config -name $APP_NAME -add library-search-path $WOLFSSH_LIB_DIR
+    app config -name $APP_NAME -add libraries wolfssh
+    app config -name $APP_NAME -add libraries wolfssl
+    app config -name $APP_NAME -add libraries m
+}
 
 set app_src   [file join $WS $APP_NAME src]
 file delete -force $app_src

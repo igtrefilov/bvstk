@@ -5,7 +5,6 @@
 #include <string.h>
 #include <strings.h>
 
-#include "lwip/sockets.h"
 #include "xstatus.h"
 
 #include "../../fs/fs_devices.h"
@@ -227,7 +226,7 @@ static int file_read_cb(void *user, void *buf, size_t len)
 static int sock_write_cb(void *user, const void *buf, size_t len)
 {
     int fd = *(int *)user;
-    int w = lwip_write(fd, buf, (int)len);
+    int w = console_stream_write(fd, buf, len);
     return (w <= 0) ? -1 : w;
 }
 
@@ -370,4 +369,3 @@ void tar_help(int fd)
     write_str(fd, "  tar x <src_tar> <dst_dir>\r\n");
     write_str(fd, "  tar t <src_tar>\r\n");
 }
-
