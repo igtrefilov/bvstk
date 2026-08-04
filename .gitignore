@@ -14,6 +14,8 @@
 
 # Top-level docs
 !README.md
+!build.sh
+!run.sh
 
 # VSCode project settings (for Xilinx/Vitis navigation setup)
 !.vscode/
@@ -42,6 +44,14 @@ docs/.obsidian/**
 # XSCT/Vitis generated local metadata inside script directories
 scripts/vitis/.Xil/
 scripts/vitis/.Xil/**
+
+# Vivado/XSCT journals generated next to automation scripts
+scripts/fpga/NA/
+scripts/vitis/NA/
+scripts/fpga/vivado*.jou
+scripts/fpga/vivado*.log
+scripts/vitis/vivado*.jou
+scripts/vitis/vivado*.log
 
 # Python caches
 **/__pycache__/

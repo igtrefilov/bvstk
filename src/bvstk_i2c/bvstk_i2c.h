@@ -13,6 +13,8 @@
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "../pl_common/bvstk_hw_config.h"
+#include "../pl_common/bvstk_i2c_regs.h"
 
 typedef enum {
     I2CDEV_POLICY_WHITELIST = 0,
@@ -58,79 +60,41 @@ void i2cdev_autopoll_set(const i2cdev_autopoll_profile_t *p);
 #define I2C_TASK_STACK_SIZE     (512U)
 #define I2C_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
 
-#define SLV_CSR_REG_OFFSET      0x00U
-#define SLV_IRQ_REG_OFFSET      0x04U
-#define SLV_STATUS_OFFSET       0x08U
-#define SLV_TX_DATA_OFFSET      0x0CU
+#define SLV_CSR_REG_OFFSET      BVSTK_I2C_SLV_CSR_OFFSET
+#define SLV_IRQ_REG_OFFSET      BVSTK_I2C_SLV_IRQ_OFFSET
+#define SLV_STATUS_OFFSET       BVSTK_I2C_SLV_STATUS_OFFSET
+#define SLV_TX_DATA_OFFSET      BVSTK_I2C_SLV_TX_DATA_OFFSET
 
 /* i2c_master IP register map (ip_repo/i2c_master/src/i2c_master_pkg.sv). */
-#define MSTR_CSR_REG_OFFSET     0x00U /* write control, read status */
-#define MSTR_IRQ_REG_OFFSET     0x04U
-#define MSTR_TX_FIFO_OFFSET     0x08U
-#define MSTR_TIMEOUT_OFFSET     0x0CU
-#define MSTR_DBG0_OFFSET        0x10U
-#define MSTR_DBG1_OFFSET        0x14U
-#define MSTR_DBG2_OFFSET        0x18U
-#define MSTR_DBG3_OFFSET        0x1CU
+#define MSTR_CSR_REG_OFFSET     BVSTK_I2C_MSTR_CSR_OFFSET
+#define MSTR_IRQ_REG_OFFSET     BVSTK_I2C_MSTR_IRQ_OFFSET
+#define MSTR_TX_FIFO_OFFSET     BVSTK_I2C_MSTR_TX_FIFO_OFFSET
+#define MSTR_TIMEOUT_OFFSET     BVSTK_I2C_MSTR_TIMEOUT_OFFSET
+#define MSTR_DBG0_OFFSET        BVSTK_I2C_MSTR_DBG0_OFFSET
+#define MSTR_DBG1_OFFSET        BVSTK_I2C_MSTR_DBG1_OFFSET
+#define MSTR_DBG2_OFFSET        BVSTK_I2C_MSTR_DBG2_OFFSET
+#define MSTR_DBG3_OFFSET        BVSTK_I2C_MSTR_DBG3_OFFSET
 
 /* BRAM mailbox window shared between I2C master/slave PL cores. */
-#if defined(XPAR_AXI_BRAM_CTRL_0_S_AXI_BASEADDR)
-#define BRAM_BASE_ADDR        XPAR_AXI_BRAM_CTRL_0_S_AXI_BASEADDR
-#elif defined(XPAR_AXI_BRAM_CTRL_1_S_AXI_BASEADDR)
-#define BRAM_BASE_ADDR        XPAR_AXI_BRAM_CTRL_1_S_AXI_BASEADDR
-#else
-#error "Cannot resolve BRAM base for I2C mailbox (AXI_BRAM_CTRL_0/1)"
-#endif
-
-#define I2C_BRAM_MASTER       0x0500U
-#define I2C_BRAM_SLAVE_WR     0x0000U
-#define I2C_BRAM_SLAVE_RD     0x1000U
+#define BRAM_BASE_ADDR        BVSTK_I2C_BRAM_BASE
+#define I2C_BRAM_MASTER       BVSTK_I2C_BRAM_MASTER_OFFSET
+#define I2C_BRAM_SLAVE_WR     BVSTK_I2C_BRAM_SLAVE_WR_OFFSET
+#define I2C_BRAM_SLAVE_RD     BVSTK_I2C_BRAM_SLAVE_RD_OFFSET
 
 /* I2C master control IP base. */
-#if defined(XPAR_I2C_MASTER_0_BASEADDR)
-#define I2C_MASTER_BASE       XPAR_I2C_MASTER_0_BASEADDR
-#elif defined(XPAR_I2C_MASTER_0_S_AXI_BASEADDR)
-#define I2C_MASTER_BASE       XPAR_I2C_MASTER_0_S_AXI_BASEADDR
-#else
-#error "Cannot resolve I2C master base address (I2C_MASTER_0)"
-#endif
+#define I2C_MASTER_BASE       BVSTK_I2C_MASTER_BASE
 
 /* I2C slave control IP base. */
-#if defined(XPAR_AXI_I2C_SLAVE_0_S00_AXI_BASEADDR)
-#define I2C_SLAVE_BASE        XPAR_AXI_I2C_SLAVE_0_S00_AXI_BASEADDR
-#elif defined(XPAR_AXI_I2C_SLAVE_0_BASEADDR)
-#define I2C_SLAVE_BASE        XPAR_AXI_I2C_SLAVE_0_BASEADDR
-#elif defined(XPAR_I2C_SLAVE_0_BASEADDR)
-#define I2C_SLAVE_BASE        XPAR_I2C_SLAVE_0_BASEADDR
-#else
-#error "Cannot resolve I2C slave base address (AXI_I2C_SLAVE_0)"
-#endif
+#define I2C_SLAVE_BASE        BVSTK_I2C_SLAVE_BASE
 
 /* Fabric IRQ lines for I2C master and I2C slave. */
-#if defined(XPAR_FABRIC_I2C_MASTER_0_IRQ_INTR)
-#define IRQ_I2C_MASTER        XPAR_FABRIC_I2C_MASTER_0_IRQ_INTR
-#elif defined(XPAR_FABRIC_I2C_MASTER_0_INTERRUPT_INTR)
-#define IRQ_I2C_MASTER        XPAR_FABRIC_I2C_MASTER_0_INTERRUPT_INTR
-#else
-#error "Cannot resolve I2C master fabric IRQ (I2C_MASTER_0)"
-#endif
-
-#if defined(XPAR_FABRIC_AXI_I2C_SLAVE_0_IRQ_INTR)
-#define IRQ_I2C_SLAVE         XPAR_FABRIC_AXI_I2C_SLAVE_0_IRQ_INTR
-#elif defined(XPAR_FABRIC_AXI_I2C_SLAVE_0_INTERRUPT_INTR)
-#define IRQ_I2C_SLAVE         XPAR_FABRIC_AXI_I2C_SLAVE_0_INTERRUPT_INTR
-#elif defined(XPAR_FABRIC_I2C_SLAVE_0_IRQ_INTR)
-#define IRQ_I2C_SLAVE         XPAR_FABRIC_I2C_SLAVE_0_IRQ_INTR
-#elif defined(XPAR_FABRIC_I2C_SLAVE_0_INTERRUPT_INTR)
-#define IRQ_I2C_SLAVE         XPAR_FABRIC_I2C_SLAVE_0_INTERRUPT_INTR
-#else
-#error "Cannot resolve I2C slave fabric IRQ (AXI_I2C_SLAVE_0)"
-#endif
+#define IRQ_I2C_MASTER        BVSTK_IRQ_I2C_MASTER
+#define IRQ_I2C_SLAVE         BVSTK_IRQ_I2C_SLAVE
 
 #define I2C_HAS_IRQ           1U
 
-#define MSTR_CSR_SOFT_RESET_BIT (1u << 0)
-#define MSTR_CSR_START_BIT      (1u << 1)
+#define MSTR_CSR_SOFT_RESET_BIT BVSTK_I2C_MSTR_SOFT_RESET_BIT
+#define MSTR_CSR_START_BIT      BVSTK_I2C_MSTR_START_BIT
 
 #define I2C_MASTER_RECOVER_DELAY_MS 10u
 #define I2C_MASTER_RECOVER_RETRIES  3u

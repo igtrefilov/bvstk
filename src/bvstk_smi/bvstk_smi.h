@@ -13,33 +13,35 @@
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "../pl_common/bvstk_hw_config.h"
+#include "../pl_common/bvstk_smi_regs.h"
 
 #define SMI_TASK_STACK_SIZE     (1024U)
 #define SMI_TASK_PRIORITY       (tskIDLE_PRIORITY + 1U)
 
-#define MASTER_BASEADDR     XPAR_SMI_MASTER_0_BASEADDR
-#define SLAVE_BASEADDR      XPAR_SMI_SLAVE_0_BASEADDR
-#define BRAM_BASEADDR       XPAR_BRAM_1_BASEADDR
-#define BRAM_HIGHADDR       XPAR_BRAM_1_HIGHADDR
+#define MASTER_BASEADDR     BVSTK_SMI_MASTER_BASE
+#define SLAVE_BASEADDR      BVSTK_SMI_SLAVE_BASE
+#define BRAM_BASEADDR       BVSTK_SMI_BRAM_BASE
+#define BRAM_HIGHADDR       (BVSTK_SMI_BRAM_BASE + BVSTK_SMI_BRAM_SIZE - 1U)
 
-#define MASTER_WR_OFFSET    0x0000
-#define SLAVE_WR_OFFSET     0x1000
-#define SLAVE_RD_OFFSET     0x2000
+#define MASTER_WR_OFFSET    BVSTK_SMI_MASTER_WR_OFFSET
+#define SLAVE_WR_OFFSET     BVSTK_SMI_SLAVE_WR_OFFSET
+#define SLAVE_RD_OFFSET     BVSTK_SMI_SLAVE_RD_OFFSET
 
-#define IRQ_MASTER          XPAR_FABRIC_SMI_MASTER_0_IRQ_INTR
-#define IRQ_SLAVE           XPAR_FABRIC_SMI_SLAVE_0_IRQ_INTR
+#define IRQ_MASTER          BVSTK_IRQ_SMI_MASTER
+#define IRQ_SLAVE           BVSTK_IRQ_SMI_SLAVE
 #define INTC_DEVICE_ID      XPAR_PS7_SCUGIC_0_DEVICE_ID
 
-#define CSR_m       0x00
-#define TIMEOUT_m   0x04
-#define IRQ_m       0x08
-#define TX_FIFO_m   0x0c
-#define MEM_AADR_m  0x10
+#define CSR_m       BVSTK_SMI_MSTR_CSR_OFFSET
+#define TIMEOUT_m   BVSTK_SMI_MSTR_TIMEOUT_OFFSET
+#define IRQ_m       BVSTK_SMI_MSTR_IRQ_OFFSET
+#define TX_FIFO_m   BVSTK_SMI_MSTR_TX_FIFO_OFFSET
+#define MEM_AADR_m  BVSTK_SMI_MSTR_MEM_ADDR_OFFSET
 
-#define CSR_s       0x00
-#define MEM_ADDR_s  0x04
-#define IRQ_s       0x08
-#define S2H         0x0c
+#define CSR_s       BVSTK_SMI_SLV_CSR_OFFSET
+#define MEM_ADDR_s  BVSTK_SMI_SLV_MEM_ADDR_OFFSET
+#define IRQ_s       BVSTK_SMI_SLV_IRQ_OFFSET
+#define S2H         BVSTK_SMI_SLV_S2H_OFFSET
 
 void start_smi(void);
 void smi_task(void *pvParameters);
