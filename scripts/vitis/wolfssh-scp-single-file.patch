@@ -1,0 +1,25 @@
+diff --git a/src/wolfscp.c b/src/wolfscp.c
+index 4415496..7a55685 100644
+--- a/src/wolfscp.c
++++ b/src/wolfscp.c
+@@ -348,6 +348,10 @@ int DoScpSink(WOLFSSH* ssh)
+                     ssh->scpATime = 0;
+                     ssh->scpMTime = 0;
+                     ssh->scpState = SCP_SEND_CONFIRMATION;
+-                    ssh->scpNextState = SCP_RECEIVE_CONFIRMATION;
++                    /* OpenSSH closes a single-file sink after the final
++                     * acknowledgement. Recursive transfers continue with
++                     * another protocol message until the sender closes. */
++                    ssh->scpNextState = ssh->scpIsRecursive ?
++                        SCP_RECEIVE_CONFIRMATION : SCP_DONE;
+                 }
+                 continue;
+@@ -900,7 +904,7 @@ int DoScpRequest(WOLFSSH* ssh)
+             WLOG(WS_LOG_DEBUG, scpState, "Peer hung up, but SCP is done");
+             ret = WS_SUCCESS;
+         }
+-        else if (ret != WS_EOF) {
++        else if (ret != WS_EOF && wolfSSH_get_error(ssh) != WS_EOF) {
+             WLOG(WS_LOG_DEBUG, scpState, "Did not receive EOF packet");
+         }
+         else {

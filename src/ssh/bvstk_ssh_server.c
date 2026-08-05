@@ -12,6 +12,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "xil_printf.h"
+#include "xstatus.h"
 
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
@@ -21,6 +22,9 @@
 #include <wolfssl/wolfcrypt/random.h>
 #include <wolfssl/wolfcrypt/sha256.h>
 #include <wolfssh/ssh.h>
+#ifdef WOLFSSH_SCP
+#include <wolfssh/wolfscp.h>
+#endif
 
 #include "../bvstk_tcp_server/utils/console_common.h"
 #include "../bvstk_tcp_server/utils/console_stream.h"
@@ -38,6 +42,35 @@
 #define SSH_MATCH_MAX 32
 #define SSH_TOKEN_MAX 4
 #define SSH_HISTORY_LEN 16
+
+#ifdef WOLFSSH_SCP
+#define SCP_PATH_SIZE FS_PATH_MAX
+#define SCP_MAX_DEPTH 16
+
+typedef struct {
+    const fs_device_info_t *recv_device;
+    int recv_requested;
+    int recv_recursive;
+    char recv_base[SCP_PATH_SIZE];
+    char recv_dir_paths[SCP_MAX_DEPTH][SCP_PATH_SIZE];
+    size_t recv_depth;
+    int recv_base_is_dir;
+    FIL recv_file;
+    int recv_file_open;
+
+    const fs_device_info_t *send_device;
+    int send_requested;
+    int send_recursive;
+    char send_path[SCP_PATH_SIZE];
+    DIR send_dirs[SCP_MAX_DEPTH];
+    char send_dir_paths[SCP_MAX_DEPTH][SCP_PATH_SIZE];
+    size_t send_depth;
+    FIL send_file;
+    int send_file_open;
+    uint32_t send_file_size;
+    uint32_t send_read_bytes;
+} bvstk_scp_session_t;
+#endif
 
 enum {
     SSH_ESC_NONE = 0,
@@ -71,6 +104,9 @@ typedef struct {
     int close_requested;
     int last_was_cr;
     char exec_command[SSH_LINE_SIZE];
+#ifdef WOLFSSH_SCP
+    bvstk_scp_session_t scp;
+#endif
 } bvstk_ssh_session_t;
 
 static WOLFSSH_CTX *s_ssh_ctx;
@@ -109,6 +145,577 @@ static int ssh_user_auth(byte auth_type, WS_UserAuthData *auth_data, void *ctx)
             memcmp(digest, bvstk_ssh_password_sha256, sizeof(digest)) == 0) ?
            WOLFSSH_USERAUTH_SUCCESS : WOLFSSH_USERAUTH_FAILURE;
 }
+
+#ifdef WOLFSSH_SCP
+static int scp_path_has_parent_component(const char *path)
+{
+    const char *p = path;
+    while (p && *p) {
+        const char *start;
+        size_t len;
+
+        while (*p == '/') ++p;
+        if (*p == '\0') break;
+        start = p;
+        while (*p && *p != '/') {
+            if (*p == '\\') return 1;
+            ++p;
+        }
+        len = (size_t)(p - start);
+        if ((len == 1 && start[0] == '.') ||
+            (len == 2 && start[0] == '.' && start[1] == '.')) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int scp_resolve_path(const char *input, const fs_device_info_t **device_out,
+                            char *path_out, size_t path_out_size)
+{
+    const char *path = input;
+    const fs_device_info_t *device = NULL;
+    const char *relative = NULL;
+    int needed;
+
+    if (!input || !device_out || !path_out || path_out_size == 0) return 0;
+    while (*path == ' ' || *path == '\t') ++path;
+
+    /* scp clients and wolfSSH may present an absolute-looking alias as
+     * /sd:/file. FatFs aliases are kept as sd:/file internally. */
+    if (path[0] == '/' &&
+        (!strncasecmp(path + 1, "sd:", 3) ||
+         !strncasecmp(path + 1, "flash:", 6) ||
+         !strncasecmp(path + 1, "0:", 2) ||
+         !strncasecmp(path + 1, "1:", 2))) {
+        ++path;
+    }
+
+    if (!strncasecmp(path, "sd:", 3)) {
+        device = fs_device_by_name("sd");
+        relative = path + 3;
+        if (*relative == '/') ++relative;
+    } else if (!strncasecmp(path, "flash:", 6)) {
+        device = fs_device_by_name("flash");
+        relative = path + 6;
+        if (*relative == '/') ++relative;
+    } else if (!strncasecmp(path, "0:", 2)) {
+        device = fs_device_by_name("sd");
+        relative = path + 2;
+        if (*relative == '/') ++relative;
+    } else if (!strncasecmp(path, "1:", 2)) {
+        device = fs_device_by_name("flash");
+        relative = path + 2;
+        if (*relative == '/') ++relative;
+    }
+
+    if (!device || !device->ctx || !device->ctx->root ||
+        scp_path_has_parent_component(path)) return 0;
+
+    if (relative) {
+        needed = snprintf(path_out, path_out_size, "%s%s",
+                          device->ctx->root, relative);
+    } else {
+        needed = snprintf(path_out, path_out_size, "%s", path);
+    }
+    if (needed < 0 || (size_t)needed >= path_out_size) return 0;
+    *device_out = device;
+    return 1;
+}
+
+static int scp_join_file_path(const char *base, const char *file_name,
+                              char *path_out, size_t path_out_size)
+{
+    size_t base_len;
+    int needed;
+
+    if (!base || !file_name || !file_name[0] || !path_out || path_out_size == 0 ||
+        strchr(file_name, '/') || strchr(file_name, '\\') ||
+        !strcmp(file_name, ".") || !strcmp(file_name, "..")) return 0;
+    base_len = strlen(base);
+    needed = snprintf(path_out, path_out_size, "%s%s%s", base,
+                      (base_len && base[base_len - 1] == '/') ? "" : "/",
+                      file_name);
+    return needed >= 0 && (size_t)needed < path_out_size;
+}
+
+static int scp_copy_basename(const char *path, char *name, size_t name_size)
+{
+    const char *end;
+    const char *start;
+    size_t length;
+
+    if (!path || !name || name_size == 0) return 0;
+    end = path + strlen(path);
+    while (end > path && end[-1] == '/') --end;
+    start = end;
+    while (start > path && start[-1] != '/') --start;
+    length = (size_t)(end - start);
+    if (length == 0 || length >= name_size) return 0;
+    memcpy(name, start, length);
+    name[length] = '\0';
+    return 1;
+}
+
+static int scp_copy_entry_name(const FILINFO *info, char *name, size_t name_size)
+{
+    const char *source;
+
+    if (!info || !name || name_size == 0) return 0;
+#if FF_USE_LFN
+    source = info->fname[0] ? info->fname : info->altname;
+#else
+    source = info->fname;
+#endif
+    if (!source || !source[0] || !strcmp(source, ".") || !strcmp(source, "..")) {
+        return 0;
+    }
+    if (strchr(source, '/') || strchr(source, '\\')) return 0;
+    if (strlen(source) >= name_size) return 0;
+    strcpy(name, source);
+    return 1;
+}
+
+static int scp_fail(WOLFSSH *ssh, const char *message);
+
+static int scp_make_directory(WOLFSSH *ssh, const fs_device_info_t *device,
+                              const char *path)
+{
+    FRESULT res;
+    FILINFO info;
+
+    res = fs_shared_fs_mkdir(device->ctx, path);
+    if (res == FR_OK) return 1;
+    if (res != FR_EXIST) {
+        (void)scp_fail(ssh, "cannot create destination directory");
+        return 0;
+    }
+    res = fs_shared_file_stat(device->ctx, path, &info);
+    if (res != FR_OK || !(info.fattrib & AM_DIR)) {
+        (void)scp_fail(ssh, "destination path is not a directory");
+        return 0;
+    }
+    return 1;
+}
+
+static int scp_fail(WOLFSSH *ssh, const char *message)
+{
+    if (ssh && message) (void)wolfSSH_SetScpErrorMsg(ssh, message);
+    return WS_SCP_ABORT;
+}
+
+static int scp_validate_receive_base(WOLFSSH *ssh, const char *base_path,
+                                     bvstk_scp_session_t *scp)
+{
+    const fs_device_info_t *device = NULL;
+    FILINFO info;
+    char resolved[SCP_PATH_SIZE];
+    FRESULT res;
+
+    if (!scp_resolve_path(base_path, &device, resolved, sizeof(resolved))) {
+        return scp_fail(ssh, "invalid destination path");
+    }
+    if (fs_device_prepare(device) != XST_SUCCESS) {
+        return scp_fail(ssh, "destination filesystem is not ready");
+    }
+
+    /* Some xilffs versions reject f_stat() on a volume root even though
+     * f_opendir() accepts it.  FatFs context roots are trusted directory
+     * handles, so handle that case explicitly. */
+    if (!strcmp(resolved, device->ctx->root)) {
+        scp->recv_base_is_dir = 1;
+    } else {
+        res = fs_shared_file_stat(device->ctx, resolved, &info);
+        if (res == FR_OK) {
+            scp->recv_base_is_dir = (info.fattrib & AM_DIR) != 0;
+        } else if (res == FR_NO_FILE || res == FR_NO_PATH) {
+            char parent[SCP_PATH_SIZE];
+            char *slash = strrchr(resolved, '/');
+            if (!slash) return scp_fail(ssh, "invalid destination path");
+            size_t parent_len = (size_t)(slash - resolved) + 1;
+            if (parent_len >= sizeof(parent)) return scp_fail(ssh, "destination path too long");
+            memcpy(parent, resolved, parent_len);
+            parent[parent_len] = '\0';
+            if (!strcmp(parent, device->ctx->root)) {
+                res = FR_OK;
+                info.fattrib = AM_DIR;
+            } else {
+                res = fs_shared_file_stat(device->ctx, parent, &info);
+            }
+            if (res != FR_OK || !(info.fattrib & AM_DIR)) {
+                return scp_fail(ssh, "destination directory not found");
+            }
+            scp->recv_base_is_dir = 0;
+        } else {
+            return scp_fail(ssh, "cannot inspect destination path");
+        }
+    }
+
+    scp->recv_device = device;
+    strncpy(scp->recv_base, resolved, sizeof(scp->recv_base) - 1);
+    scp->recv_base[sizeof(scp->recv_base) - 1] = '\0';
+    scp->recv_recursive = 0;
+    scp->recv_depth = 1;
+    strncpy(scp->recv_dir_paths[0], scp->recv_base,
+            sizeof(scp->recv_dir_paths[0]) - 1);
+    scp->recv_dir_paths[0][sizeof(scp->recv_dir_paths[0]) - 1] = '\0';
+    return WS_SCP_CONTINUE;
+}
+
+static int scp_recv_callback(WOLFSSH *ssh, int state, const char *base_path,
+                             const char *file_name, int file_mode, word64 mtime,
+                             word64 atime, word32 total_file_size, byte *buf,
+                             word32 buf_size, word32 file_offset, void *ctx)
+{
+    bvstk_scp_session_t *scp = (bvstk_scp_session_t *)ctx;
+    char target[SCP_PATH_SIZE];
+    uint32_t written = 0;
+    FRESULT res;
+
+    (void)file_mode;
+    (void)mtime;
+    (void)atime;
+    (void)total_file_size;
+    (void)file_offset;
+
+    if (!ssh || !scp) return WS_SCP_ABORT;
+
+    switch (state) {
+        case WOLFSSH_SCP_NEW_REQUEST:
+            scp->recv_requested = 1;
+            return scp_validate_receive_base(ssh, base_path, scp);
+
+        case WOLFSSH_SCP_NEW_FILE:
+            if (!scp->recv_device || scp->recv_file_open || !file_name) {
+                return scp_fail(ssh, "invalid incoming file state");
+            }
+            if (scp->recv_recursive) {
+                if (scp->recv_depth == 0 ||
+                    !scp_join_file_path(scp->recv_dir_paths[scp->recv_depth - 1],
+                                        file_name, target, sizeof(target))) {
+                    return scp_fail(ssh, "invalid incoming file name");
+                }
+            } else if (scp->recv_base_is_dir) {
+                if (!scp_join_file_path(scp->recv_base, file_name,
+                                        target, sizeof(target))) {
+                    return scp_fail(ssh, "invalid incoming file name");
+                }
+            } else {
+                strncpy(target, scp->recv_base, sizeof(target) - 1);
+                target[sizeof(target) - 1] = '\0';
+            }
+            res = fs_shared_file_open_write(scp->recv_device->ctx, target,
+                                            &scp->recv_file);
+            if (res != FR_OK) return scp_fail(ssh, "cannot open destination file");
+            scp->recv_file_open = 1;
+            return WS_SCP_CONTINUE;
+
+        case WOLFSSH_SCP_FILE_PART:
+            if (!scp->recv_file_open || (buf_size != 0 && !buf)) {
+                return scp_fail(ssh, "invalid incoming file data");
+            }
+            res = fs_shared_file_write(scp->recv_device->ctx, &scp->recv_file,
+                                       buf, buf_size, &written);
+            if (res != FR_OK || written != buf_size) {
+                (void)fs_shared_file_close(scp->recv_device->ctx, &scp->recv_file);
+                scp->recv_file_open = 0;
+                return scp_fail(ssh, "cannot write destination file");
+            }
+            return WS_SCP_CONTINUE;
+
+        case WOLFSSH_SCP_FILE_DONE:
+            if (!scp->recv_file_open) return scp_fail(ssh, "destination file is not open");
+            res = fs_shared_file_close(scp->recv_device->ctx, &scp->recv_file);
+            scp->recv_file_open = 0;
+            return (res == FR_OK) ? WS_SCP_CONTINUE :
+                   scp_fail(ssh, "cannot close destination file");
+
+        case WOLFSSH_SCP_NEW_DIR:
+            if (!scp->recv_device || !scp->recv_base_is_dir ||
+                !file_name || scp->recv_depth == 0 ||
+                scp->recv_depth >= SCP_MAX_DEPTH) {
+                return scp_fail(ssh, "invalid incoming directory state");
+            }
+            if (!scp_join_file_path(scp->recv_dir_paths[scp->recv_depth - 1],
+                                    file_name, target, sizeof(target))) {
+                return scp_fail(ssh, "invalid incoming directory name");
+            }
+            if (!scp_make_directory(ssh, scp->recv_device, target)) return WS_SCP_ABORT;
+            strncpy(scp->recv_dir_paths[scp->recv_depth], target,
+                    sizeof(scp->recv_dir_paths[scp->recv_depth]) - 1);
+            scp->recv_dir_paths[scp->recv_depth][sizeof(scp->recv_dir_paths[scp->recv_depth]) - 1] = '\0';
+            ++scp->recv_depth;
+            scp->recv_recursive = 1;
+            return WS_SCP_CONTINUE;
+
+        case WOLFSSH_SCP_END_DIR:
+            if (!scp->recv_recursive || scp->recv_depth <= 1) {
+                return scp_fail(ssh, "invalid incoming directory end");
+            }
+            --scp->recv_depth;
+            return WS_SCP_CONTINUE;
+
+        default:
+            return scp_fail(ssh, "invalid SCP receive state");
+    }
+}
+
+static void scp_send_close_dirs(bvstk_scp_session_t *scp)
+{
+    if (!scp || !scp->send_device) return;
+    while (scp->send_depth > 0) {
+        (void)fs_shared_dir_close(scp->send_device->ctx,
+                                  &scp->send_dirs[scp->send_depth - 1]);
+        --scp->send_depth;
+    }
+    scp->send_recursive = 0;
+}
+
+static int scp_send_recursive_init(WOLFSSH *ssh, const char *peer_request,
+                                   char *file_name, word32 file_name_size,
+                                   word64 *mtime, word64 *atime, int *file_mode,
+                                   bvstk_scp_session_t *scp)
+{
+    const fs_device_info_t *device = NULL;
+    FILINFO info;
+    char resolved[SCP_PATH_SIZE];
+    FRESULT res;
+
+    if (!peer_request || !file_name || !mtime || !atime || !file_mode || !scp ||
+        !scp_resolve_path(peer_request, &device, resolved, sizeof(resolved))) {
+        return scp_fail(ssh, "invalid recursive source path");
+    }
+    if (fs_device_prepare(device) != XST_SUCCESS) {
+        return scp_fail(ssh, "source filesystem is not ready");
+    }
+    if (!strcmp(resolved, device->ctx->root)) {
+        return scp_fail(ssh, "copying filesystem root is not supported");
+    }
+    res = fs_shared_file_stat(device->ctx, resolved, &info);
+    if (res != FR_OK || !(info.fattrib & AM_DIR)) {
+        return scp_fail(ssh, "source directory not found");
+    }
+    if (!scp_copy_basename(resolved, file_name, file_name_size)) {
+        return scp_fail(ssh, "source directory name is invalid");
+    }
+    if (strlen(resolved) >= sizeof(scp->send_dir_paths[0])) {
+        return scp_fail(ssh, "source directory path is too long");
+    }
+
+    if (scp->send_file_open && scp->send_device) {
+        (void)fs_shared_file_close(scp->send_device->ctx, &scp->send_file);
+        scp->send_file_open = 0;
+    }
+    scp_send_close_dirs(scp);
+    res = fs_shared_dir_open(device->ctx, resolved, &scp->send_dirs[0]);
+    if (res != FR_OK) return scp_fail(ssh, "cannot open source directory");
+    scp->send_device = device;
+    scp->send_depth = 1;
+    strncpy(scp->send_dir_paths[0], resolved,
+            sizeof(scp->send_dir_paths[0]) - 1);
+    scp->send_dir_paths[0][sizeof(scp->send_dir_paths[0]) - 1] = '\0';
+    scp->send_recursive = 1;
+    *mtime = 0;
+    *atime = 0;
+    *file_mode = 0755;
+    return WS_SCP_ENTER_DIR;
+}
+
+static int scp_send_recursive_next(WOLFSSH *ssh, char *file_name,
+                                    word32 file_name_size, word64 *mtime,
+                                    word64 *atime, int *file_mode,
+                                    word32 *total_file_size, byte *buf,
+                                    word32 buf_size, bvstk_scp_session_t *scp)
+{
+    FILINFO info;
+    char entry_name[FS_NAME_MAX];
+    char child_path[SCP_PATH_SIZE];
+    FRESULT res;
+
+    if (!scp || !scp->send_device || !scp->send_recursive ||
+        scp->send_depth == 0 || !file_name || !mtime || !atime || !file_mode ||
+        !total_file_size) {
+        return scp_fail(ssh, "invalid recursive source state");
+    }
+
+    for (;;) {
+        size_t top = scp->send_depth - 1;
+        res = fs_shared_dir_read(scp->send_device->ctx, &scp->send_dirs[top], &info);
+        if (res != FR_OK) return scp_fail(ssh, "cannot read source directory");
+        if (info.fname[0] == '\0') {
+            (void)fs_shared_dir_close(scp->send_device->ctx, &scp->send_dirs[top]);
+            --scp->send_depth;
+            if (scp->send_depth == 0) {
+                scp->send_recursive = 0;
+                return WS_SCP_EXIT_DIR_FINAL;
+            }
+            return WS_SCP_EXIT_DIR;
+        }
+        if (!scp_copy_entry_name(&info, entry_name, sizeof(entry_name))) {
+            continue;
+        }
+        if (!scp_join_file_path(scp->send_dir_paths[top], entry_name,
+                                child_path, sizeof(child_path))) {
+            return scp_fail(ssh, "source path is too long");
+        }
+
+        if (info.fattrib & AM_DIR) {
+            if (scp->send_depth >= SCP_MAX_DEPTH) {
+                return scp_fail(ssh, "source directory nesting is too deep");
+            }
+            res = fs_shared_dir_open(scp->send_device->ctx, child_path,
+                                     &scp->send_dirs[scp->send_depth]);
+            if (res != FR_OK) return scp_fail(ssh, "cannot open nested directory");
+            strncpy(scp->send_dir_paths[scp->send_depth], child_path,
+                    sizeof(scp->send_dir_paths[scp->send_depth]) - 1);
+            scp->send_dir_paths[scp->send_depth][sizeof(scp->send_dir_paths[scp->send_depth]) - 1] = '\0';
+            ++scp->send_depth;
+            if (strlen(entry_name) >= file_name_size) {
+                return scp_fail(ssh, "source entry name is too long");
+            }
+            strcpy(file_name, entry_name);
+            *mtime = 0;
+            *atime = 0;
+            *file_mode = 0755;
+            *total_file_size = 0;
+            return WS_SCP_ENTER_DIR;
+        }
+
+        res = fs_shared_file_open_read(scp->send_device->ctx, child_path,
+                                       &scp->send_file, &scp->send_file_size);
+        if (res != FR_OK) return scp_fail(ssh, "cannot open source file");
+        scp->send_file_open = 1;
+        strncpy(scp->send_path, child_path, sizeof(scp->send_path) - 1);
+        scp->send_path[sizeof(scp->send_path) - 1] = '\0';
+        if (strlen(entry_name) >= file_name_size) {
+            (void)fs_shared_file_close(scp->send_device->ctx, &scp->send_file);
+            scp->send_file_open = 0;
+            return scp_fail(ssh, "source entry name is too long");
+        }
+        strcpy(file_name, entry_name);
+        *mtime = 0;
+        *atime = 0;
+        *file_mode = 0644;
+        *total_file_size = scp->send_file_size;
+        if (scp->send_file_size == 0) {
+            (void)fs_shared_file_close(scp->send_device->ctx, &scp->send_file);
+            scp->send_file_open = 0;
+            return 0;
+        }
+        res = fs_shared_file_read(scp->send_device->ctx, &scp->send_file,
+                                  buf, buf_size, &scp->send_read_bytes);
+        if (res != FR_OK || scp->send_read_bytes == 0) {
+            (void)fs_shared_file_close(scp->send_device->ctx, &scp->send_file);
+            scp->send_file_open = 0;
+            return scp_fail(ssh, "cannot read source file");
+        }
+        return scp->send_read_bytes;
+    }
+}
+
+static int scp_send_callback(WOLFSSH *ssh, int state, const char *peer_request,
+                             char *file_name, word32 file_name_size, word64 *mtime,
+                             word64 *atime, int *file_mode, word32 file_offset,
+                             word32 *total_file_size, byte *buf, word32 buf_size,
+                             void *ctx)
+{
+    bvstk_scp_session_t *scp = (bvstk_scp_session_t *)ctx;
+    const fs_device_info_t *device = NULL;
+    FILINFO info;
+    FRESULT res;
+    uint32_t read_bytes = 0;
+
+    if (!ssh || !scp) return WS_SCP_ABORT;
+
+    switch (state) {
+        case WOLFSSH_SCP_NEW_REQUEST:
+            scp->send_requested = 1;
+            return WS_SCP_CONTINUE;
+
+        case WOLFSSH_SCP_SINGLE_FILE_REQUEST:
+            if (!peer_request || !file_name || !mtime || !atime || !file_mode ||
+                !total_file_size || (!buf && buf_size != 0)) {
+                return scp_fail(ssh, "invalid SCP source request");
+            }
+            if (scp->send_file_open) {
+                (void)fs_shared_file_close(scp->send_device->ctx, &scp->send_file);
+                scp->send_file_open = 0;
+            }
+            if (!scp_resolve_path(peer_request, &device, scp->send_path,
+                                  sizeof(scp->send_path))) {
+                return scp_fail(ssh, "invalid source path");
+            }
+            if (fs_device_prepare(device) != XST_SUCCESS) {
+                return scp_fail(ssh, "source filesystem is not ready");
+            }
+            res = fs_shared_file_stat(device->ctx, scp->send_path, &info);
+            if (res != FR_OK || (info.fattrib & AM_DIR)) {
+                return scp_fail(ssh, "source file not found");
+            }
+            res = fs_shared_file_open_read(device->ctx, scp->send_path,
+                                           &scp->send_file, &scp->send_file_size);
+            if (res != FR_OK) return scp_fail(ssh, "cannot open source file");
+            scp->send_device = device;
+            scp->send_file_open = 1;
+            if (!scp_copy_basename(scp->send_path, file_name, file_name_size)) {
+                (void)fs_shared_file_close(device->ctx, &scp->send_file);
+                scp->send_file_open = 0;
+                return scp_fail(ssh, "source file name is too long");
+            }
+            *mtime = 0;
+            *atime = 0;
+            *file_mode = 0644;
+            *total_file_size = scp->send_file_size;
+            break;
+
+        case WOLFSSH_SCP_RECURSIVE_REQUEST:
+            if (!scp->send_recursive) {
+                return scp_send_recursive_init(ssh, peer_request, file_name,
+                                               file_name_size, mtime, atime,
+                                               file_mode, scp);
+            }
+            return scp_send_recursive_next(ssh, file_name, file_name_size,
+                                           mtime, atime, file_mode,
+                                           total_file_size, buf, buf_size, scp);
+
+        case WOLFSSH_SCP_CONTINUE_FILE_TRANSFER:
+            if (!scp->send_file_open || (!buf && buf_size != 0) || !total_file_size) {
+                return scp_fail(ssh, "invalid SCP source state");
+            }
+            break;
+
+        default:
+            return scp_fail(ssh, "invalid SCP send state");
+    }
+
+    res = fs_shared_file_read(scp->send_device->ctx, &scp->send_file,
+                              buf, buf_size, &read_bytes);
+    if (res != FR_OK || (read_bytes == 0 && file_offset < scp->send_file_size)) {
+        (void)fs_shared_file_close(scp->send_device->ctx, &scp->send_file);
+        scp->send_file_open = 0;
+        return scp_fail(ssh, "cannot read source file");
+    }
+    if (file_offset + read_bytes >= scp->send_file_size) {
+        (void)fs_shared_file_close(scp->send_device->ctx, &scp->send_file);
+        scp->send_file_open = 0;
+    }
+    return (int)read_bytes;
+}
+
+static void scp_cleanup(bvstk_scp_session_t *scp)
+{
+    if (!scp) return;
+    if (scp->recv_file_open && scp->recv_device) {
+        (void)fs_shared_file_close(scp->recv_device->ctx, &scp->recv_file);
+        scp->recv_file_open = 0;
+    }
+    if (scp->send_file_open && scp->send_device) {
+        (void)fs_shared_file_close(scp->send_device->ctx, &scp->send_file);
+        scp->send_file_open = 0;
+    }
+    scp_send_close_dirs(scp);
+}
+#endif
 
 static int ssh_channel_store(bvstk_ssh_session_t *session,
                               WOLFSSH_CHANNEL *channel)
@@ -797,17 +1404,28 @@ static void ssh_service_client(int fd)
 
     WOLFSSH *ssh = wolfSSH_new(s_ssh_ctx);
     if (!ssh) {
-        xil_printf("SSH: client context allocation failed\r\n");
+        xil_printf("SSH: client context allocation failed, free heap=%u\r\n",
+                   (unsigned)xPortGetFreeHeapSize());
         return;
     }
     session.ssh = ssh;
     wolfSSH_set_fd(ssh, fd);
     wolfSSH_SetUserAuthCtx(ssh, NULL);
     wolfSSH_SetChannelReqCtx(ssh, &session);
+#ifdef WOLFSSH_SCP
+    wolfSSH_SetScpRecvCtx(ssh, &session.scp);
+    wolfSSH_SetScpSendCtx(ssh, &session.scp);
+#endif
 
     xil_printf("SSH: accepting client\r\n");
     int accept_ret = wolfSSH_accept(ssh);
+#ifdef WOLFSSH_SCP
+    int scp_requested = (accept_ret == WS_SCP_INIT);
+    if (accept_ret != WS_SUCCESS && accept_ret != WS_SCP_INIT &&
+        accept_ret != WS_SCP_COMPLETE) {
+#else
     if (accept_ret != WS_SUCCESS) {
+#endif
         xil_printf("SSH: accept failed ret=%d err=%d\r\n",
                    accept_ret, wolfSSH_get_error(ssh));
         wolfSSH_free(ssh);
@@ -828,6 +1446,41 @@ static void ssh_service_client(int fd)
         wolfSSH_free(ssh);
         return;
     }
+
+#ifdef WOLFSSH_SCP
+    if (scp_requested || accept_ret == WS_SCP_COMPLETE) {
+        int scp_ret = accept_ret;
+        int scp_error = wolfSSH_get_error(ssh);
+
+        while (scp_ret != WS_SCP_COMPLETE) {
+            if (scp_ret != WS_SCP_INIT && scp_ret != WS_WANT_READ &&
+                scp_ret != WS_WANT_WRITE &&
+                scp_ret != WS_REKEYING && scp_ret != WS_WINDOW_FULL &&
+                scp_ret != WS_CHAN_RXD && scp_error != WS_WANT_READ &&
+                scp_error != WS_WANT_WRITE && scp_error != WS_REKEYING &&
+                scp_error != WS_WINDOW_FULL && scp_error != WS_CHAN_RXD) {
+                xil_printf("SSH: SCP failed ret=%d err=%d\r\n", scp_ret, scp_error);
+                break;
+            }
+            scp_ret = wolfSSH_accept(ssh);
+            scp_error = wolfSSH_get_error(ssh);
+            vTaskDelay(pdMS_TO_TICKS(1));
+        }
+
+        if (scp_ret == WS_SCP_COMPLETE) {
+            xil_printf("SSH: SCP transfer completed\r\n");
+            /* The wolfSSH sink acknowledges the final file but does not
+             * emit the channel exit status required by OpenSSH scp. */
+            if (session.scp.recv_requested) {
+                (void)wolfSSH_stream_exit(ssh, 0);
+            }
+        }
+        console_stream_unregister(SSH_CONSOLE_FD);
+        scp_cleanup(&session.scp);
+        wolfSSH_free(ssh);
+        return;
+    }
+#endif
 
     for (;;) {
         word32 last_channel = 0;
@@ -888,6 +1541,9 @@ static void ssh_service_client(int fd)
     }
 
     console_stream_unregister(SSH_CONSOLE_FD);
+#ifdef WOLFSSH_SCP
+    scp_cleanup(&session.scp);
+#endif
     wolfSSH_free(ssh);
 }
 
@@ -931,12 +1587,14 @@ static void ssh_server_thread(void *arg)
 
 void start_ssh_server(void)
 {
-    if (wc_SetSeed_Cb(bvstk_ssh_seed) != 0) {
-        xil_printf("SSH: RNG callback setup failed\r\n");
-        return;
-    }
     if (wolfSSH_Init() != WS_SUCCESS) {
         xil_printf("SSH: library init failed\r\n");
+        return;
+    }
+    /* wolfSSH_Init() installs wolfCrypt's default seed callback.  Override it
+     * afterwards because this FreeRTOS image has no /dev/urandom. */
+    if (wc_SetSeed_Cb(bvstk_ssh_seed) != 0) {
+        xil_printf("SSH: RNG callback setup failed\r\n");
         return;
     }
     s_ssh_ctx = wolfSSH_CTX_new(WOLFSSH_ENDPOINT_SERVER, NULL);
@@ -962,6 +1620,10 @@ void start_ssh_server(void)
     wolfSSH_SetUserAuth(s_ssh_ctx, ssh_user_auth);
     wolfSSH_CTX_SetChannelReqShellCb(s_ssh_ctx, ssh_shell_request);
     wolfSSH_CTX_SetChannelReqExecCb(s_ssh_ctx, ssh_exec_request);
+#ifdef WOLFSSH_SCP
+    wolfSSH_SetScpRecv(s_ssh_ctx, scp_recv_callback);
+    wolfSSH_SetScpSend(s_ssh_ctx, scp_send_callback);
+#endif
     sys_thread_new("ssh_server_thrd", ssh_server_thread, NULL,
                    SSH_THREAD_STACKSIZE, tskIDLE_PRIORITY + 1);
 }

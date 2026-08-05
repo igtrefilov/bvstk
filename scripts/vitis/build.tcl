@@ -90,6 +90,21 @@ if {$ssh_enabled} {
     if {![file exists [file join $WOLFSSH_ROOT wolfssh ssh.h]]} {
         error "BVSTK_WOLFSSH_ROOT must contain wolfssh/ssh.h"
     }
+    if {![file exists [file join $WOLFSSH_ROOT wolfssh wolfscp.h]]} {
+        error "BVSTK_WOLFSSH_ROOT must contain wolfssh/wolfscp.h (SCP support)"
+    }
+    set nm_tool [auto_execok nm]
+    if {$nm_tool == ""} {
+        error "nm is required to verify SCP-enabled libwolfssh.a"
+    }
+    if {[catch {exec $nm_tool [file join $WOLFSSH_LIB_DIR libwolfssh.a]} nm_output]} {
+        error "unable to inspect libwolfssh.a: $nm_output"
+    }
+    foreach scp_symbol {wolfSSH_SetScpRecv wolfSSH_SetScpSend} {
+        if {[string first $scp_symbol $nm_output] < 0} {
+            error "libwolfssh.a does not contain $scp_symbol; rebuild wolfSSH with --enable-scp"
+        }
+    }
     puts "Generating build-local SSH credentials..."
     if {[catch {exec python3 -- $SSH_CONFIG_SCRIPT --output $SSH_GENERATED_HDR} err]} {
         error "SSH credential generation failed: $err"
@@ -123,7 +138,9 @@ platform active $PLAT_NAME
 
 # Increase FreeRTOS heap for all tasks
 if {$ssh_enabled} {
-    catch {bsp config total_heap_size 524288}
+    # wolfSSH SCP allocates an additional per-session transfer state and
+    # buffer; leave enough FreeRTOS heap for the existing services as well.
+    catch {bsp config total_heap_size 1048576}
 } else {
     catch {bsp config total_heap_size 131072}
 }
@@ -173,7 +190,7 @@ app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
 if {$ssh_enabled} {
     app config -name $APP_NAME -add include-path [file join $WOLFSSL_ROOT include]
     app config -name $APP_NAME -add include-path $WOLFSSH_ROOT
-    app config -name $APP_NAME -add compiler-misc "-DBVSTK_SSH_ENABLE -DWOLFSSH_TERM -DNO_TERMIOS -DWOLFSSL_LWIP -DNO_FILESYSTEM -DNO_WOLFSSL_DIR -DWC_RNG_SEED_CB"
+    app config -name $APP_NAME -add compiler-misc "-DBVSTK_SSH_ENABLE -DWOLFSSH_SCP -DWOLFSSH_SCP_USER_CALLBACKS -DWOLFSSH_TERM -DNO_TERMIOS -DWOLFSSL_LWIP -DNO_FILESYSTEM -DNO_WOLFSSL_DIR -DWC_RNG_SEED_CB"
     app config -name $APP_NAME -add library-search-path [file join $WOLFSSL_ROOT lib]
     app config -name $APP_NAME -add library-search-path $WOLFSSH_LIB_DIR
     app config -name $APP_NAME -add libraries wolfssh

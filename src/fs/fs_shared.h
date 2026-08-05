@@ -40,6 +40,23 @@ int fs_shared_fs_mv(const fs_shared_ctx_t *ctx, const char *src, const char *dst
 int fs_shared_fs_mv_between(const fs_shared_ctx_t *src_ctx, const fs_shared_ctx_t *dst_ctx,
                             const char *src, const char *dst, bool recursive);
 
+/* Locked file-operation primitives used by binary transports such as SCP. */
+FRESULT fs_shared_file_stat(const fs_shared_ctx_t *ctx, const char *path, FILINFO *info);
+FRESULT fs_shared_file_open_read(const fs_shared_ctx_t *ctx, const char *path,
+                                 FIL *file, uint32_t *size);
+FRESULT fs_shared_file_open_write(const fs_shared_ctx_t *ctx, const char *path,
+                                  FIL *file);
+FRESULT fs_shared_file_read(const fs_shared_ctx_t *ctx, FIL *file,
+                            void *buf, uint32_t capacity, uint32_t *read_bytes);
+FRESULT fs_shared_file_write(const fs_shared_ctx_t *ctx, FIL *file,
+                             const void *buf, uint32_t size, uint32_t *written_bytes);
+FRESULT fs_shared_file_close(const fs_shared_ctx_t *ctx, FIL *file);
+
+/* Locked directory-operation primitives used by recursive binary transports. */
+FRESULT fs_shared_dir_open(const fs_shared_ctx_t *ctx, const char *path, DIR *dir);
+FRESULT fs_shared_dir_read(const fs_shared_ctx_t *ctx, DIR *dir, FILINFO *info);
+FRESULT fs_shared_dir_close(const fs_shared_ctx_t *ctx, DIR *dir);
+
 #ifdef __cplusplus
 }
 #endif

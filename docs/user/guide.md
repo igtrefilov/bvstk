@@ -45,7 +45,14 @@ ls
 ssh root@<device-ip>
 ```
 
-SSH поддерживает интерактивное редактирование строки, историю и автодополнение команд и устройств I2C/SMI. Это инженерная консоль, а не Unix shell: SCP и SFTP в текущей реализации отсутствуют.
+SSH поддерживает интерактивное редактирование строки, историю и автодополнение команд и устройств I2C/SMI. Это инженерная консоль, а не Unix shell. Для передачи файлов и каталогов можно использовать классический SCP, а SFTP не поддерживается:
+
+```sh
+scp -O ./file.bin root@<device-ip>:/sd:/file.bin
+scp -O root@<device-ip>:/flash:/config/network.json ./network.json
+scp -O -r ./config root@<device-ip>:/flash:/
+scp -O -r root@<device-ip>:/flash:/config ./config-from-board
+```
 
 ## Когда использовать TCP-консоль
 

@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -663,4 +664,98 @@ int fs_shared_fs_mv_between(const fs_shared_ctx_t *src_ctx, const fs_shared_ctx_
     if (fs_shared_fs_cp_between(src_ctx, dst_ctx, src, dst, recursive) != XST_SUCCESS) return XST_FAILURE;
     FRESULT rm_res = recursive ? fs_shared_fs_rm_recursive(src_ctx, src) : fs_shared_fs_rm(src_ctx, src);
     return (rm_res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
+}
+
+FRESULT fs_shared_file_stat(const fs_shared_ctx_t *ctx, const char *path, FILINFO *info)
+{
+    if (!ctx || !path || !info || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    FRESULT res = f_stat(path, info);
+    fs_shared_unlock(ctx);
+    return res;
+}
+
+FRESULT fs_shared_file_open_read(const fs_shared_ctx_t *ctx, const char *path,
+                                 FIL *file, uint32_t *size)
+{
+    if (!ctx || !path || !file || !size || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    FRESULT res = f_open(file, path, FA_READ);
+    if (res == FR_OK) *size = (uint32_t)f_size(file);
+    fs_shared_unlock(ctx);
+    return res;
+}
+
+FRESULT fs_shared_file_open_write(const fs_shared_ctx_t *ctx, const char *path,
+                                  FIL *file)
+{
+    if (!ctx || !path || !file || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    FRESULT res = f_open(file, path, FA_WRITE | FA_CREATE_ALWAYS);
+    fs_shared_unlock(ctx);
+    return res;
+}
+
+FRESULT fs_shared_file_read(const fs_shared_ctx_t *ctx, FIL *file,
+                            void *buf, uint32_t capacity, uint32_t *read_bytes)
+{
+    if (read_bytes) *read_bytes = 0;
+    if (!ctx || !file || (!buf && capacity != 0) || !read_bytes ||
+        !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    UINT br = 0;
+    FRESULT res = f_read(file, buf, (UINT)capacity, &br);
+    *read_bytes = (uint32_t)br;
+    fs_shared_unlock(ctx);
+    return res;
+}
+
+FRESULT fs_shared_file_write(const fs_shared_ctx_t *ctx, FIL *file,
+                             const void *buf, uint32_t size, uint32_t *written_bytes)
+{
+    if (written_bytes) *written_bytes = 0;
+    if (!ctx || !file || (!buf && size != 0) || !written_bytes ||
+        !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    UINT bw = 0;
+    FRESULT res = f_write(file, buf, (UINT)size, &bw);
+    *written_bytes = (uint32_t)bw;
+    fs_shared_unlock(ctx);
+    return res;
+}
+
+FRESULT fs_shared_file_close(const fs_shared_ctx_t *ctx, FIL *file)
+{
+    if (!ctx || !file || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    FRESULT res = f_close(file);
+    fs_shared_unlock(ctx);
+    return res;
+}
+
+FRESULT fs_shared_dir_open(const fs_shared_ctx_t *ctx, const char *path, DIR *dir)
+{
+    if (!ctx || !path || !dir || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    FRESULT res = f_opendir(dir, path);
+    fs_shared_unlock(ctx);
+    return res;
+}
+
+FRESULT fs_shared_dir_read(const fs_shared_ctx_t *ctx, DIR *dir, FILINFO *info)
+{
+    if (!ctx || !dir || !info || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    FRESULT res = f_readdir(dir, info);
+    fs_shared_unlock(ctx);
+    return res;
+}
+
+FRESULT fs_shared_dir_close(const fs_shared_ctx_t *ctx, DIR *dir)
+{
+    if (!ctx || !dir || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    FRESULT res = f_closedir(dir);
+    fs_shared_unlock(ctx);
+    return res;
 }

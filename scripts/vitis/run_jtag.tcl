@@ -51,7 +51,20 @@ if {[info exists env(BITSTREAM_FILE)] && $env(BITSTREAM_FILE) ne ""} {
 if {[info exists env(PS7_INIT_TCL)] && $env(PS7_INIT_TCL) ne ""} {
     set PS7_INIT_TCL [file normalize $env(PS7_INIT_TCL)]
 } else {
-    set PS7_INIT_TCL [file join $REPO_ROOT vitis_ws plat_bvstk export plat_bvstk hw ps7_init.tcl]
+    set PS7_INIT_CANDIDATES [list \
+        [file join $REPO_ROOT vitis_ws plat_bvstk export plat_bvstk hw ps7_init.tcl] \
+        [file join $REPO_ROOT vitis_ws plat_bvstk hw ps7_init.tcl] \
+        [file join $REPO_ROOT vitis_ws app_bvstk _ide psinit ps7_init.tcl]]
+    set PS7_INIT_TCL ""
+    foreach candidate $PS7_INIT_CANDIDATES {
+        if {[file exists $candidate]} {
+            set PS7_INIT_TCL [file normalize $candidate]
+            break
+        }
+    }
+    if {$PS7_INIT_TCL eq ""} {
+        set PS7_INIT_TCL [lindex $PS7_INIT_CANDIDATES 0]
+    }
 }
 
 # --- Sanity checks ---------------------------------------------------
