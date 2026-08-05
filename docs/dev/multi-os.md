@@ -16,18 +16,24 @@ Vivado design -> design.bit + design.xsa
 
 ## Что является общим
 
-- `src/pl_common/` хранит версионируемый контракт областей PL;
-- `src/services_common/` задаёт нормализованные статусы и проверенный доступ к PL;
+- `src/hardware/pl/` хранит регистровые контракты FPGA-ядер;
+- `src/hardware/boards/ax7020/` задаёт общую для двух ОС карту MMIO, BRAM и IRQ;
+- `src/shared/` содержит нормализованные статусы, модели и проверенный доступ к PL;
+- `src/shared/interfaces/` определяет узкие контракты, реализуемые target ports;
 - `design.bit`, `design.xsa`, адреса MMIO, layout BRAM и IRQ должны соответствовать одной версии аппаратного дизайна;
 - прикладная семантика операций над PL должна оставаться одинаковой независимо от ОС.
 
-Общий код не должен зависеть от FreeRTOS, lwIP, Xilinx BSP или Neutrino API. ОС-зависимые адаптеры находятся ниже общего service API.
+Общий код не зависит от FreeRTOS, lwIP, Xilinx BSP или Neutrino API.
+ОС-зависимые адаптеры находятся в `src/ports/`, а выбор исходников выполняется
+сборкой, не условными блоками `__QNXNTO__`. Полные правила и карта каталогов
+описаны в [`source-layout.md`](source-layout.md).
 
 ## Что различается
 
 | Область | FreeRTOS | Neutrino |
 |---|---|---|
-| Платформенный слой | `src/platform/freertos/` | `src/platform/neutrino/` |
+| Composition root | `src/apps/freertos/` | `src/apps/neutrino/` |
+| Платформенный слой | `src/ports/freertos-xilinx/` | `src/ports/neutrino-zynq7000/` |
 | Доступ к MMIO | Xilinx API и прямой MMIO | `ThreadCtl(_NTO_TCTL_IO)` и `mmap_device_memory()` |
 | Основной результат | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | `build/neutrino/bvstkctl` |
 | Загрузочный образ | JTAG-загрузка ELF | `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` |
@@ -40,6 +46,7 @@ FreeRTOS-вариант остаётся наиболее полным runtime �
 Корневой `build.sh` выбирает требуемый вариант:
 
 ```sh
+./build.sh check          # границы слоёв и host-тесты shared-кода
 ./build.sh freertos       # FreeRTOS ELF
 ./build.sh neutrino       # только bvstkctl
 ./build.sh neutrino-image # bvstkctl и IFS для AX7020

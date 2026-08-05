@@ -52,11 +52,11 @@ if {$do_clean && [file exists $WS]} {
 }
 file mkdir $WS
 
-set PATCH_FFCONF_SCRIPT [file join $REPO_ROOT src scripts patch_ffconf_lfn.py]
-set GEN_DEFAULT_CONFIGS_SCRIPT [file join $REPO_ROOT src scripts gen_default_configs.py]
-set DEFAULT_CONFIGS_HDR [file join $REPO_ROOT src config default_configs.h]
+set PATCH_FFCONF_SCRIPT [file join $REPO_ROOT tools codegen patch_ffconf_lfn.py]
+set GEN_DEFAULT_CONFIGS_SCRIPT [file join $REPO_ROOT tools codegen gen_default_configs.py]
+set DEFAULT_CONFIGS_HDR [file join $REPO_ROOT src apps freertos config default_configs.h]
 set SSH_CONFIG_SCRIPT [file join $REPO_ROOT scripts ssh generate_config.py]
-set SSH_GENERATED_HDR [file join $REPO_ROOT src ssh bvstk_ssh_generated.h]
+set SSH_GENERATED_HDR [file join $REPO_ROOT src apps freertos services ssh bvstk_ssh_generated.h]
 
 set ssh_enabled 0
 if {[info exists ::env(BVSTK_SSH_ENABLE)] && $::env(BVSTK_SSH_ENABLE) == 1} {
@@ -131,6 +131,21 @@ proc ensure_ffconf_lfn {script ws} {
     }
 }
 
+# Build a target-specific source view. Vitis 2021.2 recursively discovers
+# files under the application source directory, so linking the repository's
+# complete src/ tree would accidentally compile sources for other targets.
+proc link_source_tree {source destination} {
+    file mkdir $destination
+    foreach entry [glob -nocomplain -directory $source *] {
+        set target [file join $destination [file tail $entry]]
+        if {[file isdirectory $entry]} {
+            link_source_tree $entry $target
+        } else {
+            file link -symbolic $target $entry
+        }
+    }
+}
+
 setws $WS
 gen_default_configs $GEN_DEFAULT_CONFIGS_SCRIPT $REPO_ROOT $DEFAULT_CONFIGS_HDR
 platform create -name $PLAT_NAME -hw $XSA -proc $PROC -os $OS_RTOS -out $WS
@@ -169,12 +184,11 @@ if {[catch {bsp config api_mode SOCKET_API}]} {
     puts "api_mode option not available for $lwip_lib, using defaults"
 }
 # Enable FatFs (xilffs) for SD-card access via PS SDIO0
-# Enable FatFs (xilffs) for SD-card access via PS SDIO0
 if {[catch {bsp setlib -name xilffs} msg]} {
     puts "xilffs library not found: $msg"
 } else {
     # Replace the generated diskio implementation with our shared version.
-    set CUSTOM_DISKIO [file join $REPO_ROOT src fs diskio.c]
+    set CUSTOM_DISKIO [file join $REPO_ROOT src ports freertos-xilinx fs-fatfs diskio.c]
     set TARGET_DISKIO [file join $WS plat_bvstk/ps7_cortexa9_0/freertos10_xilinx_domain/bsp/ps7_cortexa9_0/libsrc/xilffs_v5_3/src/diskio.c]
     exec mkdir -p [file dirname $TARGET_DISKIO]
     file copy -force $CUSTOM_DISKIO $TARGET_DISKIO
@@ -186,6 +200,9 @@ bsp regenerate
 ensure_ffconf_lfn $PATCH_FFCONF_SCRIPT $WS
 
 app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
+
+set SRC_REAL [file normalize [file join $REPO_ROOT src]]
+app config -name $APP_NAME -add include-path $SRC_REAL
 
 if {$ssh_enabled} {
     app config -name $APP_NAME -add include-path [file join $WOLFSSL_ROOT include]
@@ -200,12 +217,33 @@ if {$ssh_enabled} {
 
 set app_src   [file join $WS $APP_NAME src]
 file delete -force $app_src
+file mkdir $app_src
 
-set SRC_REAL   [file normalize [file join $REPO_ROOT src]]
+set FREERTOS_SOURCE_ROOTS [list \
+    [file join apps freertos] \
+    hardware \
+    [file join ports freertos-xilinx board] \
+    [file join ports freertos-xilinx fs-fatfs] \
+    [file join ports freertos-xilinx os] \
+    [file join ports freertos-xilinx storage] \
+    shared \
+    [file join vendor lwip]]
 
-puts "Linking $app_src -> $SRC_REAL"
+puts "Creating explicit FreeRTOS source view at $app_src"
+foreach relative_root $FREERTOS_SOURCE_ROOTS {
+    set source [file join $SRC_REAL $relative_root]
+    if {![file isdirectory $source]} {
+        error "FreeRTOS source root not found: $source"
+    }
+    link_source_tree $source [file join $app_src $relative_root]
+}
 
-file link -symbolic $app_src $SRC_REAL
+# Keep the Vitis-generated make flow compatible with its conventional root
+# linker-script locations while the canonical files live in the target port.
+foreach linker_file {lscript.ld Xilinx.spec} {
+    set source [file join $SRC_REAL ports freertos-xilinx linker $linker_file]
+    file link -symbolic [file join $app_src $linker_file] $source
+}
 
 # Generate platform/BSP and build the application
 platform generate

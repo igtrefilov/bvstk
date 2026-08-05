@@ -11,7 +11,13 @@
 !configs/**
 !src/
 !src/**
-src/ssh/bvstk_ssh_generated.h
+src/apps/freertos/services/ssh/bvstk_ssh_generated.h
+
+# Build-time code generators are source-controlled but generated outputs are not.
+!tools/
+!tools/**
+!tests/
+!tests/**
 
 # Top-level docs
 !README.md

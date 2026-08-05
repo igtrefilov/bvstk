@@ -59,13 +59,13 @@ flowchart LR
 
 | Область | Основные файлы |
 |---|---|
-| I2C runtime | `src/bvstk_i2c/bvstk_i2c.c`, `src/bvstk_i2c/bvstk_i2c.h` |
-| SPI runtime | `src/bvstk_spi/bvstk_spi.c`, `src/bvstk_spi/bvstk_spi.h` |
-| SMI runtime | `src/bvstk_smi/bvstk_smi.c`, `src/bvstk_smi/bvstk_smi.h` |
-| Shell surfaces | `src/bvstk_tcp_server/utils/i2c_shell.c`, `src/bvstk_tcp_server/utils/spi_shell.c`, `src/bvstk_tcp_server/utils/smi_shell.c` |
-| HTTP surfaces | `src/http_fs/http_fs_routes.c` |
-| DCP2 surfaces | `src/dcp2/dcp2_server.c`, `src/dcp2/dcp2_notify.c` |
-| Конфигурация | `src/config/config_store.c`, `src/config/config_store.h` |
+| I2C runtime | `src/apps/freertos/drivers/pl/i2c/bvstk_i2c.c`, `src/apps/freertos/drivers/pl/i2c/bvstk_i2c.h` |
+| SPI runtime | `src/apps/freertos/drivers/pl/spi/bvstk_spi.c`, `src/apps/freertos/drivers/pl/spi/bvstk_spi.h` |
+| SMI runtime | `src/apps/freertos/drivers/pl/smi/bvstk_smi.c`, `src/apps/freertos/drivers/pl/smi/bvstk_smi.h` |
+| Shell surfaces | `src/apps/freertos/console/i2c_shell.c`, `src/apps/freertos/console/spi_shell.c`, `src/apps/freertos/console/smi_shell.c` |
+| HTTP surfaces | `src/apps/freertos/services/http/http_fs_routes.c` |
+| DCP2 surfaces | `src/apps/freertos/services/dcp2/dcp2_server.c`, `src/apps/freertos/services/dcp2/dcp2_notify.c` |
+| Конфигурация | `src/apps/freertos/config/config_store.c`, `src/apps/freertos/config/config_store.h` |
 
 Из этого видно, что PL-подсистемы в `bvstk` не являются изолированными драйверами. У каждой из них есть как минимум один внешний control surface, а у `I2C` и `SMI` ещё и тесная зависимость от `config_store`.
 

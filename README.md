@@ -18,6 +18,7 @@
 | понять связь прошивки с hardware platform              | `docs/dev/hardware-platform.md` |
 | работать с DCP2 как с формальным протоколом            | `docs/dcp2.md`                  |
 | понять совместную архитектуру FreeRTOS и Neutrino      | `docs/dev/multi-os.md`          |
+| понять принадлежность исходников и правила зависимостей | `docs/dev/source-layout.md`     |
 | посмотреть карту каталогов, порты и примеры запросов   | `docs/reference/appendices.md`  |
 
 ## Что это за система
@@ -65,6 +66,7 @@ telnet <device-ip> 8888
 ## Выбор операционной системы
 
 ```sh
+./build.sh check
 ./build.sh freertos
 ./build.sh neutrino
 ./build.sh neutrino-image
@@ -137,6 +139,7 @@ hardware platform отвечает за аппаратный дизайн:
 
 - `docs/dev/introduction.md`
 - `docs/dev/architecture.md`
+- `docs/dev/source-layout.md`
 - `docs/dev/development-environment.md`
 - `docs/dev/build.md`
 - `docs/dev/run-and-debug.md`
@@ -167,7 +170,7 @@ hardware platform отвечает за аппаратный дизайн:
 1. `README.md`
 2. `docs/dev/guide.md`
 3. `docs/dev/hardware-platform.md`
-4. `docs/dev/introduction.md`, `docs/dev/architecture.md`, `docs/dev/build.md`, `docs/dev/run-and-debug.md`, `docs/dev/config-store.md`, `docs/dev/pl-cores.md`
+4. `docs/dev/introduction.md`, `docs/dev/architecture.md`, `docs/dev/source-layout.md`, `docs/dev/build.md`, `docs/dev/run-and-debug.md`, `docs/dev/config-store.md`, `docs/dev/pl-cores.md`
 5. `docs/dcp2.md`, если работа касается бинарного протокола
 6. `docs/reference/appendices.md`, если нужны карты директорий, порты и примеры
 
@@ -177,7 +180,8 @@ hardware platform отвечает за аппаратный дизайн:
 
 | Путь | Что здесь лежит |
 |---|---|
-| `src/` | исходники прошивки |
+| `src/shared/`, `src/hardware/` | общий код и аппаратные контракты |
+| `src/apps/`, `src/ports/` | приложения и реализации для конкретных ОС/BSP |
 | `configs/` | шаблоны и дефолтные JSON-конфиги |
 | `scripts/vitis/` | сборка и JTAG-запуск |
 | `scripts/dcp2/` | клиентские утилиты для DCP2 |

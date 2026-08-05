@@ -4,10 +4,13 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
-  echo "Usage: $0 {freertos|neutrino|neutrino-image|all}" >&2
+  echo "Usage: $0 {check|freertos|neutrino|neutrino-image|all}" >&2
 }
 
 case "${1:-}" in
+  check)
+    exec "$REPO_ROOT/scripts/check_architecture.sh"
+    ;;
   freertos)
     exec "$REPO_ROOT/scripts/vitis/build.sh"
     ;;

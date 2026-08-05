@@ -45,7 +45,7 @@ CLEAN=1 ./build.sh freertos
 
 `BVSTK_SSH_USER`, `BVSTK_SSH_PORT` и `BVSTK_SSH_HOST_KEY` являются необязательными. По умолчанию используются пользователь `root` и порт `22`. Если `BVSTK_SSH_HOST_KEY` не задан, build-скрипт генерирует RSA host key на время сборки. Для постоянного fingerprint передайте путь к PEM-ключу через `BVSTK_SSH_HOST_KEY`.
 
-Пароль не записывается в исходники: build-скрипт встраивает только SHA-256 digest в игнорируемый файл `src/ssh/bvstk_ssh_generated.h`. Этот файл и сгенерированный host key не следует добавлять в Git.
+Пароль не записывается в исходники: build-скрипт встраивает только SHA-256 digest в игнорируемый файл `src/apps/freertos/services/ssh/bvstk_ssh_generated.h`. Этот файл и сгенерированный host key не следует добавлять в Git.
 
 ## Подключение
 

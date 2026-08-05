@@ -6,18 +6,24 @@
 ### Карта директорий
 
 Ключевые каталоги репозитория `bvstk/`:
-- `src/` — исходники FreeRTOS, общие PL/service-компоненты, Neutrino platform и `bvstkctl`.
-- `configs/` — исходные JSON‑конфиги (сеть + `i2c/*.json`, `smi/*.json`), из которых при сборке генерируются дефолты в `src/config/default_configs.h`.
+- `src/shared/` — переносимые модели, интерфейсы и PL service API.
+- `src/hardware/` — регистры FPGA-ядер и аппаратный контракт AX7020.
+- `src/apps/` — composition roots и сервисы FreeRTOS/Neutrino.
+- `src/ports/` — реализации для FreeRTOS/Xilinx и Neutrino/Zynq-7000.
+- `src/vendor/` — локально сопровождаемые сторонние исходники.
+- `configs/` — исходные JSON‑конфиги (сеть + `i2c/*.json`, `smi/*.json`), из которых при сборке генерируются дефолты в `src/apps/freertos/config/default_configs.h`.
 - `scripts/fpga/` — пакетная сборка Vivado; результаты `design.bit/design.xsa` попадают в `artifacts/fpga/`, журналы — в `artifacts/vivado/logs/`.
 - `scripts/vitis/` — сборка и JTAG-запуск FreeRTOS.
 - `scripts/neutrino/` — сборка `bvstkctl`, IFS, JTAG-запуск и SSH-проверка Neutrino.
+- `tools/codegen/` — генераторы заголовков и compatibility-патчи build-time.
+- `tests/host/` — host-проверки общего кода без BSP и целевой платы.
 - `web/`
   - `web/assets/` — статические файлы Web UI (кладутся на устройство в `flash:/www/`).
   - `web/upload_flash_www.sh`, `web/upload_flash_www.py` — утилиты загрузки `web/assets/` в `flash:/www/` (mkdir через TCP‑консоль, PUT через HTTP).
 - `vitis_ws/` — Vitis workspace (артефакт сборки; пересоздаётся скриптами, вручную обычно не редактируется).
 - `build/neutrino/` — производные файлы Neutrino: `bvstkctl`, `.build`, IFS и UART-лог.
 - `dot/` — вспомогательные материалы/диаграммы (если используются в проекте).
-- `build.sh` — корневой диспетчер сборки `freertos`, `neutrino`, `neutrino-image` и `all`.
+- `build.sh` — корневой диспетчер проверки архитектуры и сборки: `check`, `freertos`, `neutrino`, `neutrino-image`, `all`.
 - `run.sh` — корневой диспетчер JTAG-запуска `freertos` или `neutrino`.
 
 ### Таблица портов/протоколов

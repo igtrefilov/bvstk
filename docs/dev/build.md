@@ -7,6 +7,7 @@
 Штатная точка входа для программной части находится в корне репозитория:
 
 ```sh
+./build.sh check
 ./build.sh freertos
 ./build.sh neutrino
 ./build.sh neutrino-image
@@ -14,6 +15,10 @@
 ```
 
 Корневой `build.sh` является диспетчером. Он передаёт управление в `scripts/vitis/build.sh` для FreeRTOS, в `scripts/neutrino/build.sh` для отдельной утилиты Neutrino и в `scripts/neutrino/build_image.sh` для загрузочного IFS. Команда `all` собирает FreeRTOS ELF и Neutrino IFS. Она не запускает Vivado.
+
+Команда `check` проверяет направление зависимостей между слоями, запрещённые
+include-зависимости и собирает host-тесты переносимого PL access API без Vitis
+или Neutrino SDK.
 
 FreeRTOS-скрипт `scripts/vitis/build.sh` определяет корень репозитория, при наличии подхватывает `build_vitis.conf`, опционально подключает `settings64.sh` через `XILINX_SETTINGS`, выбирает `XSA`, решает, надо ли удалять старый `vitis_ws/`, а затем запускает `xsct scripts/vitis/build.tcl`.
 
@@ -91,12 +96,12 @@ source /etc/profile.d/kpda_env_2024.sh
 | Что используется | Откуда берётся | Зачем нужно |
 |---|---|---|
 | `design.xsa` | `artifacts/fpga/design.xsa` или `XSA=...` | создание Vitis platform и BSP |
-| `gen_default_configs.py` | `src/scripts/gen_default_configs.py` | генерация `src/config/default_configs.h` из `configs/` |
-| `patch_ffconf_lfn.py` | `src/scripts/patch_ffconf_lfn.py` | приведение FatFs в BSP к нужной конфигурации |
-| `diskio.c` | `src/fs/diskio.c` | замена сгенерированного `xilffs`-слоя на проектную реализацию |
+| `gen_default_configs.py` | `tools/codegen/gen_default_configs.py` | генерация `src/apps/freertos/config/default_configs.h` из `configs/` |
+| `patch_ffconf_lfn.py` | `tools/codegen/patch_ffconf_lfn.py` | приведение FatFs в BSP к нужной конфигурации |
+| `diskio.c` | `src/ports/freertos-xilinx/fs-fatfs/diskio.c` | замена сгенерированного `xilffs`-слоя на проектную реализацию |
 | `configs/` | `configs/network.json`, `configs/i2c/*.json`, `configs/smi/*.json` | источник встроенных дефолтных JSON-конфигов |
 
-Из этого видно, что сборка в `bvstk` не сводится к компиляции `src/*.c`. В процессе build создаётся и проектируется часть runtime-среды: в проект вшиваются дефолтные конфиги, модифицируется BSP и подменяется файловый слой для SD/QSPI. Поэтому изменения в `configs/` или в `src/fs/diskio.c` так же влияют на итоговый артефакт, как и изменения в прикладном C-коде.
+Из этого видно, что сборка в `bvstk` не сводится к компиляции `src/*.c`. В процессе build создаётся и проектируется часть runtime-среды: в проект вшиваются дефолтные конфиги, модифицируется BSP и подменяется файловый слой для SD/QSPI. Поэтому изменения в `configs/` или в `src/ports/freertos-xilinx/fs-fatfs/diskio.c` так же влияют на итоговый артефакт, как и изменения в прикладном C-коде.
 
 ## Переменные окружения FreeRTOS
 
@@ -133,13 +138,13 @@ LWIP_LIB=lwip220 \
 | Шаг | Смысл |
 |---|---|
 | удаление `vitis_ws/` при `CLEAN=1` | очистка производного workspace перед полной пересборкой |
-| генерация `src/config/default_configs.h` | вшивание актуальных дефолтных JSON-конфигов в прошивку |
+| генерация `src/apps/freertos/config/default_configs.h` | вшивание актуальных дефолтных JSON-конфигов в прошивку |
 | `platform create -name plat_bvstk -hw $XSA ...` | создание платформы под `ps7_cortexa9_0` и `freertos10_xilinx` |
 | настройка heap и библиотек BSP | подготовка FreeRTOS, lwIP и FatFs под нужную конфигурацию |
-| копирование проектного `src/fs/diskio.c` в BSP | подмена стандартной реализации файлового слоя |
+| копирование проектного `src/ports/freertos-xilinx/fs-fatfs/diskio.c` в BSP | подмена стандартной реализации файлового слоя |
 | `bsp regenerate` и patch FatFs | обновление BSP и фиксация нужной конфигурации `ffconf` |
 | `app create -name app_bvstk ...` | создание приложения как `Empty Application(C)` |
-| symlink `vitis_ws/app_bvstk/src -> <repo>/src` | сборка приложения на реальных исходниках репозитория |
+| target-specific source view в `vitis_ws/app_bvstk/src` | подключение только FreeRTOS app, shared, hardware, FreeRTOS/Xilinx port и lwIP vendor |
 | `platform generate` и `app build` | генерация платформы и сборка `app_bvstk.elf` |
 
 Эта последовательность важна при отладке сборки. Если, например, в build log нет стадии генерации `default_configs.h`, значит проблема может быть не в компиляции, а в Python-скрипте генерации. Если ломается `xilffs`, смотреть нужно не только в код приложения, но и в BSP-папку внутри `vitis_ws/`, потому что именно там выполняется подмена `diskio.c` и патч `ffconf`.
@@ -162,7 +167,7 @@ FreeRTOS build производит не только ELF. Он создаёт �
 | Путь | Что это такое |
 |---|---|
 | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | основной ELF приложения |
-| `vitis_ws/app_bvstk/src` | symlink на `src/` репозитория |
+| `vitis_ws/app_bvstk/src` | производное дерево symlink-файлов только для FreeRTOS target |
 | `vitis_ws/app_bvstk/_ide/bitstream/design.bit` | копия bitstream в служебной структуре IDE |
 | `vitis_ws/app_bvstk/_ide/psinit/ps7_init.tcl` | копия PS7 init для IDE/debug flow |
 | `vitis_ws/plat_bvstk/hw/design.xsa` | локальная копия hardware export внутри платформы |
@@ -183,7 +188,7 @@ FreeRTOS build производит не только ELF. Он создаёт �
 
 Инкрементальная пересборка в этом проекте требует чуть больше дисциплины, чем в обычном standalone C-проекте. `CLEAN=0` ускоряет цикл, но не гарантирует корректность, если между сборками изменился `design.xsa`, состав BSP-библиотек, логика генерации `default_configs.h` или patch-процедура FatFs. В таких случаях лучше явно пересоздать workspace.
 
-Есть и обратная сторона. Если менялся только код внутри `src/`, а платформа и BSP оставались прежними, полная чистка `vitis_ws/` обычно избыточна. Здесь как раз уместен `CLEAN=0`, потому что `app_bvstk/src` уже является symlink на исходники репозитория, и rebuild приложения не требует пересоздания всей платформы.
+Есть и обратная сторона. Если менялся только код внутри уже подключённых FreeRTOS source roots, а платформа и BSP оставались прежними, полная чистка `vitis_ws/` обычно избыточна. Source view содержит symlink-файлы на исходники репозитория, поэтому rebuild приложения видит изменения без копирования. После добавления нового файла или изменения состава target roots следует повторно запустить `scripts/vitis/build.sh`, чтобы source view был сформирован заново.
 
 ## Типичные причины проблем со сборкой
 

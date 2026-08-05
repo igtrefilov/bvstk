@@ -57,7 +57,7 @@ bear --version
 
 Основные пользовательские точки входа находятся в корне репозитория: `./build.sh` выбирает ОС, а `./run.sh` выбирает JTAG-flow. Скрипты в `scripts/vitis/`, `scripts/neutrino/` и `scripts/fpga/` остаются прямыми точками входа для настройки конкретного этапа.
 
-`scripts/vitis/build.sh` делает очень немного сам по себе: подхватывает конфигурацию из `build_vitis.conf`, при необходимости подключает `settings64.sh`, выставляет `XSA` и `CLEAN`, а затем запускает `xsct` со скриптом `build.tcl`. Основная логика живёт именно в `build.tcl`: он создаёт или пересоздаёт `vitis_ws/`, генерирует `src/config/default_configs.h`, создаёт платформу `plat_bvstk`, настраивает FreeRTOS и lwIP, включает `xilffs`, патчит FatFs под нужный режим и собирает приложение `app_bvstk`.
+`scripts/vitis/build.sh` делает очень немного сам по себе: подхватывает конфигурацию из `build_vitis.conf`, при необходимости подключает `settings64.sh`, выставляет `XSA` и `CLEAN`, а затем запускает `xsct` со скриптом `build.tcl`. Основная логика живёт именно в `build.tcl`: он создаёт или пересоздаёт `vitis_ws/`, генерирует `src/apps/freertos/config/default_configs.h`, создаёт платформу `plat_bvstk`, настраивает FreeRTOS и lwIP, включает `xilffs`, патчит FatFs под нужный режим и собирает приложение `app_bvstk`.
 
 Минимальная сборка выглядит так:
 
@@ -104,12 +104,12 @@ Neutrino-скрипты настраиваются переменными окр
 | `scripts/neutrino/` | сборка `bvstkctl`, IFS, JTAG-запуск и SSH-проверка Neutrino |
 | `scripts/vscode/` | helper-скрипты для VSCode и step-debug |
 | `scripts/compat/` | совместимость со старыми путями вызова |
-| `src/` | исходники прошивки; именно они подключаются в `app_bvstk` через symlink |
+| `src/` | исходники; Vitis получает target-specific source view из выбранных поддеревьев |
 | `vitis_ws/` | генерируемый workspace Vitis с платформой, BSP и ELF |
 | `web/` | статические web-ресурсы и скрипты их загрузки во flash |
 | `.vscode/` | проектные настройки IntelliSense, tasks и launch-конфигурации |
 
-Внутри `src/` особенно важны несколько узлов. `main.c` определяет порядок запуска задач и сервисов. `src/config/` отвечает за `config_store` и за генерацию `default_configs.h`. `src/fs/`, `src/sd_card/`, `src/qspi_flash/` и `src/qspi_fs/` образуют слой локальных файловых систем. `src/bvstk_lan/`, `src/http/`, `src/http_fs/`, `src/bvstk_tcp_server/` и `src/dcp2/` отвечают за внешние интерфейсы. `src/bvstk_i2c/`, `src/bvstk_smi/` и `src/bvstk_spi/` образуют программную сторону работы с PL-ядрами.
+Внутри `src/` принадлежность видна из пути. `src/apps/freertos/main.c` определяет порядок запуска задач и сервисов; `src/apps/freertos/config/` отвечает за `config_store`; `src/apps/freertos/storage/` и `src/ports/freertos-xilinx/` образуют файловый и BSP-слои. Внешние интерфейсы находятся в `src/apps/freertos/services/`, команды — в `src/apps/freertos/console/`, а PL runtime — в `src/apps/freertos/drivers/pl/`. Общие модели и API расположены в `src/shared/`, аппаратные контракты — в `src/hardware/`. Полная карта приведена в `source-layout.md`.
 
 Отдельно важно понимать статус `vitis_ws/`. Это не исходный код, а производный артефакт сборки. Его можно удалить и пересоздать, но в процессе разработки он полезен не только как место, где лежит ELF, а ещё и как источник BSP-заголовков, `ps7_init.tcl`, экспортированной платформы и всего того, что использует VSCode для навигации по Xilinx-стеку.
 

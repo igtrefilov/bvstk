@@ -39,6 +39,7 @@
 
 ```sh
 cd <repo-root>
+./build.sh check
 ./build.sh freertos
 ./run.sh freertos jtag
 ```
@@ -95,19 +96,19 @@ telnet <device-ip> 8888
 
 | Что вы меняете | Куда смотреть |
 |---|---|
-| запуск, порядок инициализации, общие hooks | `src/main.c`, `src/main.h` |
-| сеть и lwIP | `src/bvstk_lan/` |
-| shell и команды | `src/bvstk_tcp_server/` |
-| SSH-транспорт FreeRTOS | `src/ssh/`, `scripts/ssh/` |
-| HTTP API и файловые маршруты | `src/http/`, `src/http_fs/` |
-| DCP2 server и notify | `src/dcp2/` |
-| конфиги и JSON persistence | `src/config/`, `configs/` |
-| I2C логика | `src/bvstk_i2c/` |
-| SMI/MDIO логика | `src/bvstk_smi/` |
-| SPI runtime-часть | `src/bvstk_spi/` |
+| запуск, порядок инициализации, общие hooks | `src/apps/freertos/main.c`, `src/apps/freertos/main.h` |
+| сеть и lwIP | `src/apps/freertos/services/lan/` |
+| shell и команды | `src/apps/freertos/console/` |
+| SSH-транспорт FreeRTOS | `src/apps/freertos/services/ssh/`, `scripts/ssh/` |
+| HTTP API и файловые маршруты | `src/apps/freertos/services/http/` |
+| DCP2 server и notify | `src/apps/freertos/services/dcp2/` |
+| конфиги и JSON persistence | `src/apps/freertos/config/`, `configs/` |
+| I2C логика | `src/apps/freertos/drivers/pl/i2c/` |
+| SMI/MDIO логика | `src/apps/freertos/drivers/pl/smi/` |
+| SPI runtime-часть | `src/apps/freertos/drivers/pl/spi/` |
 | Vitis build и JTAG | `scripts/vitis/` |
-| общий PL-контракт и service API | `src/pl_common/`, `src/services_common/` |
-| Neutrino platform и CLI | `src/platform/neutrino/`, `src/apps/neutrino/` |
+| общий PL-контракт и service API | `src/hardware/`, `src/shared/pl/` |
+| Neutrino platform и CLI | `src/ports/neutrino-zynq7000/`, `src/apps/neutrino/` |
 | Neutrino build, IFS и JTAG | `scripts/neutrino/` |
 | сборка Vivado | `scripts/fpga/` |
 
@@ -153,13 +154,13 @@ DCP2 — это уже отдельная бинарная модель обме
 
 Если нужен быстрый ориентир по типовым задачам, полезно помнить следующее.
 
-Если вы меняете поведение shell-команды, скорее всего, работа в `src/bvstk_tcp_server/utils/*`.
+Если вы меняете поведение shell-команды, скорее всего, работа находится в `src/apps/freertos/console/`.
 
-Если вы меняете HTTP endpoint, маршрут или файловое поведение, почти наверняка это `src/http_fs/http_fs_routes.c` и связанный код в `src/http/`.
+Если вы меняете HTTP endpoint, маршрут или файловое поведение, почти наверняка это `src/apps/freertos/services/http/http_fs_routes.c` и связанный код в `src/apps/freertos/services/http/`.
 
-Если вы меняете DCP2-сервис или event-логику, смотрите `src/dcp2/`.
+Если вы меняете DCP2-сервис или event-логику, смотрите `src/apps/freertos/services/dcp2/`.
 
-Если вы меняете политику доступа к I2C/SMI, persisted settings, notify hooks или host/telnet source tracking, это уже зона `src/bvstk_i2c/`, `src/bvstk_smi/` и `src/config/`.
+Если вы меняете политику доступа к I2C/SMI, persisted settings, notify hooks или host/telnet source tracking, это уже зона `src/apps/freertos/drivers/pl/i2c/`, `src/apps/freertos/drivers/pl/smi/` и `src/apps/freertos/config/`.
 
 Если после изменений всё странно ломается без очевидной причины, особенно в I2C/SMI/SPI, проверьте сначала соответствие hardware platform, а потом уже ищите ошибку в FreeRTOS-логике.
 
@@ -182,6 +183,7 @@ DCP2 — это уже отдельная бинарная модель обме
 | `multi-os.md` | общий контракт и различия FreeRTOS/Neutrino |
 | `freertos-ssh.md` | сборка и поведение SSH-консоли FreeRTOS |
 | `../dcp2.md` | если работа касается бинарного протокола |
+| `source-layout.md` | принадлежность исходников и допустимые зависимости |
 | `architecture.md`, `build.md`, `run-and-debug.md`, `config-store.md`, `pl-cores.md` | профильные подробности по конкретным частям проекта |
 
 ## Что здесь не дублируется специально

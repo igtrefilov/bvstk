@@ -19,11 +19,11 @@ fi
 mkdir -p "$BUILD_DIR"
 
 SOURCES=(
-  "$REPO_ROOT/src/apps/neutrino/bvstkctl.c"
-  "$REPO_ROOT/src/platform/neutrino/bvstk_platform_neutrino.c"
-  "$REPO_ROOT/src/pl_common/bvstk_pl_regions.c"
-  "$REPO_ROOT/src/services_common/bvstk_pl_service.c"
-  "$REPO_ROOT/src/services_common/bvstk_status.c"
+  "$REPO_ROOT/src/apps/neutrino/bvstkctl/main.c"
+  "$REPO_ROOT/src/hardware/boards/ax7020/bvstk_pl_regions.c"
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c"
+  "$REPO_ROOT/src/shared/base/bvstk_status.c"
+  "$REPO_ROOT/src/shared/pl/access/bvstk_pl_service.c"
 )
 
 qcc -V"$QCC_VARIANT" \

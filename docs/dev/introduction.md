@@ -32,9 +32,9 @@
 - **PS CPU**: ARM Cortex‑A9 (`ps7_cortexa9_0` для FreeRTOS; ARMv7 little-endian target для Neutrino).
 - **Ethernet на PS**: GEM (`xemacps`, интерфейс `XPAR_XEMACPS_0_BASEADDR`) — требуется физическое подключение PHY и корректная настройка в HW design.
 - **SD на PS**: SDIO (`XPAR_XSDPS_0_DEVICE_ID`) — для тома `sd:/` (FatFs).
-- **QSPI NOR**: предполагается флеш объёмом **32 MiB** (см. `src/qspi_flash/qspi_flash.c`), для тома `flash:/` (FatFs в окне внутри флеша).
+- **QSPI NOR**: предполагается флеш объёмом **32 MiB** (см. `src/ports/freertos-xilinx/storage/qspi-flash/qspi_flash.c`), для тома `flash:/` (FatFs в окне внутри флеша).
 - **JTAG**: для старта по JTAG нужен доступ к `hw_server` и рабочий кабель/драйверы.
-- **PL‑ядра**: кастомные ядра для I2C, SMI/MDIO и SPI (см. `src/bvstk_i2c/`, `src/bvstk_smi/`, `src/bvstk_spi/`) должны быть включены в bitstream и иметь адреса/IRQ, соответствующие прошивке.
+- **PL‑ядра**: кастомные ядра для I2C, SMI/MDIO и SPI (см. `src/apps/freertos/drivers/pl/i2c/`, `src/apps/freertos/drivers/pl/smi/`, `src/apps/freertos/drivers/pl/spi/`) должны быть включены в bitstream и иметь адреса/IRQ, соответствующие прошивке.
 
 Ограничения и важные замечания:
 - **Исходники аппаратной части находятся во внешнем `hw_platform/fpga`**, но `bvstk` содержит `scripts/fpga/build_fpga.sh`, который собирает их и экспортирует согласованные `artifacts/fpga/design.xsa` и `design.bit`.
