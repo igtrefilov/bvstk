@@ -112,8 +112,8 @@ i2c axp15060 w 0x13 0x12
 Самый полезный smoke-test для текущей системы не требует писать собственного клиента. Достаточно загрузить прошивку, проверить, что устройство подняло сеть и shell, а затем открыть monitor рядом с shell.
 
 ```sh
-./scripts/vitis/build.sh
-./scripts/vitis/run_jtag.sh
+./build.sh freertos
+./run.sh freertos jtag
 ```
 
 После загрузки стоит убедиться, что shell действительно отвечает:

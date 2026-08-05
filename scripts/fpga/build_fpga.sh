@@ -19,6 +19,7 @@ Options:
   --proj NAME      Vivado project name
   --fpga-dir DIR   Path to FPGA project directory with Burevestnik_21.tcl
   --output-dir DIR Output directory for design.bit/design.xsa
+  --log-dir DIR    Directory for Vivado journal and log files
   --clean          Remove existing vivado_project before build
   --help           Show this help
 
@@ -33,6 +34,7 @@ PROJ_NAME="Burevestnik_21"
 JOBS="8"
 VIVADO_BIN="vivado"
 OUTPUT_DIR="$SCRIPT_DIR/../../artifacts/fpga"
+VIVADO_LOG_DIR="$SCRIPT_DIR/../../artifacts/vivado/logs"
 CLEAN="0"
 
 # First pass: allow selecting config file before loading settings.
@@ -75,6 +77,7 @@ while [[ $# -gt 0 ]]; do
     --proj) PROJ_NAME="$2"; shift 2 ;;
     --fpga-dir) FPGA_DIR="$2"; shift 2 ;;
     --output-dir) OUTPUT_DIR="$2"; shift 2 ;;
+    --log-dir) VIVADO_LOG_DIR="$2"; shift 2 ;;
     --help|-h) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
   esac
@@ -103,6 +106,7 @@ require_nonempty "FPGA_DIR" "$FPGA_DIR"
 require_nonempty "PROJ_NAME" "$PROJ_NAME"
 require_nonempty "JOBS" "$JOBS"
 require_nonempty "OUTPUT_DIR" "$OUTPUT_DIR"
+require_nonempty "VIVADO_LOG_DIR" "$VIVADO_LOG_DIR"
 
 if ! command -v "$VIVADO_BIN" >/dev/null 2>&1; then
   echo "Vivado executable '$VIVADO_BIN' not found" >&2
@@ -112,6 +116,8 @@ fi
 FPGA_DIR=$(cd "$FPGA_DIR" && pwd)
 PROJ_DIR="$FPGA_DIR/vivado_project"
 mkdir -p "$OUTPUT_DIR"
+mkdir -p "$VIVADO_LOG_DIR"
+VIVADO_LOG_DIR=$(cd "$VIVADO_LOG_DIR" && pwd)
 
 if [[ $CLEAN -eq 1 ]]; then
   echo "Removing existing project directory $PROJ_DIR"
@@ -119,9 +125,17 @@ if [[ $CLEAN -eq 1 ]]; then
 fi
 
 echo "Creating/refreshing Vivado project in $FPGA_DIR..."
-"$VIVADO_BIN" -mode batch -source "$FPGA_DIR/Burevestnik_21.tcl" -tclargs --origin_dir "$FPGA_DIR" --project_name "$PROJ_NAME"
+"$VIVADO_BIN" -mode batch \
+  -journal "$VIVADO_LOG_DIR/create_project.jou" \
+  -log "$VIVADO_LOG_DIR/create_project.log" \
+  -source "$FPGA_DIR/Burevestnik_21.tcl" \
+  -tclargs --origin_dir "$FPGA_DIR" --project_name "$PROJ_NAME"
 
 echo "Running implementation and exporting hardware..."
-"$VIVADO_BIN" -mode batch -source "$SCRIPT_DIR/build_hw.tcl" -tclargs --fpga_dir "$FPGA_DIR" --project_name "$PROJ_NAME" --jobs "$JOBS" --output_dir "$OUTPUT_DIR"
+"$VIVADO_BIN" -mode batch \
+  -journal "$VIVADO_LOG_DIR/build_hw.jou" \
+  -log "$VIVADO_LOG_DIR/build_hw.log" \
+  -source "$SCRIPT_DIR/build_hw.tcl" \
+  -tclargs --fpga_dir "$FPGA_DIR" --project_name "$PROJ_NAME" --jobs "$JOBS" --output_dir "$OUTPUT_DIR"
 
 echo "Done. Outputs in $OUTPUT_DIR:"; ls -1 "$OUTPUT_DIR" | sed 's/^/  /'

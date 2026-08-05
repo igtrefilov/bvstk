@@ -1,42 +1,90 @@
 # Сборка
 
-Этот документ описывает текущий процесс сборки прошивки `bvstk` через `XSCT/Vitis` и фиксирует, какие пути, скрипты и артефакты реально используются в проекте сейчас. Он не должен жить отдельно от кода: если `scripts/vitis/build.sh` или `scripts/vitis/build.tcl` меняются, этот текст тоже должен меняться, потому что именно они определяют фактический build flow.
+Этот документ описывает текущую цепочку сборки `bvstk`: аппаратную платформу в Vivado, FreeRTOS-приложение через XSCT/Vitis и приложение с загрузочным образом Neutrino. Если сборочные скрипты меняются, этот текст тоже должен обновляться, потому что именно скрипты определяют фактический build flow.
 
 ## Как сейчас выглядит сборка
 
-В текущем состоянии репозитория основной вход в сборку находится в `scripts/vitis/build.sh`. Корневого `./build.sh` в проекте нет, поэтому рабочие команды и документация должны ссылаться именно на путь внутри `scripts/vitis/`.
+Штатная точка входа для программной части находится в корне репозитория:
 
-`build.sh` делает только верхнеуровневую orchestration-логику. Он определяет корень репозитория, при наличии подхватывает `build_vitis.conf`, опционально подключает `settings64.sh` через `XILINX_SETTINGS`, выбирает `XSA`, решает, надо ли удалять старый `vitis_ws/`, а затем запускает `xsct scripts/vitis/build.tcl`.
+```sh
+./build.sh freertos
+./build.sh neutrino
+./build.sh neutrino-image
+./build.sh all
+```
 
-Основная сборочная логика находится уже в `build.tcl`. Именно этот скрипт создаёт workspace, генерирует встроенные дефолтные конфиги, создаёт платформу `plat_bvstk`, настраивает BSP, включает `lwIP` и `xilffs`, подменяет `diskio.c` на проектную версию, патчит FatFs для LFN/FreeRTOS и собирает приложение `app_bvstk`.
+Корневой `build.sh` является диспетчером. Он передаёт управление в `scripts/vitis/build.sh` для FreeRTOS, в `scripts/neutrino/build.sh` для отдельной утилиты Neutrino и в `scripts/neutrino/build_image.sh` для загрузочного IFS. Команда `all` собирает FreeRTOS ELF и Neutrino IFS. Она не запускает Vivado.
+
+FreeRTOS-скрипт `scripts/vitis/build.sh` определяет корень репозитория, при наличии подхватывает `build_vitis.conf`, опционально подключает `settings64.sh` через `XILINX_SETTINGS`, выбирает `XSA`, решает, надо ли удалять старый `vitis_ws/`, а затем запускает `xsct scripts/vitis/build.tcl`.
+
+Основная FreeRTOS-логика находится в `scripts/vitis/build.tcl`. Именно этот скрипт создаёт workspace, генерирует встроенные дефолтные конфиги, создаёт платформу `plat_bvstk`, настраивает BSP, включает `lwIP` и `xilffs`, подменяет `diskio.c` на проектную версию, патчит FatFs для LFN/FreeRTOS и собирает приложение `app_bvstk`.
+
+## Сборка аппаратной платформы
+
+Исходный Vivado-проект `Burevestnik_21` хранится во внешнем каталоге `hw_platform/fpga`, но управляемая сборка запускается из `bvstk`:
+
+```sh
+./scripts/fpga/build_fpga.sh
+```
+
+Параметры машины задаются в `scripts/fpga/build_fpga.conf`; шаблон находится рядом в `build_fpga.conf.example`. Основные параметры:
+
+| Параметр | Назначение | Значение по умолчанию |
+|---|---|---|
+| `FPGA_DIR` | каталог с `Burevestnik_21.tcl` | соседний `hw_platform/fpga` |
+| `VIVADO_BIN` | команда или полный путь к Vivado | `vivado` во встроенных defaults |
+| `OUTPUT_DIR` | каталог для `design.bit` и `design.xsa` | `artifacts/fpga/` |
+| `VIVADO_LOG_DIR` | журналы и journal-файлы Vivado | `artifacts/vivado/logs/` |
+| `JOBS` | параллелизм implementation | `8` |
+| `CLEAN` | удалить `vivado_project` перед сборкой | `0` |
+
+Параметры можно временно переопределять через CLI, например:
+
+```sh
+./scripts/fpga/build_fpga.sh --jobs 12 --clean
+./scripts/fpga/build_fpga.sh --log-dir /tmp/bvstk-vivado-logs
+```
+
+Vivado запускается с явными `-journal` и `-log`, поэтому `create_project.jou/.log`, `build_hw.jou/.log` и создаваемые Vivado backup-файлы остаются в `artifacts/vivado/logs/`, а не засоряют корень репозитория. Каталог журналов игнорируется Git.
 
 ## Минимальный рабочий сценарий
 
-В нормальном сценарии требуется активное окружение Xilinx и актуальный `design.xsa`. Если всё лежит в стандартных для проекта местах, сборка выглядит так:
+Если `artifacts/fpga/design.xsa` и `design.bit` уже актуальны, повторно запускать Vivado не требуется. Минимальная сборка FreeRTOS выглядит так:
 
 ```sh
 source <Vitis-install>/settings64.sh
 cd <repo-root>
-./scripts/vitis/build.sh
+./build.sh freertos
 ```
 
-По умолчанию скрипт берёт аппаратный экспорт из `artifacts/fpga/design.xsa`. Это важно: текущий проект больше не опирается на старую схему с автоопределением `../bvstk_hw/tmp/design.xsa` или с корневыми wrapper-скриптами. Если в `artifacts/fpga/` лежит не тот экспорт, собираться будет именно не та система.
+По умолчанию FreeRTOS-скрипт берёт аппаратный экспорт из `artifacts/fpga/design.xsa`. Если там лежит экспорт от другой версии аппаратного дизайна, собираться будет не та hardware/software комбинация.
 
 Если нужно собрать прошивку на основе другого `xsa`, путь передаётся обычной переменной окружения:
 
 ```sh
-XSA=/abs/path/to/design.xsa ./scripts/vitis/build.sh
+XSA=/abs/path/to/design.xsa ./build.sh freertos
 ```
 
 Если требуется пересборка без удаления уже существующего `vitis_ws/`, используется `CLEAN=0`:
 
 ```sh
-XSA=/abs/path/to/design.xsa CLEAN=0 ./scripts/vitis/build.sh
+XSA=/abs/path/to/design.xsa CLEAN=0 ./build.sh freertos
 ```
 
 Практически это означает следующее. `CLEAN=1` полезен, когда менялся hardware export, BSP или что-то в самой логике генерации workspace. `CLEAN=0` уместен, когда нужно просто быстро перестроить приложение внутри уже существующего `vitis_ws/` и вы уверены, что старая платформа не устарела.
 
-## Какие входные данные использует сборка
+Минимальная сборка загрузочного образа Neutrino:
+
+```sh
+source /etc/profile.d/kpda_env_2024.sh
+./build.sh neutrino-image
+```
+
+Если `qcc` или `mkifs` не найдены, Neutrino-скрипты сами пытаются подключить `/etc/profile.d/kpda_env_2024.sh`. По умолчанию используется внешний BSP `kpda-bsp-xilinx-zynq7000` и его `images/zynq7000-ax7020-ssh.build`; пути можно изменить через `NEUTRINO_BSP_DIR` и `NEUTRINO_BASE_BUILD`.
+
+Сборка IFS не создаёт `ps7_init.tcl`. Для последующего JTAG-запуска должен уже существовать export Vitis в `vitis_ws/plat_bvstk/export/plat_bvstk/hw/` либо путь нужно явно передать через `PS7_INIT_TCL`.
+
+## Какие входные данные использует сборка FreeRTOS
 
 Сборка опирается на небольшой набор артефактов и скриптов, каждый из которых играет свою роль.
 
@@ -50,7 +98,7 @@ XSA=/abs/path/to/design.xsa CLEAN=0 ./scripts/vitis/build.sh
 
 Из этого видно, что сборка в `bvstk` не сводится к компиляции `src/*.c`. В процессе build создаётся и проектируется часть runtime-среды: в проект вшиваются дефолтные конфиги, модифицируется BSP и подменяется файловый слой для SD/QSPI. Поэтому изменения в `configs/` или в `src/fs/diskio.c` так же влияют на итоговый артефакт, как и изменения в прикладном C-коде.
 
-## Переменные окружения и конфигурация
+## Переменные окружения FreeRTOS
 
 Текущий build flow использует прежде всего переменные окружения. Это нормальный интерфейс для повседневной работы, а не побочный механизм.
 
@@ -73,12 +121,12 @@ XSA=/abs/path/to/design.xsa CLEAN=0 ./scripts/vitis/build.sh
 XILINX_SETTINGS=/opt/Xilinx/Vitis/2024.2/settings64.sh \
 XSA=/abs/path/to/design.xsa \
 LWIP_LIB=lwip220 \
-./scripts/vitis/build.sh
+./build.sh freertos
 ```
 
 Для сборки FreeRTOS с SSH см. [`freertos-ssh.md`](freertos-ssh.md). Включённый SSH увеличивает требуемый FreeRTOS heap и добавляет статические библиотеки wolfSSL/wolfSSH в линковку.
 
-## Что именно делает `build.tcl`
+## Что именно делает FreeRTOS `build.tcl`
 
 `scripts/vitis/build.tcl` полезно понимать не как чёрный ящик, а как последовательность вполне конкретных шагов.
 
@@ -98,7 +146,16 @@ LWIP_LIB=lwip220 \
 
 ## Что получается в результате
 
-После успешной сборки основной рабочий артефакт находится в `vitis_ws/app_bvstk/Debug/app_bvstk.elf`. Но полезно понимать, что build производит не только ELF. Он создаёт целую локальную Vitis-среду, внутри которой лежат и платформа, и BSP, и экспорт аппаратной части, и служебные IDE-файлы.
+После успешной сборки результаты разделены по этапам и ОС:
+
+| Команда | Основной результат |
+|---|---|
+| `scripts/fpga/build_fpga.sh` | `artifacts/fpga/design.bit`, `artifacts/fpga/design.xsa` |
+| `./build.sh freertos` | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` |
+| `./build.sh neutrino` | `build/neutrino/bvstkctl` |
+| `./build.sh neutrino-image` | `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` |
+
+FreeRTOS build производит не только ELF. Он создаёт целую локальную Vitis-среду, внутри которой лежат платформа, BSP, экспорт аппаратной части и служебные IDE-файлы.
 
 Ниже приведена актуальная карта наиболее важных результатов сборки.
 
@@ -122,7 +179,7 @@ LWIP_LIB=lwip220 \
 
 Структурно `vitis_ws/` распадается на три ключевые зоны. `app_bvstk/` содержит само приложение и его build-артефакты. `plat_bvstk/` содержит platform, BSP, hardware snapshot и export. `app_bvstk_system/` и `.metadata/` относятся в основном к IDE-инфраструктуре Vitis/Eclipse и обычно интересуют разработчика только тогда, когда приходится разбираться в внутренней механике workspace.
 
-## Что важно помнить при инкрементальной сборке
+## Что важно помнить при инкрементальной сборке FreeRTOS
 
 Инкрементальная пересборка в этом проекте требует чуть больше дисциплины, чем в обычном standalone C-проекте. `CLEAN=0` ускоряет цикл, но не гарантирует корректность, если между сборками изменился `design.xsa`, состав BSP-библиотек, логика генерации `default_configs.h` или patch-процедура FatFs. В таких случаях лучше явно пересоздать workspace.
 
@@ -135,10 +192,14 @@ LWIP_LIB=lwip220 \
 | Симптом | Что проверять первым |
 |---|---|
 | `xsct not found in PATH` | активировано ли Xilinx-окружение или задан ли `XILINX_SETTINGS` |
+| `Vivado executable ... not found` | корректны ли `VIVADO_BIN` и `XILINX_SETTINGS` в `scripts/fpga/build_fpga.conf` |
+| Vivado-журналы появились не там | какое значение получил `VIVADO_LOG_DIR`, не запускался ли Vivado вручную из корня репозитория |
 | build идёт против “не той” платформы | какой именно `XSA` был подхвачен, и актуален ли `artifacts/fpga/design.xsa` |
 | сломался `xilffs` или поведение ФС изменилось | применился ли project `diskio.c`, не сломался ли patch `ffconf` |
 | после обновления hardware export поведение стало странным | был ли `vitis_ws/` пересоздан, а не использован инкрементально |
 | не обновились встроенные дефолтные конфиги | отработал ли `gen_default_configs.py`, пересобрался ли ELF после изменения `configs/` |
+| `qcc` или `mkifs` не найден | подключён ли SDK через `/etc/profile.d/kpda_env_2024.sh` |
+| Neutrino BSP или base build не найден | корректны ли `NEUTRINO_BSP_DIR` и `NEUTRINO_BASE_BUILD` |
 
 Архитектурно все эти проблемы нормальны для проекта, где сборка включает не только компиляцию кода, но и создание платформы, модификацию BSP и генерацию runtime-данных. Поэтому диагностика build-пайплайна здесь должна начинаться не с последней ошибки компилятора, а с понимания того, на каком именно шаге сломалась сборка.
 
@@ -152,3 +213,5 @@ LWIP_LIB=lwip220 \
 | `run-and-debug.md` | когда собранный ELF нужно загрузить и отладить |
 | `architecture.md` | когда нужно понять, зачем сборка создаёт именно такие артефакты |
 | `hardware-platform.md` | когда вопрос упирается в связь между firmware и `design.xsa` |
+| `multi-os.md` | когда нужно понять границу общего кода, FreeRTOS и Neutrino |
+| `freertos-ssh.md` | когда FreeRTOS нужно собрать со встроенной SSH-консолью |

@@ -12,4 +12,6 @@ PROJ_NAME="Burevestnik_21"
 JOBS="8"
 # Example absolute path: /data/work/bvstk/artifacts/fpga
 OUTPUT_DIR="$SCRIPT_DIR/../../artifacts/fpga"
+# Example absolute path: /data/work/bvstk/artifacts/vivado/logs
+VIVADO_LOG_DIR="$SCRIPT_DIR/../../artifacts/vivado/logs"
 CLEAN="0"

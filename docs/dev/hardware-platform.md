@@ -69,6 +69,16 @@
 - `*.xsa` нужен для сборки платформы Vitis
 - `ps7_init.tcl` появляется уже на стороне Vitis/export и нужен для JTAG-старта
 
+Штатная пакетная сборка запускается из корня `bvstk`:
+
+```sh
+./scripts/fpga/build_fpga.sh
+```
+
+Скрипт читает `scripts/fpga/build_fpga.conf`, воссоздаёт или обновляет Vivado-проект через `Burevestnik_21.tcl`, выполняет implementation и экспортирует согласованную пару `artifacts/fpga/design.bit` и `artifacts/fpga/design.xsa`. Эти имена являются стабильным интерфейсом для последующих FreeRTOS и Neutrino build/run flow независимо от исходных имён файлов в hardware-репозитории.
+
+Vivado journal и log-файлы направляются в `artifacts/vivado/logs/`. Путь задаётся параметром `VIVADO_LOG_DIR` или флагом `--log-dir`, поэтому служебные `vivado*.jou`, `vivado*.log` и backup-файлы не должны появляться в корне `bvstk` при использовании штатного скрипта.
+
 Из этого следует два практических правила.
 
 Первое: если вы поменяли аппаратный дизайн, но продолжаете собирать прошивку со старым `xsa`, вы отлаживаете не ту систему, которая реально загружается на плату.
@@ -105,8 +115,8 @@ PS/firmware обеспечивает контрольную логику: сет
 | `i2c_master`, `axi_i2c_slave_1_0` | `src/bvstk_i2c/` |
 | `SMI_master`, `SMI_slave` | `src/bvstk_smi/` |
 | `SPI_master` | `src/bvstk_spi/` |
-| `Burevestnik_top.xsa` | платформа Vitis и BSP |
-| `Burevestnik_top.bit` | JTAG-загрузка PL |
+| экспорт `Burevestnik_top.xsa` → `artifacts/fpga/design.xsa` | платформа Vitis, FreeRTOS BSP и общий PL-контракт |
+| bitstream `Burevestnik_top.bit` → `artifacts/fpga/design.bit` | JTAG-загрузка PL для FreeRTOS и Neutrino |
 
 Это соответствие полезно и при коде, и при документации. Оно помогает отвечать на вопрос “где искать проблему” до того, как вы потратили полдня на чтение не того слоя.
 
@@ -136,6 +146,7 @@ PS/firmware обеспечивает контрольную логику: сет
 
 - что проект аппаратно привязан к `Burevestnik_21`
 - что `hw_platform/fpga` — это исходная точка для `bit/xsa`
+- что штатный экспорт создаётся через `scripts/fpga/build_fpga.sh`, а журналы лежат в `artifacts/vivado/logs/`
 - что в системе есть локальные кастомные PL IP, а не только стандартная периферия PS
 - что firmware и hardware нужно рассматривать вместе
 

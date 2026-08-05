@@ -1,47 +1,64 @@
-# FreeRTOS and Neutrino architecture
+# Совместная архитектура FreeRTOS и Neutrino
 
-The repository produces two OS-specific artifacts from one product contract:
+Репозиторий `bvstk` собирает два ОС-зависимых варианта одного продукта. Они используют общий контракт аппаратной платформы Zynq/PL, но имеют разные исполняемые форматы, системные API и способы интеграции с ОС.
 
 ```text
-Vivado design/XSA
-       |
-shared PL register, BRAM and IRQ contract
-       |
-       +-- FreeRTOS platform and drivers -> app_bvstk.elf
-       |
-       +-- Neutrino platform and services -> bvstkctl + IFS
+Vivado design -> design.bit + design.xsa
+                         |
+          общий контракт PL-регистров, BRAM и IRQ
+                         |
+          +--------------+----------------+
+          |                               |
+   FreeRTOS + Xilinx BSP           Neutrino + Zynq BSP
+          |                               |
+   app_bvstk.elf                 bvstkctl + загрузочный IFS
 ```
 
-The common code owns hardware addresses, register layouts, normalized status
-codes and service semantics.  OS-specific directories own scheduler, MMIO,
-interrupt, filesystem, network and boot integration.
+## Что является общим
 
-## Current implementation
+- `src/pl_common/` хранит версионируемый контракт областей PL;
+- `src/services_common/` задаёт нормализованные статусы и проверенный доступ к PL;
+- `design.bit`, `design.xsa`, адреса MMIO, layout BRAM и IRQ должны соответствовать одной версии аппаратного дизайна;
+- прикладная семантика операций над PL должна оставаться одинаковой независимо от ОС.
 
-- `src/pl_common` is the versioned contract exported by the current XSA.
-- `src/platform/freertos` validates that contract against `xparameters.h` and
-  uses direct Xilinx MMIO.
-- `src/platform/neutrino` obtains I/O privileges with
-  `ThreadCtl(_NTO_TCTL_IO)` and maps physical regions with
-  `mmap_device_memory()`.
-- `src/services_common` provides normalized status and checked PL access.
-- `/usr/bin/bvstkctl` is the first Neutrino frontend for listing, probing,
-  reading and explicitly writing PL regions.
+Общий код не должен зависеть от FreeRTOS, lwIP, Xilinx BSP или Neutrino API. ОС-зависимые адаптеры находятся ниже общего service API.
 
-The existing FreeRTOS network, filesystem, HTTP, DCP2 and device workers stay
-functional while their logic is incrementally moved above the common service
-API.  Neutrino uses the same PL contract and will receive equivalent service
-frontends without importing FreeRTOS, lwIP or Xilinx BSP APIs into common code.
+## Что различается
 
-## Build commands
+| Область | FreeRTOS | Neutrino |
+|---|---|---|
+| Платформенный слой | `src/platform/freertos/` | `src/platform/neutrino/` |
+| Доступ к MMIO | Xilinx API и прямой MMIO | `ThreadCtl(_NTO_TCTL_IO)` и `mmap_device_memory()` |
+| Основной результат | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | `build/neutrino/bvstkctl` |
+| Загрузочный образ | JTAG-загрузка ELF | `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` |
+| Текущий пользовательский слой | сеть, файловые системы, TCP/SSH-консоли, HTTP и DCP2 | `/usr/bin/bvstkctl` внутри IFS |
+
+FreeRTOS-вариант остаётся наиболее полным runtime проекта. Neutrino-вариант уже использует общий PL-контракт и собирается в загрузочный IFS, но перенос сервисов FreeRTOS выполняется постепенно; наличие общей аппаратной модели не означает автоматического наличия одинаковых сетевых и файловых сервисов.
+
+## Команды сборки
+
+Корневой `build.sh` выбирает требуемый вариант:
 
 ```sh
-./build.sh freertos
-./build.sh neutrino
-./build.sh neutrino-image
-./build.sh all
+./build.sh freertos       # FreeRTOS ELF
+./build.sh neutrino       # только bvstkctl
+./build.sh neutrino-image # bvstkctl и IFS для AX7020
+./build.sh all            # FreeRTOS ELF и Neutrino IFS
 ```
 
-Generated artifacts are kept outside Git in `build/neutrino` and `vitis_ws`.
-The Neutrino SDK and binary BSP are external dependencies and are not copied
-into this repository.
+FPGA собирается отдельно:
+
+```sh
+./scripts/fpga/build_fpga.sh
+```
+
+Результаты Vivado попадают в `artifacts/fpga/`, FreeRTOS workspace — в `vitis_ws/`, а результаты Neutrino — в `build/neutrino/`. SDK Neutrino и бинарный BSP являются внешними зависимостями и в репозиторий не копируются.
+
+## Запуск по JTAG
+
+```sh
+./run.sh freertos jtag
+./run.sh neutrino jtag
+```
+
+FreeRTOS-flow программирует PL, инициализирует PS7, загружает ELF и запускает core0. Neutrino-flow загружает IFS в DDR, проверяет сигнатуру старта по UART, после чего корневой `run.sh` запускает проверку `/usr/bin/bvstkctl` через SSH. Подробности и переменные переопределения описаны в [`run-and-debug.md`](run-and-debug.md).

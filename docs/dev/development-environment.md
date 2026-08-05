@@ -6,7 +6,7 @@
 
 ## Что нужно в рабочем окружении
 
-Для обычной сборки достаточно, чтобы на машине были доступны `xsct`, `python3` и актуальный `*.xsa`. Если планируется JTAG-запуск, к этому добавляются `hw_server`, драйверы кабеля и рабочий `*.bit`. Если используется VSCode как основной редактор, полезны расширение `ms-vscode.cpptools`, `arm-none-eabi-gdb` и `bear`, потому что проект умеет генерировать `compile_commands.json` и уже содержит готовые `.vscode`-настройки.
+Набор инструментов зависит от собираемого слоя. Для аппаратной платформы нужен Vivado. Для FreeRTOS нужны `xsct`, `python3` и актуальный `*.xsa`; для JTAG-запуска дополнительно требуются `hw_server`, драйверы кабеля и рабочий `*.bit`. Для Neutrino нужны `qcc`, `mkifs`, установленный комплект разработчика 2024 и внешний Zynq7000 BSP. Если используется VSCode как основной редактор FreeRTOS-кода, полезны расширение `ms-vscode.cpptools`, `arm-none-eabi-gdb` и `bear`.
 
 Проверка базового окружения выглядит так:
 
@@ -14,6 +14,15 @@
 source <Vitis-install>/settings64.sh
 xsct -version
 python3 --version
+vivado -version
+```
+
+Проверка комплекта Neutrino:
+
+```sh
+source /etc/profile.d/kpda_env_2024.sh
+qcc -V
+command -v mkifs
 ```
 
 Для VSCode и JTAG-отладки обычно проверяют ещё и эти инструменты:
@@ -28,7 +37,7 @@ bear --version
 
 ## Аппаратные артефакты
 
-Проект исходит из того, что аппаратный экспорт уже существует и лежит рядом с прошивкой. Текущий дефолтный путь для build-скриптов и JTAG-скриптов расположен в `artifacts/fpga`, а не в корне репозитория и не в старых wrapper-скриптах.
+Текущий дефолтный путь для build-скриптов и JTAG-скриптов — `artifacts/fpga`. Готовые артефакты можно положить туда вручную или собрать из соседнего Vivado-проекта командой `./scripts/fpga/build_fpga.sh`.
 
 | Артефакт | Для чего нужен | Текущий основной путь | Где используется |
 |---|---|---|---|
@@ -38,13 +47,15 @@ bear --version
 
 В репозитории есть и резервная копия аппаратных артефактов в `artifacts/fpga/back/`, но рабочим источником по умолчанию остаются файлы из `artifacts/fpga/`. Для JTAG-запуска предусмотрен и legacy fallback на `../bvstk_hw/tmp/design.bit`, однако это именно fallback, а не основной путь, под который стоит документировать ежедневную работу.
 
+Сборка Vivado пишет `create_project.jou/.log`, `build_hw.jou/.log` и backup-журналы в `artifacts/vivado/logs/`. Путь задаётся через `VIVADO_LOG_DIR` в `scripts/fpga/build_fpga.conf` или флагом `--log-dir`; вручную запускать Vivado из корня репозитория не требуется.
+
 Если `XSA` не задан явно, `scripts/vitis/build.sh` берёт `artifacts/fpga/design.xsa`. Если `BITSTREAM_FILE` не задан и путь не передан аргументом, `scripts/vitis/run_jtag.tcl` сначала ищет `artifacts/fpga/design.bit`, затем legacy-вариант, и только потом пытается использовать bitstream из export-папки уже собранной платформы.
 
 Практический смысл этого простой: сначала нужно убедиться, что `artifacts/fpga/design.xsa` и `artifacts/fpga/design.bit` действительно соответствуют тому аппаратному дизайну, с которым вы собираетесь работать. Иначе можно получить формально успешную сборку прошивки, которая будет запущена поверх другой версии hardware platform.
 
 ## Как сейчас устроена сборка
 
-Основной вход в сборку находится в `scripts/vitis/`. В текущем состоянии проекта не существует корневых `./build.sh` и `./run_jtag.sh`, поэтому документация и рабочие инструкции должны ссылаться именно на `scripts/vitis/build.sh` и `scripts/vitis/run_jtag.sh`.
+Основные пользовательские точки входа находятся в корне репозитория: `./build.sh` выбирает ОС, а `./run.sh` выбирает JTAG-flow. Скрипты в `scripts/vitis/`, `scripts/neutrino/` и `scripts/fpga/` остаются прямыми точками входа для настройки конкретного этапа.
 
 `scripts/vitis/build.sh` делает очень немного сам по себе: подхватывает конфигурацию из `build_vitis.conf`, при необходимости подключает `settings64.sh`, выставляет `XSA` и `CLEAN`, а затем запускает `xsct` со скриптом `build.tcl`. Основная логика живёт именно в `build.tcl`: он создаёт или пересоздаёт `vitis_ws/`, генерирует `src/config/default_configs.h`, создаёт платформу `plat_bvstk`, настраивает FreeRTOS и lwIP, включает `xilffs`, патчит FatFs под нужный режим и собирает приложение `app_bvstk`.
 
@@ -52,13 +63,13 @@ bear --version
 
 ```sh
 cd <repo-root>
-./scripts/vitis/build.sh
+./build.sh freertos
 ```
 
 Если нужно явно указать аппаратный экспорт или не хочется удалять уже существующий `vitis_ws/`, используются обычные переменные окружения:
 
 ```sh
-XSA=/abs/path/to/design.xsa CLEAN=0 ./scripts/vitis/build.sh
+XSA=/abs/path/to/design.xsa CLEAN=0 ./build.sh freertos
 ```
 
 Скрипт понимает и `LWIP_LIB`, если приходится принудительно выбирать конкретную версию lwIP. По умолчанию он пробует `lwip220`, а если такая библиотека недоступна, откатывается к `lwip211`.
@@ -69,8 +80,11 @@ XSA=/abs/path/to/design.xsa CLEAN=0 ./scripts/vitis/build.sh
 
 | Файл | Назначение | Типичные поля |
 |---|---|---|
+| `scripts/fpga/build_fpga.conf` | сборка аппаратной платформы | `VIVADO_BIN`, `FPGA_DIR`, `OUTPUT_DIR`, `VIVADO_LOG_DIR`, `JOBS`, `CLEAN` |
 | `scripts/vitis/build_vitis.conf` | параметры сборки Vitis | `XILINX_SETTINGS`, `XSA`, `CLEAN_DEFAULT` |
 | `scripts/vitis/run_jtag.conf` | параметры JTAG-запуска | `XILINX_SETTINGS`, `BITSTREAM_FILE`, `ELF_FILE`, `PS7_INIT_TCL` |
+
+Neutrino-скрипты настраиваются переменными окружения: `NEUTRINO_BSP_DIR`, `NEUTRINO_BASE_BUILD`, `NEUTRINO_BUILD_DIR`, `QCC_VARIANT`, `NEUTRINO_IFS_FILE`, `UART_DEVICE`, `DEVICE_IP` и `SSH_IDENTITY`.
 
 Если конфигурационные файлы не используются, все критичные параметры можно передавать через обычные environment variables. Для повседневной работы это часто даже проще, чем поддерживать несколько локальных конфигов.
 
@@ -81,9 +95,13 @@ XSA=/abs/path/to/design.xsa CLEAN=0 ./scripts/vitis/build.sh
 | Путь | Роль в проекте |
 |---|---|
 | `artifacts/fpga/` | локальные `design.xsa` и `design.bit`, которые используются по умолчанию |
+| `artifacts/vivado/logs/` | игнорируемые Git журналы пакетной сборки Vivado |
+| `build/neutrino/` | `bvstkctl`, сгенерированный `.build`, IFS и UART-лог Neutrino |
 | `configs/` | шаблоны дефолтных JSON-конфигов, встраиваемых в прошивку |
 | `docs/` | актуальная документация по архитектуре, сборке и эксплуатации |
-| `scripts/vitis/` | основная сборка Vitis и JTAG-запуск |
+| `scripts/fpga/` | пакетная сборка Vivado и экспорт `design.bit/design.xsa` |
+| `scripts/vitis/` | сборка FreeRTOS в Vitis и JTAG-запуск ELF |
+| `scripts/neutrino/` | сборка `bvstkctl`, IFS, JTAG-запуск и SSH-проверка Neutrino |
 | `scripts/vscode/` | helper-скрипты для VSCode и step-debug |
 | `scripts/compat/` | совместимость со старыми путями вызова |
 | `src/` | исходники прошивки; именно они подключаются в `app_bvstk` через symlink |
@@ -109,12 +127,10 @@ XSA=/abs/path/to/design.xsa CLEAN=0 ./scripts/vitis/build.sh
 
 ## JTAG-запуск и step-debug
 
-Обычный JTAG-запуск делается через `scripts/vitis/run_jtag.sh`. Скрипт поднимает `xsct`, подключается к `hw_server`, программирует PL, выполняет `ps7_init`, загружает `app_bvstk.elf` и запускает core0.
-
-Команда выглядит так:
+Обычный FreeRTOS JTAG-запуск через корневой диспетчер программирует PL, выполняет `ps7_init`, загружает `app_bvstk.elf` и запускает core0:
 
 ```sh
-./scripts/vitis/run_jtag.sh
+./run.sh freertos jtag
 ```
 
 Если нужно переопределить bitstream, путь можно передать аргументом или через `BITSTREAM_FILE`:
@@ -131,13 +147,22 @@ XSA=/abs/path/to/design.xsa CLEAN=0 ./scripts/vitis/build.sh
 
 В этом режиме скрипт старается убедиться, что `hw_server` доступен не только на порту `3121`, но и с GDB-портом `3000`, после чего выполняет подготовку таргета через `scripts/vscode/jtag_prepare_debug.tcl` и оставляет core0 остановленным. Дальше можно подключаться из VSCode через конфигурацию `Attach: Zynq-7000 (core0, after ./run_jtag.sh --debug)`.
 
+Neutrino запускается отдельным flow:
+
+```sh
+./build.sh neutrino-image
+./run.sh neutrino jtag
+```
+
+Он загружает IFS в DDR, проверяет старт по UART и затем выполняет SSH-проверку `bvstkctl`. Для этого должны быть корректно заданы UART-устройство и SSH identity.
+
 Текущие `.vscode/tasks.json` и `.vscode/launch.json` уже отражают именно этот сценарий. Background task запускает `hw_server -s tcp::3121 -p 3000 -L-`, затем отдельная задача вызывает `xsct ${workspaceFolder}/scripts/vscode/jtag_prepare_debug.tcl`, а launch-конфигурация подключает `arm-none-eabi-gdb` к `localhost:3000` и загружает `vitis_ws/app_bvstk/Debug/app_bvstk.elf`.
 
 ## Что важно помнить про согласованность окружения
 
 В этом проекте многие проблемы похожи на ошибки прошивки, хотя на самом деле начинаются раньше. Неактуальный `design.xsa`, несоответствующий `design.bit`, старый `vitis_ws/` после смены hardware export или VSCode, открытый до генерации BSP, дают очень похожие симптомы: отсутствующие адреса, странные include path, неверные IRQ, непредсказуемое поведение PL-подсистем или ложное ощущение, что код собран против другой платформы.
 
-Поэтому нормальная последовательность работы выглядит так: сначала проверить актуальность `artifacts/fpga/design.xsa` и `artifacts/fpga/design.bit`, затем пересобрать `vitis_ws/`, затем обновить `compile_commands.json`, и только после этого переходить к JTAG-запуску, сетевой проверке или step-debug.
+Поэтому нормальная последовательность работы выглядит так: сначала собрать или проверить `artifacts/fpga/design.xsa` и `artifacts/fpga/design.bit`, затем собрать выбранную ОС, после FreeRTOS-сборки при необходимости обновить `compile_commands.json`, и только после этого переходить к JTAG-запуску, сетевой проверке или step-debug.
 
 ## Что читать вместе с этим документом
 

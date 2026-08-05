@@ -6,7 +6,7 @@
 
 ## Что такое PL-подсистемы в `bvstk`
 
-На архитектурном уровне PL-ядра в этом проекте это не просто периферийные блоки, к которым ARM пишет пару регистров. Прошивка использует их как аппаратные прокси для внешних шин. Тайминги, транзакционные FSM, FIFO, BRAM-буферы и IRQ происходят в FPGA, а программная часть на PS занимается политиками доступа, синхронизацией, кешированием, публикацией наружу через TCP/HTTP/DCP2 и применением сохранённых настроек.
+На архитектурном уровне PL-ядра в этом проекте это не просто периферийные блоки, к которым ARM пишет пару регистров. Прошивка использует их как аппаратные прокси для внешних шин. Тайминги, транзакционные FSM, FIFO, BRAM-буферы и IRQ происходят в FPGA, а программная часть на PS занимается политиками доступа, синхронизацией, кешированием, публикацией наружу через TCP/SSH, HTTP и DCP2 и применением сохранённых настроек.
 
 Для `I2C` и `SMI` эта модель особенно выражена. Там программная логика работает поверх пары PL-ядер `master/slave`, общей BRAM-области и отдельных IRQ. `SPI` устроен проще: с точки зрения firmware это сейчас скорее синхронный runtime-adapter к одному PL-блоку, а не полноценная event-driven MITM-подсистема.
 
@@ -14,8 +14,8 @@
 
 | Подсистема | Статус в коде | Статус в текущем старте прошивки | Основные внешние поверхности |
 |---|---|---|---|
-| `bvstk_i2c` | полноценно реализована | активна | TCP, HTTP, DCP2, notify |
-| `bvstk_spi` | реализована как runtime-слой | активна | TCP shell, runtime API, DCP2 stream-control |
+| `bvstk_i2c` | полноценно реализована | активна | TCP/SSH shell, HTTP, DCP2, notify |
+| `bvstk_spi` | реализована как runtime-слой | активна | TCP/SSH shell, runtime API, DCP2 stream-control |
 | `bvstk_smi` | полноценно реализована | код есть, но `start_smi()` сейчас не вызывается | shell/DCP2/HTTP code paths присутствуют, но runtime зависит от явного старта |
 
 Это различие критично. Если документация описывает `SMI` так, будто оно уже работает после каждой загрузки, она вводит в заблуждение. Но и игнорировать `SMI` нельзя, потому что конфигурационная модель, shell-команды, DCP2-ветки и сам код подсистемы остаются частью проекта.
@@ -122,7 +122,7 @@ Persisted settings хранятся отдельно от policy rules. Это �
 
 | Поверхность | Что доступно |
 |---|---|
-| TCP shell | `i2c list`, `i2c <dev> info`, `r`, `w`, `policy show`, `policy set`, `policy whitelist add/del/clear`, `policy blacklist add/del/clear` |
+| TCP/SSH shell | `i2c list`, `i2c <dev> info`, `r`, `w`, `policy show`, `policy set`, `policy whitelist add/del/clear`, `policy blacklist add/del/clear` |
 | HTTP | `GET /api/i2c`, `PUT /api/i2c`, `POST /api/diag/i2c/read`, `POST /api/diag/i2c/write` |
 | DCP2 | регистровые read/write, policy set, notify, stream subscribe control |
 | Notify | события попытки, commit, deny, fault через `dcp2_notify_publish_simple()` |
@@ -150,7 +150,7 @@ SPI-подсистема держит компактную runtime-конфиг�
 
 | Поверхность | Что доступно |
 |---|---|
-| TCP shell | `spi info`, `spi cfg ...`, `spi xfer ...` |
+| TCP/SSH shell | `spi info`, `spi cfg ...`, `spi xfer ...` |
 | Runtime API | `spi_set_cfg()`, `spi_get_cfg()`, `spi_transfer_words()` |
 | DCP2 | service id `SPI` существует, но обычные request/response операции сейчас возвращают `ERR_UNSUPPORTED`; доступен только stream subscribe control |
 
@@ -186,7 +186,7 @@ SMI рассматривает PHY как MDIO-пространство адре
 
 | Поверхность | Статус |
 |---|---|
-| TCP shell | команды `smi ...` существуют |
+| TCP/SSH shell | команды `smi ...` существуют |
 | HTTP | `POST /api/diag/smi/read` и `POST /api/diag/smi/write` существуют |
 | DCP2 | read/write-ветки и stream subscribe control существуют |
 | Runtime после обычного boot | зависит от явного вызова `start_smi()`, который сейчас отключён |

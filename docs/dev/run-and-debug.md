@@ -1,8 +1,8 @@
 # Запуск и отладка
 
-Этот документ описывает текущий JTAG-flow проекта `bvstk`. В репозитории больше нет старой схемы с wrapper-скриптами в корне: рабочие точки входа находятся в `scripts/vitis/` и `scripts/vscode/`, а фактический запуск опирается на артефакты в `artifacts/fpga/` и `vitis_ws/`.
+Этот документ описывает текущие JTAG-flow проекта `bvstk`. Штатная точка входа — корневой `./run.sh`, который выбирает FreeRTOS или Neutrino. Низкоуровневые скрипты находятся в `scripts/vitis/`, `scripts/neutrino/` и `scripts/vscode/`.
 
-В обычном цикле разработчик сначала собирает проект, затем программирует PL по JTAG, выполняет `ps7_init`, загружает `app_bvstk.elf` в `Cortex-A9 #0` и запускает приложение. Этот путь сейчас реализован через `scripts/vitis/run_jtag.sh` и `scripts/vitis/run_jtag.tcl`. Если нужен пошаговый debug, тот же hardware prepare выполняется отдельно, а управление загрузкой и breakpoint-ами берёт на себя GDB.
+В FreeRTOS-цикле разработчик программирует PL, выполняет `ps7_init`, загружает `app_bvstk.elf` в `Cortex-A9 #0` и запускает приложение. Neutrino-flow вместо ELF загружает IFS в DDR и выставляет PC на его стартовый адрес. Пошаговый GDB/VSCode flow в этом документе относится к FreeRTOS.
 
 ## Нормальный путь запуска
 
@@ -11,11 +11,21 @@
 ```sh
 source <Vitis-install>/settings64.sh
 cd <repo-root>
-./scripts/vitis/build.sh
-./scripts/vitis/run_jtag.sh
+./build.sh freertos
+./run.sh freertos jtag
 ```
 
-Смысл этой последовательности в том, что `build.sh` должен заранее подготовить и `vitis_ws/app_bvstk/Debug/app_bvstk.elf`, и platform export с `ps7_init.tcl`. Без этого JTAG-скрипт не сможет ни загрузить приложение, ни корректно инициализировать PS7.
+Смысл этой последовательности в том, что FreeRTOS build должен заранее подготовить и `vitis_ws/app_bvstk/Debug/app_bvstk.elf`, и platform export с `ps7_init.tcl`. Без этого JTAG-скрипт не сможет ни загрузить приложение, ни корректно инициализировать PS7.
+
+Для Neutrino последовательность другая:
+
+```sh
+cd <repo-root>
+./build.sh neutrino-image
+./run.sh neutrino jtag
+```
+
+Корневой `run.sh` сначала вызывает `scripts/neutrino/run_jtag.sh`, который пишет UART в `build/neutrino/neutrino-uart.log` и проверяет сигнатуру старта. Затем запускается `scripts/neutrino/verify_ssh.sh`, выполняющий `bvstkctl version` и `bvstkctl pl list` на устройстве.
 
 ## На какие артефакты опирается запуск
 
@@ -63,6 +73,21 @@ BITSTREAM_FILE=/abs/path/to/design.bit ./scripts/vitis/run_jtag.sh
 
 Аналогично можно переопределить `ELF_FILE` и `PS7_INIT_TCL`, но в обычной разработке это требуется редко.
 
+## Загрузка Neutrino по JTAG
+
+Neutrino-скрипт использует по умолчанию:
+
+| Артефакт или параметр | Значение |
+|---|---|
+| IFS | `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` |
+| bitstream | `artifacts/fpga/design.bit` |
+| `ps7_init.tcl` | `vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl` |
+| UART | `/dev/ttyUSB1`, `115200 8N1` |
+| UART-лог | `build/neutrino/neutrino-uart.log` |
+| SSH-проверка | `root@192.168.0.10` с ключом из `SSH_IDENTITY` |
+
+Пути переопределяются через `IFS_FILE`, `BITSTREAM_FILE`, `PS7_INIT_TCL`, `UART_DEVICE`, `UART_BAUD`, `LOG_FILE`, `DEVICE_IP`, `SSH_USER` и `SSH_IDENTITY`. IFS загружается в DDR по адресу `0x00100000`; это временный JTAG-запуск, а не запись автономного образа на SD или QSPI.
+
 ## Debug-режим
 
 Для debug-attach скрипт переключается в другой режим:
@@ -105,13 +130,14 @@ arm-none-eabi-gdb vitis_ws/app_bvstk/Debug/app_bvstk.elf \
 
 ## Что должно стартовать после загрузки
 
-После `con` в обычном режиме или после `load` и `continue` в GDB приложение переходит к своей штатной последовательности из `src/main.c`. В текущем состоянии проекта запускаются QSPI/SD/FS-инициализация, `config_store`, сеть, TCP shell, HTTP, DCP2, I2C и SPI. Подсистема SMI в кодовой базе есть, но `start_smi()` в `main.c` по-прежнему закомментирован и в стандартный startup path не входит.
+После `con` в обычном FreeRTOS-режиме или после `load` и `continue` в GDB приложение переходит к своей штатной последовательности из `src/main.c`. В текущем состоянии проекта запускаются QSPI/SD/FS-инициализация, `config_store`, сеть, TCP shell, опциональный SSH, HTTP, DCP2, I2C и SPI. Подсистема SMI в кодовой базе есть, но `start_smi()` в `main.c` по-прежнему закомментирован и в стандартный startup path не входит.
 
 Снаружи это обычно проявляется через следующие сервисы:
 
 | Сервис | Порт | Назначение |
 |---|---:|---|
 | TCP shell | `8888` | интерактивная консоль |
+| SSH shell | `22` | тот же диспетчер команд; только при `BVSTK_SSH_ENABLE=1` |
 | HTTP | `80` | web/API surface |
 | DCP2 | `8889` | бинарный TCP-интерфейс |
 
@@ -129,6 +155,12 @@ telnet <device-ip> 8888
 
 ```sh
 nc <device-ip> 8888
+```
+
+Если FreeRTOS был собран с SSH, доступен привычный интерактивный вход:
+
+```sh
+ssh root@<device-ip>
 ```
 
 Дальше обычно достаточно нескольких базовых команд:

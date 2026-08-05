@@ -53,6 +53,7 @@ scripts/fpga/vivado*.jou
 scripts/fpga/vivado*.log
 scripts/vitis/vivado*.jou
 scripts/vitis/vivado*.log
+artifacts/vivado/logs/
 
 # Python caches
 **/__pycache__/
