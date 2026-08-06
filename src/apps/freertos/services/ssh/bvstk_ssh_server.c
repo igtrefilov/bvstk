@@ -25,6 +25,9 @@
 #ifdef WOLFSSH_SCP
 #include <wolfssh/wolfscp.h>
 #endif
+#ifdef WOLFSSH_SFTP
+#include <wolfssh/wolfsftp.h>
+#endif
 
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/console/console_common.h"
@@ -1436,6 +1439,77 @@ static void ssh_finish_session(bvstk_ssh_session_t *session, int status)
     (void)wolfSSH_stream_exit(session->ssh, status);
 }
 
+#ifdef WOLFSSH_SFTP
+static int ssh_sftp_is_retryable(int ret, int error)
+{
+    return ret == WS_SUCCESS || ret == WS_CHAN_RXD ||
+           ret == WS_WANT_READ || ret == WS_WANT_WRITE ||
+           ret == WS_REKEYING || ret == WS_WINDOW_FULL ||
+           error == WS_WANT_READ || error == WS_WANT_WRITE ||
+           error == WS_CHAN_RXD || error == WS_REKEYING ||
+           error == WS_WINDOW_FULL;
+}
+
+static int ssh_service_sftp(WOLFSSH *ssh, int fd)
+{
+    byte peek[1];
+    int ret = WS_SUCCESS;
+    int error = WS_SUCCESS;
+
+    for (;;) {
+        int want_write = wolfSSH_SFTP_PendingSend(ssh) ||
+                         ret == WS_WANT_WRITE || error == WS_WANT_WRITE;
+        fd_set read_fds;
+        fd_set write_fds;
+        struct timeval timeout;
+
+        FD_ZERO(&read_fds);
+        FD_ZERO(&write_fds);
+        FD_SET(fd, &read_fds);
+        if (want_write) FD_SET(fd, &write_fds);
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
+
+        int select_ret = lwip_select(fd + 1, &read_fds, &write_fds,
+                                     NULL, &timeout);
+        if (select_ret < 0) return WS_FATAL_ERROR;
+        if (select_ret == 0) continue;
+
+        if (wolfSSH_SFTP_PendingSend(ssh) && FD_ISSET(fd, &write_fds)) {
+            ret = wolfSSH_SFTP_read(ssh);
+            error = wolfSSH_get_error(ssh);
+            if (ret == WS_EOF || error == WS_EOF) return WS_SUCCESS;
+            if (!ssh_sftp_is_retryable(ret, error)) return ret;
+            if (wolfSSH_SFTP_PendingSend(ssh)) continue;
+        }
+
+        if (FD_ISSET(fd, &read_fds)) {
+            ret = wolfSSH_worker(ssh, NULL);
+            error = wolfSSH_get_error(ssh);
+            if (ret == WS_EOF || error == WS_EOF ||
+                ret == WS_CHANNEL_CLOSED || error == WS_CHANNEL_CLOSED) {
+                return WS_SUCCESS;
+            }
+            if (!ssh_sftp_is_retryable(ret, error)) return ret;
+        }
+
+        ret = wolfSSH_stream_peek(ssh, peek, sizeof(peek));
+        error = wolfSSH_get_error(ssh);
+        if (ret > 0) {
+            ret = wolfSSH_SFTP_read(ssh);
+            error = wolfSSH_get_error(ssh);
+            if (ret == WS_EOF || error == WS_EOF) return WS_SUCCESS;
+            if (!ssh_sftp_is_retryable(ret, error)) return ret;
+        } else if (ret == WS_EOF || error == WS_EOF ||
+                   ret == WS_CHANNEL_CLOSED || error == WS_CHANNEL_CLOSED) {
+            return WS_SUCCESS;
+        } else if (ret < 0 && !ssh_sftp_is_retryable(ret, error)) {
+            return ret;
+        }
+    }
+}
+#endif
+
 static void ssh_service_client(int fd)
 {
     bvstk_ssh_session_t session;
@@ -1454,6 +1528,13 @@ static void ssh_service_client(int fd)
     wolfSSH_set_fd(ssh, fd);
     wolfSSH_SetUserAuthCtx(ssh, NULL);
     wolfSSH_SetChannelReqCtx(ssh, &session);
+#ifdef WOLFSSH_SFTP
+    if (wolfSSH_SFTP_SetDefaultPath(ssh, "/") != WS_SUCCESS) {
+        xil_printf("SSH: cannot set SFTP default path\r\n");
+        wolfSSH_free(ssh);
+        return;
+    }
+#endif
 #ifdef WOLFSSH_SCP
     wolfSSH_SetScpRecvCtx(ssh, &session.scp);
     wolfSSH_SetScpSendCtx(ssh, &session.scp);
@@ -1461,10 +1542,18 @@ static void ssh_service_client(int fd)
 
     xil_printf("SSH: accepting client\r\n");
     int accept_ret = wolfSSH_accept(ssh);
+#if defined(WOLFSSH_SCP) || defined(WOLFSSH_SFTP)
 #ifdef WOLFSSH_SCP
     int scp_requested = (accept_ret == WS_SCP_INIT);
-    if (accept_ret != WS_SUCCESS && accept_ret != WS_SCP_INIT &&
-        accept_ret != WS_SCP_COMPLETE) {
+#endif
+    if (accept_ret != WS_SUCCESS
+#ifdef WOLFSSH_SCP
+        && accept_ret != WS_SCP_INIT && accept_ret != WS_SCP_COMPLETE
+#endif
+#ifdef WOLFSSH_SFTP
+        && accept_ret != WS_SFTP_COMPLETE
+#endif
+       ) {
 #else
     if (accept_ret != WS_SUCCESS) {
 #endif
@@ -1488,6 +1577,34 @@ static void ssh_service_client(int fd)
         wolfSSH_free(ssh);
         return;
     }
+
+#ifdef WOLFSSH_SFTP
+    if (accept_ret == WS_SFTP_COMPLETE) {
+        const fs_device_info_t *sd = fs_device_by_name("sd");
+        int sftp_ret;
+
+        if (!sd || fs_device_prepare(sd) != XST_SUCCESS) {
+            xil_printf("SSH: SFTP requires a mounted SD filesystem\r\n");
+            console_stream_unregister(SSH_CONSOLE_FD);
+            wolfSSH_free(ssh);
+            return;
+        }
+        xil_printf("SSH: SFTP session started\r\n");
+        sftp_ret = ssh_service_sftp(ssh, fd);
+        if (sftp_ret != WS_SUCCESS) {
+            xil_printf("SSH: SFTP session failed ret=%d err=%d\r\n",
+                       sftp_ret, wolfSSH_get_error(ssh));
+        } else {
+            xil_printf("SSH: SFTP session completed\r\n");
+        }
+        console_stream_unregister(SSH_CONSOLE_FD);
+#ifdef WOLFSSH_SCP
+        scp_cleanup(&session.scp);
+#endif
+        wolfSSH_free(ssh);
+        return;
+    }
+#endif
 
 #ifdef WOLFSSH_SCP
     if (scp_requested || accept_ret == WS_SCP_COMPLETE) {

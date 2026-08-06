@@ -63,47 +63,41 @@ if {[info exists ::env(BVSTK_SSH_ENABLE)] && $::env(BVSTK_SSH_ENABLE) == 1} {
     set ssh_enabled 1
 }
 
-proc required_env {name} {
-    if {![info exists ::env($name)] || $::env($name) == ""} {
-        error "$name must be set when BVSTK_SSH_ENABLE=1"
+proc validate_ssh_dependencies {wolfssl_root wolfssh_root} {
+    if {![file exists [file join $wolfssl_root include wolfssl options.h]] ||
+        ![file exists [file join $wolfssl_root lib libwolfssl.a]]} {
+        error "wolfSSL root must contain include/wolfssl/options.h and lib/libwolfssl.a"
     }
-    return [file normalize $::env($name)]
-}
-
-if {$ssh_enabled} {
-    set WOLFSSL_ROOT [required_env BVSTK_WOLFSSL_ROOT]
-    set WOLFSSH_ROOT [required_env BVSTK_WOLFSSH_ROOT]
-    if {![info exists ::env(BVSTK_SSH_PASSWORD)] || $::env(BVSTK_SSH_PASSWORD) == ""} {
-        error "BVSTK_SSH_PASSWORD must be set when BVSTK_SSH_ENABLE=1"
-    }
-    if {![file exists [file join $WOLFSSL_ROOT include wolfssl options.h]] ||
-        ![file exists [file join $WOLFSSL_ROOT lib libwolfssl.a]]} {
-        error "BVSTK_WOLFSSL_ROOT must contain include/wolfssl and lib/libwolfssl.a"
-    }
-    if {[file exists [file join $WOLFSSH_ROOT lib libwolfssh.a]]} {
-        set WOLFSSH_LIB_DIR [file join $WOLFSSH_ROOT lib]
-    } elseif {[file exists [file join $WOLFSSH_ROOT src .libs libwolfssh.a]]} {
-        set WOLFSSH_LIB_DIR [file join $WOLFSSH_ROOT src .libs]
+    if {[file exists [file join $wolfssh_root lib libwolfssh.a]]} {
+        set wolfssh_lib_dir [file join $wolfssh_root lib]
+    } elseif {[file exists [file join $wolfssh_root src .libs libwolfssh.a]]} {
+        set wolfssh_lib_dir [file join $wolfssh_root src .libs]
     } else {
-        error "BVSTK_WOLFSSH_ROOT must contain lib/libwolfssh.a or src/.libs/libwolfssh.a"
+        error "wolfSSH root must contain lib/libwolfssh.a or src/.libs/libwolfssh.a"
     }
-    if {![file exists [file join $WOLFSSH_ROOT wolfssh ssh.h]]} {
-        error "BVSTK_WOLFSSH_ROOT must contain wolfssh/ssh.h"
-    }
-    if {![file exists [file join $WOLFSSH_ROOT wolfssh wolfscp.h]]} {
-        error "BVSTK_WOLFSSH_ROOT must contain wolfssh/wolfscp.h (SCP support)"
+    foreach header {ssh.h wolfscp.h wolfsftp.h} {
+        if {![file exists [file join $wolfssh_root wolfssh $header]]} {
+            error "wolfSSH root must contain wolfssh/$header"
+        }
     }
     set nm_tool [auto_execok nm]
     if {$nm_tool == ""} {
-        error "nm is required to verify SCP-enabled libwolfssh.a"
+        error "nm is required to verify the SSH library"
     }
-    if {[catch {exec $nm_tool [file join $WOLFSSH_LIB_DIR libwolfssh.a]} nm_output]} {
+    if {[catch {exec $nm_tool [file join $wolfssh_lib_dir libwolfssh.a]} nm_output]} {
         error "unable to inspect libwolfssh.a: $nm_output"
     }
-    foreach scp_symbol {wolfSSH_SetScpRecv wolfSSH_SetScpSend} {
-        if {[string first $scp_symbol $nm_output] < 0} {
-            error "libwolfssh.a does not contain $scp_symbol; rebuild wolfSSH with --enable-scp"
+    foreach symbol {wolfSSH_SetScpRecv wolfSSH_SetScpSend wolfSSH_SFTP_read wolfSSH_SFTP_SetDefaultPath} {
+        if {[string first $symbol $nm_output] < 0} {
+            error "libwolfssh.a does not contain $symbol; rebuild bundled wolfSSH with SCP/SFTP support"
         }
+    }
+    return $wolfssh_lib_dir
+}
+
+if {$ssh_enabled} {
+    if {![info exists ::env(BVSTK_SSH_PASSWORD)] || $::env(BVSTK_SSH_PASSWORD) == ""} {
+        error "BVSTK_SSH_PASSWORD must be set when BVSTK_SSH_ENABLE=1"
     }
     puts "Generating build-local SSH credentials..."
     if {[catch {exec python3 -- $SSH_CONFIG_SCRIPT --output $SSH_GENERATED_HDR} err]} {
@@ -199,6 +193,80 @@ catch {bsp config xilffs_fs_interface SD}
 bsp regenerate
 ensure_ffconf_lfn $PATCH_FFCONF_SCRIPT $WS
 
+if {$ssh_enabled} {
+    set has_external_ssl 0
+    set has_external_ssh 0
+    if {[info exists ::env(BVSTK_WOLFSSL_ROOT)] &&
+        $::env(BVSTK_WOLFSSL_ROOT) != ""} {
+        set has_external_ssl 1
+    }
+    if {[info exists ::env(BVSTK_WOLFSSH_ROOT)] &&
+        $::env(BVSTK_WOLFSSH_ROOT) != ""} {
+        set has_external_ssh 1
+    }
+    if {$has_external_ssl != $has_external_ssh} {
+        error "BVSTK_WOLFSSL_ROOT and BVSTK_WOLFSSH_ROOT must be set together"
+    }
+
+    if {$has_external_ssl} {
+        set WOLFSSL_ROOT [file normalize $::env(BVSTK_WOLFSSL_ROOT)]
+        set WOLFSSH_ROOT [file normalize $::env(BVSTK_WOLFSSH_ROOT)]
+        puts "Using externally supplied wolfSSL/wolfSSH dependencies"
+    } else {
+        set SSH_DEPS_SCRIPT [file join $REPO_ROOT scripts vitis build_ssh_deps.sh]
+        set BSP_INCLUDE [file join $WS plat_bvstk export plat_bvstk sw \
+                         plat_bvstk freertos10_xilinx_domain bspinclude include]
+        if {![file isdirectory $BSP_INCLUDE]} {
+            error "Generated BSP include directory not found at $BSP_INCLUDE"
+        }
+        set FATFS_INCLUDE [file join $WS plat_bvstk ps7_cortexa9_0 \
+                           freertos10_xilinx_domain bsp ps7_cortexa9_0 include]
+        if {![file exists [file join $FATFS_INCLUDE ff.h]]} {
+            error "Generated FatFs include directory not found at $FATFS_INCLUDE"
+        }
+        set XILINX_INCLUDE [file join $WS plat_bvstk ps7_cortexa9_0 \
+                            freertos10_xilinx_domain bsp ps7_cortexa9_0 \
+                            libsrc standalone_v7_6 src]
+        if {![file exists [file join $XILINX_INCLUDE xil_types.h]]} {
+            error "Generated Xilinx include directory not found at $XILINX_INCLUDE"
+        }
+        set FREERTOS_INCLUDE [file join $WS plat_bvstk ps7_cortexa9_0 \
+                              freertos10_xilinx_domain bsp ps7_cortexa9_0 \
+                              libsrc freertos10_xilinx_v1_10 src]
+        if {![file exists [file join $FREERTOS_INCLUDE FreeRTOS.h]]} {
+            error "Generated FreeRTOS include directory not found at $FREERTOS_INCLUDE"
+        }
+        set BSP_LIBSRC [file join $WS plat_bvstk ps7_cortexa9_0 \
+                        freertos10_xilinx_domain bsp ps7_cortexa9_0 libsrc]
+        set LWIP_SOCKET_HEADERS [glob -nocomplain -type f -directory $BSP_LIBSRC \
+                                 */src/*/src/include/lwip/sockets.h]
+        if {[llength $LWIP_SOCKET_HEADERS] == 0} {
+            error "Generated lwIP socket headers not found below $BSP_LIBSRC"
+        }
+        set LWIP_INCLUDE [file dirname [file dirname [lindex $LWIP_SOCKET_HEADERS 0]]]
+        set LWIP_CONTRIB_CANDIDATES [glob -nocomplain -type d -directory $BSP_LIBSRC \
+                                     */src/contrib/ports/xilinx/include]
+        if {[llength $LWIP_CONTRIB_CANDIDATES] == 0} {
+            error "Generated Xilinx lwIP headers not found below $BSP_LIBSRC"
+        }
+        set LWIP_CONTRIB_INCLUDE [lindex $LWIP_CONTRIB_CANDIDATES 0]
+        set SSH_DEPS_OUTPUT [file join $REPO_ROOT build ssh-deps]
+        puts "Building bundled wolfSSL/wolfSSH dependencies..."
+        if {[catch {exec bash -- $SSH_DEPS_SCRIPT \
+                    --bsp-include $BSP_INCLUDE --fatfs-include $FATFS_INCLUDE \
+                    --xilinx-include $XILINX_INCLUDE \
+                    --freertos-include $FREERTOS_INCLUDE \
+                    --lwip-include $LWIP_INCLUDE \
+                    --lwip-contrib-include $LWIP_CONTRIB_INCLUDE \
+                    --output $SSH_DEPS_OUTPUT 2>@1} err]} {
+            error "Bundled SSH dependency build failed: $err"
+        }
+        set WOLFSSL_ROOT [file join $SSH_DEPS_OUTPUT install wolfssl]
+        set WOLFSSH_ROOT [file join $SSH_DEPS_OUTPUT install wolfssh]
+    }
+    set WOLFSSH_LIB_DIR [validate_ssh_dependencies $WOLFSSL_ROOT $WOLFSSH_ROOT]
+}
+
 app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
 
 set SRC_REAL [file normalize [file join $REPO_ROOT src]]
@@ -207,7 +275,7 @@ app config -name $APP_NAME -add include-path $SRC_REAL
 if {$ssh_enabled} {
     app config -name $APP_NAME -add include-path [file join $WOLFSSL_ROOT include]
     app config -name $APP_NAME -add include-path $WOLFSSH_ROOT
-    app config -name $APP_NAME -add compiler-misc "-DBVSTK_SSH_ENABLE -DWOLFSSH_SCP -DWOLFSSH_SCP_USER_CALLBACKS -DWOLFSSH_TERM -DNO_TERMIOS -DWOLFSSL_LWIP -DNO_FILESYSTEM -DNO_WOLFSSL_DIR -DWC_RNG_SEED_CB"
+    app config -name $APP_NAME -add compiler-misc "-DBVSTK_SSH_ENABLE -DWOLFSSH_SCP -DWOLFSSH_SCP_USER_CALLBACKS -DWOLFSSH_SFTP -DWOLFSSH_FATFS -DWOLFSSH_BVSTK_FATFS -DWOLFSSH_MAX_SFTP_RW=4096 -DWOLFSSH_MAX_SFTP_RECV=8192 -DWOLFSSH_TERM -DNO_TERMIOS -DWOLFSSL_LWIP -DNO_FILESYSTEM -DNO_WOLFSSL_DIR -DWC_RNG_SEED_CB"
     app config -name $APP_NAME -add library-search-path [file join $WOLFSSL_ROOT lib]
     app config -name $APP_NAME -add library-search-path $WOLFSSH_LIB_DIR
     app config -name $APP_NAME -add libraries wolfssh

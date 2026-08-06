@@ -1,0 +1,132 @@
+diff --git a/src/wolfsftp.c b/src/wolfsftp.c
+index c2d71a9..c06c9ab 100644
+--- a/src/wolfsftp.c
++++ b/src/wolfsftp.c
+@@ -1940,0 +1941,61 @@ int wolfSSH_SFTP_CreateStatus(WOLFSSH* ssh, word32 status, word32 reqId,
++#ifdef WOLFSSH_BVSTK_FATFS
++/* Translate the Linux-like paths exposed by the BVSTK SFTP service to the
++ * numeric FatFs volumes used by the firmware. The virtual root and ordinary
++ * absolute paths default to the SD card; /flash and /flash: select QSPI. */
++static int BvstkFatFsPath(char* path, word32 pathSz)
++{
++    const char* relative = NULL;
++    char drive = '0';
++    char mapped[WOLFSSH_MAX_FILENAME];
++    int mappedSz;
++
++    if (path == NULL || pathSz == 0) {
++        return WS_BAD_ARGUMENT;
++    }
++
++    if (WSTRNCMP(path, "/sd:", 4) == 0 &&
++            (path[4] == '\0' || WOLFSSH_SFTP_IS_DELIM(path[4]))) {
++        relative = path + 4;
++    }
++    else if (WSTRNCMP(path, "/sd", 3) == 0 &&
++            (path[3] == '\0' || WOLFSSH_SFTP_IS_DELIM(path[3]))) {
++        relative = path + 3;
++    }
++    else if (WSTRNCMP(path, "/flash:", 7) == 0 &&
++            (path[7] == '\0' || WOLFSSH_SFTP_IS_DELIM(path[7]))) {
++        drive = '1';
++        relative = path + 7;
++    }
++    else if (WSTRNCMP(path, "/flash", 6) == 0 &&
++            (path[6] == '\0' || WOLFSSH_SFTP_IS_DELIM(path[6]))) {
++        drive = '1';
++        relative = path + 6;
++    }
++    else if ((path[0] == '/') && (path[1] == '0' || path[1] == '1') &&
++            path[2] == ':') {
++        drive = path[1];
++        relative = path + 3;
++    }
++    else if (path[0] == '/') {
++        relative = path;
++    }
++    else if ((path[0] == '0' || path[0] == '1') && path[1] == ':') {
++        return WS_SUCCESS;
++    }
++    else {
++        return WS_INVALID_PATH_E;
++    }
++
++    if (relative[0] == '\0') {
++        relative = "/";
++    }
++    mappedSz = WSNPRINTF(mapped, sizeof(mapped), "%c:%s", drive, relative);
++    if (mappedSz < 0 || (word32)mappedSz >= sizeof(mapped) ||
++            (word32)mappedSz >= pathSz) {
++        return WS_INVALID_PATH_E;
++    }
++    WMEMCPY(path, mapped, (word32)mappedSz + 1);
++    return WS_SUCCESS;
++}
++#endif /* WOLFSSH_BVSTK_FATFS */
++
+@@ -2019,0 +2081,6 @@ static int GetAndCleanPath(const char* defaultPath,
++#ifdef WOLFSSH_BVSTK_FATFS
++    if (ret == WS_SUCCESS) {
++        ret = BvstkFatFsPath(s, sSz);
++    }
++#endif
++
+@@ -2226 +2292,0 @@ int ff_open(const char *fname, int flag, int perm)
+-    PRINTF("\r\nfatFS open: %s", fname);
+@@ -2237 +2302,0 @@ int ff_open(const char *fname, int flag, int perm)
+-                PRINTF("\r\nfatFS open success: %d", i);
+@@ -2258 +2323,2 @@ int ff_close(int fd)
+-int ff_pwrite(int fd, const byte *buffer, int sz)
++int ff_pwrite(int fd, const byte *buffer, int sz,
++        const unsigned int* shortOffset)
+@@ -2268,0 +2335,4 @@ int ff_pwrite(int fd, const byte *buffer, int sz)
++    if (shortOffset == NULL || shortOffset[1] != 0 ||
++            f_lseek(f, shortOffset[0]) != FR_OK) {
++        return -1;
++    }
+@@ -2274 +2344,2 @@ int ff_pwrite(int fd, const byte *buffer, int sz)
+-int ff_pread(int fd, byte *buffer, int sz)
++int ff_pread(int fd, byte *buffer, int sz,
++        const unsigned int* shortOffset)
+@@ -2284,0 +2356,4 @@ int ff_pread(int fd, byte *buffer, int sz)
++    if (shortOffset == NULL || shortOffset[1] != 0 ||
++            f_lseek(f, shortOffset[0]) != FR_OK) {
++        return -1;
++    }
+@@ -3598,0 +3674,8 @@ static int wolfSSH_SFTPNAME_readdir(WOLFSSH* ssh, WDIR* dir, WS_SFTPNAME* out,
++#ifdef WOLFSSH_BVSTK_FATFS
++        if (BvstkFatFsPath(s, sizeof(s)) != WS_SUCCESS) {
++            WLOG(WS_LOG_SFTP, "Error mapping BVSTK FatFs path");
++            WFREE(out->fName, out->heap, DYNTYPE_SFTP);
++            out->fName = NULL;
++            return WS_FATAL_ERROR;
++        }
++#endif
+diff --git a/wolfssh/port.h b/wolfssh/port.h
+index cb1c08b..ffd8fd1 100644
+--- a/wolfssh/port.h
++++ b/wolfssh/port.h
+@@ -1321,2 +1321,4 @@ extern "C" {
+-    int ff_pwrite(int fd, const byte *buffer, int sz);
+-    int ff_pread(int fd, byte *buffer, int sz);
++    int ff_pwrite(int fd, const byte *buffer, int sz,
++            const unsigned int* shortOffset);
++    int ff_pread(int fd, byte *buffer, int sz,
++            const unsigned int* shortOffset);
+@@ -1324,2 +1326,2 @@ extern "C" {
+-    #define WPWRITE(fs,fd,b,s,o) ff_pwrite(fd,b,s)
+-    #define WPREAD(fs,fd,b,s,o)  ff_pread(fd,b,s)
++    #define WPWRITE(fs,fd,b,s,o) ff_pwrite(fd,b,s,o)
++    #define WPREAD(fs,fd,b,s,o)  ff_pread(fd,b,s,o)
+@@ -1355,0 +1358,9 @@ extern "C" {
++#ifdef WOLFSSH_BVSTK_FATFS
++        if (r == NULL || rSz < 4) {
++            return NULL;
++        }
++        r[0] = '0';
++        r[1] = ':';
++        r[2] = '/';
++        r[3] = '\0';
++#else
+@@ -1360,0 +1372 @@ extern "C" {
++#endif

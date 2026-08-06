@@ -35,6 +35,17 @@ Default JTAG bitstream lookup order:
 ./build.sh
 ```
 
+When SSH is enabled, the FreeRTOS build automatically builds the pinned
+wolfSSL/wolfSSH sources from `third_party/dist` into `build/ssh-deps/`. No
+wolfSSH installation in `/tmp` or manual dependency path is required:
+
+```bash
+BVSTK_SSH_ENABLE=1 BVSTK_SSH_PASSWORD='your-password' ./build.sh freertos
+```
+
+The optional `BVSTK_WOLFSSL_ROOT` and `BVSTK_WOLFSSH_ROOT` variables can still
+be used to override the bundled dependency build.
+
 4. Run over JTAG:
 
 ```bash

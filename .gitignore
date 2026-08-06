@@ -9,6 +9,8 @@
 !scripts/**
 !configs/
 !configs/**
+!third_party/
+!third_party/**
 !src/
 !src/**
 src/apps/freertos/services/ssh/bvstk_ssh_generated.h

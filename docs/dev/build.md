@@ -115,10 +115,10 @@ source /etc/profile.d/kpda_env_2024.sh
 | `BUILD_VITIS_CONFIG` | переопределяет путь к build-конфигу | `scripts/vitis/build_vitis.conf` |
 | `XILINX_SETTINGS` | путь к `settings64.sh`, который надо source-нуть перед build | не используется, если не задан |
 | `BVSTK_SSH_ENABLE` | включает SSH-сервер FreeRTOS | выключен |
-| `BVSTK_WOLFSSL_ROOT` / `BVSTK_WOLFSSH_ROOT` | пути к ARM-сборкам wolfSSL/wolfSSH; wolfSSH должен быть собран с SCP | обязательны только при включённом SSH |
+| `BVSTK_WOLFSSL_ROOT` / `BVSTK_WOLFSSH_ROOT` | необязательное переопределение встроенных ARM-сборок wolfSSL/wolfSSH | автоматически собираются из `third_party/dist` при включённом SSH |
 | `BVSTK_SSH_USER` / `BVSTK_SSH_PASSWORD` | учётные данные SSH | `root` / обязательный пароль при включённом SSH |
 
-С практической стороны `build_vitis.conf` удобен как место для локальной machine-specific настройки, но он не обязателен. Если окружение уже активировано вручную, а путь к `xsa` передан через `XSA`, сборка полностью работоспособна и без него.
+С практической стороны `build_vitis.conf` удобен как место для локальной machine-specific настройки, но он не обязателен. Если окружение уже активировано вручную, а путь к `xsa` передан через `XSA`, сборка полностью работоспособна и без него. При включённом SSH зависимости wolfSSL/wolfSSH автоматически собираются из архивов в `third_party/dist`; их производные файлы появляются только в `build/ssh-deps/`.
 
 Типовой вызов с явной конфигурацией выглядит так:
 
