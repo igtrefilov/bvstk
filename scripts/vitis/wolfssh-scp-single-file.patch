@@ -1,25 +1,66 @@
+diff --git a/src/ssh.c b/src/ssh.c
+index 44d17b8..3d01517 100644
+--- a/src/ssh.c
++++ b/src/ssh.c
+@@ -566,2 +566,4 @@ int wolfSSH_accept(WOLFSSH* ssh)
+-    /* clear want read/writes for retry */
+-    if (ssh->error == WS_WANT_READ || ssh->error == WS_WANT_WRITE || ssh->error == WS_AUTH_PENDING)
++    /* clear retryable states before continuing the accept state machine */
++    if (ssh->error == WS_WANT_READ || ssh->error == WS_WANT_WRITE ||
++            ssh->error == WS_AUTH_PENDING || ssh->error == WS_CHAN_RXD ||
++            ssh->error == WS_REKEYING || ssh->error == WS_WINDOW_FULL)
+@@ -795 +797,11 @@ int wolfSSH_accept(WOLFSSH* ssh)
+-                if (DoScpRequest(ssh) < 0) {
++                {
++                    int scpRet = DoScpRequest(ssh);
++                    /* DoScpRequest() is also a non-blocking state machine.
++                     * Preserve retryable socket statuses so callers can
++                     * drive SCP through repeated wolfSSH_accept() calls. */
++                    if (scpRet == WS_WANT_READ || scpRet == WS_WANT_WRITE ||
++                            scpRet == WS_REKEYING || scpRet == WS_WINDOW_FULL ||
++                            scpRet == WS_CHAN_RXD) {
++                        return scpRet;
++                    }
++                    if (scpRet < 0) {
+@@ -797,2 +809,3 @@ int wolfSSH_accept(WOLFSSH* ssh)
+-                         ssh->error);
+-                    return WS_FATAL_ERROR;
++                         scpRet);
++                        return WS_FATAL_ERROR;
++                    }
 diff --git a/src/wolfscp.c b/src/wolfscp.c
-index 4415496..7a55685 100644
+index 4415496..2e2a94f 100644
 --- a/src/wolfscp.c
 +++ b/src/wolfscp.c
-@@ -348,6 +348,10 @@ int DoScpSink(WOLFSSH* ssh)
-                     ssh->scpATime = 0;
-                     ssh->scpMTime = 0;
-                     ssh->scpState = SCP_SEND_CONFIRMATION;
+@@ -144,0 +145,2 @@ static int ScpStreamSend(WOLFSSH* ssh, byte* data, word32 sz)
++            if (err == WS_WANT_READ || err == WS_WANT_WRITE)
++                return err;
+@@ -183,0 +186 @@ static int ScpStreamRead(WOLFSSH* ssh, byte* data, word32 sz)
++    int err;
+@@ -197 +200,5 @@ static int ScpStreamRead(WOLFSSH* ssh, byte* data, word32 sz)
+-        if (ret < 0 && wolfSSH_get_error(ssh) == WS_REKEYING) {
++        err = wolfSSH_get_error(ssh);
++        if (ret < 0 && (err == WS_WANT_READ || err == WS_WANT_WRITE)) {
++            return err;
++        }
++        if (ret < 0 && err == WS_REKEYING) {
+@@ -203,2 +210,4 @@ static int ScpStreamRead(WOLFSSH* ssh, byte* data, word32 sz)
+-            if (ret < 0 && ret != WS_CHAN_RXD
+-                    && wolfSSH_get_error(ssh) != WS_REKEYING)
++            err = wolfSSH_get_error(ssh);
++            if (err == WS_WANT_READ || err == WS_WANT_WRITE)
++                return err;
++            if (ret < 0 && ret != WS_CHAN_RXD && err != WS_REKEYING)
+@@ -351 +360,5 @@ int DoScpSink(WOLFSSH* ssh)
 -                    ssh->scpNextState = SCP_RECEIVE_CONFIRMATION;
 +                    /* OpenSSH closes a single-file sink after the final
 +                     * acknowledgement. Recursive transfers continue with
 +                     * another protocol message until the sender closes. */
 +                    ssh->scpNextState = ssh->scpIsRecursive ?
 +                        SCP_RECEIVE_CONFIRMATION : SCP_DONE;
-                 }
-                 continue;
-@@ -900,7 +904,7 @@ int DoScpRequest(WOLFSSH* ssh)
-             WLOG(WS_LOG_DEBUG, scpState, "Peer hung up, but SCP is done");
-             ret = WS_SUCCESS;
-         }
+@@ -903 +916 @@ int DoScpRequest(WOLFSSH* ssh)
 -        else if (ret != WS_EOF) {
 +        else if (ret != WS_EOF && wolfSSH_get_error(ssh) != WS_EOF) {
-             WLOG(WS_LOG_DEBUG, scpState, "Did not receive EOF packet");
-         }
-         else {
+@@ -1695,0 +1709,2 @@ int ReceiveScpMessage(WOLFSSH* ssh)
++                    if (rc == WS_WANT_READ || rc == WS_WANT_WRITE)
++                        return rc;

@@ -51,6 +51,7 @@ typedef struct {
     const fs_device_info_t *recv_device;
     int recv_requested;
     int recv_recursive;
+    int recv_short_mount;
     char recv_base[SCP_PATH_SIZE];
     char recv_dir_paths[SCP_MAX_DEPTH][SCP_PATH_SIZE];
     size_t recv_depth;
@@ -176,10 +177,25 @@ static int scp_resolve_path(const char *input, const fs_device_info_t **device_o
     const char *path = input;
     const fs_device_info_t *device = NULL;
     const char *relative = NULL;
+    char normalized[SCP_PATH_SIZE];
     int needed;
 
     if (!input || !device_out || !path_out || path_out_size == 0) return 0;
     while (*path == ' ' || *path == '\t') ++path;
+
+    /* Accept the short mount-point spelling commonly used with scp, such as
+     * /sd or /flash, in addition to the canonical /sd:/ and /flash:/ forms. */
+    if (!strncasecmp(path, "/sd", 3) &&
+        (path[3] == '\0' || path[3] == '/')) {
+        needed = snprintf(normalized, sizeof(normalized), "sd:%s", path + 3);
+        if (needed < 0 || (size_t)needed >= sizeof(normalized)) return 0;
+        path = normalized;
+    } else if (!strncasecmp(path, "/flash", 6) &&
+               (path[6] == '\0' || path[6] == '/')) {
+        needed = snprintf(normalized, sizeof(normalized), "flash:%s", path + 6);
+        if (needed < 0 || (size_t)needed >= sizeof(normalized)) return 0;
+        path = normalized;
+    }
 
     /* scp clients and wolfSSH may present an absolute-looking alias as
      * /sd:/file. FatFs aliases are kept as sd:/file internally. */
@@ -312,7 +328,14 @@ static int scp_validate_receive_base(WOLFSSH *ssh, const char *base_path,
     char resolved[SCP_PATH_SIZE];
     FRESULT res;
 
-    if (!scp_resolve_path(base_path, &device, resolved, sizeof(resolved))) {
+    if (scp->recv_short_mount) {
+        device = fs_device_by_name(scp->recv_short_mount == 1 ? "sd" : "flash");
+        if (!device || !device->ctx || !device->ctx->root) {
+            return scp_fail(ssh, "destination filesystem is unavailable");
+        }
+        strncpy(resolved, device->ctx->root, sizeof(resolved) - 1);
+        resolved[sizeof(resolved) - 1] = '\0';
+    } else if (!scp_resolve_path(base_path, &device, resolved, sizeof(resolved))) {
         return scp_fail(ssh, "invalid destination path");
     }
     if (fs_device_prepare(device) != XST_SUCCESS) {
@@ -737,6 +760,22 @@ static int ssh_shell_request(WOLFSSH_CHANNEL *channel, void *ctx)
     return ret;
 }
 
+#ifdef WOLFSSH_SCP
+static int ssh_scp_short_mount(const char *command)
+{
+    const char *marker;
+
+    if (!command) return 0;
+    marker = strstr(command, " -t /sd");
+    if (marker && (marker[7] == '\0' || marker[7] == '/' ||
+                   marker[7] == ' ' || marker[7] == '\t')) return 1;
+    marker = strstr(command, " -t /flash");
+    if (marker && (marker[10] == '\0' || marker[10] == '/' ||
+                   marker[10] == ' ' || marker[10] == '\t')) return 2;
+    return 0;
+}
+#endif
+
 static int ssh_exec_request(WOLFSSH_CHANNEL *channel, void *ctx)
 {
     bvstk_ssh_session_t *session = (bvstk_ssh_session_t *)ctx;
@@ -745,6 +784,9 @@ static int ssh_exec_request(WOLFSSH_CHANNEL *channel, void *ctx)
     if (ret != WS_SUCCESS || !command) return WS_BAD_ARGUMENT;
     strncpy(session->exec_command, command, sizeof(session->exec_command) - 1);
     session->exec_command[sizeof(session->exec_command) - 1] = '\0';
+#ifdef WOLFSSH_SCP
+    session->scp.recv_short_mount = ssh_scp_short_mount(command);
+#endif
     session->exec_requested = 1;
     return WS_SUCCESS;
 }
@@ -1451,8 +1493,15 @@ static void ssh_service_client(int fd)
     if (scp_requested || accept_ret == WS_SCP_COMPLETE) {
         int scp_ret = accept_ret;
         int scp_error = wolfSSH_get_error(ssh);
+        unsigned long scp_wait_ticks = 0;
 
         while (scp_ret != WS_SCP_COMPLETE) {
+            if (scp_ret == WS_FATAL_ERROR || scp_ret == WS_SCP_ABORT ||
+                scp_error == WS_FATAL_ERROR || scp_error == WS_SCP_ABORT) {
+                xil_printf("SSH: SCP aborted ret=%d err=%d\r\n",
+                           scp_ret, scp_error);
+                break;
+            }
             if (scp_ret != WS_SCP_INIT && scp_ret != WS_WANT_READ &&
                 scp_ret != WS_WANT_WRITE &&
                 scp_ret != WS_REKEYING && scp_ret != WS_WINDOW_FULL &&
@@ -1462,8 +1511,48 @@ static void ssh_service_client(int fd)
                 xil_printf("SSH: SCP failed ret=%d err=%d\r\n", scp_ret, scp_error);
                 break;
             }
+
+            if (scp_ret == WS_WANT_READ || scp_error == WS_WANT_READ ||
+                scp_ret == WS_WANT_WRITE || scp_error == WS_WANT_WRITE) {
+                fd_set read_fds;
+                fd_set write_fds;
+                struct timeval timeout;
+                int select_ret;
+
+                FD_ZERO(&read_fds);
+                FD_ZERO(&write_fds);
+                if (scp_ret == WS_WANT_WRITE || scp_error == WS_WANT_WRITE)
+                    FD_SET(fd, &write_fds);
+                else
+                    FD_SET(fd, &read_fds);
+                timeout.tv_sec = 0;
+                timeout.tv_usec = 1000;
+                select_ret = lwip_select(fd + 1, &read_fds, &write_fds,
+                                         NULL, &timeout);
+                if (select_ret < 0) {
+                    xil_printf("SSH: SCP select failed\r\n");
+                    break;
+                }
+                if (select_ret == 0) {
+                    if (++scp_wait_ticks >= 30000) {
+                        xil_printf("SSH: SCP timed out\r\n");
+                        break;
+                    }
+                    continue;
+                }
+            }
+
             scp_ret = wolfSSH_accept(ssh);
             scp_error = wolfSSH_get_error(ssh);
+            if (scp_ret == WS_WANT_READ || scp_ret == WS_WANT_WRITE ||
+                scp_error == WS_WANT_READ || scp_error == WS_WANT_WRITE) {
+                if (++scp_wait_ticks >= 30000) {
+                    xil_printf("SSH: SCP timed out\r\n");
+                    break;
+                }
+            } else {
+                scp_wait_ticks = 0;
+            }
             vTaskDelay(pdMS_TO_TICKS(1));
         }
 
