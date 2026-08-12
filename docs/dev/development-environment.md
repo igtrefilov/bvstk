@@ -6,7 +6,7 @@
 
 ## Что нужно в рабочем окружении
 
-Набор инструментов зависит от собираемого слоя. Для аппаратной платформы нужен Vivado. Для FreeRTOS нужны `xsct`, `python3` и актуальный `*.xsa`; для JTAG-запуска дополнительно требуются `hw_server`, драйверы кабеля и рабочий `*.bit`. Для Neutrino нужны `qcc`, `mkifs`, установленный комплект разработчика 2024 и внешний Zynq7000 BSP. Если используется VSCode как основной редактор FreeRTOS-кода, полезны расширение `ms-vscode.cpptools`, `arm-none-eabi-gdb` и `bear`.
+Набор инструментов зависит от собираемого слоя. Для аппаратной платформы нужен Vivado. Для FreeRTOS нужны `xsct`, `python3` и актуальный `*.xsa`; для JTAG-запуска дополнительно требуются `hw_server`, драйверы кабеля и рабочий `*.bit`. Для Neutrino нужны `qcc`, `mkifs` и установленный комплект разработчика 2024; AX7020 BSP runtime входит в репозиторий в `third_party/neutrino/bsp/ax7020/`. Если используется VSCode как основной редактор FreeRTOS-кода, полезны расширение `ms-vscode.cpptools`, `arm-none-eabi-gdb` и `bear`.
 
 Проверка базового окружения выглядит так:
 
@@ -84,7 +84,7 @@ XSA=/abs/path/to/design.xsa CLEAN=0 ./build.sh freertos
 | `scripts/vitis/build_vitis.conf` | параметры сборки Vitis | `XILINX_SETTINGS`, `XSA`, `CLEAN_DEFAULT` |
 | `scripts/vitis/run_jtag.conf` | параметры JTAG-запуска | `XILINX_SETTINGS`, `BITSTREAM_FILE`, `ELF_FILE`, `PS7_INIT_TCL` |
 
-Neutrino-скрипты настраиваются переменными окружения: `NEUTRINO_BSP_DIR`, `NEUTRINO_BASE_BUILD`, `NEUTRINO_BUILD_DIR`, `QCC_VARIANT`, `NEUTRINO_IFS_FILE`, `UART_DEVICE`, `DEVICE_IP` и `SSH_IDENTITY`.
+Neutrino-скрипты настраиваются переменными окружения: `NEUTRINO_BSP_DIR`, `NEUTRINO_BASE_BUILD`, `NEUTRINO_BUILD_DIR`, `NEUTRINO_KEY_DIR`, `QCC_VARIANT`, `NEUTRINO_IFS_FILE`, `UART_DEVICE`, `DEVICE_IP` и `SSH_IDENTITY`.
 
 Если конфигурационные файлы не используются, все критичные параметры можно передавать через обычные environment variables. Для повседневной работы это часто даже проще, чем поддерживать несколько локальных конфигов.
 
@@ -96,7 +96,7 @@ Neutrino-скрипты настраиваются переменными окр
 |---|---|
 | `artifacts/fpga/` | локальные `design.xsa` и `design.bit`, которые используются по умолчанию |
 | `artifacts/vivado/logs/` | игнорируемые Git журналы пакетной сборки Vivado |
-| `build/neutrino/` | `bvstkctl`, сгенерированный `.build`, IFS и UART-лог Neutrino |
+| `build/neutrino/` | `bvstkctl`, сгенерированный `.build`, IFS, UART-лог и локальные SSH-ключи Neutrino |
 | `configs/` | шаблоны дефолтных JSON-конфигов, встраиваемых в прошивку |
 | `docs/` | актуальная документация по архитектуре, сборке и эксплуатации |
 | `scripts/fpga/` | пакетная сборка Vivado и экспорт `design.bit/design.xsa` |

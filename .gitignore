@@ -67,6 +67,10 @@ artifacts/vivado/logs/
 **/__pycache__/
 **/*.pyc
 
+# Neutrino image-build credentials are generated per machine.
+build/neutrino/ax7020_ssh_client*
+build/neutrino/ssh/
+
 # Keep GitHub workflows if added later
 !.github/
 !.github/**

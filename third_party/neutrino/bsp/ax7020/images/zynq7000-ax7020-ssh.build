@@ -1,0 +1,450 @@
+###################################################################################
+#
+# Neutrino on the AX7020, based on the ARM Cortex-A9 MPCore platform.
+# The working Zynq7000 PS/UART/Ethernet setup is retained; SSH is added.
+#
+############################################################################
+[image=0x00100000]
+[virtual=armle-v7,raw +compress] .bootstrap = {
+	# Watchdog can be enabled using '-W' startup option
+	startup-zedboard -W10 -v
+	# '-ae' startup option allows for unaligned memory accesses
+	PATH=/proc/boot:/bin:/sbin:/usr/bin:/usr/sbin LD_LIBRARY_PATH=/proc/boot:/lib:/usr/lib:/lib/dll procnto-smp -ae
+}
+[+script] .script = {
+    procmgr_symlink ../../proc/boot/libc.so /usr/lib/ldqnx.so.2
+
+    #######################################################################
+    ## Platform driver
+    #######################################################################
+    display_msg Starting platform-control...
+    platform-control -d zynq7000 ps_clk=33333333
+
+    #######################################################################
+    ## Serial driver
+    #######################################################################
+    devc-serxzynq -e -F -S -c 50000000 0xE0001000,82
+    waitfor /dev/ser1
+    reopen /dev/ser1
+
+    display_msg Welcome to KPDA Neutrino on the Xilinx Zynq 7000 (ARM Cortex-A9)
+
+    # Start some common servers
+    pipe &
+    mqueue &
+    random -t
+    slogger &
+
+    #######################################################################
+    ## WatchDog utility
+    ## If startup is given '-W' parameter then the 'wdtkick' utility MUST
+    ## be uncommented below.
+    #######################################################################
+    display_msg Starting WatchDog driver
+    wdtkick-xzynq -T10 -t2000
+
+    #######################################################################
+    ## SD memory card driver
+    #######################################################################
+    display_msg Starting SDMMC driver for SD card(SDIO0)...
+    devb-sdmmc mem name=/below4G blk memory=/below4G,cache=64m sdio hc=sdhci,addr=0xE0100000,irq=56 disk name=sd cam quiet
+
+    #######################################################################
+    ## SPI driver - not started by default, no SPI devices on board
+    #######################################################################
+    #display_msg Starting SPI driver...
+    #spi-master -u 0 -d xzynq-zynq7000 base=0xE0006000,irq=58
+    #spi-master -u 1 -d xzynq-zynq7000 base=0xE0007000,irq=81
+
+    #######################################################################
+    ## QSPI Flash Chip
+    #######################################################################
+    display_msg Starting QSPI driver(/dev/fs0p0)...
+    devf-qspi-zynq7000 -r &
+
+    #######################################################################
+    ## OCM
+    #######################################################################
+    display_msg Starting OCM driver(/dev/ocm/)...
+    ocm-xzynq
+
+    #######################################################################
+    ## XADC driver
+    #######################################################################
+    display_msg Starting XADC driver(/dev/xadc)...
+    xadc-zynq7000
+
+    #######################################################################
+    ## FPGA driver
+    #######################################################################
+    display_msg Starting FPGA driver(/dev/fpga)...
+    fpga-zynq7000
+
+    #######################################################################
+    ## GPIO driver
+    #######################################################################
+    display_msg Starting GPIO driver(/dev/gpio)...
+    gpio-zynq7000
+
+    #######################################################################
+    ## I2C driver
+    #######################################################################
+    #display_msg Starting I2C driver...
+    #i2c-xzynq -p 0xE0004000 -i 57 --u 0
+    #i2c-xzynq -p 0xE0005000 -i 80 --u 1
+
+    #######################################################################
+    ## CAN driver
+    #######################################################################
+    #display_msg Starting CAN driver...
+    #dev-can-xzynq can0 can1
+
+    #######################################################################
+    ## Networking
+    #######################################################################
+    display_msg Starting Network driver...
+    io-pkt-v4-hc -dzynq7000
+
+    waitfor /dev/socket
+    if_up -p -a xzynq0
+    ifconfig xzynq0 192.168.0.10
+    ## or
+    #display_msg Obtaining DHCP network address...
+    #if_up -p -a xzynq0
+    #dhcp.client -i xzynq0
+
+    #######################################################################
+    ## Pseudo-terminals for interactive SSH sessions
+    #######################################################################
+    display_msg Starting pseudo-terminal driver...
+    devc-pty &
+
+    #######################################################################
+    ## SSH server
+    #######################################################################
+    display_msg Starting SSH server...
+    [argv0=/etc/sshd-start] /etc/sshd-start &
+
+    # Start the main shell
+    SYSNAME=nto
+    TERM=qansi
+    HOME=/
+    PATH=/proc/boot:/sbin:/bin:/usr/sbin:/usr/bin:/opt/bin
+    LD_LIBRARY_PATH=/proc/boot:/lib:/usr/lib:/lib/dll:/opt/lib
+
+    [+session] ksh &
+}
+
+# Redirect console messages
+[type=link] /bin/sh=/proc/boot/ksh
+[type=link] /dev/console=/dev/ser1
+[type=link] /tmp=/dev/shmem
+[type=dir dperms=0755] /var
+[type=dir dperms=0755] /var/run
+[type=dir dperms=0755] /var/chroot
+[type=dir dperms=0755] /var/chroot/sshd
+[type=dir dperms=0755] /root
+[type=dir dperms=0700] /root/.ssh
+[uid=0 gid=0 perms=0600] /etc/ssh/ssh_host_rsa_key = ${BVSTK_SSH_HOST_KEY}
+[uid=0 gid=0 perms=0644] /etc/ssh/ssh_host_rsa_key.pub = ${BVSTK_SSH_HOST_KEY_PUB}
+[uid=0 gid=0 perms=0600] /root/.ssh/authorized_keys = ${BVSTK_SSH_AUTHORIZED_KEYS}
+
+# Shared libraries
+libc.so
+libm.so.2
+libc.so.3
+libz.so.2
+
+###########################################################################
+## GPIO
+###########################################################################
+gpio-zynq7000
+
+###########################################################################
+## DMA
+###########################################################################
+# libdma-xzynq.so
+
+###########################################################################
+## BLOCK drivers libraries
+## substitute cam-xxx.so and fs-xxx.so with the cam drivers and filesystems
+## required
+###########################################################################
+libcam.so
+io-blk.so
+cam-disk.so
+fs-qnx6.so
+fs-qnx4.so
+fs-dos.so
+fs-udf.so
+fs-cd.so
+
+###########################################################################
+## Network libraries
+###########################################################################
+libsocket.so
+devnp-zynq7000.so
+lsm-qnet.so
+
+libcrypto.so
+libcrypt.so
+librpc.so
+
+# Executables
+[data=c dperms=0755]
+
+###########################################################################
+## Network driver
+###########################################################################
+io-pkt-v4-hc
+fs-cifs
+fs-nfs3
+
+###########################################################################
+## Platform driver
+###########################################################################
+platform-control
+devp-zynq7000.so
+
+###########################################################################
+## SPI Driver
+###########################################################################
+spi-master
+spi-xzynq-zynq7000.so
+
+###########################################################################
+## CAN driver
+###########################################################################
+dev-can-xzynq
+
+###########################################################################
+## SSH server
+###########################################################################
+devc-pty = ${KPDA_TARGET}/armle-v7/sbin/devc-pty
+/usr/sbin/sshd = ${KPDA_TARGET}/armle-v7/usr/sbin/sshd
+/usr/libexec/sftp-server = ${KPDA_TARGET}/armle-v7/usr/libexec/sftp-server
+/usr/bin/ssh-keygen = ${KPDA_TARGET}/armle-v7/usr/bin/ssh-keygen
+/usr/bin/passwd = ${KPDA_TARGET}/armle-v7/usr/bin/passwd
+/etc/ssh/moduli = ${KPDA_TARGET}/armle-v7/etc/ssh/moduli
+
+/etc/ssh/sshd_config={
+Port 22
+ListenAddress 0.0.0.0
+HostKey /etc/ssh/ssh_host_rsa_key
+PasswordAuthentication no
+PubkeyAuthentication yes
+PermitRootLogin yes
+PermitEmptyPasswords no
+SetEnv PATH=/proc/boot:/bin:/sbin:/usr/bin:/usr/sbin
+UseDNS no
+PidFile /var/run/sshd.pid
+Subsystem sftp /usr/libexec/sftp-server
+}
+
+[perms=0755] /etc/sshd-start={
+#!/bin/sh
+export PATH=/proc/boot:/bin:/sbin:/usr/bin:/usr/sbin
+export LD_LIBRARY_PATH=/proc/boot:/lib:/usr/lib:/lib/dll
+exec /usr/sbin/sshd
+}
+
+# The initial login uses the public key staged in /root/.ssh/authorized_keys.
+/etc/passwd = ${KPDA_TARGET}/armle-v7/etc/passwd
+/etc/group = ${KPDA_TARGET}/armle-v7/etc/group
+[uid=0 gid=0 perms=0600] /etc/shadow={
+root:*:90:18565:0:0:0:0:0
+}
+
+###########################################################################
+## RTC driver
+###########################################################################
+#rtc
+
+###########################################################################
+## Block driver
+###########################################################################
+fdisk
+mkdosfs
+devb-sdmmc
+
+###########################################################################
+## SPI Flash driver
+## SPI Flash chip can be formatted like so: flashctl -p /dev/fs0p0 -e -f -m
+## After formatting a partition will appear in /fs0p0
+###########################################################################
+flashctl
+
+###########################################################################
+## QSPI flash driver
+###########################################################################
+devf-qspi-zynq7000
+
+###########################################################################
+## I2C driver
+###########################################################################
+i2c-xzynq
+
+###########################################################################
+## XADC
+###########################################################################
+xadc-zynq7000
+
+###########################################################################
+## FPGA
+###########################################################################
+fpga-zynq7000
+fpgactl-zynq7000
+
+###########################################################################
+## Disk drivers (filesystems support)
+###########################################################################
+/sbin/fdisk=fdisk
+/sbin/mkdosfs=mkdosfs
+/sbin/mkqnx6fs=mkqnx6fs
+/sbin/chkdosfs=chkdosfs
+/sbin/chkqnx6fs=chkqnx6fs
+/sbin/chkfsys=chkfsys
+/usr/bin/fsysinfo=fsysinfo
+
+###########################################################################
+## Serial driver
+###########################################################################
+devc-serxzynq
+
+###########################################################################
+## WatchDog driver
+###########################################################################
+wdtkick-xzynq
+
+###########################################################################
+## OCM driver
+###########################################################################
+ocm-xzynq
+
+###########################################################################
+## uncomment to install terminfo packages on the board
+###########################################################################
+# /usr/share/terminfo/x/xterm=${KPDA_TARGET}/armle-v7/usr/lib/terminfo/x/xterm
+
+###########################################################################
+## Shell configuration
+###########################################################################
+# /etc/profile=${KPDA_TARGET}/armle-v7/etc/profile
+
+###########################################################################
+## Network services
+###########################################################################
+
+/etc/inetd.conf={
+#
+# Configuration file for inetd.
+#
+# To re-configure the running inetd process, edit this file, then
+# send the inetd process a SIGHUP.
+#
+#
+# Internet services syntax:
+#  <service_name> <socket_type> <proto> <flags> <user> <server_pathname> <args>
+#
+
+telnet     stream tcp nowait root  /usr/sbin/telnetd        in.telnetd
+ftp        stream tcp nowait root  /usr/sbin/ftpd           in.ftpd -l
+
+# IPv6 services.
+# The only difference with the above is "tcp6" instead of "tcp".
+# Be sure to enable both "tcp" and "tcp6" when you need service for
+# both IPv4/v6.
+#
+#telnet          stream  tcp6    nowait  root    /usr/sbin/telnetd    telnetd
+}
+
+/etc/ftpusers={
+* allow
+}
+
+/etc/ftpd.conf={
+checkportcmd all
+classtype chroot CHROOT
+classtype guest GUEST
+classtype real REAL
+display none
+limit all -1 # unlimited connections
+maxtimeout all 7200 # 2 hours
+modify all
+motd all motd
+notify none
+passive all
+timeout all 900 # 15 minutes
+umask all 027
+upload all
+modify guest off
+umask guest 0707
+}
+
+/etc/services = ${KPDA_TARGET}/armle-v7/etc/services
+
+
+###########################################################################
+## general commands
+###########################################################################
+awk
+basename
+cat
+chmod
+chown
+cksum
+cmp
+cp
+date
+dd
+devb-ram
+devb-umass
+dhcp.client
+diff
+dirname
+mkdir
+env
+grep
+head
+if_up
+ifconfig
+ksh
+ln
+ls
+mount
+mq
+mqueue
+mv
+netstat
+nicinfo
+od
+on
+pidin
+ping
+pipe
+printf
+qtalk
+random
+rm
+route
+sed
+shutdown
+sleep
+slay
+sloginfo
+slogger
+stty
+tail
+tcpdump
+top
+touch
+umount
+uname
+use
+vi
+/bin/login=login
+/bin/logout=logout
+
+###########################################################################
+## END OF BUILD SCRIPT
+###########################################################################

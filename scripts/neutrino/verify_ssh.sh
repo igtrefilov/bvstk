@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+BUILD_DIR="${NEUTRINO_BUILD_DIR:-$REPO_ROOT/build/neutrino}"
 DEVICE_IP="${DEVICE_IP:-192.168.0.10}"
-SSH_IDENTITY="${SSH_IDENTITY:-/home/ilya/neutrino/ax7020_ssh_client}"
+SSH_IDENTITY="${SSH_IDENTITY:-$BUILD_DIR/ax7020_ssh_client}"
 SSH_USER="${SSH_USER:-root}"
 
 if [[ ! -f "$SSH_IDENTITY" ]]; then

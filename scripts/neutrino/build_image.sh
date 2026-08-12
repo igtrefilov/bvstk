@@ -4,22 +4,52 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BUILD_DIR="${NEUTRINO_BUILD_DIR:-$REPO_ROOT/build/neutrino}"
-DEFAULT_BSP_DIR="/home/ilya/neutrino/kpda-bsp-xilinx-zynq7000-2024-bin-20260430-43ee921596/kpda-bsp-xilinx-zynq7000"
+DEFAULT_BSP_DIR="$REPO_ROOT/third_party/neutrino/bsp/ax7020"
 BSP_DIR="${NEUTRINO_BSP_DIR:-$DEFAULT_BSP_DIR}"
 BASE_BUILD="${NEUTRINO_BASE_BUILD:-$BSP_DIR/images/zynq7000-ax7020-ssh.build}"
 GENERATED_BUILD="$BUILD_DIR/zynq7000-ax7020-bvstk.build"
 IFS_FILE="${NEUTRINO_IFS_FILE:-$BUILD_DIR/ifs-zynq7000-ax7020-bvstk.raw}"
 BVSTKCTL="$BUILD_DIR/bvstkctl"
+SSH_IDENTITY="${SSH_IDENTITY:-$BUILD_DIR/ax7020_ssh_client}"
+SSH_KEY_DIR="${NEUTRINO_KEY_DIR:-$BUILD_DIR/ssh}"
+SSH_HOST_KEY="$SSH_KEY_DIR/ssh_host_rsa_key"
+SSH_AUTHORIZED_KEYS="$SSH_KEY_DIR/authorized_keys"
+
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "$1 not found; source the Neutrino 2024 development kit" >&2
+    exit 1
+  fi
+}
+
+ensure_ssh_keys() {
+  local ssh_identity_pub="$SSH_IDENTITY.pub"
+
+  umask 077
+  mkdir -p "$SSH_KEY_DIR" "$(dirname "$SSH_IDENTITY")"
+
+  if [[ ! -f "$SSH_HOST_KEY" || ! -f "$SSH_HOST_KEY.pub" ]]; then
+    ssh-keygen -q -t rsa -b 2048 -m PEM -N '' -f "$SSH_HOST_KEY"
+  fi
+
+  if [[ ! -f "$SSH_IDENTITY" ]]; then
+    ssh-keygen -q -t rsa -b 2048 -N '' -C ax7020-neutrino -f "$SSH_IDENTITY"
+  elif [[ ! -f "$ssh_identity_pub" ]]; then
+    ssh-keygen -y -f "$SSH_IDENTITY" > "$ssh_identity_pub"
+  fi
+
+  cp "$ssh_identity_pub" "$SSH_AUTHORIZED_KEYS"
+  chmod 0600 "$SSH_HOST_KEY" "$SSH_IDENTITY" "$SSH_AUTHORIZED_KEYS"
+  chmod 0644 "$SSH_HOST_KEY.pub" "$ssh_identity_pub"
+}
 
 if ! command -v mkifs >/dev/null 2>&1 && [[ -r /etc/profile.d/kpda_env_2024.sh ]]; then
   # shellcheck disable=SC1091
   source /etc/profile.d/kpda_env_2024.sh
 fi
 
-if ! command -v mkifs >/dev/null 2>&1; then
-  echo "mkifs not found; source the Neutrino 2024 development kit" >&2
-  exit 1
-fi
+require_command mkifs
+require_command ssh-keygen
 if [[ ! -f "$BASE_BUILD" ]]; then
   echo "Base Neutrino build file not found: $BASE_BUILD" >&2
   exit 1
@@ -29,12 +59,16 @@ if [[ ! -d "$BSP_DIR/install" ]]; then
   exit 1
 fi
 
-"$SCRIPT_DIR/build.sh"
 mkdir -p "$BUILD_DIR"
+ensure_ssh_keys
+"$SCRIPT_DIR/build.sh"
 cp "$BASE_BUILD" "$GENERATED_BUILD"
 printf '\n# Burevestnik multi-OS application\n[perms=0755] /usr/bin/bvstkctl = %s\n' \
   "$BVSTKCTL" >> "$GENERATED_BUILD"
 
+BVSTK_SSH_HOST_KEY="$SSH_HOST_KEY" \
+BVSTK_SSH_HOST_KEY_PUB="$SSH_HOST_KEY.pub" \
+BVSTK_SSH_AUTHORIZED_KEYS="$SSH_AUTHORIZED_KEYS" \
 mkifs -r "$BSP_DIR/install" "$GENERATED_BUILD" "$IFS_FILE"
 
 echo "Neutrino IFS: $IFS_FILE"

@@ -59,7 +59,7 @@ FPGA собирается отдельно:
 ./scripts/fpga/build_fpga.sh
 ```
 
-Результаты Vivado попадают в `artifacts/fpga/`, FreeRTOS workspace — в `vitis_ws/`, а результаты Neutrino — в `build/neutrino/`. SDK Neutrino и бинарный BSP являются внешними зависимостями и в репозиторий не копируются.
+Результаты Vivado попадают в `artifacts/fpga/`, FreeRTOS workspace — в `vitis_ws/`, а результаты Neutrino — в `build/neutrino/`. Компилятор и утилита `mkifs` из SDK Neutrino остаются внешней зависимостью хост-машины, а необходимый для AX7020 BSP runtime snapshot хранится в `third_party/neutrino/bsp/ax7020/`.
 
 ## Запуск по JTAG
 
