@@ -7,9 +7,9 @@
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 #include "hardware/boards/ax7020/bvstk_pl_regions.h"
 #include "hardware/pl/spi/bvstk_spi_regs.h"
-#include "drivers/pl/i2c/bvstk_i2c_core.h"
+#include "drivers/pl/i2c/bvstk_i2c_master.h"
 #include "services/control/bvstk_control_api.h"
-#include "services/i2c/bvstk_i2c_service.h"
+#include "services/i2c/bvstk_i2c_master_service.h"
 #include "shared/base/bvstk_status.h"
 #include "shared/config/bvstk_config_model.h"
 #include "shared/interfaces/bvstk_platform.h"
@@ -212,8 +212,11 @@ static int command_pl_probe(void)
     return result;
 }
 
-static int i2c_runtime_open(bvstk_i2c_core_t *core,
-                            bvstk_i2c_service_t *service)
+static int i2c_runtime_open(bvstk_i2c_master_hw_t *hardware,
+                            bvstk_i2c_devices_t *devices,
+                            bvstk_i2c_cache_t *cache,
+                            bvstk_i2c_policy_t *policy,
+                            bvstk_i2c_master_service_t *service)
 {
     static const i2c_device_config_t default_device = {
         .name = "default",
@@ -221,26 +224,37 @@ static int i2c_runtime_open(bvstk_i2c_core_t *core,
         .addr_7b = 0x50,
         .reg_count = 256,
         .max_value_code = 64,
-        .policy = I2C_POLICY_BLACKLIST,
-        .autopoll_enabled = false,
-        .autopoll_cycle_delay_ms = 1000
+        .policy = I2C_POLICY_BLACKLIST
     };
     bvstk_status_t status;
 
-    status = bvstk_i2c_core_init(core, NULL, NULL);
+    status = bvstk_i2c_devices_init_from_config(devices, &default_device, 1U);
+    if (status == BVSTK_OK) {
+        status = bvstk_i2c_cache_init(cache, 1U);
+    }
+    if (status == BVSTK_OK) {
+        status = bvstk_i2c_policy_init(policy, &default_device, 1U);
+    }
+    if (status == BVSTK_OK) {
+        status = bvstk_i2c_master_hw_init(hardware, NULL, NULL);
+    }
     if (status != BVSTK_OK) {
         fprintf(stderr, "bvstkctl: I2C hardware init failed: %s\n",
                 bvstk_status_string(status));
         return 1;
     }
-    status = bvstk_i2c_service_init(service,
-                                    core,
-                                    NULL,
-                                    &default_device,
-                                    1,
-                                    NULL);
+    status = bvstk_i2c_master_service_init(service,
+                                           hardware,
+                                           NULL,
+                                           devices,
+                                           cache,
+                                           policy,
+                                           NULL);
     if (status != BVSTK_OK) {
-        bvstk_i2c_core_shutdown(core);
+        bvstk_i2c_master_hw_shutdown(hardware);
+        bvstk_i2c_policy_shutdown(policy);
+        bvstk_i2c_cache_shutdown(cache);
+        bvstk_i2c_devices_shutdown(devices);
         fprintf(stderr, "bvstkctl: I2C service init failed: %s\n",
                 bvstk_status_string(status));
         return 1;
@@ -248,36 +262,52 @@ static int i2c_runtime_open(bvstk_i2c_core_t *core,
     return 0;
 }
 
-static int i2c_device_id(const bvstk_i2c_service_t *service,
+static void i2c_runtime_close(bvstk_i2c_master_hw_t *hardware,
+                              bvstk_i2c_devices_t *devices,
+                              bvstk_i2c_cache_t *cache,
+                              bvstk_i2c_policy_t *policy,
+                              bvstk_i2c_master_service_t *service)
+{
+    bvstk_i2c_master_service_shutdown(service);
+    bvstk_i2c_master_hw_shutdown(hardware);
+    bvstk_i2c_policy_shutdown(policy);
+    bvstk_i2c_cache_shutdown(cache);
+    bvstk_i2c_devices_shutdown(devices);
+}
+
+static int i2c_device_id(const bvstk_i2c_master_service_t *service,
                          const char *text,
                          size_t *device_id)
 {
     uint32_t address;
 
     if (parse_u32(text, &address) == 0 && address <= 0x7FU) {
-        return bvstk_i2c_service_find_by_addr(service,
-                                               (uint8_t)address,
-                                               device_id) == BVSTK_OK
+        return bvstk_i2c_master_service_find_by_addr(service,
+                                                     (uint8_t)address,
+                                                     device_id) == BVSTK_OK
                    ? 0
                    : -1;
     }
-    return bvstk_i2c_service_find_by_name(service, text, device_id) == BVSTK_OK
+    return bvstk_i2c_master_service_find_by_name(service, text, device_id) == BVSTK_OK
                ? 0
                : -1;
 }
 
 static int command_i2c_list(void)
 {
-    bvstk_i2c_core_t core;
-    bvstk_i2c_service_t service;
+    bvstk_i2c_master_hw_t hardware;
+    bvstk_i2c_devices_t devices;
+    bvstk_i2c_cache_t cache;
+    bvstk_i2c_policy_t policy;
+    bvstk_i2c_master_service_t service;
     size_t i;
 
-    if (i2c_runtime_open(&core, &service) != 0) {
+    if (i2c_runtime_open(&hardware, &devices, &cache, &policy, &service) != 0) {
         return 1;
     }
-    for (i = 0; i < bvstk_i2c_service_device_count(&service); ++i) {
-        bvstk_i2c_device_info_t info;
-        if (bvstk_i2c_service_device_info(&service, i, &info) == BVSTK_OK) {
+    for (i = 0; i < bvstk_i2c_master_service_device_count(&service); ++i) {
+        bvstk_i2c_device_t info;
+        if (bvstk_i2c_master_service_device_info(&service, i, &info) == BVSTK_OK) {
             printf("%s addr=0x%02" PRIx8 " regs=%" PRIu16 " max=%" PRIu8 "\n",
                    info.name,
                    info.addr_7b,
@@ -285,38 +315,38 @@ static int command_i2c_list(void)
                    info.max_value_code);
         }
     }
-    bvstk_i2c_service_shutdown(&service);
-    bvstk_i2c_core_shutdown(&core);
+    i2c_runtime_close(&hardware, &devices, &cache, &policy, &service);
     return 0;
 }
 
 static int command_i2c_read(const char *device_text, const char *reg_text)
 {
-    bvstk_i2c_core_t core;
-    bvstk_i2c_service_t service;
+    bvstk_i2c_master_hw_t hardware;
+    bvstk_i2c_devices_t devices;
+    bvstk_i2c_cache_t cache;
+    bvstk_i2c_policy_t policy;
+    bvstk_i2c_master_service_t service;
     uint32_t reg;
     size_t device_id;
     uint8_t value = 0;
     bvstk_status_t status;
 
     if (parse_u32(reg_text, &reg) != 0 || reg > 0xFFU ||
-        i2c_runtime_open(&core, &service) != 0) {
+        i2c_runtime_open(&hardware, &devices, &cache, &policy, &service) != 0) {
         fprintf(stderr, "bvstkctl: invalid I2C device/register\n");
         return 2;
     }
     if (i2c_device_id(&service, device_text, &device_id) != 0) {
-        bvstk_i2c_service_shutdown(&service);
-        bvstk_i2c_core_shutdown(&core);
+        i2c_runtime_close(&hardware, &devices, &cache, &policy, &service);
         fprintf(stderr, "bvstkctl: unknown I2C device: %s\n", device_text);
         return 2;
     }
-    status = bvstk_i2c_service_read_reg(&service,
-                                        device_id,
-                                        (uint8_t)reg,
-                                        &value,
-                                        100);
-    bvstk_i2c_service_shutdown(&service);
-    bvstk_i2c_core_shutdown(&core);
+    status = bvstk_i2c_master_service_read(&service,
+                                           device_id,
+                                           (uint8_t)reg,
+                                           &value,
+                                           100);
+    i2c_runtime_close(&hardware, &devices, &cache, &policy, &service);
     if (status != BVSTK_OK) {
         return print_service_error("I2C read", status);
     }
@@ -329,8 +359,11 @@ static int command_i2c_write(const char *device_text,
                              const char *reg_text,
                              const char *value_text)
 {
-    bvstk_i2c_core_t core;
-    bvstk_i2c_service_t service;
+    bvstk_i2c_master_hw_t hardware;
+    bvstk_i2c_devices_t devices;
+    bvstk_i2c_cache_t cache;
+    bvstk_i2c_policy_t policy;
+    bvstk_i2c_master_service_t service;
     uint32_t reg;
     uint32_t value;
     size_t device_id;
@@ -338,24 +371,22 @@ static int command_i2c_write(const char *device_text,
 
     if (parse_u32(reg_text, &reg) != 0 || reg > 0xFFU ||
         parse_u32(value_text, &value) != 0 || value > 0xFFU ||
-        i2c_runtime_open(&core, &service) != 0) {
+        i2c_runtime_open(&hardware, &devices, &cache, &policy, &service) != 0) {
         fprintf(stderr, "bvstkctl: invalid I2C device/register/value\n");
         return 2;
     }
     if (i2c_device_id(&service, device_text, &device_id) != 0) {
-        bvstk_i2c_service_shutdown(&service);
-        bvstk_i2c_core_shutdown(&core);
+        i2c_runtime_close(&hardware, &devices, &cache, &policy, &service);
         fprintf(stderr, "bvstkctl: unknown I2C device: %s\n", device_text);
         return 2;
     }
-    status = bvstk_i2c_service_write_reg(&service,
-                                         device_id,
-                                         (uint8_t)reg,
-                                         (uint8_t)value,
-                                         BVSTK_EVENT_SOURCE_CONSOLE,
-                                         100);
-    bvstk_i2c_service_shutdown(&service);
-    bvstk_i2c_core_shutdown(&core);
+    status = bvstk_i2c_master_service_write(&service,
+                                            device_id,
+                                            (uint8_t)reg,
+                                            (uint8_t)value,
+                                            BVSTK_EVENT_SOURCE_CONSOLE,
+                                            100);
+    i2c_runtime_close(&hardware, &devices, &cache, &policy, &service);
     if (status != BVSTK_OK) {
         return print_service_error("I2C write", status);
     }

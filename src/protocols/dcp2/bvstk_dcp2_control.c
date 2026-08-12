@@ -117,7 +117,9 @@ static bvstk_status_t process_i2c(bvstk_control_api_t *control,
         return BVSTK_ERR_MALFORMED;
     }
     address = request->body[0];
-    status = bvstk_i2c_service_find_by_addr(control->i2c, address, &device_id);
+    status = bvstk_i2c_master_service_find_by_addr(control->i2c,
+                                                   address,
+                                                   &device_id);
     if (status != BVSTK_OK) {
         return status;
     }
@@ -151,11 +153,11 @@ static bvstk_status_t process_i2c(bvstk_control_api_t *control,
             (request->body[1] != 0U && request->body[1] != 1U)) {
             return BVSTK_ERR_MALFORMED;
         }
-        status = bvstk_i2c_service_set_policy(control->i2c,
-                                              device_id,
-                                              request->body[1] == 0U
-                                                  ? I2C_POLICY_WHITELIST
-                                                  : I2C_POLICY_BLACKLIST);
+        status = bvstk_i2c_master_service_set_policy(
+            control->i2c,
+            device_id,
+            request->body[1] == 0U ? I2C_POLICY_WHITELIST
+                                    : I2C_POLICY_BLACKLIST);
         *body_size = 0U;
         return status;
     }

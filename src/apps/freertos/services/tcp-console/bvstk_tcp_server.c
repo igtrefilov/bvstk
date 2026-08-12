@@ -483,7 +483,7 @@ static void run_client_session(int fd)
                         if (token_index == 1) {
                             matches = complete_i2c_selector(prefix_part_token, s_dir_candidates, 16, &total);
                         } else if (token_index == 2 && strcasecmp(tok1, "list") != 0) {
-                            static const char *const i2c2[] = { "info", "r", "w", "addr", "address", "policy", "autopoll" };
+                            static const char *const i2c2[] = { "info", "r", "w", "addr", "address", "policy" };
                             matches = complete_words(prefix_part_token, i2c2, sizeof(i2c2) / sizeof(i2c2[0]), s_dir_candidates, 16, &total);
                         } else if (strcasecmp(tok2, "policy") == 0 && strcasecmp(tok1, "list") != 0) {
                             if (token_index == 3) {

@@ -1123,7 +1123,7 @@ static void ssh_collect_argument_matches(const char *const *tokens,
             ssh_collect_i2c_selector(prefix, set);
         } else if (token_count == 2 && strcasecmp(tokens[1], "list") != 0) {
             static const char *const words[] = {
-                "info", "r", "w", "addr", "address", "policy", "autopoll"
+                "info", "r", "w", "addr", "address", "policy"
             };
             ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
         } else if (token_count >= 3 && strcasecmp(tokens[2], "policy") == 0 &&

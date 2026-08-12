@@ -23,7 +23,6 @@ int main()
 	start_http_server();
 	start_dcp2_server();
 	//start_smi();
-	start_i2c();
 	bvstk_runtime_start();
 
 	vTaskStartScheduler();

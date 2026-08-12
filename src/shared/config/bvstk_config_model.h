@@ -21,7 +21,6 @@ typedef struct {
 #define I2C_CFG_FILE_NAME_MAX 48u
 #define I2C_CFG_MAX_REG_COUNT 256u
 #define I2C_CFG_RULES_MAX 256u
-#define I2C_CFG_AUTOPOLL_REGS_MAX 64u
 #define I2C_CFG_SETTINGS_MAX 256u
 
 typedef enum {
@@ -41,11 +40,6 @@ typedef struct {
     uint16_t reg_count;
     uint8_t max_value_code;
     i2c_policy_t policy;
-    bool autopoll_enabled;
-    uint8_t autopoll_regs[I2C_CFG_AUTOPOLL_REGS_MAX];
-    size_t autopoll_regs_len;
-    uint32_t autopoll_reg_delay_ms;
-    uint32_t autopoll_cycle_delay_ms;
     i2c_rule_entry_t whitelist[I2C_CFG_RULES_MAX];
     size_t whitelist_len;
     i2c_rule_entry_t blacklist[I2C_CFG_RULES_MAX];

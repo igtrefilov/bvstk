@@ -6,422 +6,510 @@
 #include <strings.h>
 
 #include "apps/freertos/config/config_store.h"
-#include "apps/freertos/drivers/pl/i2c/bvstk_i2c.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
-#include "apps/freertos/services/dcp2/dcp2_notify.h"
 
 static void i2c_writef(int fd, const char *fmt, ...)
 {
     char buf[256];
     va_list ap;
+    int n;
+
     va_start(ap, fmt);
-    int n = vsnprintf(buf, sizeof(buf), fmt, ap);
+    n = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
-    if (n <= 0) return;
-    if (n >= (int)sizeof(buf)) n = (int)sizeof(buf) - 1;
+    if (n <= 0) {
+        return;
+    }
+    if (n >= (int)sizeof(buf)) {
+        n = (int)sizeof(buf) - 1;
+    }
     (void)console_stream_write(fd, buf, (size_t)n);
 }
 
-static bool rule_contains(const i2c_rule_entry_t *rules, size_t len, uint8_t reg, uint8_t val)
+static bool rule_contains(const i2c_rule_entry_t *rules,
+                          size_t length,
+                          uint8_t reg,
+                          uint8_t value)
 {
-    if (!rules) return false;
-    for (size_t i = 0; i < len; ++i) {
-        if (rules[i].reg == reg && rules[i].val == val) return true;
+    for (size_t i = 0U; i < length; ++i) {
+        if (rules[i].reg == reg && rules[i].val == value) {
+            return true;
+        }
     }
     return false;
 }
 
-static bool parse_selector(const char *tok, size_t *out_idx, const i2c_device_config_t **out_cfg)
+static void rule_add(i2c_rule_entry_t *rules,
+                     size_t *length,
+                     uint8_t reg,
+                     uint8_t value)
 {
-    if (out_idx) *out_idx = 0;
-    if (out_cfg) *out_cfg = NULL;
-    if (!tok || !tok[0]) return false;
+    if (!rule_contains(rules, *length, reg, value) &&
+        *length < I2C_CFG_RULES_MAX) {
+        rules[*length].reg = reg;
+        rules[*length].val = value;
+        (*length)++;
+    }
+}
 
-    size_t idx = 0;
-    const i2c_device_config_t *cfg = NULL;
+static void rule_remove(i2c_rule_entry_t *rules,
+                        size_t *length,
+                        uint8_t reg,
+                        uint8_t value)
+{
+    size_t write_index = 0U;
 
-    if (tok[0] == '@') {
-        bool ok = false;
-        unsigned long a = parse_num(tok + 1, &ok);
-        if (!ok || a > 0x7F) return false;
-        if (!i2cdev_find_device_index_by_addr((uint8_t)a, &idx)) return false;
-        cfg = config_store_find_i2c_device_by_addr((uint8_t)a);
-    } else {
-        if (i2cdev_find_device_index_by_name(tok, &idx)) {
-            cfg = config_store_find_i2c_device_by_name(tok);
-        } else {
-            bool ok = false;
-            unsigned long a = parse_num(tok, &ok);
-            if (ok && a <= 0x7F) {
-                if (!i2cdev_find_device_index_by_addr((uint8_t)a, &idx)) return false;
-                cfg = config_store_find_i2c_device_by_addr((uint8_t)a);
-            } else {
-                return false;
-            }
+    for (size_t i = 0U; i < *length; ++i) {
+        if (rules[i].reg == reg && rules[i].val == value) {
+            continue;
         }
+        rules[write_index++] = rules[i];
     }
+    *length = write_index;
+}
 
-    if (!cfg) {
-        i2cdev_device_info_t info;
-        if (!i2cdev_device_get_info(idx, &info)) return false;
-        cfg = config_store_find_i2c_device_by_name(info.name);
-        if (!cfg) return false;
+static bool parse_selector(const char *token,
+                           size_t *out_index,
+                           const i2c_device_config_t **out_config)
+{
+    bvstk_i2c_master_service_t *service =
+        bvstk_runtime_i2c_master_service();
+    size_t index = 0U;
+    const i2c_device_config_t *config = NULL;
+
+    if (out_index != NULL) {
+        *out_index = 0U;
     }
-
-    if (out_idx) *out_idx = idx;
-    if (out_cfg) *out_cfg = cfg;
+    if (out_config != NULL) {
+        *out_config = NULL;
+    }
+    if (service == NULL || token == NULL || token[0] == '\0') {
+        return false;
+    }
+    if (token[0] == '@') {
+        bool ok = false;
+        unsigned long address = parse_num(token + 1, &ok);
+        if (!ok || address > 0x7FU ||
+            bvstk_i2c_master_service_find_by_addr(service,
+                                                  (uint8_t)address,
+                                                  &index) != BVSTK_OK) {
+            return false;
+        }
+        config = config_store_find_i2c_device_by_addr((uint8_t)address);
+    } else if (bvstk_i2c_master_service_find_by_name(service,
+                                                     token,
+                                                     &index) == BVSTK_OK) {
+        config = config_store_find_i2c_device_by_name(token);
+    } else {
+        bool ok = false;
+        unsigned long address = parse_num(token, &ok);
+        if (!ok || address > 0x7FU ||
+            bvstk_i2c_master_service_find_by_addr(service,
+                                                  (uint8_t)address,
+                                                  &index) != BVSTK_OK) {
+            return false;
+        }
+        config = config_store_find_i2c_device_by_addr((uint8_t)address);
+    }
+    if (config == NULL) {
+        return false;
+    }
+    if (out_index != NULL) {
+        *out_index = index;
+    }
+    if (out_config != NULL) {
+        *out_config = config;
+    }
     return true;
 }
 
-static void persist_cfg(int fd, const i2c_device_config_t *cfg)
+static bool persist_config(int fd, const i2c_device_config_t *config)
 {
-    if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
-    (void)bvstk_runtime_i2c_apply_config(cfg);
-    int saved = config_store_save_i2c_device(cfg);
-    if (!saved) write_str(fd, "WARN: failed to save to flash:/config/i2c/<device>.json\r\n");
+    if (config == NULL ||
+        !bvstk_runtime_i2c_apply_config(config) ||
+        !config_store_set_i2c_device(config)) {
+        write_str(fd, "ERR (failed to apply configuration)\r\n");
+        return false;
+    }
+    if (!config_store_save_i2c_device(config)) {
+        write_str(fd, "WARN: failed to save to flash:/config/i2c/<device>.json\r\n");
+    }
+    return true;
 }
 
 static void cmd_list(int fd)
 {
-    i2cdev_device_info_t sel;
-    bool has_sel = i2cdev_get_selected_info(&sel);
-    size_t n = i2cdev_device_count();
-    i2c_writef(fd, "I2C devices: %u\r\n", (unsigned)n);
-    for (size_t i = 0; i < n; ++i) {
-        i2cdev_device_info_t d;
-        if (!i2cdev_device_get_info(i, &d)) continue;
-        const char *mark = (has_sel && d.name && sel.name && strcmp(d.name, sel.name) == 0) ? "*" : " ";
-        i2c_writef(fd, "%s %u: %s addr=0x%02X regs=%u max_value=%u\r\n",
-                   mark, (unsigned)i,
-                   d.name ? d.name : "?",
-                   (unsigned)d.addr_7b,
-                   (unsigned)d.reg_count,
-                   (unsigned)d.max_value_code);
-    }
-}
+    bvstk_i2c_master_service_t *service =
+        bvstk_runtime_i2c_master_service();
+    size_t count;
 
-static void cmd_info(int fd, size_t idx, const i2c_device_config_t *cfg)
-{
-    i2cdev_device_info_t d;
-    if (!i2cdev_device_get_info(idx, &d)) { write_str(fd, "ERR (no device)\r\n"); return; }
-    const char *pol = (i2cdev_get_policy_dev(idx) == I2CDEV_POLICY_BLACKLIST) ? "blacklist" : "whitelist";
-    i2c_writef(fd, "selected: %s addr=0x%02X regs=%u max_value=%u policy=%s\r\n",
-               d.name ? d.name : "?", (unsigned)d.addr_7b, (unsigned)d.reg_count, (unsigned)d.max_value_code, pol);
-    if (cfg) {
-        i2c_writef(fd, "file=%s whitelist_len=%u blacklist_len=%u settings_len=%u autopoll=%s regs_len=%u\r\n",
-                   cfg->file_name[0] ? cfg->file_name : "?",
-                   (unsigned)cfg->whitelist_len,
-                   (unsigned)cfg->blacklist_len,
-                   (unsigned)cfg->settings_len,
-                   cfg->autopoll_enabled ? "on" : "off",
-                   (unsigned)cfg->autopoll_regs_len);
+    if (service == NULL) {
+        write_str(fd, "ERR (I2C not ready)\r\n");
+        return;
     }
-}
-
-static void cmd_r(int fd, size_t idx, const char *s_reg)
-{
-    if (!s_reg) { write_str(fd, "ERR\r\n"); return; }
-    bool ok = false;
-    unsigned long reg = parse_num(s_reg, &ok);
-    if (!ok || reg > 0xFF) { write_str(fd, "ERR\r\n"); return; }
-    uint8_t v = 0;
-    bvstk_i2c_service_t *service = bvstk_runtime_i2c_service();
-    if (service != NULL) {
-        if (bvstk_i2c_service_read_reg(service,
-                                       idx,
-                                       (uint8_t)reg,
-                                       &v,
-                                       100U) != BVSTK_OK) {
-            write_str(fd, "ERR\r\n");
-            return;
+    count = bvstk_i2c_master_service_device_count(service);
+    i2c_writef(fd, "I2C devices: %u\r\n", (unsigned)count);
+    for (size_t i = 0U; i < count; ++i) {
+        bvstk_i2c_device_t device;
+        if (bvstk_i2c_master_service_device_info(service, i, &device) != BVSTK_OK) {
+            continue;
         }
-    } else if (!i2cdev_read_reg_cached_dev(idx, (uint8_t)reg, &v)) {
+        i2c_writef(fd,
+                   "  %u: %s addr=0x%02X regs=%u max_value=%u\r\n",
+                   (unsigned)i,
+                   device.name,
+                   (unsigned)device.addr_7b,
+                   (unsigned)device.reg_count,
+                   (unsigned)device.max_value_code);
+    }
+}
+
+static void cmd_info(int fd,
+                     size_t device_id,
+                     const i2c_device_config_t *config)
+{
+    bvstk_i2c_master_service_t *service =
+        bvstk_runtime_i2c_master_service();
+    bvstk_i2c_device_t device;
+    bvstk_i2c_policy_entry_t policy;
+
+    if (service == NULL ||
+        bvstk_i2c_master_service_device_info(service, device_id, &device) != BVSTK_OK ||
+        bvstk_i2c_master_service_get_policy(service, device_id, &policy) != BVSTK_OK) {
+        write_str(fd, "ERR (no device)\r\n");
+        return;
+    }
+    i2c_writef(fd,
+               "selected: %s addr=0x%02X regs=%u max_value=%u policy=%s\r\n",
+               device.name,
+               (unsigned)device.addr_7b,
+               (unsigned)device.reg_count,
+               (unsigned)device.max_value_code,
+               policy.mode == I2C_POLICY_BLACKLIST ? "blacklist" : "whitelist");
+    if (config != NULL) {
+        i2c_writef(fd,
+                   "file=%s whitelist_len=%u blacklist_len=%u settings_len=%u\r\n",
+                   config->file_name[0] ? config->file_name : "?",
+                   (unsigned)policy.whitelist_len,
+                   (unsigned)policy.blacklist_len,
+                   (unsigned)config->settings_len);
+    }
+}
+
+static void cmd_read(int fd, size_t device_id, const char *register_text)
+{
+    bvstk_i2c_master_service_t *service =
+        bvstk_runtime_i2c_master_service();
+    bool ok = false;
+    unsigned long reg = parse_num(register_text, &ok);
+    uint8_t value = 0U;
+
+    if (service == NULL || !ok || reg > 0xFFU ||
+        bvstk_i2c_master_service_read(service,
+                                      device_id,
+                                      (uint8_t)reg,
+                                      &value,
+                                      100U) != BVSTK_OK) {
         write_str(fd, "ERR\r\n");
         return;
     }
-    i2c_writef(fd, "OK REG 0x%02lX = 0x%02X %u\r\n", reg, v, v);
+    i2c_writef(fd, "OK REG 0x%02lX = 0x%02X %u\r\n", reg, value, value);
 }
 
-static void cmd_w(int fd, size_t idx, const i2c_device_config_t *cfg, const char *s_reg, const char *s_val)
+static void cmd_write(int fd,
+                      size_t device_id,
+                      const i2c_device_config_t *config,
+                      const char *register_text,
+                      const char *value_text)
 {
-    if (!s_reg || !s_val) { write_str(fd, "ERR\r\n"); return; }
-    bool okr = false, okv = false;
-    unsigned long reg = parse_num(s_reg, &okr);
-    unsigned long val = parse_num(s_val, &okv);
-    if (!okr || !okv || reg > 0xFF || val > 0xFF) { write_str(fd, "ERR\r\n"); return; }
-    if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
-    if ((uint8_t)reg >= cfg->reg_count) {
-        i2c_writef(fd, "ERR DENIED reg=0x%02lX outside range 0x00..0x%02X\r\n",
-                   reg,
-                   (unsigned)(cfg->reg_count ? (cfg->reg_count - 1u) : 0u));
-        return;
-    }
-    if ((uint8_t)val > cfg->max_value_code) {
-        i2c_writef(fd, "ERR DENIED val=0x%02lX exceeds max_value_code=0x%02X\r\n",
-                   val,
-                   (unsigned)cfg->max_value_code);
-        return;
-    }
-    bvstk_i2c_service_t *service = bvstk_runtime_i2c_service();
+    bvstk_i2c_master_service_t *service =
+        bvstk_runtime_i2c_master_service();
+    bool register_ok = false;
+    bool value_ok = false;
+    unsigned long reg = parse_num(register_text, &register_ok);
+    unsigned long value = parse_num(value_text, &value_ok);
     bvstk_status_t status;
-    if (service != NULL) {
-        status = bvstk_i2c_service_write_reg(service,
-                                             idx,
-                                             (uint8_t)reg,
-                                             (uint8_t)val,
-                                             BVSTK_EVENT_SOURCE_CONSOLE,
-                                             100U);
-        if (status == BVSTK_OK) {
-            (void)bvstk_runtime_i2c_sync_device(idx, 1);
-            write_str(fd, "OK\r\n");
-            return;
-        }
-        if (status == BVSTK_ERR_DENIED) {
-            write_str(fd, "ERR DENIED by policy\r\n");
-            return;
-        }
+
+    if (service == NULL || config == NULL || !register_ok || !value_ok ||
+        reg > 0xFFU || value > 0xFFU) {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
+    if (reg >= config->reg_count || value > config->max_value_code) {
+        write_str(fd, "ERR DENIED outside configured range\r\n");
+        return;
+    }
+    status = bvstk_i2c_master_service_write(service,
+                                            device_id,
+                                            (uint8_t)reg,
+                                            (uint8_t)value,
+                                            BVSTK_EVENT_SOURCE_CONSOLE,
+                                            100U);
+    if (status == BVSTK_ERR_DENIED) {
+        write_str(fd, "ERR DENIED by policy\r\n");
+        return;
+    }
+    if (status != BVSTK_OK || !bvstk_runtime_i2c_sync_device(device_id, 1)) {
         write_str(fd, "ERR WRITE_FAILED\r\n");
         return;
-    } else if (!i2cdev_write_reg_dev_source(idx,
-                                            (uint8_t)reg,
-                                            (uint8_t)val,
-                                            (uint8_t)DCP2_NOTIFY_SOURCE_TELNET)) {
-        const bool allowed = (cfg->policy == I2C_POLICY_WHITELIST)
-            ? rule_contains(cfg->whitelist, cfg->whitelist_len, (uint8_t)reg, (uint8_t)val)
-            : !rule_contains(cfg->blacklist, cfg->blacklist_len, (uint8_t)reg, (uint8_t)val);
-        if (!allowed) {
-            if (cfg->policy == I2C_POLICY_WHITELIST) {
-                i2c_writef(fd,
-                           "ERR DENIED policy=whitelist reg=0x%02lX val=0x%02lX whitelist_len=%u (see: i2c %s policy show rules)\r\n",
-                           reg, val, (unsigned)cfg->whitelist_len, cfg->name);
-            } else {
-                i2c_writef(fd,
-                           "ERR DENIED policy=blacklist reg=0x%02lX val=0x%02lX is blocked (see: i2c %s policy show rules)\r\n",
-                           reg, val, cfg->name);
-            }
-        } else {
-            i2c_writef(fd, "ERR WRITE_FAILED reg=0x%02lX val=0x%02lX\r\n", reg, val);
-        }
-        return;
     }
     write_str(fd, "OK\r\n");
 }
 
-static void cmd_policy(int fd, size_t idx, const i2c_device_config_t *cfg, const char *mode)
+static void cmd_policy(int fd,
+                       size_t device_id,
+                       const char *mode)
 {
-    if (!mode) { write_str(fd, "ERR\r\n"); return; }
-    if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
-    bvstk_i2c_service_t *service = bvstk_runtime_i2c_service();
+    bvstk_i2c_master_service_t *service =
+        bvstk_runtime_i2c_master_service();
+    i2c_policy_t policy;
+
+    if (service == NULL || mode == NULL) {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
     if (strcasecmp(mode, "whitelist") == 0) {
-        if (service != NULL) {
-            if (bvstk_i2c_service_set_policy(service, idx, I2C_POLICY_WHITELIST) != BVSTK_OK ||
-                !bvstk_runtime_i2c_sync_device(idx, 1)) {
-                write_str(fd, "ERR\r\n");
-                return;
-            }
-        } else {
-            (void)i2cdev_set_policy_dev(idx, I2CDEV_POLICY_WHITELIST);
-            persist_cfg(fd, cfg);
-        }
-        write_str(fd, "OK\r\n");
-        return;
-    }
-    if (strcasecmp(mode, "blacklist") == 0) {
-        if (service != NULL) {
-            if (bvstk_i2c_service_set_policy(service, idx, I2C_POLICY_BLACKLIST) != BVSTK_OK ||
-                !bvstk_runtime_i2c_sync_device(idx, 1)) {
-                write_str(fd, "ERR\r\n");
-                return;
-            }
-        } else {
-            (void)i2cdev_set_policy_dev(idx, I2CDEV_POLICY_BLACKLIST);
-            persist_cfg(fd, cfg);
-        }
-        write_str(fd, "OK\r\n");
-        return;
-    }
-    write_str(fd, "ERR\r\n");
-}
-
-static void cmd_addr(int fd, size_t idx, const i2c_device_config_t *cfg, const char *s_addr)
-{
-    (void)idx;
-    if (!cfg || !s_addr) { write_str(fd, "ERR\r\n"); return; }
-    bool ok = false;
-    unsigned long a = parse_num(s_addr, &ok);
-    if (!ok || a > 0x7Ful) { write_str(fd, "ERR\r\n"); return; }
-    i2c_device_config_t *mut = (i2c_device_config_t *)cfg;
-    taskENTER_CRITICAL();
-    mut->addr_7b = (uint8_t)(a & 0x7Fu);
-    taskEXIT_CRITICAL();
-    persist_cfg(fd, cfg);
-    write_str(fd, "OK\r\n");
-}
-
-static void cmd_rules(int fd, size_t idx, const i2c_device_config_t *cfg)
-{
-    if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
-    const char *pol = (i2cdev_get_policy_dev(idx) == I2CDEV_POLICY_BLACKLIST) ? "BLACKLIST" : "WHITELIST";
-    i2c_writef(fd, "POLICY=%s\r\n", pol);
-    i2c_writef(fd, "WHITELIST (%u):\r\n", (unsigned)cfg->whitelist_len);
-    for (size_t i = 0; i < cfg->whitelist_len; ++i) {
-        i2c_writef(fd, "  { reg:0x%02X val:0x%02X }\r\n", cfg->whitelist[i].reg, cfg->whitelist[i].val);
-    }
-    i2c_writef(fd, "BLACKLIST (%u):\r\n", (unsigned)cfg->blacklist_len);
-    for (size_t i = 0; i < cfg->blacklist_len; ++i) {
-        i2c_writef(fd, "  { reg:0x%02X val:0x%02X }\r\n", cfg->blacklist[i].reg, cfg->blacklist[i].val);
-    }
-}
-
-static void cmd_rule_list_show(int fd, const char *title, const i2c_rule_entry_t *rules, size_t len)
-{
-    i2c_writef(fd, "%s (%u):\r\n", title, (unsigned)len);
-    for (size_t i = 0; i < len; ++i) {
-        i2c_writef(fd, "  { reg:0x%02X val:0x%02X }\r\n", rules[i].reg, rules[i].val);
-    }
-}
-
-static void cmd_policy_show(int fd, size_t idx, const i2c_device_config_t *cfg, const char *what)
-{
-    if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
-    if (!what) {
-        const char *pol = (i2cdev_get_policy_dev(idx) == I2CDEV_POLICY_BLACKLIST) ? "BLACKLIST" : "WHITELIST";
-        i2c_writef(fd, "POLICY=%s\r\n", pol);
-        return;
-    }
-    if (strcasecmp(what, "rules") == 0) {
-        cmd_rules(fd, idx, cfg);
-        return;
-    }
-    if (strcasecmp(what, "whitelist") == 0) {
-        cmd_rule_list_show(fd, "WHITELIST", cfg->whitelist, cfg->whitelist_len);
-        return;
-    }
-    if (strcasecmp(what, "blacklist") == 0) {
-        cmd_rule_list_show(fd, "BLACKLIST", cfg->blacklist, cfg->blacklist_len);
-        return;
-    }
-    write_str(fd, "ERR\r\n");
-}
-
-static void cmd_policy_list_edit(int fd, size_t idx, const i2c_device_config_t *cfg,
-                                 const char *list_name, const char *action,
-                                 const char *s_reg, const char *s_val)
-{
-    if (!cfg || !list_name || !action) { write_str(fd, "ERR\r\n"); return; }
-
-    if (strcasecmp(action, "clear") == 0) {
-        i2c_device_config_t *mut = (i2c_device_config_t *)cfg;
-        taskENTER_CRITICAL();
-        if (strcasecmp(list_name, "whitelist") == 0) {
-            mut->whitelist_len = 0;
-        } else if (strcasecmp(list_name, "blacklist") == 0) {
-            mut->blacklist_len = 0;
-        } else {
-            taskEXIT_CRITICAL();
-            write_str(fd, "ERR\r\n");
-            return;
-        }
-        taskEXIT_CRITICAL();
-        persist_cfg(fd, cfg);
-        write_str(fd, "OK\r\n");
-        return;
-    }
-
-    if (!s_reg || !s_val) { write_str(fd, "ERR\r\n"); return; }
-    bool okr = false, okv = false;
-    unsigned long reg = parse_num(s_reg, &okr);
-    unsigned long val = parse_num(s_val, &okv);
-    if (!okr || !okv || reg > 0xFF || val > 0xFF) { write_str(fd, "ERR\r\n"); return; }
-
-    bool ok = false;
-    if (strcasecmp(list_name, "whitelist") == 0) {
-        if (strcasecmp(action, "add") == 0) ok = i2cdev_rule_allow_dev(idx, (uint8_t)reg, (uint8_t)val);
-        else if (strcasecmp(action, "del") == 0 || strcasecmp(action, "delete") == 0) ok = i2cdev_rule_clear_dev(idx, (uint8_t)reg, (uint8_t)val);
-        else { write_str(fd, "ERR\r\n"); return; }
-    } else if (strcasecmp(list_name, "blacklist") == 0) {
-        if (strcasecmp(action, "add") == 0) ok = i2cdev_rule_deny_dev(idx, (uint8_t)reg, (uint8_t)val);
-        else if (strcasecmp(action, "del") == 0 || strcasecmp(action, "delete") == 0) ok = i2cdev_rule_clear_dev(idx, (uint8_t)reg, (uint8_t)val);
-        else { write_str(fd, "ERR\r\n"); return; }
+        policy = I2C_POLICY_WHITELIST;
+    } else if (strcasecmp(mode, "blacklist") == 0) {
+        policy = I2C_POLICY_BLACKLIST;
     } else {
         write_str(fd, "ERR\r\n");
         return;
     }
-
-    if (ok) persist_cfg(fd, cfg);
-    write_str(fd, ok ? "OK\r\n" : "ERR\r\n");
+    if (bvstk_i2c_master_service_set_policy(service, device_id, policy) != BVSTK_OK ||
+        !bvstk_runtime_i2c_sync_device(device_id, 1)) {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
+    write_str(fd, "OK\r\n");
 }
 
-static void cmd_policy_dispatch(int fd, size_t idx, const i2c_device_config_t *cfg, char **save)
+static void cmd_addr(int fd,
+                     const i2c_device_config_t *config,
+                     const char *address_text)
 {
-    char *sub = strtok_r(NULL, " \t", save);
-    if (!sub) {
-        cmd_policy_show(fd, idx, cfg, NULL);
+    bool ok = false;
+    unsigned long address = parse_num(address_text, &ok);
+    i2c_device_config_t next;
+
+    if (config == NULL || !ok || address > 0x7FU) {
+        write_str(fd, "ERR\r\n");
         return;
     }
-
-    if (strcasecmp(sub, "show") == 0) {
-        cmd_policy_show(fd, idx, cfg, strtok_r(NULL, " \t", save));
-        return;
+    next = *config;
+    next.addr_7b = (uint8_t)address;
+    if (persist_config(fd, &next)) {
+        write_str(fd, "OK\r\n");
     }
-
-    if (strcasecmp(sub, "set") == 0) {
-        cmd_policy(fd, idx, cfg, strtok_r(NULL, " \t", save));
-        return;
-    }
-
-    if (strcasecmp(sub, "whitelist") == 0 || strcasecmp(sub, "blacklist") == 0) {
-        char *action = strtok_r(NULL, " \t", save);
-        if (!action) { write_str(fd, "ERR\r\n"); return; }
-        cmd_policy_list_edit(fd, idx, cfg, sub, action,
-                             strtok_r(NULL, " \t", save),
-                             strtok_r(NULL, " \t", save));
-        return;
-    }
-
-    write_str(fd, "ERR\r\n");
 }
 
-static void cmd_autopoll_show(int fd, const i2c_device_config_t *cfg)
+static void cmd_rules(int fd,
+                      const i2c_device_config_t *config,
+                      const bvstk_i2c_policy_entry_t *policy)
 {
-    if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
-    i2c_writef(fd, "autopoll: %s reg_delay_ms=%u cycle_delay_ms=%u regs_len=%u\r\n",
-               cfg->autopoll_enabled ? "on" : "off",
-               (unsigned)cfg->autopoll_reg_delay_ms,
-               (unsigned)cfg->autopoll_cycle_delay_ms,
-               (unsigned)cfg->autopoll_regs_len);
-    if (cfg->autopoll_regs_len) {
-        write_str(fd, "regs:");
-        for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
-            i2c_writef(fd, " 0x%02X", cfg->autopoll_regs[i]);
+    if (config == NULL || policy == NULL) {
+        write_str(fd, "ERR (no device)\r\n");
+        return;
+    }
+    i2c_writef(fd,
+               "POLICY=%s\r\n",
+               policy->mode == I2C_POLICY_BLACKLIST ? "BLACKLIST" : "WHITELIST");
+    i2c_writef(fd, "WHITELIST (%u):\r\n", (unsigned)policy->whitelist_len);
+    for (size_t i = 0U; i < policy->whitelist_len; ++i) {
+        i2c_writef(fd,
+                   "  { reg:0x%02X val:0x%02X }\r\n",
+                   policy->whitelist[i].reg,
+                   policy->whitelist[i].val);
+    }
+    i2c_writef(fd, "BLACKLIST (%u):\r\n", (unsigned)policy->blacklist_len);
+    for (size_t i = 0U; i < policy->blacklist_len; ++i) {
+        i2c_writef(fd,
+                   "  { reg:0x%02X val:0x%02X }\r\n",
+                   policy->blacklist[i].reg,
+                   policy->blacklist[i].val);
+    }
+}
+
+static void cmd_policy_show(int fd,
+                            size_t device_id,
+                            const i2c_device_config_t *config,
+                            const char *what)
+{
+    bvstk_i2c_master_service_t *service =
+        bvstk_runtime_i2c_master_service();
+    bvstk_i2c_policy_entry_t policy;
+
+    if (service == NULL || config == NULL ||
+        bvstk_i2c_master_service_get_policy(service, device_id, &policy) != BVSTK_OK) {
+        write_str(fd, "ERR (no device)\r\n");
+        return;
+    }
+    if (what == NULL) {
+        i2c_writef(fd,
+                   "POLICY=%s\r\n",
+                   policy.mode == I2C_POLICY_BLACKLIST ? "BLACKLIST" : "WHITELIST");
+    } else if (strcasecmp(what, "rules") == 0) {
+        cmd_rules(fd, config, &policy);
+    } else if (strcasecmp(what, "whitelist") == 0) {
+        i2c_writef(fd, "WHITELIST (%u):\r\n", (unsigned)policy.whitelist_len);
+        for (size_t i = 0U; i < policy.whitelist_len; ++i) {
+            i2c_writef(fd,
+                       "  { reg:0x%02X val:0x%02X }\r\n",
+                       policy.whitelist[i].reg,
+                       policy.whitelist[i].val);
         }
-        write_str(fd, "\r\n");
+    } else if (strcasecmp(what, "blacklist") == 0) {
+        i2c_writef(fd, "BLACKLIST (%u):\r\n", (unsigned)policy.blacklist_len);
+        for (size_t i = 0U; i < policy.blacklist_len; ++i) {
+            i2c_writef(fd,
+                       "  { reg:0x%02X val:0x%02X }\r\n",
+                       policy.blacklist[i].reg,
+                       policy.blacklist[i].val);
+        }
+    } else {
+        write_str(fd, "ERR\r\n");
     }
 }
 
-bool i2c_handle(char *tok, char **save, int fd)
+static void cmd_policy_list_edit(int fd,
+                                 size_t device_id,
+                                 const i2c_device_config_t *config,
+                                 const char *list_name,
+                                 const char *action,
+                                 const char *register_text,
+                                 const char *value_text)
 {
-    if (!tok || strcasecmp(tok, "i2c") != 0) return false;
+    bool register_ok = false;
+    bool value_ok = false;
+    unsigned long reg = parse_num(register_text, &register_ok);
+    unsigned long value = parse_num(value_text, &value_ok);
+    i2c_device_config_t next;
+
+    (void)device_id;
+    if (config == NULL || list_name == NULL || action == NULL) {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
+    next = *config;
+    if (strcasecmp(action, "clear") == 0) {
+        if (strcasecmp(list_name, "whitelist") == 0) {
+            next.whitelist_len = 0U;
+        } else if (strcasecmp(list_name, "blacklist") == 0) {
+            next.blacklist_len = 0U;
+        } else {
+            write_str(fd, "ERR\r\n");
+            return;
+        }
+    } else {
+        if (!register_ok || !value_ok || reg > 0xFFU || value > 0xFFU ||
+            reg >= next.reg_count || value > next.max_value_code) {
+            write_str(fd, "ERR\r\n");
+            return;
+        }
+        if (strcasecmp(list_name, "whitelist") == 0) {
+            if (strcasecmp(action, "add") == 0) {
+                rule_add(next.whitelist, &next.whitelist_len, (uint8_t)reg, (uint8_t)value);
+            } else if (strcasecmp(action, "del") == 0 ||
+                       strcasecmp(action, "delete") == 0) {
+                rule_remove(next.whitelist, &next.whitelist_len, (uint8_t)reg, (uint8_t)value);
+            } else {
+                write_str(fd, "ERR\r\n");
+                return;
+            }
+        } else if (strcasecmp(list_name, "blacklist") == 0) {
+            if (strcasecmp(action, "add") == 0) {
+                rule_add(next.blacklist, &next.blacklist_len, (uint8_t)reg, (uint8_t)value);
+            } else if (strcasecmp(action, "del") == 0 ||
+                       strcasecmp(action, "delete") == 0) {
+                rule_remove(next.blacklist, &next.blacklist_len, (uint8_t)reg, (uint8_t)value);
+            } else {
+                write_str(fd, "ERR\r\n");
+                return;
+            }
+        } else {
+            write_str(fd, "ERR\r\n");
+            return;
+        }
+    }
+    if (persist_config(fd, &next)) {
+        write_str(fd, "OK\r\n");
+    }
+}
+
+static void cmd_policy_dispatch(int fd,
+                                size_t device_id,
+                                const i2c_device_config_t *config,
+                                char **save)
+{
     char *sub = strtok_r(NULL, " \t", save);
-    if (!sub || strcasecmp(sub, "-h") == 0 || strcasecmp(sub, "--help") == 0) { i2c_help(fd); return true; }
+    if (sub == NULL) {
+        cmd_policy_show(fd, device_id, config, NULL);
+    } else if (strcasecmp(sub, "show") == 0) {
+        cmd_policy_show(fd, device_id, config, strtok_r(NULL, " \t", save));
+    } else if (strcasecmp(sub, "set") == 0) {
+        cmd_policy(fd, device_id, strtok_r(NULL, " \t", save));
+    } else if (strcasecmp(sub, "whitelist") == 0 ||
+               strcasecmp(sub, "blacklist") == 0) {
+        char *action = strtok_r(NULL, " \t", save);
+        if (action == NULL) {
+            cmd_policy_show(fd, device_id, config, sub);
+        } else {
+            cmd_policy_list_edit(fd,
+                                 device_id,
+                                 config,
+                                 sub,
+                                 action,
+                                 strtok_r(NULL, " \t", save),
+                                 strtok_r(NULL, " \t", save));
+        }
+    } else {
+        write_str(fd, "ERR\r\n");
+    }
+}
 
-    if (strcasecmp(sub, "list") == 0) { cmd_list(fd); return true; }
+bool i2c_handle(char *token, char **save, int fd)
+{
+    size_t device_id = 0U;
+    const i2c_device_config_t *config = NULL;
+    char *subcommand;
+    char *command;
 
-    size_t idx = 0;
-    const i2c_device_config_t *cfg = NULL;
-    if (!parse_selector(sub, &idx, &cfg)) { write_str(fd, "ERR (device not found)\r\n"); return true; }
-
-    char *cmd = strtok_r(NULL, " \t", save);
-    if (!cmd) { cmd_info(fd, idx, cfg); return true; }
-
-    if (strcasecmp(cmd, "info") == 0) { cmd_info(fd, idx, cfg); return true; }
-    if (strcasecmp(cmd, "r") == 0) { cmd_r(fd, idx, strtok_r(NULL, " \t", save)); return true; }
-    if (strcasecmp(cmd, "w") == 0) { cmd_w(fd, idx, cfg, strtok_r(NULL, " \t", save), strtok_r(NULL, " \t", save)); return true; }
-    if (strcasecmp(cmd, "addr") == 0 || strcasecmp(cmd, "address") == 0) { cmd_addr(fd, idx, cfg, strtok_r(NULL, " \t", save)); return true; }
-    if (strcasecmp(cmd, "policy") == 0) { cmd_policy_dispatch(fd, idx, cfg, save); return true; }
-    if (strcasecmp(cmd, "autopoll") == 0) { cmd_autopoll_show(fd, cfg); return true; }
-
-    write_str(fd, "ERR\r\n");
+    if (token == NULL || strcasecmp(token, "i2c") != 0) {
+        return false;
+    }
+    subcommand = strtok_r(NULL, " \t", save);
+    if (subcommand == NULL || strcasecmp(subcommand, "-h") == 0 ||
+        strcasecmp(subcommand, "--help") == 0) {
+        i2c_help(fd);
+        return true;
+    }
+    if (strcasecmp(subcommand, "list") == 0) {
+        cmd_list(fd);
+        return true;
+    }
+    if (!parse_selector(subcommand, &device_id, &config)) {
+        write_str(fd, "ERR (device not found)\r\n");
+        return true;
+    }
+    command = strtok_r(NULL, " \t", save);
+    if (command == NULL || strcasecmp(command, "info") == 0) {
+        cmd_info(fd, device_id, config);
+    } else if (strcasecmp(command, "r") == 0) {
+        cmd_read(fd, device_id, strtok_r(NULL, " \t", save));
+    } else if (strcasecmp(command, "w") == 0) {
+        cmd_write(fd,
+                  device_id,
+                  config,
+                  strtok_r(NULL, " \t", save),
+                  strtok_r(NULL, " \t", save));
+    } else if (strcasecmp(command, "addr") == 0 ||
+               strcasecmp(command, "address") == 0) {
+        cmd_addr(fd, config, strtok_r(NULL, " \t", save));
+    } else if (strcasecmp(command, "policy") == 0) {
+        cmd_policy_dispatch(fd, device_id, config, save);
+    } else {
+        write_str(fd, "ERR\r\n");
+    }
     return true;
 }
 
@@ -435,6 +523,7 @@ void i2c_help(int fd)
     write_str(fd, "  i2c <name> addr <addr_7b>   (set 7-bit address, persists)\r\n");
     write_str(fd, "  i2c <name> policy\r\n");
     write_str(fd, "  i2c <name> policy show [rules|whitelist|blacklist]\r\n");
+    write_str(fd, "  i2c <name> policy [whitelist|blacklist]  (show list)\r\n");
     write_str(fd, "  i2c <name> policy set <whitelist|blacklist>\r\n");
     write_str(fd, "  i2c <name> policy whitelist add <reg> <val>\r\n");
     write_str(fd, "  i2c <name> policy whitelist del <reg> <val>\r\n");
@@ -442,6 +531,5 @@ void i2c_help(int fd)
     write_str(fd, "  i2c <name> policy blacklist add <reg> <val>\r\n");
     write_str(fd, "  i2c <name> policy blacklist del <reg> <val>\r\n");
     write_str(fd, "  i2c <name> policy blacklist clear\r\n");
-    write_str(fd, "  i2c <name> autopoll\r\n");
-    write_str(fd, "  (address selector: use @0x.. instead of <name>, e.g. `i2c @0x36 r 0x10`)\r\n");
+    write_str(fd, "  (address selector: use @0x.. instead of <name>)\r\n");
 }

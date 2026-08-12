@@ -12,8 +12,8 @@ typedef struct {
     unsigned int json_len;
 } default_json_file_t;
 
-static const char DEFAULT_I2C_AXP15060_JSON[] = "{\n  \"name\": \"axp15060\",\n  \"addr_7b\": 54,\n  \"reg_count\": 74,\n  \"max_value_code\": 64,\n  \"policy\": \"whitelist\",\n  \"autopoll_enabled\": true,\n  \"autopoll_reg_delay_ms\": 5,\n  \"autopoll_cycle_delay_ms\": 200,\n  \"autopoll_regs\": [0, 49, 50, 72, 73],\n  \"whitelist\": [\n    { \"reg\": 19, \"val\": 16 },\n    { \"reg\": 19, \"val\": 17 },\n    { \"reg\": 19, \"val\": 18 },\n    { \"reg\": 19, \"val\": 19 }\n  ],\n  \"blacklist\": []\n}\n";
-static const unsigned int DEFAULT_I2C_AXP15060_JSON_LEN = 402u;
+static const char DEFAULT_I2C_AXP15060_JSON[] = "{\n  \"name\": \"axp15060\",\n  \"addr_7b\": 54,\n  \"reg_count\": 74,\n  \"max_value_code\": 64,\n  \"policy\": \"whitelist\",\n  \"whitelist\": [\n    { \"reg\": 19, \"val\": 16 },\n    { \"reg\": 19, \"val\": 17 },\n    { \"reg\": 19, \"val\": 18 },\n    { \"reg\": 19, \"val\": 19 }\n  ],\n  \"blacklist\": []\n}\n";
+static const unsigned int DEFAULT_I2C_AXP15060_JSON_LEN = 270u;
 
 static const default_json_file_t DEFAULT_I2C_CONFIG_FILES[] = {
     { "axp15060.json", DEFAULT_I2C_AXP15060_JSON, DEFAULT_I2C_AXP15060_JSON_LEN },

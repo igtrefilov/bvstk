@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #include "drivers/pl/spi/bvstk_spi_core.h"
-#include "services/i2c/bvstk_i2c_service.h"
+#include "services/i2c/bvstk_i2c_master_service.h"
 #include "services/smi/bvstk_smi_service.h"
 #include "shared/pl/access/bvstk_pl_service.h"
 
@@ -16,7 +16,7 @@
  */
 typedef struct {
     bvstk_pl_service_t *pl;
-    bvstk_i2c_service_t *i2c;
+    bvstk_i2c_master_service_t *i2c;
     bvstk_smi_service_t *smi;
     bvstk_spi_core_t *spi;
 } bvstk_control_api_t;

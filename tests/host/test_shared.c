@@ -5,9 +5,11 @@
 #include <string.h>
 
 #include "hardware/boards/ax7020/bvstk_pl_regions.h"
-#include "drivers/pl/i2c/bvstk_i2c_core.h"
+#include "drivers/pl/i2c/bvstk_i2c_master.h"
+#include "drivers/pl/i2c/bvstk_i2c_slave.h"
 #include "drivers/pl/smi/bvstk_smi_core.h"
 #include "drivers/pl/spi/bvstk_spi_core.h"
+#include "hardware/pl/i2c/bvstk_i2c_regs.h"
 #include "protocols/dcp2/bvstk_dcp2_codec.h"
 #include "protocols/dcp2/bvstk_dcp2_control.h"
 #include "shared/base/bvstk_parse.h"
@@ -16,7 +18,8 @@
 #include "shared/events/bvstk_event.h"
 #include "shared/interfaces/bvstk_mmio.h"
 #include "shared/pl/access/bvstk_pl_service.h"
-#include "services/i2c/bvstk_i2c_service.h"
+#include "services/i2c/bvstk_i2c_master_service.h"
+#include "services/i2c/bvstk_i2c_slave_service.h"
 #include "services/smi/bvstk_smi_service.h"
 #include "services/control/bvstk_control_api.h"
 
@@ -44,7 +47,6 @@ typedef struct {
     uint16_t smi_value;
     unsigned reads;
     unsigned writes;
-    bvstk_event_source_t last_source;
 } fake_bus_t;
 
 static bvstk_status_t fake_i2c_read(void *context,
@@ -66,7 +68,6 @@ static bvstk_status_t fake_i2c_write(void *context,
                                      uint8_t addr_7b,
                                      uint8_t reg,
                                      uint8_t value,
-                                     bvstk_event_source_t source,
                                      uint32_t timeout_ms)
 {
     fake_bus_t *bus = (fake_bus_t *)context;
@@ -74,7 +75,6 @@ static bvstk_status_t fake_i2c_write(void *context,
     (void)reg;
     (void)timeout_ms;
     bus->writes++;
-    bus->last_source = source;
     bus->i2c_value = value;
     return BVSTK_OK;
 }
@@ -104,9 +104,9 @@ static bvstk_status_t fake_smi_write(void *context,
     fake_bus_t *bus = (fake_bus_t *)context;
     (void)phy_addr;
     (void)reg;
+    (void)source;
     (void)timeout_ms;
     bus->writes++;
-    bus->last_source = source;
     bus->smi_value = value;
     return BVSTK_OK;
 }
@@ -194,9 +194,15 @@ int main(void)
     bool ok = false;
     fake_bus_t bus = {.i2c_value = 0x55U, .smi_value = 0x1234U};
     event_log_t events = {0};
-    bvstk_i2c_service_t i2c_service;
+    bvstk_i2c_devices_t i2c_devices;
+    bvstk_i2c_cache_t i2c_cache;
+    bvstk_i2c_policy_t i2c_policy;
+    bvstk_i2c_master_service_t i2c_service;
+    bvstk_i2c_master_hw_t i2c_master_hw;
+    bvstk_i2c_slave_hw_t i2c_slave_hw;
+    bvstk_i2c_slave_service_t i2c_slave_service;
     bvstk_smi_service_t smi_service;
-    bvstk_i2c_bus_ops_t i2c_ops = {
+    bvstk_i2c_master_io_t i2c_ops = {
         .context = &bus,
         .read_reg = fake_i2c_read,
         .write_reg = fake_i2c_write
@@ -258,29 +264,88 @@ int main(void)
     CHECK(status == BVSTK_ERR_RANGE);
     bvstk_pl_service_shutdown(&service);
 
-    CHECK(bvstk_i2c_service_init(&i2c_service,
-                                 NULL,
-                                 &i2c_ops,
-                                 &i2c_config,
-                                 1U,
-                                 &event_sink) == BVSTK_OK);
-    CHECK(bvstk_i2c_service_read_reg(&i2c_service, 0U, 1U, &value8, 10U) == BVSTK_OK);
+    CHECK(bvstk_i2c_devices_init_from_config(&i2c_devices,
+                                             &i2c_config,
+                                             1U) == BVSTK_OK);
+    CHECK(bvstk_i2c_cache_init(&i2c_cache, 1U) == BVSTK_OK);
+    CHECK(bvstk_i2c_policy_init(&i2c_policy, &i2c_config, 1U) == BVSTK_OK);
+    CHECK(bvstk_i2c_master_service_init(&i2c_service,
+                                        NULL,
+                                        &i2c_ops,
+                                        &i2c_devices,
+                                        &i2c_cache,
+                                        &i2c_policy,
+                                        &event_sink) == BVSTK_OK);
+    CHECK(bvstk_i2c_master_service_read(&i2c_service,
+                                        0U,
+                                        1U,
+                                        &value8,
+                                        10U) == BVSTK_OK);
     CHECK(value8 == 0x55U && bus.reads == 1U);
-    CHECK(bvstk_i2c_service_write_reg(&i2c_service,
-                                      0U,
-                                      3U,
-                                      7U,
-                                      BVSTK_EVENT_SOURCE_DCP,
-                                      10U) == BVSTK_ERR_DENIED);
-    CHECK(bvstk_i2c_service_write_reg(&i2c_service,
-                                      0U,
-                                      2U,
-                                      5U,
-                                      BVSTK_EVENT_SOURCE_DCP,
-                                      10U) == BVSTK_OK);
-    CHECK(bus.writes == 1U && bus.last_source == BVSTK_EVENT_SOURCE_DCP);
+    CHECK(bvstk_i2c_master_service_write(&i2c_service,
+                                         0U,
+                                         3U,
+                                         7U,
+                                         BVSTK_EVENT_SOURCE_DCP,
+                                         10U) == BVSTK_ERR_DENIED);
+    CHECK(bvstk_i2c_master_service_write(&i2c_service,
+                                         0U,
+                                         2U,
+                                         5U,
+                                         BVSTK_EVENT_SOURCE_DCP,
+                                         10U) == BVSTK_OK);
+    CHECK(bus.writes == 1U && events.last.source == BVSTK_EVENT_SOURCE_DCP);
     CHECK(events.count == 4U && events.types[1] == BVSTK_EVENT_REG_DENIED &&
           events.types[3] == BVSTK_EVENT_REG_COMMIT);
+
+    CHECK(bvstk_i2c_master_hw_init(&i2c_master_hw, NULL, NULL) == BVSTK_OK);
+    {
+        uint32_t word0 = UINT32_C(0x0000BBAA);
+        uint32_t word1 = UINT32_C(0x0000DDCC);
+        uint8_t raw_read[2] = {0U, 0U};
+
+        memcpy((void *)(i2c_master_hw.bram.mapped_base +
+                        BVSTK_I2C_BRAM_MASTER_OFFSET + sizeof(uint32_t)),
+               &word0,
+               sizeof(word0));
+        memcpy((void *)(i2c_master_hw.bram.mapped_base +
+                        BVSTK_I2C_BRAM_MASTER_OFFSET + 2U * sizeof(uint32_t)),
+               &word1,
+               sizeof(word1));
+        CHECK(bvstk_i2c_master_hw_transfer(&i2c_master_hw,
+                                           0x50U,
+                                           NULL,
+                                           0U,
+                                           raw_read,
+                                           sizeof(raw_read),
+                                           10U) == BVSTK_OK);
+        CHECK(raw_read[0] == 0xAAU && raw_read[1] == 0xBBU);
+    }
+    bvstk_i2c_master_hw_shutdown(&i2c_master_hw);
+
+    CHECK(bvstk_i2c_cache_write(&i2c_cache, 0U, 2U, 0xA5U) == BVSTK_OK);
+    CHECK(bvstk_i2c_slave_service_init(&i2c_slave_service,
+                                       &i2c_devices,
+                                       &i2c_cache,
+                                       &i2c_service,
+                                       0U) == BVSTK_OK);
+    {
+        uint8_t pointer_frame[] = {2U};
+        size_t read_window_size = 0U;
+        CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                                                   pointer_frame,
+                                                   sizeof(pointer_frame),
+                                                   0U,
+                                                   response,
+                                                   sizeof(response),
+                                                   &read_window_size,
+                                                   10U) == BVSTK_OK);
+        CHECK(read_window_size != 0U && response[0] == 0xA5U);
+    }
+    bvstk_i2c_slave_service_shutdown(&i2c_slave_service);
+
+    CHECK(bvstk_i2c_slave_hw_init(&i2c_slave_hw) == BVSTK_OK);
+    bvstk_i2c_slave_hw_shutdown(&i2c_slave_hw);
     CHECK(bvstk_smi_service_init(&smi_service,
                                  NULL,
                                  &smi_ops,
@@ -333,7 +398,10 @@ int main(void)
                                      &response_size) == 0);
     CHECK(response_size == 15U && response[9] == BVSTK_DCP2_OP_RESPONSE &&
           bvstk_dcp2_read_be16(response + 12) == 0U && response[14] == 0xAAU);
-    bvstk_i2c_service_shutdown(&i2c_service);
+    bvstk_i2c_master_service_shutdown(&i2c_service);
+    bvstk_i2c_policy_shutdown(&i2c_policy);
+    bvstk_i2c_cache_shutdown(&i2c_cache);
+    bvstk_i2c_devices_shutdown(&i2c_devices);
 
     puts("shared host tests passed");
     return 0;

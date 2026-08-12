@@ -31,11 +31,11 @@ bvstk_status_t bvstk_control_i2c_read(bvstk_control_api_t *api,
     if (api == NULL || api->i2c == NULL) {
         return BVSTK_ERR_NOT_READY;
     }
-    return bvstk_i2c_service_read_reg(api->i2c,
-                                      device_id,
-                                      reg,
-                                      value,
-                                      timeout_ms);
+    return bvstk_i2c_master_service_read(api->i2c,
+                                         device_id,
+                                         reg,
+                                         value,
+                                         timeout_ms);
 }
 
 bvstk_status_t bvstk_control_i2c_write(bvstk_control_api_t *api,
@@ -48,12 +48,12 @@ bvstk_status_t bvstk_control_i2c_write(bvstk_control_api_t *api,
     if (api == NULL || api->i2c == NULL) {
         return BVSTK_ERR_NOT_READY;
     }
-    return bvstk_i2c_service_write_reg(api->i2c,
-                                       device_id,
-                                       reg,
-                                       value,
-                                       source,
-                                       timeout_ms);
+    return bvstk_i2c_master_service_write(api->i2c,
+                                          device_id,
+                                          reg,
+                                          value,
+                                          source,
+                                          timeout_ms);
 }
 
 bvstk_status_t bvstk_control_smi_read(bvstk_control_api_t *api,

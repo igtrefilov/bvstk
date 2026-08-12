@@ -25,7 +25,7 @@
 #include "xscuwdt.h"
 
 #include "apps/freertos/config/config_store.h"
-#include "apps/freertos/drivers/pl/i2c/bvstk_i2c.h"
+#include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
 #include "apps/freertos/storage/fs/fs_devices.h"
 #include "apps/freertos/storage/fs/fs_shared.h"
@@ -369,39 +369,6 @@ static int json_get_u32_val(const char *json, const char *key, uint32_t *out)
     return 1;
 }
 
-static int json_parse_u8_array(const char *json, const char *key, uint8_t *out, size_t out_max, size_t *out_len)
-{
-    if (out_len) *out_len = 0;
-    if (!out || out_max == 0) return 0;
-    const char *p = json_find_key(json, key);
-    if (!p) return 0;
-    p = json_skip_ws(p);
-    if (!p || *p != '[') return 0;
-    p++;
-    size_t n = 0;
-    while (p && *p) {
-        p = json_skip_ws(p);
-        if (*p == ']') {
-            if (out_len) *out_len = n;
-            return 1;
-        }
-        if (n >= out_max) return 0;
-        char *end = NULL;
-        unsigned long v = strtoul(p, &end, 10);
-        if (!end || end == p) return 0;
-        if (v > 255UL) return 0;
-        out[n++] = (uint8_t)v;
-        p = json_skip_ws(end);
-        if (*p == ',') { p++; continue; }
-        if (*p == ']') {
-            if (out_len) *out_len = n;
-            return 1;
-        }
-        return 0;
-    }
-    return 0;
-}
-
 static int json_parse_rules_array(const char *json, const char *key, i2c_rule_entry_t *out, size_t out_max, size_t *out_len)
 {
     if (out_len) *out_len = 0;
@@ -701,20 +668,6 @@ static void api_write_i2c_rules(int fd, const char *key, const i2c_rule_entry_t 
     if (comma) http_write_str(fd, ",");
 }
 
-static void api_write_u8_array(int fd, const char *key, const uint8_t *arr, size_t len, bool comma)
-{
-    http_write_str(fd, "\"");
-    http_write_str(fd, key);
-    http_write_str(fd, "\":[");
-    for (size_t i = 0; i < len; ++i) {
-        char b[24];
-        int n = snprintf(b, sizeof(b), "%s%u", (i == 0) ? "" : ",", (unsigned)arr[i]);
-        if (n > 0) http_write_str(fd, b);
-    }
-    http_write_str(fd, "]");
-    if (comma) http_write_str(fd, ",");
-}
-
 static void api_handle_i2c(int fd, const char *name_opt)
 {
     http_reply_json_hdr(fd, 200, "OK");
@@ -739,22 +692,6 @@ static void api_handle_i2c(int fd, const char *name_opt)
         json_write_escaped(fd, d->file_name);
         http_write_str(fd, ",\"policy\":");
         json_write_escaped(fd, (d->policy == I2C_POLICY_BLACKLIST) ? "blacklist" : "whitelist");
-        http_write_str(fd, ",\"autopoll_enabled\":");
-        http_write_str(fd, d->autopoll_enabled ? "true" : "false");
-        http_write_str(fd, ",\"autopoll_reg_delay_ms\":");
-        {
-            char b[24];
-            int n = snprintf(b, sizeof(b), "%lu", (unsigned long)d->autopoll_reg_delay_ms);
-            if (n > 0) http_write_str(fd, b);
-        }
-        http_write_str(fd, ",\"autopoll_cycle_delay_ms\":");
-        {
-            char b[24];
-            int n = snprintf(b, sizeof(b), "%lu", (unsigned long)d->autopoll_cycle_delay_ms);
-            if (n > 0) http_write_str(fd, b);
-        }
-        http_write_str(fd, ",");
-        api_write_u8_array(fd, "autopoll_regs", d->autopoll_regs, d->autopoll_regs_len, true);
         api_write_i2c_rules(fd, "whitelist", d->whitelist, d->whitelist_len, true);
         api_write_i2c_rules(fd, "blacklist", d->blacklist, d->blacklist_len, false);
         http_write_str(fd, "}}");
@@ -782,26 +719,6 @@ static void api_handle_i2c(int fd, const char *name_opt)
         json_write_escaped(fd, d->file_name);
         http_write_str(fd, ",\"policy\":");
         json_write_escaped(fd, (d->policy == I2C_POLICY_BLACKLIST) ? "blacklist" : "whitelist");
-        http_write_str(fd, ",\"autopoll_enabled\":");
-        http_write_str(fd, d->autopoll_enabled ? "true" : "false");
-        http_write_str(fd, ",\"autopoll_regs_len\":");
-        {
-            char b[16];
-            int n = snprintf(b, sizeof(b), "%u", (unsigned)d->autopoll_regs_len);
-            if (n > 0) http_write_str(fd, b);
-        }
-        http_write_str(fd, ",\"autopoll_reg_delay_ms\":");
-        {
-            char b[24];
-            int n = snprintf(b, sizeof(b), "%lu", (unsigned long)d->autopoll_reg_delay_ms);
-            if (n > 0) http_write_str(fd, b);
-        }
-        http_write_str(fd, ",\"autopoll_cycle_delay_ms\":");
-        {
-            char b[24];
-            int n = snprintf(b, sizeof(b), "%lu", (unsigned long)d->autopoll_cycle_delay_ms);
-            if (n > 0) http_write_str(fd, b);
-        }
         http_write_str(fd, ",\"settings_len\":");
         {
             char b[16];
@@ -869,24 +786,6 @@ static void api_handle_i2c_put(http_conn_t *conn)
         }
     }
 
-    int ap_en = -1;
-    if (json_get_bool_val(body, "autopoll_enabled", &ap_en)) {
-        next.autopoll_enabled = ap_en ? true : false;
-    }
-
-    uint32_t v = 0;
-    if (json_get_u32_val(body, "autopoll_reg_delay_ms", &v)) next.autopoll_reg_delay_ms = v;
-    if (json_get_u32_val(body, "autopoll_cycle_delay_ms", &v)) next.autopoll_cycle_delay_ms = v;
-
-    size_t regs_len = 0;
-    if (json_find_key(body, "autopoll_regs")) {
-        if (!json_parse_u8_array(body, "autopoll_regs", next.autopoll_regs, I2C_CFG_AUTOPOLL_REGS_MAX, &regs_len)) {
-            http_reply_simple(conn->fd, 400, "Bad Request", "bad autopoll_regs\r\n");
-            return;
-        }
-        next.autopoll_regs_len = regs_len;
-    }
-
     size_t rules_len = 0;
     if (json_find_key(body, "whitelist")) {
         if (!json_parse_rules_array(body, "whitelist", next.whitelist, I2C_CFG_RULES_MAX, &rules_len)) {
@@ -903,7 +802,8 @@ static void api_handle_i2c_put(http_conn_t *conn)
         next.blacklist_len = rules_len;
     }
 
-    int ok = config_store_set_i2c_device(&next);
+    int ok = bvstk_runtime_i2c_apply_config(&next) &&
+             config_store_set_i2c_device(&next);
     int saved = ok ? config_store_save_i2c_device(&next) : 0;
     if (!ok) {
         http_reply_simple(conn->fd, 500, "ERR", "set failed\r\n");
@@ -919,12 +819,14 @@ static void api_handle_i2c_put(http_conn_t *conn)
 
 static bool i2c_find_idx_and_name(const char *name, uint32_t addr_7b, size_t *out_idx, char out_name[I2C_CFG_NAME_MAX])
 {
+    bvstk_i2c_master_service_t *service = bvstk_runtime_i2c_master_service();
     if (out_idx) *out_idx = 0;
     if (out_name) out_name[0] = '\0';
+    if (!service) return false;
 
     if (name && name[0]) {
         size_t idx = 0;
-        if (!i2cdev_find_device_index_by_name(name, &idx)) return false;
+        if (bvstk_i2c_master_service_find_by_name(service, name, &idx) != BVSTK_OK) return false;
         if (out_idx) *out_idx = idx;
         if (out_name) {
             strncpy(out_name, name, I2C_CFG_NAME_MAX - 1);
@@ -935,11 +837,11 @@ static bool i2c_find_idx_and_name(const char *name, uint32_t addr_7b, size_t *ou
 
     if (addr_7b <= 0x7Fu) {
         size_t idx = 0;
-        if (!i2cdev_find_device_index_by_addr((uint8_t)addr_7b, &idx)) return false;
+        if (bvstk_i2c_master_service_find_by_addr(service, (uint8_t)addr_7b, &idx) != BVSTK_OK) return false;
         if (out_idx) *out_idx = idx;
         if (out_name) {
-            i2cdev_device_info_t info;
-            if (!i2cdev_device_get_info(idx, &info) || !info.name) return false;
+            bvstk_i2c_device_t info;
+            if (bvstk_i2c_master_service_device_info(service, idx, &info) != BVSTK_OK) return false;
             strncpy(out_name, info.name, I2C_CFG_NAME_MAX - 1);
             out_name[I2C_CFG_NAME_MAX - 1] = '\0';
         }
@@ -951,6 +853,7 @@ static bool i2c_find_idx_and_name(const char *name, uint32_t addr_7b, size_t *ou
 static void api_diag_i2c_read(http_conn_t *conn)
 {
     if (!conn) return;
+    bvstk_i2c_master_service_t *service = bvstk_runtime_i2c_master_service();
     char body[512];
     size_t blen = 0;
     if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
@@ -976,7 +879,11 @@ static void api_diag_i2c_read(http_conn_t *conn)
         return;
     }
     uint8_t val = 0;
-    if (!i2cdev_read_reg_dev(idx, (uint8_t)reg, &val)) {
+    if (!service || bvstk_i2c_master_service_read(service,
+                                                  idx,
+                                                  (uint8_t)reg,
+                                                  &val,
+                                                  100U) != BVSTK_OK) {
         http_reply_simple(conn->fd, 500, "ERR", "i2c read failed\r\n");
         return;
     }
@@ -1004,6 +911,7 @@ static void api_diag_i2c_read(http_conn_t *conn)
 static void api_diag_i2c_write(http_conn_t *conn)
 {
     if (!conn) return;
+    bvstk_i2c_master_service_t *service = bvstk_runtime_i2c_master_service();
     char body[512];
     size_t blen = 0;
     if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
@@ -1032,10 +940,16 @@ static void api_diag_i2c_write(http_conn_t *conn)
         http_reply_simple(conn->fd, 404, "Not Found", "device not found\r\n");
         return;
     }
-    if (!i2cdev_write_reg_dev(idx, (uint8_t)reg, (uint8_t)val)) {
+    if (!service || bvstk_i2c_master_service_write(service,
+                                                   idx,
+                                                   (uint8_t)reg,
+                                                   (uint8_t)val,
+                                                   BVSTK_EVENT_SOURCE_CONSOLE,
+                                                   100U) != BVSTK_OK) {
         http_reply_simple(conn->fd, 403, "Forbidden", "DENIED\r\n");
         return;
     }
+    (void)bvstk_runtime_i2c_sync_device(idx, 0);
     http_reply_json_hdr(conn->fd, 200, "OK");
     http_write_str(conn->fd, "{\"ok\":true}\n");
 }

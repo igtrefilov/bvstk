@@ -16,12 +16,12 @@
 #include "xil_printf.h"
 
 #include "apps/freertos/config/config_store.h"
-#include "apps/freertos/drivers/pl/i2c/bvstk_i2c.h"
 #include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
 #include "apps/freertos/drivers/pl/spi/bvstk_spi.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
 #include "apps/freertos/services/lan/bvstk_lan.h"
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 enum {
     DCP2_PORT_DEFAULT = 8889,
@@ -227,25 +227,6 @@ static int dcp2_send_event(int fd, uint8_t srv, uint8_t opcode, const uint8_t *b
     return sock_write_all(fd, s_tx_buf, frame_len);
 }
 
-static bool dcp2_i2c_rule_contains(const i2c_rule_entry_t *rules, size_t len, uint8_t reg, uint8_t val)
-{
-    size_t i;
-    if (!rules) return false;
-    for (i = 0; i < len; ++i) {
-        if (rules[i].reg == reg && rules[i].val == val) return true;
-    }
-    return false;
-}
-
-static bool dcp2_i2c_write_allowed(const i2c_device_config_t *cfg, uint8_t reg, uint8_t val)
-{
-    if (!cfg) return false;
-    if (cfg->policy == I2C_POLICY_WHITELIST) {
-        return dcp2_i2c_rule_contains(cfg->whitelist, cfg->whitelist_len, reg, val);
-    }
-    return !dcp2_i2c_rule_contains(cfg->blacklist, cfg->blacklist_len, reg, val);
-}
-
 static bool dcp2_notify_filter_match(const dcp2_conn_state_t *state, const dcp2_notify_event_t *event)
 {
     uint32_t class_mask;
@@ -315,9 +296,9 @@ static bool dcp2_mem_width_valid(uint8_t width_bits)
 static bool dcp2_mmio_allowed(uint32_t addr, uint32_t size_bytes)
 {
     static const mmio_range_t ranges[] = {
-        { (uint32_t)I2C_MASTER_BASE, 0x1000u },
-        { (uint32_t)I2C_SLAVE_BASE,  0x1000u },
-        { (uint32_t)BRAM_BASE_ADDR,  0x3000u },
+        { (uint32_t)BVSTK_I2C_MASTER_BASE, 0x1000u },
+        { (uint32_t)BVSTK_I2C_SLAVE_BASE,  0x1000u },
+        { (uint32_t)BVSTK_I2C_BRAM_BASE,   0x3000u },
         { (uint32_t)MASTER_BASEADDR, 0x1000u },
         { (uint32_t)SLAVE_BASEADDR,  0x1000u },
         { (uint32_t)BRAM_BASEADDR,   (uint32_t)(BRAM_HIGHADDR - BRAM_BASEADDR + 1u) },
@@ -480,143 +461,89 @@ static int dcp2_handle_mem(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
 static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
 {
     size_t dev_idx = 0;
-    const i2c_device_config_t *cfg = NULL;
-    bvstk_i2c_service_t *common_service = bvstk_runtime_i2c_service();
+    bvstk_i2c_master_service_t *service =
+        bvstk_runtime_i2c_master_service();
+    bvstk_status_t status;
 
-    if (common_service != NULL) {
-        bvstk_status_t status;
-        if (opcode == DCP2_OP_I2C_READ_REG || opcode == DCP2_OP_I2C_WRITE_REG ||
-            opcode == DCP2_OP_I2C_POLICY_SET) {
-            if ((opcode == DCP2_OP_I2C_READ_REG && body_len != 2U) ||
-                (opcode == DCP2_OP_I2C_WRITE_REG && body_len != 3U) ||
-                (opcode == DCP2_OP_I2C_POLICY_SET && body_len != 2U)) {
-                return dcp2_send_response(fd, srv, opcode, seq,
-                                          DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-            }
-            if (bvstk_i2c_service_find_by_addr(common_service,
-                                               body[0],
-                                               &dev_idx) != BVSTK_OK) {
-                return dcp2_send_response(fd, srv, opcode, seq,
-                                          DCP2_STATUS_ERR_RANGE, NULL, 0);
-            }
-        }
-        if (opcode == DCP2_OP_I2C_READ_REG) {
-            uint8_t value = 0U;
-            status = bvstk_i2c_service_read_reg(common_service,
+    if (service == NULL) {
+        return dcp2_send_response(fd, srv, opcode, seq,
+                                  DCP2_STATUS_ERR_BUSY, NULL, 0);
+    }
+    if ((opcode == DCP2_OP_I2C_READ_REG && body_len != 2U) ||
+        (opcode == DCP2_OP_I2C_WRITE_REG && body_len != 3U) ||
+        (opcode == DCP2_OP_I2C_POLICY_SET && body_len != 2U)) {
+        return dcp2_send_response(fd, srv, opcode, seq,
+                                  DCP2_STATUS_ERR_MALFORMED, NULL, 0);
+    }
+    if (opcode != DCP2_OP_I2C_READ_REG &&
+        opcode != DCP2_OP_I2C_WRITE_REG &&
+        opcode != DCP2_OP_I2C_POLICY_SET) {
+        return dcp2_send_response(fd, srv, opcode, seq,
+                                  DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+    }
+    if (bvstk_i2c_master_service_find_by_addr(service,
+                                              body[0],
+                                              &dev_idx) != BVSTK_OK) {
+        return dcp2_send_response(fd, srv, opcode, seq,
+                                  DCP2_STATUS_ERR_RANGE, NULL, 0);
+    }
+    if (opcode == DCP2_OP_I2C_READ_REG) {
+        uint8_t value = 0U;
+        status = bvstk_i2c_master_service_read(service,
+                                               dev_idx,
+                                               body[1],
+                                               &value,
+                                               100U);
+        return dcp2_send_response(fd,
+                                  srv,
+                                  opcode,
+                                  seq,
+                                  status == BVSTK_OK ? DCP2_STATUS_OK :
+                                  status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
+                                  DCP2_STATUS_ERR_TIMEOUT,
+                                  status == BVSTK_OK ? &value : NULL,
+                                  status == BVSTK_OK ? 1U : 0U);
+    }
+    if (opcode == DCP2_OP_I2C_WRITE_REG) {
+        status = bvstk_i2c_master_service_write(service,
                                                 dev_idx,
                                                 body[1],
-                                                &value,
+                                                body[2],
+                                                BVSTK_EVENT_SOURCE_DCP,
                                                 100U);
-            return dcp2_send_response(fd, srv, opcode, seq,
-                                      status == BVSTK_OK ? DCP2_STATUS_OK :
-                                      status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
-                                      DCP2_STATUS_ERR_TIMEOUT,
-                                      status == BVSTK_OK ? &value : NULL,
-                                      status == BVSTK_OK ? 1U : 0U);
+        if (status == BVSTK_OK) {
+            (void)bvstk_runtime_i2c_sync_device(dev_idx, 1);
         }
-        if (opcode == DCP2_OP_I2C_WRITE_REG) {
-            status = bvstk_i2c_service_write_reg(common_service,
-                                                 dev_idx,
-                                                 body[1],
-                                                 body[2],
-                                                 BVSTK_EVENT_SOURCE_DCP,
-                                                 100U);
-            if (status == BVSTK_OK) {
-                (void)bvstk_runtime_i2c_sync_device(dev_idx, 1);
-            }
-            return dcp2_send_response(fd, srv, opcode, seq,
-                                      status == BVSTK_OK ? DCP2_STATUS_OK :
-                                      status == BVSTK_ERR_DENIED ? DCP2_STATUS_ERR_DENIED :
-                                      status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
-                                      DCP2_STATUS_ERR_INTERNAL,
-                                      NULL, 0);
-        }
-        if (opcode == DCP2_OP_I2C_POLICY_SET) {
-            i2c_policy_t policy;
-            if (body[1] > 1U) {
-                return dcp2_send_response(fd, srv, opcode, seq,
-                                          DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-            }
-            policy = body[1] == 0U ? I2C_POLICY_WHITELIST : I2C_POLICY_BLACKLIST;
-            status = bvstk_i2c_service_set_policy(common_service, dev_idx, policy);
-            if (status == BVSTK_OK) {
-                (void)bvstk_runtime_i2c_sync_device(dev_idx, 1);
-            }
-            return dcp2_send_response(fd, srv, opcode, seq,
-                                      status == BVSTK_OK ? DCP2_STATUS_OK :
-                                      DCP2_STATUS_ERR_INTERNAL, NULL, 0);
-        }
+        return dcp2_send_response(fd,
+                                  srv,
+                                  opcode,
+                                  seq,
+                                  status == BVSTK_OK ? DCP2_STATUS_OK :
+                                  status == BVSTK_ERR_DENIED ? DCP2_STATUS_ERR_DENIED :
+                                  status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
+                                  DCP2_STATUS_ERR_INTERNAL,
+                                  NULL,
+                                  0U);
     }
-
-    if (!config_store_is_ready()) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_BUSY, NULL, 0);
+    if (body[1] > 1U) {
+        return dcp2_send_response(fd, srv, opcode, seq,
+                                  DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
     }
-
-    if (opcode == DCP2_OP_I2C_READ_REG) {
-        uint8_t val = 0;
-        if (body_len != 2u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        if (!i2cdev_find_device_index_by_addr(body[0], &dev_idx)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        cfg = config_store_find_i2c_device_by_addr(body[0]);
-        if (!cfg || body[1] >= cfg->reg_count) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        if (!i2cdev_read_reg_dev(dev_idx, body[1], &val)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_TIMEOUT, NULL, 0);
-        }
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, &val, 1);
+    status = bvstk_i2c_master_service_set_policy(
+        service,
+        dev_idx,
+        body[1] == 0U ? I2C_POLICY_WHITELIST : I2C_POLICY_BLACKLIST);
+    if (status == BVSTK_OK) {
+        (void)bvstk_runtime_i2c_sync_device(dev_idx, 1);
     }
-
-    if (opcode == DCP2_OP_I2C_WRITE_REG) {
-        if (body_len != 3u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        if (!i2cdev_find_device_index_by_addr(body[0], &dev_idx)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        cfg = config_store_find_i2c_device_by_addr(body[0]);
-        if (!cfg || body[1] >= cfg->reg_count || body[2] > cfg->max_value_code) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        if (!i2cdev_write_reg_dev_source(dev_idx, body[1], body[2], (uint8_t)DCP2_NOTIFY_SOURCE_DCP)) {
-            if (!dcp2_i2c_write_allowed(cfg, body[1], body[2])) {
-                return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_DENIED, NULL, 0);
-            }
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_INTERNAL, NULL, 0);
-        }
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
-    }
-
-    if (opcode == DCP2_OP_I2C_POLICY_SET) {
-        i2cdev_policy_t policy;
-        if (body_len != 2u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        if (!i2cdev_find_device_index_by_addr(body[0], &dev_idx)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        cfg = config_store_find_i2c_device_by_addr(body[0]);
-        if (!cfg) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        if (body[1] == 0x00u) {
-            policy = I2CDEV_POLICY_WHITELIST;
-        } else if (body[1] == 0x01u) {
-            policy = I2CDEV_POLICY_BLACKLIST;
-        } else {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-        }
-        if (!i2cdev_set_policy_dev(dev_idx, policy)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_INTERNAL, NULL, 0);
-        }
-        (void)config_store_save_i2c_device(cfg);
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
-    }
-
-    return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+    return dcp2_send_response(fd,
+                              srv,
+                              opcode,
+                              seq,
+                              status == BVSTK_OK ? DCP2_STATUS_OK :
+                              DCP2_STATUS_ERR_INTERNAL,
+                              NULL,
+                              0U);
 }
 
 static int dcp2_handle_smi(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)

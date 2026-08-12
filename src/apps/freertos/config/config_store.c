@@ -505,8 +505,6 @@ static void i2c_cfg_clear(i2c_device_config_t *cfg)
     if (!cfg) return;
     memset(cfg, 0, sizeof(*cfg));
     cfg->policy = I2C_POLICY_WHITELIST;
-    cfg->autopoll_enabled = false;
-    cfg->autopoll_cycle_delay_ms = 1000u;
 }
 
 static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
@@ -564,36 +562,6 @@ static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
         else return 0;
     }
 
-    int b = 0;
-    if (find_key(json, "autopoll_enabled")) {
-        if (!json_get_bool(json, "autopoll_enabled", &b)) return 0;
-        cfg->autopoll_enabled = (b != 0);
-    }
-
-    p = find_key(json, "autopoll_reg_delay_ms");
-    if (p) {
-        uint32_t v = 0;
-        int ok = 0;
-        (void)parse_json_u32_inplace(p, &v, &ok);
-        if (!ok) return 0;
-        cfg->autopoll_reg_delay_ms = v;
-    }
-    p = find_key(json, "autopoll_cycle_delay_ms");
-    if (p) {
-        uint32_t v = 0;
-        int ok = 0;
-        (void)parse_json_u32_inplace(p, &v, &ok);
-        if (!ok) return 0;
-        cfg->autopoll_cycle_delay_ms = v;
-    }
-
-    p = find_key(json, "autopoll_regs");
-    if (p) {
-        size_t n = 0;
-        if (!json_parse_num_array_u8(p, cfg->autopoll_regs, I2C_CFG_AUTOPOLL_REGS_MAX, &n)) return 0;
-        cfg->autopoll_regs_len = n;
-    }
-
     p = find_key(json, "whitelist");
     if (p) {
         size_t n = 0;
@@ -613,9 +581,6 @@ static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
         cfg->settings_len = n;
     }
 
-    for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
-        if (cfg->autopoll_regs[i] >= cfg->reg_count) return 0;
-    }
     for (size_t i = 0; i < cfg->whitelist_len; ++i) {
         if (cfg->whitelist[i].reg >= cfg->reg_count) return 0;
         if (cfg->whitelist[i].val > cfg->max_value_code) return 0;
@@ -1231,31 +1196,12 @@ int config_store_save_i2c_device(const i2c_device_config_t *cfg)
         "  \"reg_count\": %u,\n"
         "  \"max_value_code\": %u,\n"
         "  \"policy\": \"%s\",\n"
-        "  \"autopoll_enabled\": %s,\n"
-        "  \"autopoll_reg_delay_ms\": %u,\n"
-        "  \"autopoll_cycle_delay_ms\": %u,\n"
-        "  \"autopoll_regs\": [",
+        "  \"whitelist\": [\n",
         cfg->name,
         (unsigned)cfg->addr_7b,
         (unsigned)cfg->reg_count,
         (unsigned)cfg->max_value_code,
-        pol,
-        cfg->autopoll_enabled ? "true" : "false",
-        (unsigned)cfg->autopoll_reg_delay_ms,
-        (unsigned)cfg->autopoll_cycle_delay_ms);
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
-
-    for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
-        n = snprintf(json + pos, json_cap - pos, "%s%u",
-                     (i == 0) ? "" : ", ",
-                     (unsigned)cfg->autopoll_regs[i]);
-        if (n <= 0) return 0;
-        pos += (size_t)n;
-        if (pos >= json_cap) return 0;
-    }
-    n = snprintf(json + pos, json_cap - pos, "],\n  \"whitelist\": [\n");
+        pol);
     if (n <= 0) return 0;
     pos += (size_t)n;
     if (pos >= json_cap) return 0;
