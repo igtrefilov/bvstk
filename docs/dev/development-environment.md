@@ -84,7 +84,7 @@ XSA=/abs/path/to/design.xsa CLEAN=0 ./build.sh freertos
 | `scripts/vitis/build_vitis.conf` | параметры сборки Vitis | `XILINX_SETTINGS`, `XSA`, `CLEAN_DEFAULT` |
 | `scripts/vitis/run_jtag.conf` | параметры JTAG-запуска | `XILINX_SETTINGS`, `BITSTREAM_FILE`, `ELF_FILE`, `PS7_INIT_TCL` |
 
-Neutrino-скрипты настраиваются переменными окружения: `NEUTRINO_BSP_DIR`, `NEUTRINO_BASE_BUILD`, `NEUTRINO_BUILD_DIR`, `NEUTRINO_KEY_DIR`, `QCC_VARIANT`, `NEUTRINO_IFS_FILE`, `UART_DEVICE`, `DEVICE_IP` и `SSH_IDENTITY`.
+Neutrino-скрипты настраиваются переменными окружения: `NEUTRINO_BSP_DIR`, `NEUTRINO_BASE_BUILD`, `NEUTRINO_BUILD_DIR`, `NEUTRINO_KEY_DIR`, `NEUTRINO_ROOT_SHADOW_FILE`, `QCC_VARIANT`, `NEUTRINO_IFS_FILE`, `UART_DEVICE`, `DEVICE_IP` и `SSH_IDENTITY`.
 
 Если конфигурационные файлы не используются, все критичные параметры можно передавать через обычные environment variables. Для повседневной работы это часто даже проще, чем поддерживать несколько локальных конфигов.
 
@@ -96,7 +96,7 @@ Neutrino-скрипты настраиваются переменными окр
 |---|---|
 | `artifacts/fpga/` | локальные `design.xsa` и `design.bit`, которые используются по умолчанию |
 | `artifacts/vivado/logs/` | игнорируемые Git журналы пакетной сборки Vivado |
-| `build/neutrino/` | `bvstkctl`, сгенерированный `.build`, IFS, UART-лог и локальные SSH-ключи Neutrino |
+| `build/neutrino/` | `bvstkctl`, сгенерированный `.build`, IFS, UART-лог, локальные SSH-ключи и локальный `root.shadow` |
 | `configs/` | шаблоны дефолтных JSON-конфигов, встраиваемых в прошивку |
 | `docs/` | актуальная документация по архитектуре, сборке и эксплуатации |
 | `scripts/fpga/` | пакетная сборка Vivado и экспорт `design.bit/design.xsa` |
@@ -153,6 +153,20 @@ Neutrino запускается отдельным flow:
 ./build.sh neutrino-image
 ./run.sh neutrino jtag
 ```
+
+По умолчанию образ создаётся с заблокированной учётной записью `root`. Для
+включения входа по паролю сначала сгенерируйте локальный файл `root.shadow`:
+
+```sh
+./scripts/neutrino/generate_root_shadow.py
+./build.sh neutrino-image
+```
+
+Файл сохраняется в `build/neutrino/root.shadow`, имеет права `0600` и
+игнорируется Git. Для другого расположения используйте
+`NEUTRINO_ROOT_SHADOW_FILE` при сборке образа. В работающем IFS `/etc/shadow`
+доступен только для чтения, поэтому менять пароль командой `passwd` на плате
+нельзя.
 
 Он загружает IFS в DDR, проверяет старт по UART и затем выполняет SSH-проверку `bvstkctl`. Для этого должны быть корректно заданы UART-устройство и SSH identity.
 

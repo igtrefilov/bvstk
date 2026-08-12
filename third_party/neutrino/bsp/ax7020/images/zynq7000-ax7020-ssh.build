@@ -231,7 +231,7 @@ devc-pty = ${KPDA_TARGET}/armle-v7/sbin/devc-pty
 Port 22
 ListenAddress 0.0.0.0
 HostKey /etc/ssh/ssh_host_rsa_key
-PasswordAuthentication no
+PasswordAuthentication yes
 PubkeyAuthentication yes
 PermitRootLogin yes
 PermitEmptyPasswords no
@@ -251,9 +251,7 @@ exec /usr/sbin/sshd
 # The initial login uses the public key staged in /root/.ssh/authorized_keys.
 /etc/passwd = ${KPDA_TARGET}/armle-v7/etc/passwd
 /etc/group = ${KPDA_TARGET}/armle-v7/etc/group
-[uid=0 gid=0 perms=0600] /etc/shadow={
-root:*:90:18565:0:0:0:0:0
-}
+[uid=0 gid=0 perms=0600] /etc/shadow = ${BVSTK_ROOT_SHADOW_FILE}
 
 ###########################################################################
 ## RTC driver

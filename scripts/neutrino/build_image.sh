@@ -14,6 +14,7 @@ SSH_IDENTITY="${SSH_IDENTITY:-$BUILD_DIR/ax7020_ssh_client}"
 SSH_KEY_DIR="${NEUTRINO_KEY_DIR:-$BUILD_DIR/ssh}"
 SSH_HOST_KEY="$SSH_KEY_DIR/ssh_host_rsa_key"
 SSH_AUTHORIZED_KEYS="$SSH_KEY_DIR/authorized_keys"
+ROOT_SHADOW_FILE="${NEUTRINO_ROOT_SHADOW_FILE:-$BUILD_DIR/root.shadow}"
 
 require_command() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -43,6 +44,23 @@ ensure_ssh_keys() {
   chmod 0644 "$SSH_HOST_KEY.pub" "$ssh_identity_pub"
 }
 
+ensure_root_shadow() {
+  umask 077
+  mkdir -p "$BUILD_DIR"
+
+  if [[ -n "${NEUTRINO_ROOT_SHADOW_FILE:-}" ]]; then
+    if [[ ! -f "$ROOT_SHADOW_FILE" ]]; then
+      echo "Neutrino root shadow file not found: $ROOT_SHADOW_FILE" >&2
+      exit 1
+    fi
+    return
+  fi
+
+  if [[ ! -f "$ROOT_SHADOW_FILE" ]]; then
+    printf 'root:*:90:18565:0:0:0:0:0\n' > "$ROOT_SHADOW_FILE"
+  fi
+}
+
 if ! command -v mkifs >/dev/null 2>&1 && [[ -r /etc/profile.d/kpda_env_2024.sh ]]; then
   # shellcheck disable=SC1091
   source /etc/profile.d/kpda_env_2024.sh
@@ -61,6 +79,7 @@ fi
 
 mkdir -p "$BUILD_DIR"
 ensure_ssh_keys
+ensure_root_shadow
 "$SCRIPT_DIR/build.sh"
 cp "$BASE_BUILD" "$GENERATED_BUILD"
 printf '\n# Burevestnik multi-OS application\n[perms=0755] /usr/bin/bvstkctl = %s\n' \
@@ -69,6 +88,7 @@ printf '\n# Burevestnik multi-OS application\n[perms=0755] /usr/bin/bvstkctl = %
 BVSTK_SSH_HOST_KEY="$SSH_HOST_KEY" \
 BVSTK_SSH_HOST_KEY_PUB="$SSH_HOST_KEY.pub" \
 BVSTK_SSH_AUTHORIZED_KEYS="$SSH_AUTHORIZED_KEYS" \
+BVSTK_ROOT_SHADOW_FILE="$ROOT_SHADOW_FILE" \
 mkifs -r "$BSP_DIR/install" "$GENERATED_BUILD" "$IFS_FILE"
 
 echo "Neutrino IFS: $IFS_FILE"
