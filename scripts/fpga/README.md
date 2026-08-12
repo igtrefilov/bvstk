@@ -1,83 +1,95 @@
-# FPGA Build Scripts
+# Сборка аппаратной платформы FPGA
 
-These scripts build Vivado project **Burevestnik_21** and produce:
+Скрипты каталога создают Vivado project, выполняют implementation и экспортируют
+два артефакта, которые используют FreeRTOS и Neutrino:
 
-- `design.bit`
-- `design.xsa`
+| Артефакт | Путь по умолчанию | Назначение |
+|---|---|---|
+| bitstream | `artifacts/fpga/design.bit` | программирование PL |
+| hardware export | `artifacts/fpga/design.xsa` | Vitis platform и target build |
 
-Output defaults to `<repo>/artifacts/fpga`.
+## 1. Требования
 
-## Files
+Нужны Vivado, hardware repository и Tcl-проект `Burevestnik_21.tcl`:
 
-- `build_fpga.sh` — main wrapper (recommended entry point)
-- `build_hw.tcl` — Vivado batch implementation/export script
-- `build_fpga.conf` — local machine config (editable)
-- `build_fpga.conf.example` — template for new machines
+```text
+<workspace>/hw_platform/fpga/Burevestnik_21.tcl
+<workspace>/bvstk/scripts/fpga/build_fpga.sh
+```
 
-## Portable setup (new machine)
+При другой структуре каталогов путь задаётся через `FPGA_DIR` в конфигурации.
 
-After cloning repository, do this once:
+## 2. Конфигурация
 
-1. Open config:
-
-```bash
-cd <path-to-repo>/scripts/fpga
+```sh
+cd <repo>/scripts/fpga
 cp -n build_fpga.conf.example build_fpga.conf
 ```
 
-2. Edit `build_fpga.conf`:
+| Переменная | Назначение | Значение по умолчанию |
+|---|---|---|
+| `VIVADO_BIN` | исполняемый файл Vivado | `vivado` |
+| `XILINX_SETTINGS` | optional `settings64.sh` | пусто |
+| `FPGA_DIR` | каталог Vivado/Tcl проекта | соседний `hw_platform/fpga` |
+| `PROJ_NAME` | имя Vivado project | `Burevestnik_21` |
+| `JOBS` | число implementation jobs | `8` |
+| `OUTPUT_DIR` | каталог `design.bit` и `design.xsa` | `artifacts/fpga` |
+| `VIVADO_LOG_DIR` | journal и log files | `artifacts/vivado/logs` |
+| `CLEAN` | удалить `vivado_project` перед стартом | `0` |
 
-- `VIVADO_BIN` — absolute path to Vivado executable
-- `XILINX_SETTINGS` — optional path to `settings64.sh` (if Vivado is not in PATH)
-- `FPGA_DIR` — absolute path to `hw_platform/fpga` (where `Burevestnik_21.tcl` is)
-- `OUTPUT_DIR` — absolute path for generated `design.bit` and `design.xsa`
-- optional: `JOBS`, `PROJ_NAME`, `CLEAN`
+## 3. Запуск
 
-3. Validate tool path:
-
-```bash
-"$VIVADO_BIN" -version
+```mermaid
+flowchart LR
+    Config[build_fpga.conf] --> Wrapper[build_fpga.sh]
+    Wrapper --> Project[Burevestnik_21.tcl]
+    Project --> Vivado[create project]
+    Vivado --> Impl[build_hw.tcl]
+    Impl --> Bit[design.bit]
+    Impl --> Xsa[design.xsa]
 ```
 
-4. Run build:
+Из корня репозитория:
 
-```bash
-./build_fpga.sh
+```sh
+./scripts/fpga/build_fpga.sh
+./scripts/fpga/build_fpga.sh --jobs 12
+./scripts/fpga/build_fpga.sh --clean
 ```
 
-5. Verify artifacts exist in `OUTPUT_DIR`:
+CLI-параметры имеют приоритет над конфигурацией:
 
-- `design.bit`
-- `design.xsa`
-
-## If directory layout differs
-
-Default values assume sibling repos (`../hw_platform`) and repository-local artifacts (`./artifacts/fpga`).
-If your layout is different, set `FPGA_DIR` and `OUTPUT_DIR` explicitly in `build_fpga.conf`.
-
-## CLI overrides (optional)
-
-CLI options override config values:
-
-```bash
-./build_fpga.sh --jobs 12
-./build_fpga.sh --config /path/to/custom.conf
-./build_fpga.sh --vivado /path/to/vivado
-./build_fpga.sh --fpga-dir /path/to/hw_platform/fpga
-./build_fpga.sh --output-dir /path/to/output
-./build_fpga.sh --clean
+```sh
+./scripts/fpga/build_fpga.sh \
+  --vivado /opt/Xilinx/Vivado/2021.2/bin/vivado \
+  --fpga-dir /data/work/hw_platform/fpga \
+  --output-dir /data/work/bvstk/artifacts/fpga \
+  --log-dir /data/work/bvstk/artifacts/vivado/logs
 ```
 
-## Legacy path compatibility
+## 4. Результаты и логи
 
-Old path `~/Zynq/scripts/fpga/build_fpga.sh` is kept as a wrapper and forwards to this script.
-For new setups, use scripts from repository directly.
+| Каталог | Содержимое |
+|---|---|
+| `artifacts/fpga/` | `design.bit`, `design.xsa` |
+| `artifacts/vivado/logs/` | `create_project.*`, `build_hw.*` |
+| `<FPGA_DIR>/vivado_project/` | производный Vivado project |
 
-## Troubleshooting
+После экспорта проверяйте наличие обоих файлов:
 
-- `Vivado executable '...' not found`:
-  - fix `VIVADO_BIN` in config.
-- `project ... not found`:
-  - fix `FPGA_DIR` (must contain `Burevestnik_21.tcl` and/or `vivado_project`).
-- output files not generated:
-  - check Vivado log for `ERROR`, then rerun with `--clean`.
+```sh
+test -f artifacts/fpga/design.bit
+test -f artifacts/fpga/design.xsa
+```
+
+## 5. Диагностика
+
+| Сообщение | Проверка |
+|---|---|
+| `Vivado executable not found` | `VIVADO_BIN`, `PATH`, `XILINX_SETTINGS` |
+| `project not found` | `FPGA_DIR` и наличие `Burevestnik_21.tcl` |
+| артефакт отсутствует | `artifacts/vivado/logs/build_hw.log` и запуск с `--clean` |
+| XSA не принимается Vitis | соответствие XSA и текущего hardware repository |
+
+Старый путь `~/Zynq/scripts/fpga/build_fpga.sh` обслуживается compatibility
+wrapper. Для новых запусков используйте этот каталог.

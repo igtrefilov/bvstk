@@ -1,124 +1,92 @@
 # Запуск и отладка
 
-Этот документ описывает текущие JTAG-flow проекта `bvstk`. Штатная точка входа — корневой `./run.sh`, который выбирает FreeRTOS или Neutrino. Низкоуровневые скрипты находятся в `scripts/vitis/`, `scripts/neutrino/` и `scripts/vscode/`.
+## 1. Общая схема
 
-В FreeRTOS-цикле разработчик программирует PL, выполняет `ps7_init`, загружает `app_bvstk.elf` в `Cortex-A9 #0` и запускает приложение. Neutrino-flow вместо ELF загружает IFS в DDR и выставляет PC на его стартовый адрес. Пошаговый GDB/VSCode flow в этом документе относится к FreeRTOS.
+JTAG-flow подготавливает PL, инициализирует PS7, загружает программный образ и передаёт управление процессору. FreeRTOS получает ELF приложения. Neutrino получает IFS в DDR по адресу `0x00100000`.
 
-## Нормальный путь запуска
+```mermaid
+sequenceDiagram
+    participant Host as Host
+    participant JTAG as XSCT / hw_server
+    participant PL as Zynq PL
+    participant CPU as Cortex-A9 core0
+    participant Net as Сетевые сервисы
 
-Для обычного запуска достаточно активировать Xilinx-окружение, перейти в корень репозитория и вызвать:
+    Host->>JTAG: connect
+    JTAG->>PL: program design.bit
+    JTAG->>CPU: rst -system + ps7_init
+    alt FreeRTOS
+        JTAG->>CPU: dow app_bvstk.elf
+    else Neutrino
+        JTAG->>CPU: dow -data IFS 0x00100000
+    end
+    JTAG->>CPU: con
+    CPU->>Net: запуск runtime
+```
+
+## 2. FreeRTOS: обычный запуск
 
 ```sh
 source <Vitis-install>/settings64.sh
-cd <repo-root>
 ./build.sh freertos
 ./run.sh freertos jtag
 ```
 
-Смысл этой последовательности в том, что FreeRTOS build должен заранее подготовить и `vitis_ws/app_bvstk/Debug/app_bvstk.elf`, и platform export с `ps7_init.tcl`. Без этого JTAG-скрипт не сможет ни загрузить приложение, ни корректно инициализировать PS7.
+По умолчанию JTAG-скрипт использует:
 
-Для Neutrino последовательность другая:
+| Артефакт | Путь |
+|---|---|
+| ELF | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` |
+| bitstream | `artifacts/fpga/design.bit` |
+| PS7 init | `vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl` |
+
+Замена входных файлов:
 
 ```sh
-cd <repo-root>
+./scripts/vitis/run_jtag.sh /abs/path/to/design.bit
+BITSTREAM_FILE=/abs/path/to/design.bit \
+ELF_FILE=/abs/path/to/app_bvstk.elf \
+PS7_INIT_TCL=/abs/path/to/ps7_init.tcl \
+  ./scripts/vitis/run_jtag.sh
+```
+
+Приоритет bitstream: позиционный аргумент, `BITSTREAM_FILE`, `artifacts/fpga/design.bit`, legacy-путь `../bvstk_hw/tmp/design.bit`, bitstream из platform export. Для ELF и `ps7_init.tcl` используются override-переменные и пути из Vitis workspace.
+
+## 3. Neutrino: запуск IFS
+
+```sh
 ./build.sh neutrino-image
 ./run.sh neutrino jtag
 ```
 
-Корневой `run.sh` сначала вызывает `scripts/neutrino/run_jtag.sh`, который пишет UART в `build/neutrino/neutrino-uart.log` и проверяет сигнатуру старта. Затем запускается `scripts/neutrino/verify_ssh.sh`, выполняющий `bvstkctl version` и `bvstkctl pl list` на устройстве.
+Скрипт `scripts/neutrino/run_jtag.sh` проверяет файлы, настраивает UART, сохраняет лог и ждёт сигнатуру старта. Затем `run.sh` запускает `verify_ssh.sh`.
 
-## На какие артефакты опирается запуск
-
-Текущий запуск использует фиксированный набор входных файлов. В нормальной структуре проекта они уже лежат там, где их ожидают скрипты.
-
-| Артефакт | Обычный путь |
+| Параметр | Значение по умолчанию |
 |---|---|
-| ELF приложения | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` |
-| bitstream | `artifacts/fpga/design.bit` |
-| hardware export | `artifacts/fpga/design.xsa` |
-| `ps7_init.tcl` | `vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl` |
-| `xsct` и `hw_server` | из активированного Xilinx/Vitis environment |
+| `IFS_FILE` | `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` |
+| `BITSTREAM_FILE` | `artifacts/fpga/design.bit` |
+| `PS7_INIT_TCL` | `vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl` |
+| `UART_DEVICE` | `/dev/ttyUSB1` |
+| `UART_BAUD` | `115200` |
+| `LOG_FILE` | `build/neutrino/neutrino-uart.log` |
+| `DEVICE_IP` | `192.168.0.10` |
+| `SSH_IDENTITY` | `build/neutrino/ax7020_ssh_client` |
 
-В проекте эти файлы действительно существуют в ожидаемых местах, поэтому документация должна опираться именно на них, а не на устаревшие каталоги вроде отдельного `bvstk_hw`.
+IFS передаётся в DDR командой `dow -data` и запускается через запись PC. JTAG-flow предназначен для разработки и проверки; автономная запись BOOT.BIN в SD/QSPI выполняется отдельным процессом.
 
-## Как `run_jtag.sh` выбирает файлы
+## 4. Debug FreeRTOS
 
-Скрипт `scripts/vitis/run_jtag.sh` умеет читать `scripts/vitis/run_jtag.conf`, принимать прямой путь к bitstream первым позиционным аргументом и уважать переменные окружения `BITSTREAM_FILE`, `ELF_FILE` и `PS7_INIT_TCL`. Но для повседневной работы полезнее держать в голове не механизм настройки как таковой, а реальный порядок приоритетов.
-
-| Что выбирается | Приоритет |
-|---|---|
-| bitstream | позиционный аргумент `run_jtag.sh` -> `BITSTREAM_FILE` -> `artifacts/fpga/design.bit` -> `../bvstk_hw/tmp/design.bit` -> `vitis_ws/plat_bvstk/export/plat_bvstk/hw/Burevestnik_top.bit` |
-| ELF | `ELF_FILE` -> `vitis_ws/app_bvstk/Debug/app_bvstk.elf` |
-| `ps7_init.tcl` | `PS7_INIT_TCL` -> `vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl` |
-
-Из этого следует простой практический вывод: если вы не задаёте override вручную, проект ожидает, что актуальный bitstream лежит в `artifacts/fpga/design.bit`. Если туда случайно попал артефакт от другого hardware export, JTAG-запуск формально состоится, но поведение рантайма дальше будет трудно интерпретировать.
-
-## Что делает обычный JTAG-запуск
-
-`scripts/vitis/run_jtag.tcl` реализует ровно тот сценарий, который нужен для разработки: он подключается к `hw_server`, выбирает APU-таргет, делает `rst -system`, останавливает CPU, программирует PL, исполняет `ps7_init` и `ps7_post_config`, затем переключается на `Cortex-A9 #0`, загружает ELF командой `dow` и передаёт выполнение через `con`.
-
-Это важно понимать архитектурно. Скрипт не повторяет автономный boot через `BOOT.BIN`, не запускает FSBL и не имитирует полную boot-цепочку SD/QSPI. Это именно development flow: подготовить железо, загрузить ELF в память и немедленно стартовать приложение.
-
-Если нужно временно запустить проект на нестандартном bitstream, его можно передать прямо в командной строке:
-
-```sh
-./scripts/vitis/run_jtag.sh /abs/path/to/design.bit
-```
-
-Тот же override можно сделать через environment:
-
-```sh
-BITSTREAM_FILE=/abs/path/to/design.bit ./scripts/vitis/run_jtag.sh
-```
-
-Аналогично можно переопределить `ELF_FILE` и `PS7_INIT_TCL`, но в обычной разработке это требуется редко.
-
-## Загрузка Neutrino по JTAG
-
-Neutrino-скрипт использует по умолчанию:
-
-| Артефакт или параметр | Значение |
-|---|---|
-| IFS | `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` |
-| bitstream | `artifacts/fpga/design.bit` |
-| `ps7_init.tcl` | `vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl` |
-| UART | `/dev/ttyUSB1`, `115200 8N1` |
-| UART-лог | `build/neutrino/neutrino-uart.log` |
-| SSH-проверка | `root@192.168.0.10` с ключом из `SSH_IDENTITY` |
-
-Пути переопределяются через `IFS_FILE`, `BITSTREAM_FILE`, `PS7_INIT_TCL`, `UART_DEVICE`, `UART_BAUD`, `LOG_FILE`, `DEVICE_IP`, `SSH_USER` и `SSH_IDENTITY`. IFS загружается в DDR по адресу `0x00100000`; это временный JTAG-запуск, а не запись автономного образа на SD или QSPI.
-
-## Debug-режим
-
-Для debug-attach скрипт переключается в другой режим:
+Команда подготовки debug-target:
 
 ```sh
 ./scripts/vitis/run_jtag.sh --debug
 ```
 
-В этом случае используется не `run_jtag.tcl`, а `scripts/vscode/jtag_prepare_debug.tcl`. Этот prepare-скрипт также подключается к `hw_server`, делает reset, программирует PL и выполняет `ps7_init`, но после этого оставляет `Cortex-A9 #0` остановленным. Загрузка ELF и дальнейшее управление переходят к GDB.
+Скрипт запускает `hw_server` с TCF-портом `3121` и GDB-портом `3000`, программирует PL, выполняет `ps7_init` и оставляет core0 остановленным.
 
-`run_jtag.sh --debug` отдельно проверяет, что `hw_server` доступен не только на TCF-порту `3121`, но и с включённым GDB-портом `3000`. Если `3121` уже занят старым экземпляром `hw_server`, запущенным без `-p 3000`, скрипт завершится с ошибкой и попросит перезапустить сервер в правильном режиме.
-
-## Отладка из VSCode
-
-Текущая VSCode-конфигурация уже реализует полный debug-cycle и не требует предварительно вручную запускать `./scripts/vitis/run_jtag.sh --debug`. В `.vscode/tasks.json` описана фоновая задача, которая поднимает `hw_server -s tcp::3121 -p 3000 -L-`, а затем вызывает `xsct ${workspaceFolder}/scripts/vscode/jtag_prepare_debug.tcl`. После этого `.vscode/launch.json` подключает `arm-none-eabi-gdb` к `localhost:3000`, выполняет `load`, ставит временный breakpoint на `main` и продолжает выполнение.
-
-| Компонент | Роль |
-|---|---|
-| `.vscode/tasks.json` | запуск `hw_server` и hardware prepare через XSCT |
-| `.vscode/launch.json` | attach GDB к `localhost:3000` и загрузка ELF |
-| `scripts/vscode/jtag_prepare_debug.tcl` | reset, PL programming, `ps7_init`, остановка core0 |
-| `scripts/vscode/arm-none-eabi-gdb.sh` | wrapper для запуска корректного `arm-none-eabi-gdb` |
-
-У конфигурации в `launch.json` осталось историческое имя `Attach: Zynq-7000 (core0, after ./run_jtag.sh --debug)`, но фактически preLaunch task уже делает тот же prepare-step сама. На практике это обычный one-click attach из IDE.
-
-## Ручной step-debug
-
-Без VSCode отладка выглядит почти так же, только команды выполняются явно:
+Ручное подключение GDB:
 
 ```sh
-./scripts/vitis/run_jtag.sh --debug
 arm-none-eabi-gdb vitis_ws/app_bvstk/Debug/app_bvstk.elf \
   -ex "target remote :3000" \
   -ex "load" \
@@ -126,80 +94,83 @@ arm-none-eabi-gdb vitis_ws/app_bvstk/Debug/app_bvstk.elf \
   -ex "continue"
 ```
 
-Здесь важно не путать роли частей цепочки. `--debug` подготавливает железо и оставляет CPU остановленным, а `gdb` уже загружает ELF, расставляет breakpoints и управляет исполнением.
+VSCode использует ту же последовательность через `.vscode/tasks.json`, `.vscode/launch.json` и `scripts/vscode/jtag_prepare_debug.tcl`. Перед attach должны быть доступны `arm-none-eabi-gdb`, `hw_server` и актуальный ELF.
 
-## Что должно стартовать после загрузки
+## 5. Что запускается после загрузки FreeRTOS
 
-После `con` в обычном FreeRTOS-режиме или после `load` и `continue` в GDB приложение переходит к своей штатной последовательности из `src/apps/freertos/main.c`. В текущем состоянии проекта запускаются QSPI/SD/FS-инициализация, `config_store`, сеть, TCP shell, опциональный SSH, HTTP, DCP2, I2C и SPI. Подсистема SMI в кодовой базе есть, но `start_smi()` в `main.c` по-прежнему закомментирован и в стандартный startup path не входит.
+`src/apps/freertos/main.c` выполняет следующий порядок:
 
-Снаружи это обычно проявляется через следующие сервисы:
+1. QSPI self-test;
+2. SD, QSPI и файловые устройства;
+3. `config_store`;
+4. LAN и TCP-консоль;
+5. SSH при включённой опции сборки;
+6. HTTP и DCP2;
+7. `bvstk_runtime`, который после готовности конфигурации поднимает общие I2C, SMI и SPI cores/services.
 
-| Сервис | Порт | Назначение |
+Общий SMI service участвует в runtime и доступен shell/HTTP/DCP2 после успешной инициализации. Legacy-функция `start_smi()` в `main.c` остаётся отключённой. Периодический вызов `bvstk_smi_service_poll()` отдельной задачей `bvstk_runtime` сейчас не планирует; on-demand read/write и конфигурационные операции используют общий service напрямую.
+
+| Сервис | Порт | Проверка |
 |---|---:|---|
-| TCP shell | `8888` | интерактивная консоль |
-| SSH shell | `22` | тот же диспетчер команд; только при `BVSTK_SSH_ENABLE=1` |
-| HTTP | `80` | web/API surface |
-| DCP2 | `8889` | бинарный TCP-интерфейс |
+| TCP shell | `8888` | `nc <device-ip> 8888` |
+| SSH shell | `22` | `ssh root@<device-ip>` |
+| HTTP | `80` | `curl http://<device-ip>/api/rtos` |
+| DCP2 | `8889` | `scripts/dcp2/monitor_notify.py` |
 
-Если после успешного JTAG-запуска не наблюдается `SMI`-поведения, это не обязательно ошибка attach или загрузки. В текущем проектном состоянии подсистема просто не стартует автоматически.
+## 6. Первичная проверка
 
-## Первичная проверка после запуска
-
-После загрузки полезно проверить не только сам факт успешного `dow`, но и то, что рантайм реально дошёл до сетевых сервисов. Самая быстрая проверка обычно делается через TCP shell:
-
-```sh
-telnet <device-ip> 8888
-```
-
-Если `telnet` не установлен, подойдёт:
+Подключение к TCP-консоли:
 
 ```sh
 nc <device-ip> 8888
 ```
 
-Если FreeRTOS был собран с SSH, доступен привычный интерактивный вход:
-
-```sh
-ssh root@<device-ip>
-```
-
-Дальше обычно достаточно нескольких базовых команд:
+Минимальный набор команд:
 
 ```text
 help
 ip addr show
-fs pwd
-fs ls
+pwd
+ls
+i2c list
 ```
 
-Этого хватает, чтобы быстро проверить shell, сетевой стек и доступность файловых устройств. Для отдельной проверки DCP2 в репозитории уже есть готовый инструмент:
+Файловые команды работают как команды shell верхнего уровня. Команда `fs` выводит справку по файловому слою.
+
+Проверка HTTP:
+
+```sh
+curl -sS http://<device-ip>/api/net
+curl -sS http://<device-ip>/api/rtos
+curl -sS http://<device-ip>/api/i2c
+```
+
+Проверка DCP2 notify:
 
 ```sh
 ./scripts/dcp2/monitor_notify.py <device-ip> --port 8889
 ```
 
-Если нужен только мониторинг I2C-событий, фильтр можно сузить:
+## 7. Диагностика запуска
 
-```sh
-./scripts/dcp2/monitor_notify.py <device-ip> --port 8889 --buses i2c --sources telnet,host
-```
-
-## Типичные проблемы
-
-Большинство сбоев в этом flow удобно держать в одной таблице.
-
-| Симптом | Что проверять первым |
+| Симптом | Проверка |
 |---|---|
-| `xsct not found in PATH` | активировано ли Xilinx-окружение, либо задан ли `XILINX_SETTINGS` |
-| `ELF file not found` | собран ли `vitis_ws/app_bvstk/Debug/app_bvstk.elf` |
-| `Bitstream not found` | существует ли `artifacts/fpga/design.bit`, либо корректно ли задан `BITSTREAM_FILE` |
-| `PS7 init script not found` | собран ли platform export и появился ли `vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl` |
-| `hw_server is running on port 3121, but GDB port 3000 is not open` | не остался ли старый `hw_server`, запущенный без `-p 3000` |
-| breakpoints не срабатывают | был ли выполнен debug-prepare и тот ли ELF загружен в target |
-| сервисы после запуска не появляются | совпадают ли firmware и bitstream, поднялась ли сеть, не ушла ли система в fallback-конфиг |
+| `xsct not found` | активировать Vitis environment или задать `XILINX_SETTINGS` |
+| ELF отсутствует | выполнить `./build.sh freertos` и проверить путь в `vitis_ws/` |
+| bitstream отсутствует | проверить `artifacts/fpga/design.bit` или `BITSTREAM_FILE` |
+| PS7 init отсутствует | пересобрать Vitis platform и проверить `vitis_ws/plat_bvstk/export/plat_bvstk/hw/` |
+| GDB-порт `3000` закрыт | перезапустить `hw_server` с `-p 3000` |
+| UART-лог не содержит startup signature | проверить UART, baud rate, IFS и PS7 init |
+| сеть не отвечает | проверить bitstream/XSA, PHY и конфигурацию `network.json` |
+| I2C/SMI service не готов | дождаться `config_store`, проверить JSON и readiness через API |
+| чтение политики возвращает ошибку | проверить имя устройства, формат команды и фактически загруженный конфиг |
 
-Последний пункт особенно важен для проекта, сильно завязанного на `xsa` и кастомные PL-ядра. Успешный `dow` сам по себе ещё не доказывает, что запущена правильная hardware/software комбинация.
+## 8. Связанные документы
 
-## Смежные документы
-
-`run-and-debug.md` описывает сам attach и запуск, но не заменяет остальные dev-документы. За контекстом сборки лучше идти в `build.md`, за настройками окружения и артефактов в `development-environment.md`, за ожидаемым поведением рантайма в `architecture.md`, а за составом и происхождением hardware platform в `hardware-platform.md`.
+| Документ | Назначение |
+|---|---|
+| [Сборка](build.md) | build inputs, переменные и результаты |
+| [Аппаратная платформа](hardware-platform.md) | XSA, bitstream, PL-регионы и IRQ |
+| [Консольные команды](../reference/console-commands.md) | полный синтаксис shell |
+| [HTTP API](../reference/http-api.md) | маршруты и форматы запросов |
+| [Диагностика пользователя](../user/troubleshooting.md) | пошаговый разбор типовых отказов |

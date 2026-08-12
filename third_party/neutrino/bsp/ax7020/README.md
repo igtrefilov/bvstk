@@ -1,21 +1,40 @@
-# AX7020 Neutrino BSP snapshot
+# AX7020: Neutrino BSP snapshot
 
-This directory contains the AX7020-specific runtime files required to create
-the Burevestnik Neutrino IFS:
+Snapshot содержит board-specific файлы, необходимые для формирования
+Neutrino IFS проекта Burevestnik.
 
-- `images/zynq7000-ax7020-ssh.build` — the base image description;
-- `install/` — board-specific startup, drivers and runtime libraries.
+## 1. Состав snapshot
 
-The snapshot intentionally does not contain generated SSH host keys or
-`authorized_keys`. `scripts/neutrino/build_image.sh` creates fresh local keys
-under `build/neutrino/` and injects them into the generated image.
-Password authentication is enabled, but the image starts with the root
-password locked (`root:*`). Generate a local `root.shadow` before building
-the image with `scripts/neutrino/generate_root_shadow.py`; it is injected into
-`/etc/shadow`. The target IFS is read-only at runtime, so changing it with
-`passwd` on the running target is not supported. Key access remains available,
-and the password hash is not stored in the repository.
+| Путь | Содержимое |
+|---|---|
+| `images/zynq7000-ax7020-ssh.build` | base image description |
+| `install/` | startup, драйверы и runtime libraries BSP |
+| `README.md` | назначение snapshot и правила сборки |
 
-The host-side Neutrino SDK remains required for `qcc`, `mkifs` and the generic
-target files referenced by the BSP image description. Those tools are not
-AX7020 project sources and are expected to be installed on the build machine.
+## 2. Использование
+
+```sh
+NEUTRINO_BSP_DIR=third_party/neutrino/bsp/ax7020 \
+  ./build.sh neutrino-image
+```
+
+Скрипт `scripts/neutrino/build_image.sh` берёт `install/` и base `.build`,
+добавляет `/usr/bin/bvstkctl`, `/usr/bin/bvstkd`, SSH-материалы и создаёт IFS.
+
+## 3. SSH-материалы
+
+| Материал | Где создаётся |
+|---|---|
+| SSH host key | `build/neutrino/ssh/` |
+| `authorized_keys` | `build/neutrino/ssh/` |
+| root shadow line | `build/neutrino/root.shadow` |
+
+Сгенерированные ключи создаются локально при сборке. Пароль root начинается с
+заблокированного состояния; для парольной авторизации используется
+`scripts/neutrino/generate_root_shadow.py`.
+
+## 4. Внешние зависимости
+
+На host-машине остаются обязательными Neutrino SDK (`qcc`, `mkifs`) и generic
+target files, на которые ссылается BSP image description. Подробный workflow
+описан в [`scripts/neutrino/README.md`](../../../../scripts/neutrino/README.md).

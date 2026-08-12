@@ -1,157 +1,170 @@
-# Hardware Platform и её связь с прошивкой
+# Аппаратная платформа
 
-Этот документ описывает не всю hardware platform в терминах RTL, а ту её часть, которую обязан понимать разработчик `bvstk`. Главная задача текста — показать, как устроен мост между отдельным hardware-репозиторием и прошивкой `bvstk`, и почему эту связку нельзя документировать как две независимые системы.
+## 1. Контур платформы
 
-## Что лежит в hardware-репозитории
+BVSTK рассчитан на AX7020 с Zynq-7000 и кастомными PL-ядрами. Исходный Vivado-проект подключается из внешнего каталога `hw_platform/fpga`; в программный репозиторий передаются экспорт `design.xsa` и bitstream `design.bit`.
 
-На практике это репозиторий аппаратной платформы под конкретную целевую плату и конкретный аппаратный проект `Burevestnik_21`. Уже по структуре видно, что здесь нет абстрактной “папки с артефактами”, а есть полноценный исходный аппаратный проект:
+```mermaid
+flowchart LR
+    RTL[hw_platform/fpga<br/>Vivado + IP repository]
+    Export[design.xsa]
+    Bit[design.bit]
+    Contract[src/hardware/boards/ax7020]
+    Validate[FreeRTOS xparameters validation]
+    Runtime[FreeRTOS / Neutrino runtime]
 
-- `Burevestnik_21.tcl` — TCL-скрипт воссоздания Vivado-проекта
-- `src_vivado/Burevestnik_top.sv` — верхний уровень дизайна
-- `src_vivado/Burevestnik_top.bit` — собранный bitstream
-- `src_vivado/Burevestnik_top.xsa` — аппаратный export для Vitis
-- `src_vivado/Burevestnik_pins.xdc` — constraints
-- `ip_repo/` — локальный репозиторий кастомных IP-ядер
+    RTL --> Export
+    RTL --> Bit
+    Export --> Validate
+    Contract --> Validate
+    Export --> Runtime
+    Bit --> Runtime
+```
 
-Это важная точка для документации: прошивка работает не “с каким-то XSA”, а с экспортом именно из этого дизайна. Поэтому при описании `bvstk` надо ссылаться на конкретный аппаратный контекст, а не только на общие свойства Zynq.
+Пара `XSA + bitstream` и программный контракт платы должны описывать одну версию hardware design. Контракт хранится в `src/hardware/boards/ax7020/bvstk_hw_config.h` и `bvstk_pl_regions.c`.
 
-## Что делает `Burevestnik_21.tcl`
+## 2. Программный контракт AX7020
 
-Файл `Burevestnik_21.tcl` — это не заметка, а рабочий рецепт воссоздания Vivado-проекта. Из него видно несколько вещей, которые важны для разработчика прошивки.
+`bvstk_hw_config.h` задаёт физические адреса, размеры MMIO-окон, IRQ и номер контракта. FreeRTOS-модуль `src/ports/freertos-xilinx/board/ax7020/bvstk_hw_validate.c` сравнивает эти значения с `xparameters.h`, сгенерированным Vitis.
 
-Во-первых, проект рассчитан на `xc7z020clg400-2`.
+| Семейство | MMIO-регионы | BRAM |
+|---|---|---|
+| I2C | master, slave | общий mailbox BRAM |
+| SMI | master, slave | общий mailbox BRAM |
+| SPI | master | BRAM окна ответа |
 
-Во-вторых, верхний модуль проекта — `Burevestnik_top`.
+Текущая карта адресов:
 
-В-третьих, проект использует локальный `ip_repo`, а значит критические PL-ядра не являются стандартными блоками Vivado и их поведение нужно рассматривать как часть вашей собственной платформы.
+| Регион | База | Размер |
+|---|---:|---:|
+| `i2c-bram` | `0x40000000` | `0x2000` |
+| `smi-bram` | `0x42000000` | `0x2000` |
+| `spi-bram` | `0x44000000` | `0x2000` |
+| `i2c-master` | `0x43C00000` | `0x10000` |
+| `smi-master` | `0x43C10000` | `0x10000` |
+| `smi-slave` | `0x43C20000` | `0x10000` |
+| `spi-master` | `0x43C30000` | `0x10000` |
+| `i2c-slave` | `0x43C40000` | `0x10000` |
 
-Для прошивки это означает, что такие подсистемы, как `bvstk_i2c`, `bvstk_smi` и `bvstk_spi`, нельзя документировать только через C API. Их поведение определяется и программным кодом, и конкретным RTL в аппаратном репозитории.
+IRQ-контракт:
 
-## Что видно из `Burevestnik_top.sv`
+| Источник | GIC ID |
+|---|---:|
+| SMI master | `61` |
+| SMI slave | `62` |
+| I2C master | `63` |
+| I2C slave | `64` |
+| SPI master | `65` |
 
-`src_vivado/Burevestnik_top.sv` полезен тем, что он показывает реальные внешние интерфейсы и даёт очень наглядную картину того, какие шины и IRQ выходят из аппаратного дизайна наружу.
+## 3. Карта PL-регионов
 
-По top-level видно, что дизайн включает:
+`bvstk_pl_regions.c` предоставляет единый список, который используют `bvstkctl`, общий PL service и диагностические API.
 
-- стандартную PS-часть Zynq с DDR и FIXED_IO
-- I2C master и slave линии
-- SMI/MDIO master и slave линии
-- SPI линии
-- отдельные IRQ для `smi_master`, `smi_slave`, `i2c_master`, `spi_master`
+```mermaid
+graph TD
+    Map[PL region map]
+    I2CM[i2c-master]
+    I2CS[i2c-slave]
+    I2CB[i2c-bram]
+    SMIM[smi-master]
+    SMIS[smi-slave]
+    SMIB[smi-bram]
+    SPIM[spi-master]
+    SPIB[spi-bram]
+    Map --> I2CM
+    Map --> I2CS
+    Map --> I2CB
+    Map --> SMIM
+    Map --> SMIS
+    Map --> SMIB
+    Map --> SPIM
+    Map --> SPIB
+```
 
-Это особенно полезно для документации прошивки, потому что позволяет говорить не абстрактно “есть I2C и SMI”, а конкретно:
+Имена регионов используются в Neutrino CLI:
 
-- есть master path и slave path
-- есть асинхронные IRQ от PL
-- есть связка PS ↔ PL через конкретные аппаратные интерфейсы
+```text
+bvstkctl pl list
+bvstkctl pl probe
+bvstkctl pl read i2c-master 0x00
+bvstkctl pl write spi-master 0x00 0x00000001
+```
 
-Именно поэтому в `bvstk` подсистемы I2C и SMI выглядят как event-driven программная логика поверх PL-ядер, а не как чисто программные драйверы PS-периферии.
+Режим `pl write` предназначен для диагностики. Значение и смещение должны соответствовать регистровой карте конкретного IP.
 
-## Локальный `ip_repo`
+## 4. Логические окна BRAM
 
-В `ip_repo` лежат кастомные IP-блоки:
+### 4.1. I2C
 
-- `axi_i2c_slave_1_0`
-- `i2c_master`
-- `SMI_master`
-- `SMI_slave`
-- `SPI_master`
+| Окно | Смещение внутри I2C BRAM | Назначение |
+|---|---:|---|
+| slave write | `0x0000` | mailbox от внешнего I2C slave path |
+| master | `0x0500` | transaction buffer master path |
+| slave read | `0x1000` | ответ slave path |
 
-Для разработчика прошивки это означает, что аппаратная основа проекта контролируется вашей командой, а не поставляется как “чёрный ящик” в составе стандартного BSP. Это хорошо с точки зрения управляемости, но создаёт дополнительное требование к документации: software docs должны явно говорить, где заканчивается firmware и начинается RTL.
+### 4.2. SMI
 
-Когда этого не сделано, README начинает выглядеть искусственно. Он перечисляет программные подсистемы так, будто они полностью самодостаточны, хотя на деле они жёстко завязаны на поведение локальных IP-блоков.
+| Окно | Смещение внутри SMI BRAM | Назначение |
+|---|---:|---|
+| master write | `0x0000` | команда MDIO master |
+| slave write | `0x1000` | входящий slave mailbox |
+| slave read | `0x2000` | ответ slave mailbox |
 
-## Как hardware platform потребляется в `bvstk`
+### 4.3. SPI
 
-Связка между двумя репозиториями проходит через экспортированные HW-артефакты:
+SPI использует control-регистры master и BRAM-область чтения. Точные offsets находятся в `src/hardware/pl/spi/bvstk_spi_regs.h`; при изменении RTL этот файл обновляется вместе с IP-контрактом.
 
-- `*.bit` нужен для программирования PL
-- `*.xsa` нужен для сборки платформы Vitis
-- `ps7_init.tcl` появляется уже на стороне Vitis/export и нужен для JTAG-старта
+## 5. Связь с Vivado и Vitis
 
-Штатная пакетная сборка запускается из корня `bvstk`:
+Сборка Vivado экспортирует XSA и bitstream. Vitis создаёт BSP и генерирует `xparameters.h`. FreeRTOS validation сопоставляет аппаратные значения с проектными константами.
+
+```mermaid
+sequenceDiagram
+    participant Vivado
+    participant XSA
+    participant Vitis
+    participant Validate as bvstk_hw_validate
+    participant App as app_bvstk
+
+    Vivado->>XSA: export hardware
+    XSA->>Vitis: create platform + BSP
+    Vitis->>Validate: generate xparameters.h
+    Validate->>Validate: compare base/size/IRQ
+    Validate->>App: allow compilation when contract matches
+```
+
+При расхождении аппаратного контракта сборка должна завершаться на validation-этапе. Для Neutrino те же базовые константы компилируются напрямую из `src/hardware/boards/ax7020/`; runtime требует совместимого XSA и bitstream.
+
+## 6. Изменение hardware contract
+
+| Изменение в PL | Обновляемые элементы |
+|---|---|
+| база или размер региона | `bvstk_hw_config.h`, PL map, validation, драйверный код |
+| IRQ | `bvstk_hw_config.h`, BSP validation, OS adapter |
+| BRAM layout | `hardware/pl/*_regs.h`, core/service, тесты |
+| формат transaction frame | соответствующий core, service, DCP2 surface и host-тесты |
+| состав IP | XSA, source view, `scripts/neutrino/build.sh`, документация |
+
+После изменения выполняется полный цикл:
 
 ```sh
 ./scripts/fpga/build_fpga.sh
+./build.sh check
+./build.sh freertos
+./build.sh neutrino
 ```
 
-Скрипт читает `scripts/fpga/build_fpga.conf`, воссоздаёт или обновляет Vivado-проект через `Burevestnik_21.tcl`, выполняет implementation и экспортирует согласованную пару `artifacts/fpga/design.bit` и `artifacts/fpga/design.xsa`. Эти имена являются стабильным интерфейсом для последующих FreeRTOS и Neutrino build/run flow независимо от исходных имён файлов в hardware-репозитории.
+JTAG-запуск выполняется только после проверки, что `design.xsa`, `design.bit`, `ps7_init.tcl` и ELF относятся к одному export.
 
-Vivado journal и log-файлы направляются в `artifacts/vivado/logs/`. Путь задаётся параметром `VIVADO_LOG_DIR` или флагом `--log-dir`, поэтому служебные `vivado*.jou`, `vivado*.log` и backup-файлы не должны появляться в корне `bvstk` при использовании штатного скрипта.
+## 7. Граница ответственности
 
-Из этого следует два практических правила.
-
-Первое: если вы поменяли аппаратный дизайн, но продолжаете собирать прошивку со старым `xsa`, вы отлаживаете не ту систему, которая реально загружается на плату.
-
-Второе: если вы сменили `xsa`, но не проверили соответствие адресов, IRQ и BRAM layout в прошивке, система может собраться и даже стартовать, но работать нестабильно или частично неправильно.
-
-## Как мыслить границу между firmware и RTL
-
-В проекте есть соблазн описывать всё как один программный стек. Для человека это удобно, но для разработчика опасно. Намного полезнее мысленно разделять систему так:
-
-PL обеспечивает физику и аппаратный протокол обмена: шины, FSM, буферы, IRQ, BRAM-окна, линии `master/slave`.
-
-PS/firmware обеспечивает контрольную логику: сетевые сервисы, политики доступа, конфигурацию, обработку событий, кеширование и внешние интерфейсы для человека или клиента.
-
-Как только задача касается таймингов, frame semantics, поведения `CS`, структуры аппаратного события или layout BRAM, вы уже стоите на границе firmware и RTL. В этот момент одной только документации `bvstk` недостаточно; нужно смотреть соответствующий аппаратный код или как минимум аппаратное описание платформы.
-
-## Что это означает для документации `bvstk`
-
-Документация прошивки должна прямо говорить:
-
-- что проект привязан к `Burevestnik_21`
-- какие артефакты приходят из `hw_platform/fpga`
-- какие сервисы в прошивке соответствуют каким аппаратным блокам
-- какие классы проблем относятся к software, а какие скорее к hardware
-
-Без этого README начинает вести себя как универсальный справочник, хотя система конкретная и аппаратно зависимая.
-
-## Соответствие подсистем
-
-Для быстрой ориентации удобно держать в голове такое соответствие:
-
-| Hardware platform | Прошивка `bvstk` |
+| Слой | Ответственность |
 |---|---|
-| `i2c_master`, `axi_i2c_slave_1_0` | общий master core: `src/drivers/pl/i2c/`; FreeRTOS slave/IRQ glue: `src/apps/freertos/drivers/pl/i2c/` |
-| `SMI_master`, `SMI_slave` | общий master core: `src/drivers/pl/smi/`; FreeRTOS slave/IRQ glue: `src/apps/freertos/drivers/pl/smi/` |
-| `SPI_master` | общий transfer core: `src/drivers/pl/spi/`; FreeRTOS legacy adapter: `src/apps/freertos/drivers/pl/spi/` |
-| экспорт `Burevestnik_top.xsa` → `artifacts/fpga/design.xsa` | платформа Vitis, FreeRTOS BSP и общий PL-контракт |
-| bitstream `Burevestnik_top.bit` → `artifacts/fpga/design.bit` | JTAG-загрузка PL для FreeRTOS и Neutrino |
+| Vivado/IP | регистры, BRAM, внешние сигналы, IRQ и timing |
+| `hardware/` | адресная карта платы и программное описание PL-регионов |
+| `drivers/pl/` | OS-independent transaction primitives |
+| `services/` | устройства, cache, policy, конфигурация и события |
+| `ports/` | MMIO, mutex, clock, IRQ и системные типы ОС |
+| `apps/` | composition root, shell, HTTP, DCP2 и порядок запуска |
 
-Это соответствие полезно и при коде, и при документации. Оно помогает отвечать на вопрос “где искать проблему” до того, как вы потратили полдня на чтение не того слоя.
-
-## Отдельно про SPI и SD
-
-В аппаратном репозитории уже есть документ `SPI_SD_REMARKS.md`. Это очень хороший пример “человеческой” инженерной документации: он не перечисляет всё подряд, а объясняет конкретную проблему, почему она важна и что нужно исправить.
-
-Из этого документа следует важный практический вывод: часть ограничений SPI/SD в системе относится не к прошивке, а к текущему RTL ядра `SPI_master`. В частности, там явно отмечены проблемы frame-level управления `CS`, byte-granularity, init-path и поддержки SD response/token wait.
-
-Для разработчика `bvstk` это означает, что не любую проблему SPI можно решить на стороне firmware. Иногда правильный ответ — не “добавить код в shell или HTTP”, а “вернуться в hardware repo и доработать IP”.
-
-## Когда разработчику прошивки нужно идти в `hw_platform/fpga`
-
-Это нужно делать в следующих случаях.
-
-Если поменялись адреса, IRQ или состав периферии в `xsa`, а прошивка стала вести себя иначе. Это не та категория проблем, которую стоит сначала диагностировать через business-логику.
-
-Если некорректно работает `I2C/SMI/SPI` exchange path, особенно на границе IRQ, BRAM и аппаратных буферов.
-
-Если behaviour выглядит как protocol-level issue, а не как ошибка текстового интерфейса, HTTP или DCP2.
-
-Если есть подозрение, что ограничение встроено в сам IP-блок, как это уже описано для SPI/SD.
-
-## Что из этого стоит отражать в верхнеуровневой документации
-
-В `README.md` не нужно повторять полный разбор Vivado-проекта. Но нужно обязательно фиксировать:
-
-- что проект аппаратно привязан к `Burevestnik_21`
-- что `hw_platform/fpga` — это исходная точка для `bit/xsa`
-- что штатный экспорт создаётся через `scripts/fpga/build_fpga.sh`, а журналы лежат в `artifacts/vivado/logs/`
-- что в системе есть локальные кастомные PL IP, а не только стандартная периферия PS
-- что firmware и hardware нужно рассматривать вместе
-
-Этого уже достаточно, чтобы новый разработчик не ошибся в базовой модели проекта.
-
-## Куда идти дальше
-
-Если после этого документа нужна практическая разработка прошивки, переходите в `guide.md`. Если нужны подробности по архитектуре и запуску прошивки, используйте `architecture.md`, `build.md`, `run-and-debug.md`, `config-store.md` и `pl-cores.md`. Если работа касается бинарного протокола клиента, открывайте `../dcp2.md`.
+При отказе операции следует сопоставлять слой отказа с этой таблицей. Ошибка адресации указывает на контракт платформы, timeout — на core/PL/clock/IRQ, отказ policy — на сервис и конфигурацию, ошибка транспорта — на соответствующий adapter.

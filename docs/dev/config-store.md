@@ -1,160 +1,171 @@
 # Конфигурация и `config_store`
 
-Этот документ описывает текущее состояние подсистемы конфигурации в `bvstk`. Его задача не в том, чтобы повторить JSON reference по всем типам файлов, а в том, чтобы зафиксировать рабочую модель `config_store`: где именно лежат конфиги, когда они считаются готовыми, как выбирается источник данных, как устроен fallback на встроенные дефолты и что реально происходит при сохранении на QSPI.
+`config_store` загружает JSON из файловой системы, проверяет значения, формирует
+модель в памяти и предоставляет её runtime-сервисам. Для FreeRTOS это задача,
+запущенная после старта SD/QSPI; для common layers модель представлена структурами
+из `src/shared/config/bvstk_config_model.h`.
 
-`config_store` в проекте не является пассивной библиотекой для чтения JSON. Архитектурно это точка, в которой сходятся файловая система QSPI, встроенные дефолты, миграция старого layout, сетевые параметры и конфигурация PL-подсистем. Через него система переходит из состояния “прошивка только запустилась” в состояние “в рантайме опубликована конфигурационная модель устройства”.
+## 1. Жизненный цикл
 
-## Что такое `config_store` в текущей архитектуре
+```mermaid
+sequenceDiagram
+    participant Main as FreeRTOS main
+    participant FS as SD/QSPI tasks
+    participant Store as config_store
+    participant Runtime as bvstk_runtime
+    participant Services as I²C/SMI/LAN
 
-Подсистема реализована в `src/apps/freertos/config/config_store.c` и стартует как отдельная задача `cfg`, создаваемая через `start_config_store()`. Эта задача сначала даёт QSPI-файловой системе время на монтирование, затем создаёт и при необходимости наполняет primary-каталог конфигурации, выполняет одноразовую миграцию legacy-структуры и только после этого публикует загруженные данные в оперативной памяти. Когда этот этап завершён, `config_store_is_ready()` начинает возвращать true, а остальные части прошивки получают право считать конфиг “готовым”.
+    Main->>FS: start storage and fs devices
+    Main->>Store: start_config_store()
+    Store->>FS: wait for flash:/ readiness
+    FS-->>Store: mounted or fallback state
+    Store->>Store: read primary / legacy / defaults
+    Store->>Store: parse and validate
+    Store-->>Runtime: config_store_is_ready()
+    Runtime->>Services: initialize with validated model
+```
 
-Это важный момент для понимания всей системы. До готовности `config_store` часть подсистем может уже существовать как задачи, но работать либо на fallback-значениях, либо в ограниченном режиме. Именно поэтому `config_store` нужно воспринимать как runtime state publisher, а не просто как набор функций `load/save`.
+До публикации готовности runtime-сервисы должны считать конфигурацию неполной.
+Функция `config_store_wait_ready(timeout_ms)` используется composition roots,
+которые зависят от перечня устройств.
 
-## Где лежит конфигурация на устройстве
+## 2. Приоритет источников
 
-Текущая реализация поддерживает два каталога: основной `flash:/config/` и legacy `flash:/configs/`. Во внутреннем коде это отражено прямо через `CONFIG_DIR_PRIMARY = "config"` и `CONFIG_DIR_FALLBACK = "configs"`.
+```mermaid
+flowchart TD
+    P["flash:/config/<br/>primary"] --> SELECT{"Файл существует?"}
+    SELECT -->|да| VALIDATE["parse + validate"]
+    SELECT -->|нет| L["flash:/configs/<br/>legacy fallback"]
+    L --> LEGACYSELECT{"Файл существует?"}
+    LEGACYSELECT -->|да| VALIDATE
+    LEGACYSELECT -->|нет| D["embedded defaults<br/>default_configs.h"]
+    D --> VALIDATE
+    VALIDATE --> READY["published in-memory model"]
+```
 
-| Назначение | Primary | Legacy fallback |
+| Уровень | Путь | Назначение |
 |---|---|---|
-| сетевой конфиг | `flash:/config/network.json` | `flash:/configs/network.json` |
-| I2C-устройства | `flash:/config/i2c/*.json` | `flash:/configs/i2c/*.json` |
-| SMI/MDIO-устройства | `flash:/config/smi/*.json` | `flash:/configs/smi/*.json` |
+| primary | `flash:/config/` | актуальное persistent-хранилище |
+| legacy | `flash:/configs/` | чтение старой структуры и миграция |
+| defaults | `src/apps/freertos/config/default_configs.h` | встроенный fallback |
+| source JSON | `configs/` | входные файлы для code generator |
 
-На чтении приоритет всегда у primary. В коде это реализовано через построение пары путей и выбор “первого доступного” файла. Если `flash:/config/...` существует, используется он. Если primary-файла нет, но есть legacy-файл, читается legacy-версия. Такое поведение работает и для `network.json`, и для каталогов `i2c` и `smi`.
+После загрузки runtime читает структуры из RAM. Прямое чтение JSON для каждой
+операции не используется.
 
-С практической точки зрения это означает, что новая нормальная форма хранения для проекта уже давно `flash:/config/...`, а `flash:/configs/...` существует как совместимость со старым layout и как источник данных для миграции.
+## 3. Модель данных
 
-## Откуда берутся дефолты
-
-`config_store` живёт не только на содержимом QSPI. Если `flash:/` ещё не готов или нужные файлы отсутствуют, он использует встроенные дефолты, которые попадают в прошивку на этапе сборки через `src/apps/freertos/config/default_configs.h`.
-
-Источник этих дефолтов остаётся обычным каталогом `configs/` в репозитории:
-
-| Что вшивается | Файл-источник |
-|---|---|
-| сеть | `configs/network.json` |
-| I2C | `configs/i2c/*.json` |
-| SMI | `configs/smi/*.json` |
-
-На этапе сборки `tools/codegen/gen_default_configs.py` читает эти файлы и генерирует `default_configs.h`, который затем включается в `config_store.c`. В рантайме это даёт три семейства встроенных данных: `DEFAULT_NETWORK_JSON`, `DEFAULT_I2C_CONFIG_FILES[]` и `DEFAULT_SMI_CONFIG_FILES[]`.
-
-Из этого следует важное правило: изменение файла в `configs/` само по себе ещё не меняет поведение уже собранной прошивки. Чтобы новый дефолт действительно попал в бинарник, проект нужно пересобрать, чтобы обновился `src/apps/freertos/config/default_configs.h` и затем пересобрался ELF.
-
-## Как проходит загрузка при старте
-
-Поведение `config_task()` лучше всего понимать как последовательность из нескольких фаз.
-
-| Фаза | Что делает `config_store` |
-|---|---|
-| ожидание QSPI | до примерно 30 секунд ждёт, пока `qspi_fs_is_ready()` станет истинным |
-| подготовка каталогов | строит пути primary/fallback и, если QSPI готов, создаёт `flash:/config`, `flash:/config/i2c`, `flash:/config/smi` |
-| заполнение дефолтами | если в primary и legacy нет соответствующих файлов, записывает default JSON в primary |
-| миграция legacy | копирует legacy-файлы в primary, если primary-версии ещё нет |
-| загрузка network | читает `network.json`, а если это не удалось, парсит встроенный `DEFAULT_NETWORK_JSON` |
-| загрузка I2C | сканирует primary-каталог, затем fallback-каталог, избегая дублей по имени устройства |
-| загрузка SMI | сканирует primary-каталог, затем fallback-каталог, избегая дублей по имени устройства |
-| публикация готовности | выставляет `s_ready = 1` и завершает задачу |
-
-Здесь важно, что `config_store` не остаётся постоянно живущей рабочей задачей. Он выполняет стартовую инициализацию, публикует runtime-снимок конфигурации в статических структурах и затем завершает себя. После этого остальная система работает уже с in-memory представлением конфигов через `config_store_get_*()`, `config_store_find_*()` и `config_store_save_*()`.
-
-## Как устроен fallback, если QSPI не готов
-
-Если QSPI-файловая система не смонтировалась вовремя, `config_store` не блокирует загрузку системы бесконечно. Он пишет в лог, что QSPI не готов, и переходит на встроенные значения. Для сети это означает парсинг `DEFAULT_NETWORK_JSON`. Для I2C и SMI это означает загрузку устройств из `DEFAULT_I2C_CONFIG_FILES[]` и `DEFAULT_SMI_CONFIG_FILES[]`.
-
-Такая модель специально делает поведение системы мягким. Устройство может продолжить загрузку даже без доступной флеш-конфигурации, а разработчик получает предсказуемую конфигурационную базу вместо полностью неинициализированного состояния. Но есть и оборотная сторона: readiness `config_store` в этом случае не означает, что данные были взяты именно с QSPI. Он означает только то, что runtime-модель конфигурации построена и доступна остальной системе.
-
-## Миграция legacy-структуры
-
-Старый layout `flash:/configs/...` по-прежнему поддерживается, но в текущем проекте рассматривается именно как fallback и как источник для одноразовой миграции.
-
-Во время старта, если QSPI уже смонтирован, `config_store` проверяет три вещи. Для `network.json` он копирует legacy-файл в primary, если primary-версии ещё нет. Для каталогов `i2c` и `smi` он создаёт primary-подкаталоги при необходимости и затем проходит по legacy-директории, копируя в primary только те `.json`-файлы, которых там ещё нет.
-
-При этом primary никогда не перезаписывается данными из fallback. Это принципиальная часть текущей семантики: legacy нужен для безболезненного перехода на новый layout, но не для того, чтобы иметь приоритет над актуальной структурой `flash:/config/...`.
-
-## Что именно публикуется в рантайме
-
-После завершения старта `config_store` держит три основных блока данных: сетевой конфиг, массив I2C-устройств и массив SMI-конфигов.
-
-| Тип данных | Где хранится в памяти | Как получить |
+| Область | Тип | Поля |
 |---|---|---|
-| сеть | `s_net_cfg` | `config_store_get_network()` |
-| I2C-устройства | `s_i2c_cfgs[]` и `s_i2c_cfg_count` | `config_store_get_i2c_devices()`, `config_store_find_i2c_device_by_*()` |
-| SMI-устройства | `s_smi_cfgs[]` и `s_smi_cfg_count` | `config_store_get_smi_devices()`, `config_store_find_smi_device_by_*()` |
+| сеть | `network_config_t` | IP, netmask, gateway, MAC и `has_*` flags |
+| I²C | `i2c_device_config_t[]` | имя, файл, 7-bit address, регистры, policy, rules, settings |
+| SMI | `smi_phy_config_t[]` | имя, PHY address, регистры, policy, polling, rules, settings |
 
-Для I2C и SMI это не просто “сырые JSON-объекты”. Внутри памяти уже лежат провалидированные структуры с числовыми полями, политиками доступа, массивами `autopoll_regs`, списками правил и persisted settings. Этим объясняется, почему downstream-код почти не занимается парсингом JSON: он работает уже с готовой прикладной моделью.
+### 3.1. I²C
 
-## Форматы конфигов на уровне смысла
+Файл `configs/i2c/axp15060.json` содержит:
 
-Сетевой конфиг остаётся сравнительно простым. На диске он обычно выглядит как объект с секцией `ipv4` и полем `mac`, например как `configs/network.json`. Парсер `config_store` ищет ключи `ip`, `netmask`, `gateway` и `mac`, так что для него важны сами ключи и их значения, а не строгое расположение на одном уровне.
+```json
+{
+  "name": "axp15060",
+  "addr_7b": 54,
+  "reg_count": 74,
+  "max_value_code": 64,
+  "policy": "whitelist",
+  "whitelist": [
+    { "reg": 19, "val": 16 },
+    { "reg": 19, "val": 17 }
+  ],
+  "blacklist": []
+}
+```
 
-I2C-конфиг описывает “регистровое” устройство и содержит имя, 7-битный адрес, количество регистров, верхнюю границу допустимого значения, политику `whitelist` или `blacklist`, режимы `autopoll` и, при необходимости, persisted settings. В текущем проекте показательный пример лежит в `configs/i2c/axp15060.json`.
+I²C-модель содержит device descriptor, пары `{reg, val}` для whitelist и
+blacklist, а также `settings[]` для значений, применяемых при старте или
+сохранении. Поля `autopoll_*` к I²C не относятся.
 
-SMI-конфиг описывает PHY через `phy_addr`, `reg_count`, политику записи, список регистров для `autopoll` и persisted settings. Показательный пример лежит в `configs/smi/lan8720.json`.
+### 3.2. SMI
 
-Важно не путать политику доступа и persisted settings. Политика определяет, какие записи разрешены в рантайме, а persisted settings это список записей, которые должны быть применены как часть конфигурации устройства при старте соответствующей подсистемы.
+Файл `configs/smi/lan8720.json` дополнительно содержит профиль polling:
 
-## Как остальные подсистемы используют `config_store`
+```json
+{
+  "name": "lan8720",
+  "phy_addr": 1,
+  "reg_count": 32,
+  "policy": "whitelist",
+  "autopoll_enabled": true,
+  "autopoll_reg_delay_ms": 0,
+  "autopoll_cycle_delay_ms": 1000,
+  "autopoll_regs": [0, 1, 4, 5, 17, 31],
+  "write_allow_regs": [0, 4, 18, 30, 31],
+  "write_deny_regs": [],
+  "settings": []
+}
+```
 
-Роль `config_store` в системе проще всего понять по его потребителям.
+SMI policy разрешает или запрещает запись по номеру регистра. I²C policy
+работает с парой регистра и значения.
 
-| Потребитель | Что именно он берёт из `config_store` |
+## 4. Валидация
+
+| Данные | Проверки |
 |---|---|
-| `bvstk_lan` | MAC, IP, mask, gateway для инициализации сети |
-| `bvstk_i2c` | описание устройств, политики записи, `autopoll`, persisted settings |
-| `bvstk_smi` | описание PHY, правила `write_allow/write_deny`, `autopoll`, persisted settings |
-| TCP-консоль | список устройств и операции сохранения через `ip save`, auto-persist у `i2c policy ...` и `smi ... save` |
-| HTTP API | текущий network config и операции сохранения/обновления I2C-конфигов |
-| DCP2 | проверка ready-state и доступ к I2C/SMI-конфигам для валидации операций |
+| I²C address | `0..0x7F` |
+| I²C `reg_count` | `1..I2C_CFG_MAX_REG_COUNT` |
+| I²C register | меньше `reg_count` |
+| I²C value | не больше `max_value_code` |
+| SMI PHY/register | `0..31` и меньше `reg_count` |
+| policy | `whitelist` или `blacklist` |
+| arrays | размер не превышает соответствующий `*_MAX` |
 
-Архитектурно это означает, что `config_store` задаёт политику и форму данных, а не только место их хранения. Как только меняется его модель, это почти неизбежно затрагивает `lan`, HTTP, shell, DCP2 и PL-подсистемы одновременно.
+Невалидный файл отбрасывается на этапе загрузки. Runtime получает только
+проверенную структуру.
 
-## Как работает сохранение
+## 5. Изменение и сохранение
 
-Текущие функции сохранения это `config_store_save_network()`, `config_store_save_i2c_device()` и `config_store_save_smi_device()`. Они работают только если одновременно выполнены две вещи: `config_store` уже готов и `qspi_fs_is_ready()` истинно. Иначе функция сохранения просто вернёт ошибку.
+```mermaid
+sequenceDiagram
+    participant Client as shell / HTTP / DCP2
+    participant Runtime as service
+    participant Store as config_store
+    participant Flash as flash:/config
 
-Во всех случаях запись идёт в primary-каталог `flash:/config/...`. После успешной записи в primary происходит дополнительная попытка продублировать тот же JSON в legacy-путь, но только если сам legacy-каталог уже существует.
+    Client->>Runtime: validate and apply change
+    Runtime-->>Client: operation status
+    Client->>Store: update in-memory config
+    Store->>Flash: save primary JSON
+    Flash-->>Store: write result
+```
 
-| Функция | Основной путь записи | Когда дублируется в legacy |
-|---|---|---|
-| `config_store_save_network()` | `flash:/config/network.json` | если существует `flash:/configs/` |
-| `config_store_save_i2c_device()` | `flash:/config/i2c/<file>.json` | если существует `flash:/configs/` |
-| `config_store_save_smi_device()` | `flash:/config/smi/<file>.json` | если существует `flash:/configs/` |
+Для I²C shell успешные изменения policy и rule lists синхронизируются с
+`config_store` и сохраняются в `flash:/config/i2c/<device>.json`. HTTP
+`PUT /api/i2c` обновляет policy и массивы rules. Адрес устройства и имя файла
+через этот endpoint не меняются.
 
-Это тонкий, но важный момент. Текущая реализация не считает legacy-каталог обязательной частью записи. Она сначала сохраняет primary и только потом, для совместимости, пытается повторить запись в fallback-структуру, если та уже присутствует на носителе.
+Состояние после изменения проверяется по трём уровням:
 
-## Атомарность и ограничения записи
+```text
+i2c axp15060 info
+i2c axp15060 policy show rules
+cat flash:/config/i2c/axp15060.json
+```
 
-Низкоуровневая запись выполняется через `write_file_atomic()`. Она пишет данные во временный файл `<final>.tmp`, вызывает `f_sync()`, закрывает файл, затем удаляет прежний `final_path` и переименовывает `.tmp` в финальное имя. Для миграции используется `copy_file_atomic()`, который читает исходник в буфер и пишет его тем же атомарным способом.
+## 6. Ошибки и диагностика
 
-С практической точки зрения это защищает от самого неприятного сценария “в файле остался обрыв JSON после частичной записи”. Но стопроцентной transactional-модели здесь нет. Поскольку перед `f_rename()` вызывается `f_unlink(final_path)`, отказ `rename` после удаления старой версии всё ещё может оставить конфиг без финального файла. Это не делает механизм неправильным, но это стоит понимать как инженерный компромисс текущей реализации.
-
-## Что происходит при изменении конфигурации в рантайме
-
-Сетевой конфиг можно изменить в памяти через `config_store_set_network()`, после чего сохранить через `config_store_save_network()`. С I2C и SMI модель похожая: функции `config_store_set_i2c_device()` и `config_store_set_smi_device()` обновляют in-memory представление, а `config_store_save_*_device()` сериализуют его обратно в JSON.
-
-Это означает, что у системы есть два разных состояния, которые полезно различать. Первое это то, что уже загружено и действует в оперативной памяти. Второе это то, что уже сохранено на QSPI. Между ними возможен временной разрыв. Например, HTTP или shell могут обновить runtime-структуру, а сохранение на флеш может не пройти из-за неготового `flash:/`. В таком случае система уже живёт по новому состоянию в памяти, но после следующей перезагрузки вернётся к последней успешно сохранённой версии.
-
-## На что смотреть при проблемах
-
-Типовые проблемы с `config_store` почти всегда укладываются в несколько категорий.
-
-| Симптом | Что проверять первым |
+| Симптом | Проверка |
 |---|---|
-| `config_store` долго не становится ready | смонтировался ли `flash:/`, готов ли `qspi_fs` |
-| сеть поднялась не с тем IP | был ли загружен `network.json`, не ушла ли система на встроенный fallback |
-| I2C/SMI не видят устройства | загрузились ли JSON-файлы из `flash:/config/...`, не отброшены ли они валидатором |
-| `save` возвращает ошибку | готов ли `flash:/`, существует ли primary-каталог, не сломана ли QSPI ФС |
-| после правки `configs/` ничего не изменилось | был ли пересобран проект и обновился ли `default_configs.h` |
+| `config_store not ready` | готовность `flash:/`, mount logs и время после boot |
+| применились defaults | наличие primary/legacy JSON и результат парсинга |
+| запись пропала после reboot | `config_store_save_*()` и состояние QSPI |
+| новый JSON не используется | пересобран ли `default_configs.h` и какой файл выбран |
+| I²C policy выглядит старой | сравнить service, RAM-модель и файл на `flash:/` |
 
-Отдельно стоит помнить про текущее состояние SMI в системе. Конфигурационная модель SMI полностью поддерживается `config_store`, её используют shell и DCP2, и JSON-файлы для неё загружаются. Но сама подсистема `SMI` сейчас не стартует из `main()`. Поэтому наличие SMI-конфига в `config_store` не означает, что соответствующая рабочая логика уже реально активна после загрузки прошивки.
+## 7. Связанные документы
 
-## Что читать рядом
-
-`config_store` находится в центре нескольких подсистем, поэтому полезно держать рядом ещё несколько документов.
-
-| Документ | Когда он нужен |
+| Тема | Документ |
 |---|---|
-| `architecture.md` | когда нужно понять место `config_store` в общем boot flow |
-| `development-environment.md` | когда важны built-in defaults и их генерация при сборке |
-| `pl-cores.md` | когда конфиги I2C/SMI нужно связать с поведением PL-подсистем |
-| `build.md` | когда менялись `configs/` и нужно понять, как они попадают в прошивку |
+| архитектура | [architecture.md](architecture.md) |
+| I²C service | [pl/i2c.md](pl/i2c.md) |
+| JSON reference | [../reference/configuration.md](../reference/configuration.md) |
+| файловая система | [../user/filesystems.md](../user/filesystems.md) |

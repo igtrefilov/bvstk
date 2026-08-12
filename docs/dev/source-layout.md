@@ -1,113 +1,135 @@
-# Организация исходного кода
+# Структура исходников
 
-Каталог `src/` разделён по принадлежности и направлению зависимостей. Путь к
-файлу должен однозначно отвечать на два вопроса: можно ли использовать код в
-обеих ОС и какой runtime предоставляет его внешние зависимости.
+Путь к файлу определяет его архитектурную роль. Общие слои содержат алгоритмы
+и контракты. Порты связывают эти контракты с ОС и BSP. `apps/` собирает конкретный
+образ и владеет порядком запуска.
+
+## 1. Дерево исходников
 
 ```text
 src/
-├── shared/                       общий переносимый C-код
-│   ├── base/                     статусы и разбор простых значений
-│   ├── config/                   общие модели конфигурации
-│   ├── interfaces/               MMIO, clock, sync, IRQ и platform contracts
-│   ├── events/                   общая модель событий и event sink
-│   ├── pl/access/                проверенный доступ к областям PL
-│   └── protocols/                общие модели HTTP и DCP2
-├── hardware/
-│   ├── boards/ax7020/            карта MMIO/BRAM/IRQ целевой платы
-│   └── pl/                       регистровые контракты FPGA-ядер
-├── drivers/pl/                   переносимое взаимодействие с PL
-│   ├── i2c/                      I2C master transaction core
-│   ├── smi/                      SMI/MDIO master core
-│   └── spi/                      SPI packet/BRAM transfer core
-├── services/                     переносимая политика и прикладные сервисы
-│   ├── i2c/                      устройства, cache, policy и autopoll
-│   ├── smi/                      PHY, policy, cache и autopoll
-│   └── control/                  фасад для protocol adapters
-├── protocols/                    переносимые wire/protocol adapters
-│   └── dcp2/                     codec и service-level request handler
-├── ports/
-│   ├── freertos-xilinx/          FreeRTOS, Xilinx BSP и FatFs adapters
-│   └── neutrino-zynq7000/        Neutrino/POSIX adapters для Zynq-7000
-├── apps/
-│   ├── freertos/                 единый ELF, задачи, сервисы и storage runtime
-│   └── neutrino/                 отдельные Neutrino-приложения
-└── vendor/lwip/                  локально сопровождаемые исходники lwIP
+├── shared/                         common contracts and models
+│   ├── base/                       status and parsing helpers
+│   ├── config/                     configuration model
+│   ├── events/                     event model and sinks
+│   ├── interfaces/                 clock, MMIO, sync, IRQ, platform
+│   ├── pl/access/                  checked PL region access
+│   └── protocols/                  shared protocol models
+├── hardware/                       board and PL hardware contract
+│   ├── boards/ax7020/               MMIO, BRAM, IRQ and QSPI layout
+│   └── pl/                          register maps
+├── drivers/pl/                     OS-independent raw PL drivers
+│   ├── i2c/                         master and slave transaction cores
+│   ├── smi/                         MDIO transaction core
+│   └── spi/                         packet/BRAM transfer core
+├── services/                       reusable application services
+│   ├── control/                     common control facade
+│   ├── i2c/                         devices, cache, policy, master/slave
+│   └── smi/                         PHY policy, cache and polling API
+├── protocols/                      reusable protocol adapters
+│   └── dcp2/                        codec and control handler
+├── ports/                           OS and BSP integrations
+│   ├── freertos-xilinx/             FreeRTOS/Xilinx/FatFs
+│   └── neutrino-zynq7000/           Neutrino/POSIX/Zynq
+├── apps/                            composition roots
+│   ├── freertos/                    ELF, tasks, shell and network services
+│   └── neutrino/                    bvstkctl and bvstkd
+└── vendor/lwip/                     project-maintained lwIP extensions
 ```
 
-## Правила зависимостей
+## 2. Направление зависимостей
 
-Допустимое направление зависимостей:
-
-```text
-apps ───> protocols ───> services ───> drivers ───> shared ───> hardware
-  │           │             │            │             ▲
-  ├───────────┴─────────────┴────────────┴─────────────┘
-  └──────────────> ports (OS/BSP implementations selected by the build)
+```mermaid
+flowchart TB
+    APP["apps"] --> PROTO["protocols"]
+    APP --> SERVICE["services"]
+    APP --> PORT["ports"]
+    PROTO --> SERVICE
+    SERVICE --> DRIVER["drivers/pl"]
+    DRIVER --> SHARED["shared"]
+    PORT --> SHARED
+    SHARED --> HW["hardware"]
 ```
 
-- `shared/`, `drivers/`, `services/` и `protocols/` не включают FreeRTOS, lwIP,
-  FatFs, Xilinx BSP или Neutrino API;
-- `hardware/` описывает железо и не зависит от ОС;
-- `ports/` реализует интерфейсы для конкретной пары ОС/BSP и не зависит от
-  `apps/`;
-- `apps/` является composition root и выбирает нужные сервисы и port;
-- `vendor/` не считается проектным переносимым API;
-- include-пути задаются от корня `src/`; переходы `../` запрещены.
-
-Эти ограничения проверяет `./build.sh check`. Проверка также собирает и
-запускает host-тест общего PL service API через fake MMIO port.
-
-## FreeRTOS
-
-FreeRTOS-сборка больше не подключает весь `src/`. `scripts/vitis/build.tcl`
-создаёт внутри `vitis_ws` source view только из следующих корней:
-
-- `src/apps/freertos/`;
-- `src/drivers/`;
-- `src/services/`;
-- `src/protocols/`;
-- `src/hardware/`;
-- `src/ports/freertos-xilinx/`, кроме canonical linker-каталога;
-- `src/shared/`;
-- `src/vendor/lwip/`.
-
-OS-specific legacy PL glue остаётся в `src/apps/freertos/drivers/pl/`: он
-содержит FreeRTOS tasks/ISR и slave/MITM поведение, тогда как master
-transaction algorithms находятся в `src/drivers/pl/`.
-
-`lscript.ld` и `Xilinx.spec` хранятся в target port, но для совместимости со
-сгенерированным Vitis make flow дополнительно появляются в корне производного
-source view.
-
-## Neutrino
-
-Neutrino-сборка имеет отдельный явный список исходников в
-`scripts/neutrino/build.sh`. `bvstkctl` и `bvstkd` используют общий PL access
-API, DCP2 codec/control, I2C/SMI/SPI cores и Neutrino MMIO/synchronization
-ports. FreeRTOS-сервисы и Xilinx BSP в эту сборку не попадают.
-
-При появлении фоновой обработки IRQ или autopoll на Neutrino владельцем MMIO
-должен стать отдельный сервис/resource manager, а `bvstkctl` — его клиентом.
-Это не требует переносить FreeRTOS task model в процессную модель Neutrino.
-
-## Где искать код
-
-| Задача | Путь |
+| Правило | Обоснование |
 |---|---|
-| FreeRTOS startup | `src/apps/freertos/main.c` |
-| Shell dispatcher и команды | `src/apps/freertos/console/` |
-| TCP, SSH, HTTP, DCP2 | `src/apps/freertos/services/` |
-| Общие I2C/SMI/SPI cores | `src/drivers/pl/` |
-| Общие policy/services | `src/services/` |
-| FreeRTOS IRQ/tasks и compatibility glue | `src/apps/freertos/drivers/pl/` и `src/apps/freertos/runtime/` |
-| SD/QSPI/FatFs runtime | `src/apps/freertos/storage/` |
-| QSPI geometry and FatFs window | `src/hardware/boards/ax7020/bvstk_qspi_layout.h` |
-| Xilinx BSP integration | `src/ports/freertos-xilinx/` |
-| Neutrino MMIO integration | `src/ports/neutrino-zynq7000/` |
-| AX7020 address map | `src/hardware/boards/ax7020/` |
-| FPGA register maps | `src/hardware/pl/` |
-| Общие модели/contracts/events | `src/shared/` |
-| DCP2 codec и portable control | `src/protocols/dcp2/` и `src/services/control/` |
-| `bvstkctl` | `src/apps/neutrino/bvstkctl/` |
-| `bvstkd` | `src/apps/neutrino/bvstkd/` |
+| `shared`, `drivers`, `services`, `protocols` не импортируют OS/BSP headers | код собирается обеими ОС |
+| `hardware` не зависит от ОС | hardware contract един для FreeRTOS и Neutrino |
+| `ports` реализует common interfaces | системные API изолированы в одном месте |
+| `ports` не зависит от `apps` | adapter переиспользуется разными composition roots |
+| `apps` выбирает реализацию порта и порядок запуска | composition root владеет runtime |
+| include начинается от корня `src/` | сборка не зависит от положения исходного файла |
+| `../` в include запрещён | архитектурные границы остаются явными |
+
+Проверки выполняет `./build.sh check`, который запускает
+`scripts/check_architecture.sh` и host-тесты.
+
+## 3. FreeRTOS source view
+
+`scripts/vitis/build.tcl` создаёт в `vitis_ws/app_bvstk/src` символические ссылки
+на следующие корни:
+
+| Корень | Назначение |
+|---|---|
+| `apps/freertos` | FreeRTOS application и runtime services |
+| `drivers` | raw PL drivers |
+| `hardware` | board/register contract |
+| `ports/freertos-xilinx/board` | проверка hardware export |
+| `ports/freertos-xilinx/fs-fatfs` | diskio и FatFs integration |
+| `ports/freertos-xilinx/os` | FreeRTOS platform, sync и I²C adapter |
+| `ports/freertos-xilinx/storage` | QSPI flash driver |
+| `protocols` | DCP2 codec/control |
+| `services` | common services |
+| `shared` | common models and interfaces |
+| `vendor/lwip` | local lwIP extensions |
+
+Linker files `lscript.ld` и `Xilinx.spec` находятся в
+`src/ports/freertos-xilinx/linker/` и добавляются в производный source view в
+корне приложения.
+
+## 4. Neutrino source list
+
+Neutrino build использует явный массив `COMMON_SOURCES` в
+`scripts/neutrino/build.sh`. В него входят common drivers, services, protocols,
+hardware map и Neutrino ports. FreeRTOS application, lwIP, FatFs и Xilinx BSP в
+этом target отсутствуют.
+
+```mermaid
+flowchart LR
+    COMMON["drivers + services + protocols\nshared + hardware"] --> CTL["bvstkctl"]
+    COMMON --> DAEMON["bvstkd"]
+    NPORT["ports/neutrino-zynq7000"] --> CTL
+    NPORT --> DAEMON
+```
+
+IRQ-driven фоновые сервисы Neutrino требуют отдельного владельца MMIO —
+resource manager или daemon. Process model Neutrino задаёт собственную
+оркестрацию; FreeRTOS task model переносится на уровень контрактов, а не на
+уровень системных вызовов.
+
+## 5. Карта изменений
+
+| Изменение | Каталог |
+|---|---|
+| статус, parse, shared model | `src/shared/` |
+| регистр PL или board address | `src/hardware/` |
+| алгоритм raw transaction | `src/drivers/pl/` |
+| устройства, cache или policy | `src/services/` |
+| OS synchronization/MMIO/IRQ | `src/ports/<target>/` |
+| startup и composition | `src/apps/<target>/` |
+| пользовательский транспорт | `src/apps/freertos/services/` |
+| shell command | `src/apps/freertos/console/` |
+| сборочный состав | `scripts/vitis/build.tcl` или `scripts/neutrino/build.sh` |
+
+## 6. Ключевые файлы
+
+| Файл или каталог | Роль |
+|---|---|
+| `src/apps/freertos/main.c` | FreeRTOS startup |
+| `src/apps/freertos/runtime/bvstk_runtime.c` | composition common PL services |
+| `src/drivers/pl/i2c/` | raw I²C master/slave |
+| `src/services/i2c/` | I²C devices/cache/policy/services |
+| `src/ports/freertos-xilinx/os/i2c/` | FreeRTOS I²C ISR/task adapter |
+| `src/hardware/boards/ax7020/` | board map |
+| `src/protocols/dcp2/` | portable DCP2 codec/control |
+| `tests/host/` | host-level regression tests |

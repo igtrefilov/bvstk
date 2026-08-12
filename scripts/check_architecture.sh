@@ -75,5 +75,6 @@ if (( fail != 0 )); then
   exit 1
 fi
 
+"$REPO_ROOT/scripts/check_docs.sh"
 "$REPO_ROOT/tests/host/run.sh"
 echo "Architecture checks passed"

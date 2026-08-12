@@ -1,18 +1,67 @@
-# Scripts Layout
+# Инструменты проекта
 
-This directory is split by purpose:
+Каталог `scripts/` содержит команды сборки, запуска, проверки и подготовки
+локальной среды. Скрипты вызываются из корня репозитория; machine-specific
+параметры хранятся в локальных `.conf`-файлах.
 
-- `scripts/fpga/` — FPGA build scripts (`build_fpga.sh`, `build_hw.tcl`, configs)
-- `scripts/vitis/` — Vitis build/JTAG scripts (`build.sh`, `build.tcl`, `run_jtag.sh`, `run_jtag.tcl`, configs)
-- `scripts/vscode/` — VSCode/debug helper scripts (`arm-none-eabi-gdb.sh`, `gen_compile_commands.sh`, `jtag_prepare_debug.tcl`)
-- `scripts/compat/` — legacy wrappers for old script paths (kept for backward compatibility)
+## 1. Карта инструментов
 
-Compatibility wrappers are kept in `scripts/compat/` for old paths.
+```mermaid
+flowchart LR
+    FPGA[scripts/fpga]
+    Vitis[scripts/vitis]
+    Neutrino[scripts/neutrino]
+    VSCode[scripts/vscode]
+    Compat[scripts/compat]
+    Artifacts[artifacts/ + build/ + vitis_ws/]
 
-## New Machine Checklist
+    FPGA --> Artifacts
+    Vitis --> Artifacts
+    Neutrino --> Artifacts
+    VSCode --> Vitis
+    Compat --> FPGA
+    Compat --> Vitis
+```
 
-1. Configure FPGA build script in `scripts/fpga/build_fpga.conf`:
-`VIVADO_BIN`, `FPGA_DIR`, `OUTPUT_DIR`.
-2. Configure Vitis/JTAG scripts in `scripts/vitis/*.conf` if paths are non-default.
-3. Use VSCode helpers from `scripts/vscode/`.
-4. If needed, legacy wrappers are available in `scripts/compat/`.
+| Каталог | Назначение | Основной документ |
+|---|---|---|
+| `scripts/fpga/` | Vivado project, implementation и XSA/bitstream export | [FPGA build](fpga/README.md) |
+| `scripts/vitis/` | Vitis platform, FreeRTOS ELF и JTAG | [Vitis/JTAG](vitis/README.md) |
+| `scripts/neutrino/` | `bvstkctl`, `bvstkd`, IFS и Neutrino JTAG | [Neutrino](neutrino/README.md) |
+| `scripts/vscode/` | compile commands и GDB preparation | [VSCode](vscode/README.md) |
+| `scripts/compat/` | совместимость со старыми путями | исходники wrappers |
+| `scripts/dcp2/` | host-инструменты DCP2/NOTIFY | [DCP2 usage](../docs/user/dcp2-usage.md) |
+
+## 2. Общий рабочий поток
+
+| Этап | Команда | Результат |
+|---:|---|---|
+| 1 | `./scripts/fpga/build_fpga.sh` | `artifacts/fpga/design.xsa`, `design.bit` |
+| 2 | `./build.sh check` | архитектурные, host- и doc-проверки |
+| 3 | `./build.sh freertos` | `vitis_ws/.../app_bvstk.elf` |
+| 4 | `./build.sh neutrino` | `build/neutrino/bvstkctl`, `bvstkd` |
+| 5 | `./build.sh neutrino-image` | Neutrino IFS |
+| 6 | `./run.sh <target> jtag` | загрузка на AX7020 |
+
+Полные требования к окружению и варианты сборки описаны в
+[руководстве разработчика](../docs/dev/build.md).
+
+## 3. Настройка новой рабочей станции
+
+| Инструмент | Что проверить |
+|---|---|
+| Vivado/Vitis | `vivado -version`, `xsct -version`, `hw_server -h` |
+| ARM toolchain | `arm-none-eabi-gcc --version`, `arm-none-eabi-gdb --version` |
+| Neutrino SDK | `qcc -V`, `mkifs -V` |
+| hardware repository | доступен каталог `hw_platform/fpga` |
+| BSP snapshot | доступен `third_party/neutrino/bsp/ax7020` |
+
+Конфигурации скриптов копируются из `*.conf.example` только для локальной
+машины. Секреты, host keys и сгенерированные build artifacts хранятся в
+производных каталогах и не добавляются в Git.
+
+## 4. Совместимость
+
+Старые точки входа поддерживаются wrappers в `scripts/compat/`. Для новых
+сценариев используются пути внутри текущего репозитория и команды корневого
+`build.sh`/`run.sh`.

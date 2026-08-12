@@ -1,125 +1,125 @@
-# SSH-консоль FreeRTOS
+# SSH в FreeRTOS
 
-FreeRTOS-сборка `bvstk` может поднимать SSH-сервер на TCP-порту `22`. SSH использует тот же диспетчер команд, что и TCP-консоль на `8888`, поэтому команды `help`, `i2c`, `smi`, `spi`, `mem`, `fs`, `tar`, `ip`, `reboot` и файловые команды доступны через оба интерфейса.
+## 1. Назначение
 
-SSH включается только при явном задании `BVSTK_SSH_ENABLE=1`. Обычная сборка FreeRTOS при этом остаётся без зависимости от wolfSSL/wolfSSH и без SSH-сервера.
+Опциональный SSH-сервер FreeRTOS предоставляет инженерную консоль на TCP-порту `22`. Командный диспетчер общий с TCP-консолью на `8888`; SSH добавляет парольную аутентификацию и файловые операции SCP/SFTP через адаптер FatFs.
 
-## Зависимости
-
-Для SSH нужны статические библиотеки wolfSSL и wolfSSH, собранные под ARM/FreeRTOS-платформу проекта. Зафиксированные исходники этих библиотек входят в [`third_party/dist`](../../third_party/README.md), поэтому сборка не зависит от внешней копии wolfSSH или временной директории `/tmp`. Исходные проекты распространяются под своими GPL/commercial-лицензиями; их лицензии находятся внутри архивов.
-
-Минимальные требования к сборке библиотек:
-
-- wolfSSL: wolfCrypt, SHA-256, RSA и необходимые алгоритмы обмена ключами;
-- wolfSSL: `WOLFSSL_LWIP`, без зависимости от файловой системы и TLS;
-- wolfSSL: `WC_RNG_SEED_CB`, чтобы приложение могло заменить POSIX seed path (`/dev/urandom` отсутствует в bare-metal FreeRTOS);
-- wolfSSH: серверная часть, shell, SCP с пользовательскими callbacks и SFTP с адаптером FatFs;
-- wolfSSH: `WOLFSSH_TERM` и `NO_TERMIOS`, чтобы распознавать SSH `pty-req`, не требуя локального POSIX-терминала.
-
-При обычной сборке зависимости автоматически распаковываются, патчатся и собираются скриптом [`scripts/vitis/build_ssh_deps.sh`](../../scripts/vitis/build_ssh_deps.sh) в `build/ssh-deps/`. Переменные `BVSTK_WOLFSSL_ROOT` и `BVSTK_WOLFSSH_ROOT` остаются необязательным override для уже установленной внешней сборки.
-
-wolfSSH нужно конфигурировать с `--enable-scp --enable-sftp` и собрать с
-`WOLFSSH_SCP_USER_CALLBACKS`, `WOLFSSH_FATFS` и `WOLFSSH_BVSTK_FATFS`.
-Для ограничения памяти также используются `WOLFSSH_MAX_SFTP_RW=4096` и
-`WOLFSSH_MAX_SFTP_RECV=8192`. Без необходимых функций
-`scripts/vitis/build.tcl` остановит сборку с ошибкой о недостающих SCP- или
-SFTP-символах.
-
-Перед сборкой wolfSSH примените два проектных патча:
-
-Первый исправляет неблокирующую обработку и завершение однофайловых и
-рекурсивных SCP-сессий. Второй добавляет отображение виртуальных путей SFTP на
-тома FatFs и корректную обработку файловых смещений SFTP. Скрипт сборки
-применяет оба патча автоматически.
-
-## Сборка
-
-Пример обычной сборки:
-
-```sh
-cd /path/to/bvstk
-export BVSTK_SSH_ENABLE=1
-export BVSTK_SSH_USER=root
-export BVSTK_SSH_PASSWORD='your-password'
-export BVSTK_SSH_PORT=22
-CLEAN=1 ./build.sh freertos
+```mermaid
+flowchart LR
+    Client[ssh / scp / sftp]
+    Server[wolfSSH server]
+    Dispatch[Общий command dispatcher]
+    FS[FatFs adapter]
+    Runtime[FreeRTOS runtime]
+    Client --> Server --> Dispatch --> Runtime
+    Server --> FS
 ```
 
-После обычного `git clone` достаточно выполнить этот сценарий в окружении,
-где доступны `xsct` и ARM-компилятор Vitis. wolfSSL/wolfSSH будут собраны
-автоматически из `third_party/dist`.
+Обычная FreeRTOS-сборка SSH-компоненты не подключает. Включение выполняется явной переменной `BVSTK_SSH_ENABLE=1`.
 
-`BVSTK_SSH_USER`, `BVSTK_SSH_PORT` и `BVSTK_SSH_HOST_KEY` являются необязательными. По умолчанию используются пользователь `root` и порт `22`. Если `BVSTK_SSH_HOST_KEY` не задан, build-скрипт генерирует RSA host key на время сборки. Для постоянного fingerprint передайте путь к PEM-ключу через `BVSTK_SSH_HOST_KEY`.
+## 2. Сборка
 
-Пароль не записывается в исходники: build-скрипт встраивает только SHA-256 digest в игнорируемый файл `src/apps/freertos/services/ssh/bvstk_ssh_generated.h`. Этот файл и сгенерированный host key не следует добавлять в Git.
-
-## Подключение
-
-После загрузки ELF по JTAG или другим способом:
+Минимальная команда:
 
 ```sh
-ssh root@192.168.0.10
+BVSTK_SSH_ENABLE=1 \
+BVSTK_SSH_PASSWORD='your-password' \
+  ./build.sh freertos
 ```
 
-Ключ `-tt` не требуется: сервер принимает `pty-req`, поэтому обычная команда `ssh root@<ip>` сразу открывает интерактивную консоль.
-
-Для выполнения одной команды без интерактивной сессии:
+Полная настройка с именем пользователя, портом и постоянным host key:
 
 ```sh
-ssh -p 22 root@192.168.0.10 'i2c list'
-ssh -p 22 root@192.168.0.10 'ip addr show'
+BVSTK_SSH_ENABLE=1 \
+BVSTK_SSH_USER=root \
+BVSTK_SSH_PORT=22 \
+BVSTK_SSH_PASSWORD='your-password' \
+BVSTK_SSH_HOST_KEY=/secure/path/ssh_host_rsa_key.pem \
+  ./build.sh freertos
 ```
 
-TCP-консоль на `8888` продолжает работать параллельно. В SSH поддержаны история команд по `Up`/`Down`, перемещение курсора стрелками, `Home`/`End`, переход по словам через `Ctrl+Left`/`Ctrl+Right`, а также `Ctrl+A`/`Ctrl+E`. Для редактирования строки доступны `Backspace`, `Delete`, `Ctrl+W`/`Ctrl+U`/`Ctrl+K` для вырезания и `Ctrl+Y` для вставки последнего вырезанного фрагмента. Автодополнение имён команд вызывается клавишей `Tab`; для `i2c` и `smi` также дополняются имена устройств, адресные селекторы и подкоманды. При нескольких совпадениях выводится список кандидатов. SSH в текущем варианте является инженерной консолью, а не полноценной Unix-оболочкой.
+| Переменная | Назначение | Значение по умолчанию |
+|---|---|---|
+| `BVSTK_SSH_ENABLE` | включает SSH-сервис и зависимости | `0` |
+| `BVSTK_SSH_USER` | имя пользователя | `root` |
+| `BVSTK_SSH_PORT` | TCP-порт | `22` |
+| `BVSTK_SSH_PASSWORD` | пароль, из которого создаётся SHA-256 digest | обязательный параметр |
+| `BVSTK_SSH_HOST_KEY` | PEM host key для встраивания в firmware | временно сгенерированный ключ |
+| `BVSTK_WOLFSSL_ROOT` | готовая wolfSSL-сборка | `build/ssh-deps/wolfssl` |
+| `BVSTK_WOLFSSH_ROOT` | готовая wolfSSH-сборка | `build/ssh-deps/wolfssh` |
 
-## SFTP и современный SCP
+Переменные задаются в командной строке, shell-конфиге или CI-среде. Пароль хранится только как digest в сгенерированном заголовке `src/apps/freertos/services/ssh/bvstk_ssh_generated.h`; файл относится к build-артефактам и не добавляется в Git.
 
-SFTP доступен стандартной командой:
+## 3. Зависимости
 
-```sh
-sftp root@192.168.0.10
-```
+Исходные архивы wolfSSL и wolfSSH находятся в `third_party/dist/`. `scripts/vitis/build_ssh_deps.sh` распаковывает их, применяет проектные патчи и создаёт ARM/FreeRTOS-библиотеки в `build/ssh-deps/`.
 
-Современный OpenSSH использует SFTP и для обычной команды `scp`, поэтому ключ
-`-O` больше не нужен:
+| Компонента | Требуемые возможности |
+|---|---|
+| wolfSSL | wolfCrypt, SHA-256, RSA, `WOLFSSL_LWIP`, callback seed |
+| wolfSSH | server, shell, SCP callbacks, SFTP, FatFs adapter |
+| compiler flags | `WOLFSSH_SCP_USER_CALLBACKS`, `WOLFSSH_FATFS`, `WOLFSSH_BVSTK_FATFS`, `WOLFSSH_TERM`, `NO_TERMIOS` |
 
-```sh
-scp ./hello.bin root@192.168.0.10:/sd:/hello.bin
-scp root@192.168.0.10:/sd:/hello.bin ./hello-from-board.bin
-scp -r ./config root@192.168.0.10:/flash:/
-scp -r root@192.168.0.10:/flash:/config ./config-from-board
-```
+При включённой опции build проверяет наличие библиотек и символов SCP/SFTP. Каталог `third_party/dist/` содержит исходные архивы и лицензии; производные библиотеки размещаются в `build/ssh-deps/`.
 
-Видимый корень SFTP `/` соответствует SD-карте. Явные псевдокаталоги
-`/sd:/` и `/sd/` также выбирают SD, а `/flash:/` и `/flash/` — QSPI FatFs.
-Обычные абсолютные пути, например `/config/settings.json`, относятся к SD.
+## 4. Host key и повторные сборки
 
-Для совместимости сохранён и классический SCP через ключ `-O`:
-
-```sh
-scp -O ./hello.bin root@192.168.0.10:/sd:/hello.bin
-scp -O root@192.168.0.10:/sd:/hello.bin ./hello-from-board.bin
-scp -O -r ./config root@192.168.0.10:/flash:/
-scp -O -r root@192.168.0.10:/flash:/config ./config-from-board
-```
-
-Если в качестве назначения указать существующий каталог (`/sd`, `/sd:/`,
-`/flash` или `/flash:/`), файл или каталог будет сохранён в нём под своим
-исходным именем. Для каталога нужен ключ `-r`.
-
-SFTP работает поверх FatFs, поэтому это не полноценная POSIX-файловая система:
-владельцы, Unix-права, символические ссылки и точное сохранение всех временных
-меток не поддерживаются. Файловые смещения ограничены 32-битным адресным
-пространством FatFs этой платформы. Классический SCP дополнительно отклоняет
-пути с `..`, неизвестные тома и вложенность более 16 уровней.
-
-## Повторная сборка и host key
-
-Если `BVSTK_SSH_HOST_KEY` не задан, при каждой SSH-сборке генерируется новый серверный ключ. Тогда после загрузки нового ELF локальный SSH-клиент справедливо сообщит `REMOTE HOST IDENTIFICATION HAS CHANGED`. Для отладочной платы старую запись можно удалить и подключиться заново:
+Если `BVSTK_SSH_HOST_KEY` не задан, генератор создаёт временный RSA-ключ и встраивает его в заголовок. После каждой такой сборки fingerprint может измениться. Для локальной платы запись можно удалить:
 
 ```sh
 ssh-keygen -f "$HOME/.ssh/known_hosts" -R 192.168.0.10
-ssh root@192.168.0.10
 ```
 
-Чтобы fingerprint не менялся между сборками, создайте постоянный PEM-ключ вне Git и передавайте его через `BVSTK_SSH_HOST_KEY`.
+Постоянный ключ следует хранить вне репозитория с ограниченными правами:
+
+```sh
+chmod 0600 /secure/path/ssh_host_rsa_key.pem
+```
+
+## 5. Подключение
+
+```sh
+ssh root@192.168.0.10
+ssh -p 22 root@192.168.0.10 'i2c list'
+```
+
+TCP-консоль на `8888` продолжает обслуживаться параллельно. SSH поддерживает интерактивное редактирование, историю команд и автодополнение. Диспетчер выполняет команды устройства; полноценная Unix shell-среда в образе отсутствует.
+
+## 6. Передача файлов
+
+SFTP и современный OpenSSH SCP используют виртуальные FatFs-пути:
+
+```sh
+sftp root@192.168.0.10
+scp ./file.bin root@192.168.0.10:/sd:/file.bin
+scp root@192.168.0.10:/flash:/config/network.json ./network.json
+scp -r ./config root@192.168.0.10:/flash:/
+```
+
+Для классического SCP применяется `-O`:
+
+```sh
+scp -O ./file.bin root@192.168.0.10:/sd:/file.bin
+scp -O -r ./config root@192.168.0.10:/flash:/
+```
+
+| Виртуальный путь | FatFs-том |
+|---|---|
+| `/sd`, `/sd:/` | SD, логический том `0:/` |
+| `/flash`, `/flash:/` | QSPI, логический том `1:/` |
+| `/config/...` | путь относительно текущего default root, обычно SD |
+
+Операции ограничены возможностями FatFs: Unix-владельцы, символические ссылки и полный набор POSIX-метаданных отсутствуют. Для каталогов используется `-r`.
+
+## 7. Безопасность
+
+SSH предназначен для доверенного инженерного контура. Пароль и host key передаются в build environment и должны храниться в защищённом секретном хранилище CI или локальной системе. TCP-консоль и HTTP API остаются отдельными интерфейсами с собственной моделью доступа; включение SSH не меняет их сетевую доступность.
+
+## 8. Связанные документы
+
+| Документ | Содержание |
+|---|---|
+| [Сборка](build.md) | переменные и результаты FreeRTOS build |
+| [Консольные команды](../reference/console-commands.md) | общий command dispatcher |
+| [Файловые системы](../user/filesystems.md) | тома, пути и ограничения FatFs |
+| [Сетевые интерфейсы](../user/network.md) | адреса и сервисные порты |
