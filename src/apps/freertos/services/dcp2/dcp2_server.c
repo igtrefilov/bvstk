@@ -19,6 +19,7 @@
 #include "apps/freertos/drivers/pl/i2c/bvstk_i2c.h"
 #include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
 #include "apps/freertos/drivers/pl/spi/bvstk_spi.h"
+#include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
 #include "apps/freertos/services/lan/bvstk_lan.h"
 
@@ -480,6 +481,72 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
 {
     size_t dev_idx = 0;
     const i2c_device_config_t *cfg = NULL;
+    bvstk_i2c_service_t *common_service = bvstk_runtime_i2c_service();
+
+    if (common_service != NULL) {
+        bvstk_status_t status;
+        if (opcode == DCP2_OP_I2C_READ_REG || opcode == DCP2_OP_I2C_WRITE_REG ||
+            opcode == DCP2_OP_I2C_POLICY_SET) {
+            if ((opcode == DCP2_OP_I2C_READ_REG && body_len != 2U) ||
+                (opcode == DCP2_OP_I2C_WRITE_REG && body_len != 3U) ||
+                (opcode == DCP2_OP_I2C_POLICY_SET && body_len != 2U)) {
+                return dcp2_send_response(fd, srv, opcode, seq,
+                                          DCP2_STATUS_ERR_MALFORMED, NULL, 0);
+            }
+            if (bvstk_i2c_service_find_by_addr(common_service,
+                                               body[0],
+                                               &dev_idx) != BVSTK_OK) {
+                return dcp2_send_response(fd, srv, opcode, seq,
+                                          DCP2_STATUS_ERR_RANGE, NULL, 0);
+            }
+        }
+        if (opcode == DCP2_OP_I2C_READ_REG) {
+            uint8_t value = 0U;
+            status = bvstk_i2c_service_read_reg(common_service,
+                                                dev_idx,
+                                                body[1],
+                                                &value,
+                                                100U);
+            return dcp2_send_response(fd, srv, opcode, seq,
+                                      status == BVSTK_OK ? DCP2_STATUS_OK :
+                                      status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
+                                      DCP2_STATUS_ERR_TIMEOUT,
+                                      status == BVSTK_OK ? &value : NULL,
+                                      status == BVSTK_OK ? 1U : 0U);
+        }
+        if (opcode == DCP2_OP_I2C_WRITE_REG) {
+            status = bvstk_i2c_service_write_reg(common_service,
+                                                 dev_idx,
+                                                 body[1],
+                                                 body[2],
+                                                 BVSTK_EVENT_SOURCE_DCP,
+                                                 100U);
+            if (status == BVSTK_OK) {
+                (void)bvstk_runtime_i2c_sync_device(dev_idx, 1);
+            }
+            return dcp2_send_response(fd, srv, opcode, seq,
+                                      status == BVSTK_OK ? DCP2_STATUS_OK :
+                                      status == BVSTK_ERR_DENIED ? DCP2_STATUS_ERR_DENIED :
+                                      status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
+                                      DCP2_STATUS_ERR_INTERNAL,
+                                      NULL, 0);
+        }
+        if (opcode == DCP2_OP_I2C_POLICY_SET) {
+            i2c_policy_t policy;
+            if (body[1] > 1U) {
+                return dcp2_send_response(fd, srv, opcode, seq,
+                                          DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+            }
+            policy = body[1] == 0U ? I2C_POLICY_WHITELIST : I2C_POLICY_BLACKLIST;
+            status = bvstk_i2c_service_set_policy(common_service, dev_idx, policy);
+            if (status == BVSTK_OK) {
+                (void)bvstk_runtime_i2c_sync_device(dev_idx, 1);
+            }
+            return dcp2_send_response(fd, srv, opcode, seq,
+                                      status == BVSTK_OK ? DCP2_STATUS_OK :
+                                      DCP2_STATUS_ERR_INTERNAL, NULL, 0);
+        }
+    }
 
     if (!config_store_is_ready()) {
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_BUSY, NULL, 0);
@@ -555,6 +622,57 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
 static int dcp2_handle_smi(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
 {
     smi_phy_config_t *cfg = NULL;
+    bvstk_smi_service_t *common_service = bvstk_runtime_smi_service();
+
+    if (common_service != NULL &&
+        (opcode == DCP2_OP_SMI_READ || opcode == DCP2_OP_SMI_WRITE)) {
+        size_t device_id;
+        bvstk_status_t status;
+        if ((opcode == DCP2_OP_SMI_READ && body_len != 2U) ||
+            (opcode == DCP2_OP_SMI_WRITE && body_len != 4U)) {
+            return dcp2_send_response(fd, srv, opcode, seq,
+                                      DCP2_STATUS_ERR_MALFORMED, NULL, 0);
+        }
+        if (bvstk_smi_service_find_by_phy(common_service,
+                                          body[0],
+                                          &device_id) != BVSTK_OK) {
+            return dcp2_send_response(fd, srv, opcode, seq,
+                                      DCP2_STATUS_ERR_RANGE, NULL, 0);
+        }
+        if (opcode == DCP2_OP_SMI_READ) {
+            uint16_t value = 0U;
+            uint8_t response[2];
+            status = bvstk_smi_service_read(common_service,
+                                            device_id,
+                                            body[1],
+                                            &value,
+                                            100U);
+            if (status == BVSTK_OK) {
+                be16_write(response, value);
+            }
+            return dcp2_send_response(fd, srv, opcode, seq,
+                                      status == BVSTK_OK ? DCP2_STATUS_OK :
+                                      status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
+                                      DCP2_STATUS_ERR_TIMEOUT,
+                                      status == BVSTK_OK ? response : NULL,
+                                      status == BVSTK_OK ? 2U : 0U);
+        }
+        status = bvstk_smi_service_write(common_service,
+                                         device_id,
+                                         body[1],
+                                         be16_read(body + 2U),
+                                         BVSTK_EVENT_SOURCE_DCP,
+                                         100U);
+        if (status == BVSTK_OK) {
+            (void)bvstk_runtime_smi_sync_device(device_id, 0);
+        }
+        return dcp2_send_response(fd, srv, opcode, seq,
+                                  status == BVSTK_OK ? DCP2_STATUS_OK :
+                                  status == BVSTK_ERR_DENIED ? DCP2_STATUS_ERR_DENIED :
+                                  status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
+                                  DCP2_STATUS_ERR_TIMEOUT,
+                                  NULL, 0);
+    }
 
     if (!config_store_is_ready()) {
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_BUSY, NULL, 0);

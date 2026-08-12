@@ -14,7 +14,7 @@
 - хранения и применения конфигурации в виде JSON (в т.ч. описаний оконечных устройств/политик);
 - управления кастомными PL‑ядрами (в частности `bvstk_i2c` и `bvstk_smi`) через согласованный протокол обмена, политики доступа и persist‑настройки.
 
-Текущий Neutrino-вариант собирает `/usr/bin/bvstkctl` и IFS для AX7020. Он использует тот же PL-контракт и проверенный service API; перенос прикладных сетевых и файловых сервисов FreeRTOS выполняется постепенно.
+Текущий Neutrino-вариант собирает `/usr/bin/bvstkctl`, `/usr/bin/bvstkd` и IFS для AX7020. Он использует тот же PL-контракт, transaction cores, policy services и DCP2 control API; сетевые и файловые adapters остаются специфичными для composition root.
 
 Практически это “контрольная плоскость” устройства: настройка сети, перенос файлов, применение конфигов, диагностика и ручное управление/тестирование интерфейсов как со стороны PS, так и через PL‑ядра.
 
@@ -34,7 +34,7 @@
 - **SD на PS**: SDIO (`XPAR_XSDPS_0_DEVICE_ID`) — для тома `sd:/` (FatFs).
 - **QSPI NOR**: предполагается флеш объёмом **32 MiB** (см. `src/ports/freertos-xilinx/storage/qspi-flash/qspi_flash.c`), для тома `flash:/` (FatFs в окне внутри флеша).
 - **JTAG**: для старта по JTAG нужен доступ к `hw_server` и рабочий кабель/драйверы.
-- **PL‑ядра**: кастомные ядра для I2C, SMI/MDIO и SPI (см. `src/apps/freertos/drivers/pl/i2c/`, `src/apps/freertos/drivers/pl/smi/`, `src/apps/freertos/drivers/pl/spi/`) должны быть включены в bitstream и иметь адреса/IRQ, соответствующие прошивке.
+- **PL‑ядра**: кастомные ядра для I2C, SMI/MDIO и SPI (общие cores находятся в `src/drivers/pl/`, OS-specific IRQ/slave glue — в `src/apps/freertos/drivers/pl/`) должны быть включены в bitstream и иметь адреса/IRQ, соответствующие прошивке.
 
 Ограничения и важные замечания:
 - **Исходники аппаратной части находятся во внешнем `hw_platform/fpga`**, но `bvstk` содержит `scripts/fpga/build_fpga.sh`, который собирает их и экспортирует согласованные `artifacts/fpga/design.xsa` и `design.bit`.

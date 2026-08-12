@@ -14,6 +14,17 @@ const char *bvstk_platform_name(void)
     return "neutrino";
 }
 
+uint64_t bvstk_platform_now_ms(void)
+{
+    struct timespec now;
+
+    if (clock_gettime(CLOCK_MONOTONIC, &now) != 0) {
+        return 0U;
+    }
+    return (uint64_t)now.tv_sec * UINT64_C(1000) +
+           (uint64_t)now.tv_nsec / UINT64_C(1000000);
+}
+
 int bvstk_platform_init(void)
 {
     if (platform_ready) {

@@ -6,6 +6,7 @@
 #include <strings.h>
 
 #include "apps/freertos/drivers/pl/spi/bvstk_spi.h"
+#include "apps/freertos/runtime/bvstk_runtime.h"
 
 static void spi_writef(int fd, const char *fmt, ...)
 {
@@ -21,6 +22,22 @@ static void spi_writef(int fd, const char *fmt, ...)
 
 static void cmd_info(int fd)
 {
+    bvstk_spi_core_t *core = bvstk_runtime_spi_core();
+    if (core != NULL) {
+        bvstk_spi_core_config_t c;
+        if (bvstk_spi_core_get_config(core, &c) != BVSTK_OK) {
+            write_str(fd, "ERR\r\n");
+            return;
+        }
+        const char *mode = (c.packets_mode == SPI_MODE_SINGLE) ? "single" :
+                           (c.packets_mode == SPI_MODE_FALLTHROUGH) ? "fallthrough" : "multi";
+        spi_writef(fd, "spi: mode=%s timeout=%lu p_clk_div=%u read=%s\r\n",
+                   mode,
+                   (unsigned long)c.timeout_ticks,
+                   (unsigned)c.p_clk_div,
+                   c.read_enable ? "on" : "off");
+        return;
+    }
     spi_runtime_cfg_t c;
     spi_get_cfg(&c);
     const char *mode = (c.packets_mode == SPI_MODE_SINGLE) ? "single" :
@@ -63,7 +80,21 @@ static void cmd_cfg(int fd, const char *k, const char *v)
         return;
     }
 
-    spi_set_cfg(&c);
+    bvstk_spi_core_t *core = bvstk_runtime_spi_core();
+    if (core != NULL) {
+        bvstk_spi_core_config_t common = {
+            .packets_mode = c.packets_mode,
+            .timeout_ticks = c.timeout_ticks,
+            .p_clk_div = c.p_clk_div,
+            .read_enable = c.read_en
+        };
+        if (bvstk_spi_core_set_config(core, &common) != BVSTK_OK) {
+            write_str(fd, "ERR\r\n");
+            return;
+        }
+    } else {
+        spi_set_cfg(&c);
+    }
     write_str(fd, "OK\r\n");
 }
 
@@ -85,7 +116,15 @@ static void cmd_xfer(int fd, char **save)
 
     if (n == 0) { write_str(fd, "ERR\r\n"); return; }
 
-    bool ok = spi_transfer_words(tx, n, rx, n, pdMS_TO_TICKS(250));
+    bvstk_spi_core_t *core = bvstk_runtime_spi_core();
+    bvstk_status_t status;
+    bool ok;
+    if (core != NULL) {
+        status = bvstk_spi_core_transfer(core, tx, n, rx, n, 250U);
+        ok = status == BVSTK_OK;
+    } else {
+        ok = spi_transfer_words(tx, n, rx, n, pdMS_TO_TICKS(250));
+    }
     if (!ok) {
         write_str(fd, "ERR timeout\r\n");
         return;

@@ -12,6 +12,7 @@
 
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
+#include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
 
 static void smi_writef(int fd, const char *fmt, ...)
@@ -68,6 +69,7 @@ static bool parse_selector(const char *tok, size_t *out_idx, const smi_phy_confi
 static void persist_cfg(int fd, const smi_phy_config_t *cfg)
 {
     if (!cfg) { write_str(fd, "ERR (no device)\r\n"); return; }
+    (void)bvstk_runtime_smi_apply_config(cfg);
     int saved = config_store_save_smi_device(cfg);
     if (!saved) write_str(fd, "WARN: failed to save to flash:/config/smi/<device>.json\r\n");
 }
@@ -116,7 +118,25 @@ static void cmd_r(int fd, uint8_t phy, const char *s_reg)
     unsigned long reg = parse_num(s_reg, &ok);
     if (!ok || reg > 31ul) { write_str(fd, "ERR\r\n"); return; }
     uint16_t val = 0;
-    if (!smi_read_blocking((uint8_t)(phy & 0x1Fu), (uint8_t)reg, &val, pdMS_TO_TICKS(100))) {
+    bvstk_smi_service_t *service = bvstk_runtime_smi_service();
+    size_t device_id = 0U;
+    bvstk_status_t status;
+    if (service != NULL &&
+        bvstk_smi_service_find_by_phy(service, phy, &device_id) == BVSTK_OK) {
+        status = bvstk_smi_service_read(service,
+                                        device_id,
+                                        (uint8_t)reg,
+                                        &val,
+                                        100U);
+    } else {
+        status = smi_read_blocking((uint8_t)(phy & 0x1Fu),
+                                   (uint8_t)reg,
+                                   &val,
+                                   pdMS_TO_TICKS(100))
+                     ? BVSTK_OK
+                     : BVSTK_ERR_IO;
+    }
+    if (status != BVSTK_OK) {
         write_str(fd, "ERR\r\n");
         return;
     }
@@ -130,7 +150,29 @@ static void cmd_w(int fd, uint8_t phy, const char *s_reg, const char *s_val)
     unsigned long reg = parse_num(s_reg, &okr);
     unsigned long val = parse_num(s_val, &okv);
     if (!okr || !okv || reg > 31ul || val > 0xFFFFul) { write_str(fd, "ERR\r\n"); return; }
-    if (!smi_write_checked_source((uint8_t)(phy & 0x1Fu), (uint8_t)reg, (uint16_t)val, (uint8_t)DCP2_NOTIFY_SOURCE_TELNET)) {
+    bvstk_smi_service_t *service = bvstk_runtime_smi_service();
+    size_t device_id = 0U;
+    bvstk_status_t status;
+    if (service != NULL &&
+        bvstk_smi_service_find_by_phy(service, phy, &device_id) == BVSTK_OK) {
+        status = bvstk_smi_service_write(service,
+                                         device_id,
+                                         (uint8_t)reg,
+                                         (uint16_t)val,
+                                         BVSTK_EVENT_SOURCE_CONSOLE,
+                                         100U);
+        if (status == BVSTK_OK) {
+            (void)bvstk_runtime_smi_sync_device(device_id, 1);
+        }
+    } else {
+        status = smi_write_checked_source((uint8_t)(phy & 0x1Fu),
+                                          (uint8_t)reg,
+                                          (uint16_t)val,
+                                          (uint8_t)DCP2_NOTIFY_SOURCE_TELNET)
+                     ? BVSTK_OK
+                     : BVSTK_ERR_DENIED;
+    }
+    if (status != BVSTK_OK) {
         write_str(fd, "ERR DENIED\r\n");
         return;
     }
@@ -141,18 +183,44 @@ static void cmd_policy(int fd, smi_phy_config_t *cfg, const char *mode)
 {
     if (!cfg || !mode) { write_str(fd, "ERR\r\n"); return; }
     if (strcasecmp(mode, "whitelist") == 0) {
-        taskENTER_CRITICAL();
-        cfg->policy = SMI_POLICY_WHITELIST;
-        taskEXIT_CRITICAL();
-        persist_cfg(fd, cfg);
+        bvstk_smi_service_t *service = bvstk_runtime_smi_service();
+        size_t device_id = 0U;
+        if (service != NULL &&
+            bvstk_smi_service_find_by_phy(service, cfg->phy_addr, &device_id) == BVSTK_OK) {
+            if (bvstk_smi_service_set_policy(service,
+                                             device_id,
+                                             SMI_POLICY_WHITELIST) != BVSTK_OK ||
+                !bvstk_runtime_smi_sync_device(device_id, 1)) {
+                write_str(fd, "ERR\r\n");
+                return;
+            }
+        } else {
+            taskENTER_CRITICAL();
+            cfg->policy = SMI_POLICY_WHITELIST;
+            taskEXIT_CRITICAL();
+            persist_cfg(fd, cfg);
+        }
         write_str(fd, "OK\r\n");
         return;
     }
     if (strcasecmp(mode, "blacklist") == 0) {
-        taskENTER_CRITICAL();
-        cfg->policy = SMI_POLICY_BLACKLIST;
-        taskEXIT_CRITICAL();
-        persist_cfg(fd, cfg);
+        bvstk_smi_service_t *service = bvstk_runtime_smi_service();
+        size_t device_id = 0U;
+        if (service != NULL &&
+            bvstk_smi_service_find_by_phy(service, cfg->phy_addr, &device_id) == BVSTK_OK) {
+            if (bvstk_smi_service_set_policy(service,
+                                             device_id,
+                                             SMI_POLICY_BLACKLIST) != BVSTK_OK ||
+                !bvstk_runtime_smi_sync_device(device_id, 1)) {
+                write_str(fd, "ERR\r\n");
+                return;
+            }
+        } else {
+            taskENTER_CRITICAL();
+            cfg->policy = SMI_POLICY_BLACKLIST;
+            taskEXIT_CRITICAL();
+            persist_cfg(fd, cfg);
+        }
         write_str(fd, "OK\r\n");
         return;
     }

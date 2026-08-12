@@ -18,19 +18,37 @@ fi
 
 mkdir -p "$BUILD_DIR"
 
-SOURCES=(
-  "$REPO_ROOT/src/apps/neutrino/bvstkctl/main.c"
+COMMON_SOURCES=(
+  "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_core.c"
+  "$REPO_ROOT/src/drivers/pl/smi/bvstk_smi_core.c"
+  "$REPO_ROOT/src/drivers/pl/spi/bvstk_spi_core.c"
   "$REPO_ROOT/src/hardware/boards/ax7020/bvstk_pl_regions.c"
   "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c"
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_sync_neutrino.c"
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c"
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c"
   "$REPO_ROOT/src/shared/base/bvstk_status.c"
   "$REPO_ROOT/src/shared/pl/access/bvstk_pl_service.c"
+  "$REPO_ROOT/src/services/control/bvstk_control_api.c"
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_service.c"
+  "$REPO_ROOT/src/services/smi/bvstk_smi_service.c"
 )
 
 qcc -V"$QCC_VARIANT" \
   -Wall -Wextra -Werror -O2 \
   -I"$REPO_ROOT/src" \
   -DBVSTK_PLATFORM_NEUTRINO=1 \
-  "${SOURCES[@]}" \
+  "$REPO_ROOT/src/apps/neutrino/bvstkctl/main.c" \
+  "${COMMON_SOURCES[@]}" \
   -o "$BUILD_DIR/bvstkctl"
 
-echo "Neutrino application: $BUILD_DIR/bvstkctl"
+qcc -V"$QCC_VARIANT" \
+  -Wall -Wextra -Werror -O2 \
+  -I"$REPO_ROOT/src" \
+  -DBVSTK_PLATFORM_NEUTRINO=1 \
+  "$REPO_ROOT/src/apps/neutrino/bvstkd/main.c" \
+  "${COMMON_SOURCES[@]}" \
+  -lsocket \
+  -o "$BUILD_DIR/bvstkd"
+
+echo "Neutrino applications: $BUILD_DIR/bvstkctl and $BUILD_DIR/bvstkd"

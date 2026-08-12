@@ -1,5 +1,6 @@
 #include "apps/freertos/main.h"
 #include "apps/freertos/config/config_store.h"
+#include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/http/http_server.h"
 #include "apps/freertos/services/ssh/bvstk_ssh_server.h"
 #include "apps/freertos/storage/fs/fs_devices.h"
@@ -23,7 +24,7 @@ int main()
 	start_dcp2_server();
 	//start_smi();
 	start_i2c();
-	start_spi();
+	bvstk_runtime_start();
 
 	vTaskStartScheduler();
 	while (1);

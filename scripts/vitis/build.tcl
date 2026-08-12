@@ -289,11 +289,14 @@ file mkdir $app_src
 
 set FREERTOS_SOURCE_ROOTS [list \
     [file join apps freertos] \
+    drivers \
     hardware \
     [file join ports freertos-xilinx board] \
     [file join ports freertos-xilinx fs-fatfs] \
     [file join ports freertos-xilinx os] \
     [file join ports freertos-xilinx storage] \
+    protocols \
+    services \
     shared \
     [file join vendor lwip]]
 

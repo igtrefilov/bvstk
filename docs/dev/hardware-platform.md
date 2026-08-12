@@ -112,9 +112,9 @@ PS/firmware обеспечивает контрольную логику: сет
 
 | Hardware platform | Прошивка `bvstk` |
 |---|---|
-| `i2c_master`, `axi_i2c_slave_1_0` | `src/apps/freertos/drivers/pl/i2c/` |
-| `SMI_master`, `SMI_slave` | `src/apps/freertos/drivers/pl/smi/` |
-| `SPI_master` | `src/apps/freertos/drivers/pl/spi/` |
+| `i2c_master`, `axi_i2c_slave_1_0` | общий master core: `src/drivers/pl/i2c/`; FreeRTOS slave/IRQ glue: `src/apps/freertos/drivers/pl/i2c/` |
+| `SMI_master`, `SMI_slave` | общий master core: `src/drivers/pl/smi/`; FreeRTOS slave/IRQ glue: `src/apps/freertos/drivers/pl/smi/` |
+| `SPI_master` | общий transfer core: `src/drivers/pl/spi/`; FreeRTOS legacy adapter: `src/apps/freertos/drivers/pl/spi/` |
 | экспорт `Burevestnik_top.xsa` → `artifacts/fpga/design.xsa` | платформа Vitis, FreeRTOS BSP и общий PL-контракт |
 | bitstream `Burevestnik_top.bit` → `artifacts/fpga/design.bit` | JTAG-загрузка PL для FreeRTOS и Neutrino |
 

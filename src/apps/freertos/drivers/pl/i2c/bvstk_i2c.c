@@ -1051,6 +1051,22 @@ bool i2cdev_read_reg(uint8_t reg, uint8_t *out_val)
     return i2cdev_read_reg_idx(i2cdev_selected_idx(), reg, out_val);
 }
 
+bool i2cdev_write_reg_dev_raw(size_t dev_idx, uint8_t reg, uint8_t val)
+{
+    i2c_device_config_t *cfg = i2cdev_cfg_by_idx(dev_idx);
+    uint8_t payload[2] = {reg, val};
+
+    if (cfg == NULL || reg >= cfg->reg_count) {
+        return false;
+    }
+    return i2c_master_send(cfg->addr_7b,
+                           0U,
+                           sizeof(payload),
+                           payload,
+                           sizeof(payload),
+                           MSTR_CSR_START_BIT);
+}
+
 bool i2cdev_write_reg(uint8_t reg, uint8_t val)
 {
     return i2cdev_write_reg_source(reg, val, (uint8_t)DCP2_NOTIFY_SOURCE_INTERNAL);

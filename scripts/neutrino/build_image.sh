@@ -10,6 +10,7 @@ BASE_BUILD="${NEUTRINO_BASE_BUILD:-$BSP_DIR/images/zynq7000-ax7020-ssh.build}"
 GENERATED_BUILD="$BUILD_DIR/zynq7000-ax7020-bvstk.build"
 IFS_FILE="${NEUTRINO_IFS_FILE:-$BUILD_DIR/ifs-zynq7000-ax7020-bvstk.raw}"
 BVSTKCTL="$BUILD_DIR/bvstkctl"
+BVSTKD="$BUILD_DIR/bvstkd"
 SSH_IDENTITY="${SSH_IDENTITY:-$BUILD_DIR/ax7020_ssh_client}"
 SSH_KEY_DIR="${NEUTRINO_KEY_DIR:-$BUILD_DIR/ssh}"
 SSH_HOST_KEY="$SSH_KEY_DIR/ssh_host_rsa_key"
@@ -82,8 +83,8 @@ ensure_ssh_keys
 ensure_root_shadow
 "$SCRIPT_DIR/build.sh"
 cp "$BASE_BUILD" "$GENERATED_BUILD"
-printf '\n# Burevestnik multi-OS application\n[perms=0755] /usr/bin/bvstkctl = %s\n' \
-  "$BVSTKCTL" >> "$GENERATED_BUILD"
+printf '\n# Burevestnik multi-OS applications\n[perms=0755] /usr/bin/bvstkctl = %s\n[perms=0755] /usr/bin/bvstkd = %s\n' \
+  "$BVSTKCTL" "$BVSTKD" >> "$GENERATED_BUILD"
 
 BVSTK_SSH_HOST_KEY="$SSH_HOST_KEY" \
 BVSTK_SSH_HOST_KEY_PUB="$SSH_HOST_KEY.pub" \
@@ -92,4 +93,4 @@ BVSTK_ROOT_SHADOW_FILE="$ROOT_SHADOW_FILE" \
 mkifs -r "$BSP_DIR/install" "$GENERATED_BUILD" "$IFS_FILE"
 
 echo "Neutrino IFS: $IFS_FILE"
-echo "Included utility: /usr/bin/bvstkctl"
+echo "Included applications: /usr/bin/bvstkctl and /usr/bin/bvstkd"

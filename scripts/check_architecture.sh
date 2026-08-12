@@ -28,6 +28,11 @@ check_forbidden \
   src/shared src/hardware
 
 check_forbidden \
+  "portable drivers/services/protocols (OS, BSP, or vendor dependency)" \
+  '#[[:space:]]*include[[:space:]]*[<"](FreeRTOS|task|queue|semphr|ff|xparameters|xstatus|xil_|lwip/|sys/neutrino|sys/mman)' \
+  src/drivers src/services src/protocols
+
+check_forbidden \
   "Neutrino target (FreeRTOS/Xilinx dependency)" \
   '#[[:space:]]*include[[:space:]]*[<"](FreeRTOS|task|queue|semphr|ff|xparameters|xstatus|xil_|lwip/)' \
   src/apps/neutrino src/ports/neutrino-zynq7000
@@ -35,12 +40,12 @@ check_forbidden \
 check_forbidden \
   "lower layers (application dependency)" \
   '#[[:space:]]*include[[:space:]]*"apps/' \
-  src/shared src/hardware src/ports
+  src/shared src/hardware src/drivers src/services src/protocols src/ports
 
 check_forbidden \
   "shared/hardware code (target-port dependency)" \
   '#[[:space:]]*include[[:space:]]*"ports/' \
-  src/shared src/hardware
+  src/shared src/hardware src/drivers src/services src/protocols
 
 check_forbidden \
   "FreeRTOS target (Neutrino source dependency)" \

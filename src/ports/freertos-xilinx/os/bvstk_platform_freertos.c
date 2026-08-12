@@ -13,6 +13,11 @@ const char *bvstk_platform_name(void)
     return "freertos";
 }
 
+uint64_t bvstk_platform_now_ms(void)
+{
+    return (uint64_t)xTaskGetTickCount() * (uint64_t)portTICK_PERIOD_MS;
+}
+
 int bvstk_platform_init(void)
 {
     return 0;

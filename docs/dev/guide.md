@@ -103,16 +103,16 @@ telnet <device-ip> 8888
 | HTTP API и файловые маршруты | `src/apps/freertos/services/http/` |
 | DCP2 server и notify | `src/apps/freertos/services/dcp2/` |
 | конфиги и JSON persistence | `src/apps/freertos/config/`, `configs/` |
-| I2C логика | `src/apps/freertos/drivers/pl/i2c/` |
-| SMI/MDIO логика | `src/apps/freertos/drivers/pl/smi/` |
-| SPI runtime-часть | `src/apps/freertos/drivers/pl/spi/` |
+| Общий I2C core и policy | `src/drivers/pl/i2c/`, `src/services/i2c/` |
+| Общий SMI/MDIO core и policy | `src/drivers/pl/smi/`, `src/services/smi/` |
+| Общий SPI core и FreeRTOS adapter | `src/drivers/pl/spi/`, `src/apps/freertos/drivers/pl/spi/` |
 | Vitis build и JTAG | `scripts/vitis/` |
 | общий PL-контракт и service API | `src/hardware/`, `src/shared/pl/` |
 | Neutrino platform и CLI | `src/ports/neutrino-zynq7000/`, `src/apps/neutrino/` |
 | Neutrino build, IFS и JTAG | `scripts/neutrino/` |
 | сборка Vivado | `scripts/fpga/` |
 
-Если менять что-то серьёзное в `I2C`, `SMI` или `SPI`, почти всегда полезно открыть параллельно `docs/dev/hardware-platform.md`, потому что в этих подсистемах граница между firmware и hardware очень тонкая.
+Если менять что-то серьёзное в `I2C`, `SMI` или `SPI`, сначала разделяйте изменение между `src/drivers/pl/` (протокол PL/MMIO), `src/services/` (политика/состояние) и OS adapter в `src/apps/freertos/` или `src/ports/`. Затем полезно открыть параллельно `docs/dev/hardware-platform.md`, потому что граница между firmware и hardware очень тонкая.
 
 ## Как думать о `config_store`
 
@@ -160,7 +160,7 @@ DCP2 — это уже отдельная бинарная модель обме
 
 Если вы меняете DCP2-сервис или event-логику, смотрите `src/apps/freertos/services/dcp2/`.
 
-Если вы меняете политику доступа к I2C/SMI, persisted settings, notify hooks или host/telnet source tracking, это уже зона `src/apps/freertos/drivers/pl/i2c/`, `src/apps/freertos/drivers/pl/smi/` и `src/apps/freertos/config/`.
+Если вы меняете политику доступа к I2C/SMI, persisted settings, notify hooks или host/telnet source tracking, policy и event semantics находятся в `src/services/` и `src/shared/events/`; persistence и OS-specific notify adapters остаются в `src/apps/freertos/config/` и `src/apps/freertos/services/`.
 
 Если после изменений всё странно ломается без очевидной причины, особенно в I2C/SMI/SPI, проверьте сначала соответствие hardware platform, а потом уже ищите ошибку в FreeRTOS-логике.
 

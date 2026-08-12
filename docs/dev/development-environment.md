@@ -109,7 +109,7 @@ Neutrino-скрипты настраиваются переменными окр
 | `web/` | статические web-ресурсы и скрипты их загрузки во flash |
 | `.vscode/` | проектные настройки IntelliSense, tasks и launch-конфигурации |
 
-Внутри `src/` принадлежность видна из пути. `src/apps/freertos/main.c` определяет порядок запуска задач и сервисов; `src/apps/freertos/config/` отвечает за `config_store`; `src/apps/freertos/storage/` и `src/ports/freertos-xilinx/` образуют файловый и BSP-слои. Внешние интерфейсы находятся в `src/apps/freertos/services/`, команды — в `src/apps/freertos/console/`, а PL runtime — в `src/apps/freertos/drivers/pl/`. Общие модели и API расположены в `src/shared/`, аппаратные контракты — в `src/hardware/`. Полная карта приведена в `source-layout.md`.
+Внутри `src/` принадлежность видна из пути. `src/apps/freertos/main.c` определяет порядок запуска задач и сервисов; `src/apps/freertos/config/` отвечает за `config_store`; `src/apps/freertos/storage/` и `src/ports/freertos-xilinx/` образуют файловый и BSP-слои. Внешние интерфейсы находятся в `src/apps/freertos/services/`, команды — в `src/apps/freertos/console/`, а OS-specific PL runtime — в `src/apps/freertos/drivers/pl/`. Общие PL cores находятся в `src/drivers/pl/`, policy/services — в `src/services/`, protocol adapters — в `src/protocols/`, contracts и hardware maps — в `src/shared/` и `src/hardware/`. Полная карта приведена в `source-layout.md`.
 
 Отдельно важно понимать статус `vitis_ws/`. Это не исходный код, а производный артефакт сборки. Его можно удалить и пересоздать, но в процессе разработки он полезен не только как место, где лежит ELF, а ещё и как источник BSP-заголовков, `ps7_init.tcl`, экспортированной платформы и всего того, что использует VSCode для навигации по Xilinx-стеку.
 

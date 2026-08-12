@@ -8,7 +8,7 @@
 
 На архитектурном уровне PL-ядра в этом проекте это не просто периферийные блоки, к которым ARM пишет пару регистров. Прошивка использует их как аппаратные прокси для внешних шин. Тайминги, транзакционные FSM, FIFO, BRAM-буферы и IRQ происходят в FPGA, а программная часть на PS занимается политиками доступа, синхронизацией, кешированием, публикацией наружу через TCP/SSH, HTTP и DCP2 и применением сохранённых настроек.
 
-Для `I2C` и `SMI` эта модель особенно выражена. Там программная логика работает поверх пары PL-ядер `master/slave`, общей BRAM-области и отдельных IRQ. `SPI` устроен проще: с точки зрения firmware это сейчас скорее синхронный runtime-adapter к одному PL-блоку, а не полноценная event-driven MITM-подсистема.
+Для `I2C` и `SMI` эта модель особенно выражена. Там программная логика работает поверх пары PL-ядер `master/slave`, общей BRAM-области и отдельных IRQ. Переносимый master transaction path теперь находится в `src/drivers/pl/`, а FreeRTOS-specific slave/MITM, ISR и task orchestration остаются в `src/apps/freertos/drivers/pl/`. `SPI` использует тот же принцип: packet/BRAM transfer core общий, IRQ/task adapter ОС-специфичен.
 
 ## Текущее состояние подсистем
 
@@ -59,9 +59,13 @@ flowchart LR
 
 | Область | Основные файлы |
 |---|---|
-| I2C runtime | `src/apps/freertos/drivers/pl/i2c/bvstk_i2c.c`, `src/apps/freertos/drivers/pl/i2c/bvstk_i2c.h` |
-| SPI runtime | `src/apps/freertos/drivers/pl/spi/bvstk_spi.c`, `src/apps/freertos/drivers/pl/spi/bvstk_spi.h` |
-| SMI runtime | `src/apps/freertos/drivers/pl/smi/bvstk_smi.c`, `src/apps/freertos/drivers/pl/smi/bvstk_smi.h` |
+| Общий I2C master core | `src/drivers/pl/i2c/bvstk_i2c_core.c`, `src/drivers/pl/i2c/bvstk_i2c_core.h` |
+| FreeRTOS I2C slave/IRQ compatibility runtime | `src/apps/freertos/drivers/pl/i2c/bvstk_i2c.c`, `src/apps/freertos/drivers/pl/i2c/bvstk_i2c.h` |
+| Общий SPI transfer core | `src/drivers/pl/spi/bvstk_spi_core.c`, `src/drivers/pl/spi/bvstk_spi_core.h` |
+| FreeRTOS SPI legacy adapter | `src/apps/freertos/drivers/pl/spi/bvstk_spi.c`, `src/apps/freertos/drivers/pl/spi/bvstk_spi.h` |
+| Общие I2C/SMI/SPI transaction cores | `src/drivers/pl/` |
+| Общие I2C/SMI policy services | `src/services/i2c/`, `src/services/smi/` |
+| FreeRTOS SMI runtime | `src/apps/freertos/drivers/pl/smi/bvstk_smi.c`, `src/apps/freertos/drivers/pl/smi/bvstk_smi.h` |
 | Shell surfaces | `src/apps/freertos/console/i2c_shell.c`, `src/apps/freertos/console/spi_shell.c`, `src/apps/freertos/console/smi_shell.c` |
 | HTTP surfaces | `src/apps/freertos/services/http/http_fs_routes.c` |
 | DCP2 surfaces | `src/apps/freertos/services/dcp2/dcp2_server.c`, `src/apps/freertos/services/dcp2/dcp2_notify.c` |

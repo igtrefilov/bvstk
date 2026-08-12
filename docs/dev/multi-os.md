@@ -18,7 +18,10 @@ Vivado design -> design.bit + design.xsa
 
 - `src/hardware/pl/` хранит регистровые контракты FPGA-ядер;
 - `src/hardware/boards/ax7020/` задаёт общую для двух ОС карту MMIO, BRAM и IRQ;
-- `src/shared/` содержит нормализованные статусы, модели и проверенный доступ к PL;
+- `src/shared/` содержит нормализованные статусы, модели, contracts, события и проверенный доступ к PL;
+- `src/drivers/pl/` содержит OS-independent transaction cores для I2C, SMI и SPI;
+- `src/services/` содержит общие device/policy/cache/autopoll сервисы;
+- `src/protocols/dcp2/` содержит общий codec и request handler поверх control facade;
 - `src/shared/interfaces/` определяет узкие контракты, реализуемые target ports;
 - `design.bit`, `design.xsa`, адреса MMIO, layout BRAM и IRQ должны соответствовать одной версии аппаратного дизайна;
 - прикладная семантика операций над PL должна оставаться одинаковой независимо от ОС.
@@ -35,11 +38,11 @@ Vivado design -> design.bit + design.xsa
 | Composition root | `src/apps/freertos/` | `src/apps/neutrino/` |
 | Платформенный слой | `src/ports/freertos-xilinx/` | `src/ports/neutrino-zynq7000/` |
 | Доступ к MMIO | Xilinx API и прямой MMIO | `ThreadCtl(_NTO_TCTL_IO)` и `mmap_device_memory()` |
-| Основной результат | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | `build/neutrino/bvstkctl` |
+| Основной результат | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | `build/neutrino/bvstkctl` + `build/neutrino/bvstkd` |
 | Загрузочный образ | JTAG-загрузка ELF | `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` |
-| Текущий пользовательский слой | сеть, файловые системы, TCP/SSH-консоли, HTTP и DCP2 | `/usr/bin/bvstkctl` внутри IFS |
+| Текущий пользовательский слой | сеть, файловые системы, TCP/SSH-консоли, HTTP и DCP2 | `/usr/bin/bvstkctl` + `/usr/bin/bvstkd` внутри IFS |
 
-FreeRTOS-вариант остаётся наиболее полным runtime проекта. Neutrino-вариант уже использует общий PL-контракт и собирается в загрузочный IFS, но перенос сервисов FreeRTOS выполняется постепенно; наличие общей аппаратной модели не означает автоматического наличия одинаковых сетевых и файловых сервисов.
+FreeRTOS-вариант сохраняет наиболее полный сетевой, файловый и legacy slave/IRQ runtime. Его I2C/SMI/SPI policy surfaces уже используют общие services, а master transaction cores и DCP2 control переиспользуются из `src/drivers/`, `src/services/` и `src/protocols/`. Neutrino daemon использует те же слои напрямую; сеть и файловое хранение остаются отдельными composition-root adapters.
 
 ## Команды сборки
 
@@ -48,8 +51,8 @@ FreeRTOS-вариант остаётся наиболее полным runtime �
 ```sh
 ./build.sh check          # границы слоёв и host-тесты shared-кода
 ./build.sh freertos       # FreeRTOS ELF
-./build.sh neutrino       # только bvstkctl
-./build.sh neutrino-image # bvstkctl и IFS для AX7020
+./build.sh neutrino       # bvstkctl и bvstkd
+./build.sh neutrino-image # bvstkctl, bvstkd и IFS для AX7020
 ./build.sh all            # FreeRTOS ELF и Neutrino IFS
 ```
 
