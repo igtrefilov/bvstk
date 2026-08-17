@@ -104,9 +104,10 @@ puts "Running PS7 initialization..."
 ps7_init
 ps7_post_config
 
-# AX7020 hardware export uses a 100 MHz UART1 reference clock.  The inherited
-# Zynq7000 startup expects 50 MHz, therefore keep the proven divisor adjustment.
-mwr -force 0xF8000154 0x00001402
+# The generated AX7020 PS7 init already configures UART1's 100 MHz reference
+# clock (UART_CLK_CTRL = 0x00000A02).  Do not overwrite it here: changing the
+# divisor to 20 would halve the actual baud rate while the BSP still programs
+# the UART for 115200 baud.
 
 # --- Load ELF on core0 and run --------------------------------------
 
