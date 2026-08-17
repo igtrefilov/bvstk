@@ -12,6 +12,7 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
   "$REPO_ROOT/src/hardware/boards/ax7020/bvstk_pl_regions.c" \
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c" \
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_slave.c" \
+  "$REPO_ROOT/src/drivers/pl/sd/bvstk_sd_controller.c" \
   "$REPO_ROOT/src/drivers/pl/smi/bvstk_smi_core.c" \
   "$REPO_ROOT/src/drivers/pl/spi/bvstk_spi_core.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \

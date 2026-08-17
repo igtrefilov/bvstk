@@ -1,6 +1,7 @@
 #include "apps/freertos/storage/fs/fs_devices.h"
 
 #include "apps/freertos/storage/qspi/qspi_fs.h"
+#include "apps/freertos/storage/sd-pl/sd_pl_card.h"
 #include "apps/freertos/storage/sd/sd_card.h"
 
 #include "xstatus.h"
@@ -14,12 +15,14 @@
 static fs_device_info_t s_devices[] = {
     {"sd", "sd", NULL},
     {"flash", "flash", NULL},
+    {"sd-pl", "sd-pl", NULL},
 };
 
 void fs_devices_init(void)
 {
     s_devices[0].ctx = sd_card_get_context();
     s_devices[1].ctx = qspi_fs_get_context();
+    s_devices[2].ctx = sd_pl_card_get_context();
 }
 
 int fs_device_prepare(const fs_device_info_t *dev)

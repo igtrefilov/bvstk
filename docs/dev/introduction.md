@@ -11,7 +11,7 @@ BVSTK — программная платформа для Zynq-7000. В сос�
 | Управление PL | Доступ к I2C, SMI/MDIO, SPI и картам регионов PL |
 | Конфигурация | JSON-конфиги сети, устройств и политик; сохранение в QSPI |
 | Диагностика | TCP-консоль, HTTP API, DCP2, PL read/write |
-| Файлы | FatFs-тома `sd:/` и `flash:/`, web-ресурсы |
+| Файлы | FatFs-тома `sd:/`, `sd-pl:/` и `flash:/`, web-ресурсы |
 | Целевые ОС | FreeRTOS для полного прикладного runtime; Neutrino для `bvstkctl`, `bvstkd` и IFS |
 
 ## 2. Модель выполнения
@@ -69,6 +69,7 @@ Neutrino-сборка формирует два приложения:
 |---|---|
 | PS GEM | Ethernet для lwIP и сетевых сервисов |
 | PS SDIO | том `sd:/` |
+| PL SD SPI | том `sd-pl:/` |
 | PS QSPI NOR | том `flash:/`, конфигурация и web-файлы |
 | PL I2C | master-операции, а также slave-путь в FreeRTOS |
 | PL SMI | операции MDIO и политика PHY |

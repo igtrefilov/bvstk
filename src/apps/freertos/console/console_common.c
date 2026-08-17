@@ -23,6 +23,7 @@ void console_print_banner(int fd)
         "| Utility        | Description                 |\r\n",
         "+----------------+-----------------------------+\r\n",
         "| fs             | Filesystem commands         |\r\n",
+        "| sd-pl          | PL SD diagnostics           |\r\n",
         "| tar            | Tar archive utility         |\r\n",
         "| ip             | Network configuration       |\r\n",
         "| smi            | MDIO/SMI access             |\r\n",

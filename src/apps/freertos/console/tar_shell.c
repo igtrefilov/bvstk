@@ -241,7 +241,7 @@ static void cmd_help_tar(int fd)
     write_str(fd, "  tar t <src_tar>\r\n");
     write_str(fd, "    list tar entries\r\n");
     write_str(fd, "paths:\r\n");
-    write_str(fd, "  relative, /abs, 0:/..., 1:/..., sd:/..., flash:/...\r\n");
+    write_str(fd, "  relative, /abs, 0:/..., 1:/..., 2:/..., sd:/..., sd-pl:/..., flash:/...\r\n");
     write_str(fd, "examples:\r\n");
     write_str(fd, "  tar c logs sd:/backup/logs.tar\r\n");
     write_str(fd, "  tar x sd:/backup/logs.tar /restore\r\n");

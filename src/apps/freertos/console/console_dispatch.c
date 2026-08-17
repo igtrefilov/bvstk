@@ -35,6 +35,7 @@ static void cmd_help_top(int fd)
 {
     write_str(fd, "available utilities (use <name> -h):\r\n");
     write_str(fd, "  fs\r\n");
+    write_str(fd, "  sd-pl\r\n");
     write_str(fd, "  tar\r\n");
     write_str(fd, "  ip\r\n");
     write_str(fd, "  smi\r\n");

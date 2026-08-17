@@ -7,6 +7,7 @@
 #include "hardware/boards/ax7020/bvstk_pl_regions.h"
 #include "drivers/pl/i2c/bvstk_i2c_master.h"
 #include "drivers/pl/i2c/bvstk_i2c_slave.h"
+#include "drivers/pl/sd/bvstk_sd_controller.h"
 #include "drivers/pl/smi/bvstk_smi_core.h"
 #include "drivers/pl/spi/bvstk_spi_core.h"
 #include "hardware/pl/i2c/bvstk_i2c_regs.h"
@@ -201,6 +202,8 @@ int main(void)
     bvstk_i2c_master_hw_t i2c_master_hw;
     bvstk_i2c_slave_hw_t i2c_slave_hw;
     bvstk_i2c_slave_service_t i2c_slave_service;
+    bvstk_sd_controller_t sd_controller;
+    bvstk_sd_controller_status_t sd_status;
     bvstk_smi_service_t smi_service;
     bvstk_i2c_master_io_t i2c_ops = {
         .context = &bus,
@@ -263,6 +266,11 @@ int main(void)
                                      spi->size, &value);
     CHECK(status == BVSTK_ERR_RANGE);
     bvstk_pl_service_shutdown(&service);
+
+    CHECK(bvstk_sd_controller_init(&sd_controller, NULL, NULL, NULL) == BVSTK_OK);
+    CHECK(bvstk_sd_controller_get_status(&sd_controller, &sd_status) == BVSTK_OK);
+    CHECK(!sd_status.initialized && !sd_status.error);
+    bvstk_sd_controller_shutdown(&sd_controller);
 
     CHECK(bvstk_i2c_devices_init_from_config(&i2c_devices,
                                              &i2c_config,

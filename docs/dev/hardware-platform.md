@@ -32,6 +32,7 @@ flowchart LR
 | I2C | master, slave | общий mailbox BRAM |
 | SMI | master, slave | общий mailbox BRAM |
 | SPI | master | BRAM окна ответа |
+| SD через PL | AXI controller + internal buffer | 512-byte buffer внутри IP |
 
 Текущая карта адресов:
 
@@ -43,8 +44,13 @@ flowchart LR
 | `i2c-master` | `0x43C00000` | `0x10000` |
 | `smi-master` | `0x43C10000` | `0x10000` |
 | `smi-slave` | `0x43C20000` | `0x10000` |
-| `spi-master` | `0x43C30000` | `0x10000` |
+| `spi-master` (legacy design) | `0x43C30000` | `0x10000` |
 | `i2c-slave` | `0x43C40000` | `0x10000` |
+| `sd-controller` (playground, replaces SPI) | `0x43C30000` | `0x10000` |
+
+В legacy XSA адрес `0x43C30000` принадлежит SPI master. В playground он
+переиспользуется SD controller; одновременно загружать оба ядра по этому
+адресу нельзя.
 
 IRQ-контракт:
 
@@ -113,6 +119,12 @@ bvstkctl pl write spi-master 0x00 0x00000001
 ### 4.3. SPI
 
 SPI использует control-регистры master и BRAM-область чтения. Точные offsets находятся в `src/hardware/pl/spi/bvstk_spi_regs.h`; при изменении RTL этот файл обновляется вместе с IP-контрактом.
+
+### 4.4. SD через PL
+
+SD controller использует единственное AXI4-Lite окно: native-регистры и
+512-байтный buffer находятся внутри одного IP. PS последовательно записывает
+или читает 128 слов через `DATA`; отдельный `BVSTK_SD_BRAM_BASE` не нужен.
 
 ## 5. Связь с Vivado и Vitis
 

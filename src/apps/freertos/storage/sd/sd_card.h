@@ -2,22 +2,18 @@
 #define SD_CARD_H
 
 #include "apps/freertos/storage/fs/fs_shared.h"
-#include "xsdps.h"
-#include "xil_printf.h"
-#include "xil_io.h"
-#include "xil_exception.h"
 #include "ff.h"
-#include "FreeRTOS.h"
-#include "task.h"
+
+#include <stdint.h>
 
 #define SD_ROOT "0:/"
 #define SD_NAME_MAX 64
 
 typedef struct {
-	u32 block_size;
-	u64 block_count;
-	u64 capacity_bytes;
-	int mounted;
+    uint32_t block_size;
+    uint64_t block_count;
+    uint64_t capacity_bytes;
+    int mounted;
 } sd_card_info_t;
 
 int start_sd_card(void);

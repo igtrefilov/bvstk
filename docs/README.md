@@ -43,6 +43,7 @@ flowchart LR
 | [Hardware platform](dev/hardware-platform.md) | граница RTL, XSA и firmware |
 | [Конфигурация](dev/config-store.md) | загрузка, миграция и persistence |
 | [PL overview](dev/pl-cores.md) | общая модель I²C, SMI и SPI |
+| [SD через PL](dev/sd-card.md) | SD SPI controller, FreeRTOS port и FatFs |
 | [I²C](dev/pl/i2c.md) | raw cores, services, cache, policy и адаптеры |
 | [SMI](dev/pl/smi.md) | MDIO core, policy и polling |
 | [SPI](dev/pl/spi.md) | transfer core и runtime |

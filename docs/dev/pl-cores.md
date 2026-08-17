@@ -9,7 +9,7 @@ flowchart TB
     Surface[Shell / HTTP / DCP2 / bvstkctl]
     Policy[Policy + config + cache]
     Device[Device services]
-    Core[I2C / SMI / SPI cores]
+    Core[I2C / SMI / SPI / SD cores]
     Port[MMIO + mutex + clock + IRQ adapters]
     Map[AX7020 PL map]
     IP[PL IP cores]
@@ -23,7 +23,7 @@ flowchart TB
 |---|---|---|
 | Аппаратная карта | `src/hardware/boards/ax7020/` | адреса, размеры, IRQ |
 | Регистровые контракты | `src/hardware/pl/` | offsets и frame layout |
-| Общие cores | `src/drivers/pl/` | `bvstk_i2c_master`, `bvstk_i2c_slave`, `bvstk_smi_core`, `bvstk_spi_core` |
+| Общие cores | `src/drivers/pl/` | `bvstk_i2c_master`, `bvstk_i2c_slave`, `bvstk_smi_core`, `bvstk_spi_core`, `bvstk_sd_controller` |
 | Общие сервисы | `src/services/i2c/`, `src/services/smi/` | devices, cache, policy, master/slave service |
 | Общий access | `src/shared/pl/access/` | чтение регионов и platform service |
 | FreeRTOS port | `src/ports/freertos-xilinx/` | MMIO, sync, I2C slave IRQ adapter |
@@ -41,6 +41,7 @@ Legacy-каталог сохраняется для совместимых по�
 | I2C slave | mailbox frame и read-window | событие для service |
 | SMI | `phy`, `reg`, `value`, timeout | MDIO read/write result |
 | SPI | массив TX words, capacity RX | массив RX words |
+| SD | LBA, sector buffer, read/write | 512-byte sector result |
 
 Каждый core получает `bvstk_mmio_region_t`, `bvstk_clock_t` и `bvstk_mutex_t`. Эти зависимости передаются через интерфейсы из `src/shared/interfaces/`, поэтому алгоритм работы с PL отделён от конкретного RTOS.
 
@@ -99,6 +100,7 @@ sequenceDiagram
 | I2C slave IRQ | `bvstk_i2c_slave_freertos` | отдельный adapter пока не включён в build |
 | SMI core/service | `bvstk_runtime` | `bvstkd` |
 | SPI core | `bvstk_runtime` + shell | `bvstkd` |
+| SD core | FreeRTOS FatFs `diskio` | пока не включён |
 | MMIO/sync | `src/ports/freertos-xilinx` | `src/ports/neutrino-zynq7000` |
 | Внешние поверхности | TCP, SSH, HTTP, DCP2 | CLI и DCP2 daemon |
 

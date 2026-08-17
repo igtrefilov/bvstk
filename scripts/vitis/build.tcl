@@ -177,21 +177,41 @@ if {$lwip_lib == ""} {
 if {[catch {bsp config api_mode SOCKET_API}]} {
     puts "api_mode option not available for $lwip_lib, using defaults"
 }
-# Enable FatFs (xilffs) for SD-card access via PS SDIO0
+# Enable FatFs (xilffs) for PS SD, PL SD and QSPI volumes.
 if {[catch {bsp setlib -name xilffs} msg]} {
     puts "xilffs library not found: $msg"
 } else {
-    # Replace the generated diskio implementation with our shared version.
-    set CUSTOM_DISKIO [file join $REPO_ROOT src ports freertos-xilinx fs-fatfs diskio.c]
-    set TARGET_DISKIO [file join $WS plat_bvstk/ps7_cortexa9_0/freertos10_xilinx_domain/bsp/ps7_cortexa9_0/libsrc/xilffs_v5_3/src/diskio.c]
-    exec mkdir -p [file dirname $TARGET_DISKIO]
-    file copy -force $CUSTOM_DISKIO $TARGET_DISKIO
+    # FatFs must expose 0:/ (PS SD), 1:/ (QSPI) and 2:/ (PL SD).
+    if {[catch {bsp config num_logical_vol 3} volume_msg]} {
+        error "Unable to configure three FatFs logical volumes: $volume_msg"
+    }
+    # diskio.c is compiled as part of the generated xilffs BSP library, so
+    # give that makefile the repository source include root as well.
+    set FS_SOURCE_INCLUDE [file normalize [file join $REPO_ROOT src]]
+    if {[catch {bsp config -append extra_compiler_flags "-I$FS_SOURCE_INCLUDE"} include_msg]} {
+        error "Unable to add the BVSTK source include path to the BSP: $include_msg"
+    }
 }
 # Mount SD card in interrupt-driven mode; fall back silently if option is absent
 catch {bsp config xilffs_polled_mode false}
 catch {bsp config xilffs_fs_interface SD}
 bsp regenerate
 ensure_ffconf_lfn $PATCH_FFCONF_SCRIPT $WS
+
+if {[file exists [file join $WS plat_bvstk/ps7_cortexa9_0/freertos10_xilinx_domain/bsp/ps7_cortexa9_0/libsrc]]} {
+    # Replace the generated diskio implementation with our shared version.
+    # The xilffs directory is versioned and depends on the installed Vitis
+    # release (2021.2 generates xilffs_v4_6, not xilffs_v5_3).
+    set CUSTOM_DISKIO [file join $REPO_ROOT src ports freertos-xilinx fs-fatfs diskio.c]
+    set LIBSRC [file join $WS plat_bvstk ps7_cortexa9_0 freertos10_xilinx_domain bsp ps7_cortexa9_0 libsrc]
+    set DISKIO_TARGETS [glob -nocomplain -directory $LIBSRC xilffs_v*/src/diskio.c]
+    if {[llength $DISKIO_TARGETS] == 0} {
+        error "Generated xilffs diskio.c was not found under $LIBSRC"
+    }
+    foreach target $DISKIO_TARGETS {
+        file copy -force $CUSTOM_DISKIO $target
+    }
+}
 
 if {$ssh_enabled} {
     set has_external_ssl 0

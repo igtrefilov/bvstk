@@ -7,6 +7,7 @@
 
 #include "xstatus.h"
 #include "apps/freertos/storage/fs/fs_devices.h"
+#include "ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.h"
 
 #define CONSOLE_PATH_MAX 128
 
@@ -97,6 +98,10 @@ static bool translate_device_path(const char *arg, char *out, size_t out_sz, con
             dev = exact;
             rest = "";
         }
+    }
+    if (!dev && colon && arg[0] >= '0' && arg[0] <= '9' && arg[1] == ':') {
+        dev = fs_device_for_path(arg);
+        if (dev) rest = colon + 1;
     }
     if (!dev || !dev->ctx || !dev->ctx->root) return false;
     if (out_dev) *out_dev = dev;
@@ -200,7 +205,7 @@ static void cmd_help_fs(int fd)
     write_str(fd, "  pwd\r\n");
     write_str(fd, "  ls [path]\r\n");
     write_str(fd, "  cd <dir>\r\n");
-    write_str(fd, "  cd flash | cd sd  (switch between flash and sd filesystems)\r\n");
+    write_str(fd, "  cd flash | cd sd | cd sd-pl  (switch filesystems)\r\n");
     write_str(fd, "  mkdir <dir>\r\n");
     write_str(fd, "  touch <file>\r\n");
     write_str(fd, "  cat <file>\r\n");
@@ -209,7 +214,64 @@ static void cmd_help_fs(int fd)
     write_str(fd, "  cp <src> <dst>\r\n");
     write_str(fd, "  cp -r <src> <dst>\r\n");
     write_str(fd, "  mv <src> <dst>\r\n");
-    write_str(fd, "  (use sd:/ or flash:/ prefixes to target another device)\r\n");
+    write_str(fd, "  (use sd:/, flash:/ or sd-pl:/ prefixes to target another device)\r\n");
+}
+
+static void cmd_sd_pl_debug(int fd)
+{
+    bvstk_sd_controller_debug_t debug;
+    uint32_t trace_count;
+    uint32_t trace_write;
+    uint32_t trace_length;
+    uint32_t trace_start;
+    char line[160];
+
+    if (bvstk_sd_pl_get_debug(&debug) != BVSTK_OK) {
+        write_str(fd, "SD-PL: debug unavailable (controller is not initialized)\r\n");
+        return;
+    }
+
+    snprintf(line, sizeof(line),
+             "SD-PL: state=%08lx counters=%08lx acmd41=%08lx cmd55=%08lx response=%08lx pins=%08lx last=%08lx diag=%08lx\r\n",
+             (unsigned long)debug.state,
+             (unsigned long)debug.counters,
+             (unsigned long)debug.acmd41,
+             (unsigned long)debug.cmd55,
+             (unsigned long)debug.response,
+             (unsigned long)debug.pins,
+             (unsigned long)debug.last_byte,
+             (unsigned long)debug.diag);
+    write_str(fd, line);
+
+    snprintf(line, sizeof(line),
+             "SD-PL: CMD55=%08lx%04lx CMD41=%08lx%04lx LAST=%08lx%04lx\r\n",
+             (unsigned long)debug.cmd55_hi,
+             (unsigned long)(debug.cmd55_lo & 0xffffU),
+             (unsigned long)debug.cmd41_hi,
+             (unsigned long)(debug.cmd41_lo & 0xffffU),
+             (unsigned long)debug.last_cmd_hi,
+             (unsigned long)(debug.last_cmd_lo & 0xffffU));
+    write_str(fd, line);
+
+    trace_count = (debug.diag >> 8U) & 0xffffU;
+    trace_write = debug.diag & 0x1fU;
+    trace_length = trace_count < BVSTK_SD_DEBUG_TRACE_LENGTH
+                       ? trace_count
+                       : BVSTK_SD_DEBUG_TRACE_LENGTH;
+    trace_start = trace_count < BVSTK_SD_DEBUG_TRACE_LENGTH ? 0U : trace_write;
+    write_str(fd, "SD-PL: trace [state tx rx pins], oldest to newest:\r\n");
+    for (uint32_t n = 0U; n < trace_length; ++n) {
+        uint32_t index = (trace_start + n) & (BVSTK_SD_DEBUG_TRACE_LENGTH - 1U);
+        uint32_t entry = debug.trace[index];
+        snprintf(line, sizeof(line),
+                 "  %02lu: %02lx %02lx %02lx %02lx\r\n",
+                 (unsigned long)n,
+                 (unsigned long)((entry >> 24U) & 0x1fU),
+                 (unsigned long)((entry >> 16U) & 0xffU),
+                 (unsigned long)((entry >> 8U) & 0xffU),
+                 (unsigned long)(entry & 0xffU));
+        write_str(fd, line);
+    }
 }
 
 static void cmd_fs_pwd(int fd, console_session_t *session)
@@ -222,10 +284,10 @@ static void cmd_fs_pwd(int fd, console_session_t *session)
 
 static void cmd_fs_ls(int fd, console_session_t *session, const char *path)
 {
-    const fs_shared_ctx_t *ctx = session_ctx(session);
-    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     char full[CONSOLE_PATH_MAX];
     if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    const fs_shared_ctx_t *ctx = resolve_fs_ctx_for_path(session, full);
+    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     if (fs_shared_fs_ls(ctx, full, fd) != XST_SUCCESS) { write_str(fd, "ERR\r\n"); }
 }
 
@@ -238,6 +300,10 @@ static void cmd_fs_cd(int fd, console_session_t *session, const char *path)
         target_path = alias_resolved;
         if (session && alias_dev && alias_dev->ctx) {
             console_session_set_fs(session, alias_dev->ctx, alias_dev->label);
+        }
+        if (alias_dev && fs_device_prepare(alias_dev) != XST_SUCCESS) {
+            write_str(fd, "ERR\r\n");
+            return;
         }
     }
     const fs_shared_ctx_t *ctx = session_ctx(session);
@@ -255,10 +321,10 @@ static void cmd_fs_cd(int fd, console_session_t *session, const char *path)
 
 static void cmd_fs_mkdir(int fd, console_session_t *session, const char *path)
 {
-    const fs_shared_ctx_t *ctx = session_ctx(session);
-    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     char full[CONSOLE_PATH_MAX];
     if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    const fs_shared_ctx_t *ctx = resolve_fs_ctx_for_path(session, full);
+    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     FRESULT res = fs_shared_fs_mkdir(ctx, full);
     if (res == FR_OK || res == FR_EXIST) {
         write_str(fd, "OK\r\n");
@@ -275,10 +341,10 @@ static void cmd_fs_mkdir(int fd, console_session_t *session, const char *path)
 
 static void cmd_fs_touch(int fd, console_session_t *session, const char *path)
 {
-    const fs_shared_ctx_t *ctx = session_ctx(session);
-    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     char full[CONSOLE_PATH_MAX];
     if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    const fs_shared_ctx_t *ctx = resolve_fs_ctx_for_path(session, full);
+    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     FRESULT res = fs_shared_fs_touch(ctx, full);
     if (res == FR_OK) {
         write_str(fd, "OK\r\n");
@@ -295,10 +361,10 @@ static void cmd_fs_touch(int fd, console_session_t *session, const char *path)
 
 static void cmd_fs_cat(int fd, console_session_t *session, const char *path)
 {
-    const fs_shared_ctx_t *ctx = session_ctx(session);
-    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     char full[CONSOLE_PATH_MAX];
     if (!build_path(session, path, full, sizeof(full))) { write_str(fd, "ERR\r\n"); return; }
+    const fs_shared_ctx_t *ctx = resolve_fs_ctx_for_path(session, full);
+    if (!ctx) { write_str(fd, "ERR\r\n"); return; }
     if (fs_shared_fs_cat(ctx, full, fd) != XST_SUCCESS) write_str(fd, "ERR\r\n");
 }
 
@@ -419,6 +485,21 @@ static void cmd_fs_mv(int fd, console_session_t *session, const char *src_arg, c
 bool fs_handle(char *tok, char **save, int fd, console_session_t *session)
 {
     if (!tok) return false;
+    if (strcasecmp(tok, "sd-pl") == 0 || strcasecmp(tok, "sdpl") == 0) {
+        char *sub = strtok_r(NULL, " \t", save);
+        if (!sub || strcasecmp(sub, "-h") == 0 ||
+            strcasecmp(sub, "--help") == 0 ||
+            strcasecmp(sub, "help") == 0) {
+            write_str(fd, "sd-pl usage:\r\n");
+            write_str(fd, "  sd-pl debug   dump controller registers and SPI trace\r\n");
+        } else if (strcasecmp(sub, "debug") == 0 ||
+                   strcasecmp(sub, "diag") == 0) {
+            cmd_sd_pl_debug(fd);
+        } else {
+            write_str(fd, "ERR\r\n");
+        }
+        return true;
+    }
     if (strcasecmp(tok, "fs") == 0) {
         char *sub = strtok_r(NULL, " \t", save);
         if (!sub || strcasecmp(sub, "-h") == 0 || strcasecmp(sub, "--help") == 0 || strcasecmp(sub, "-help") == 0) {
@@ -478,7 +559,7 @@ void fs_help(int fd)
     write_str(fd, "  pwd\r\n");
     write_str(fd, "  ls [path]\r\n");
     write_str(fd, "  cd <dir>\r\n");
-    write_str(fd, "  cd flash | cd sd  (switch devices)\r\n");
+    write_str(fd, "  cd flash | cd sd | cd sd-pl  (switch devices)\r\n");
     write_str(fd, "  mkdir <dir>\r\n");
     write_str(fd, "  touch <file>\r\n");
     write_str(fd, "  cat <file>\r\n");
@@ -487,5 +568,5 @@ void fs_help(int fd)
     write_str(fd, "  cp <src> <dst>\r\n");
     write_str(fd, "  cp -r <src> <dst>\r\n");
     write_str(fd, "  mv <src> <dst>\r\n");
-    write_str(fd, "  (use sd:/ or flash:/ prefixes to target another device)\r\n");
+    write_str(fd, "  (use sd:/, flash:/ or sd-pl:/ prefixes to target another device)\r\n");
 }

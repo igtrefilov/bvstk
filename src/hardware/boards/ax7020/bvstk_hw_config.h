@@ -36,6 +36,20 @@
 #define BVSTK_I2C_SLAVE_BASE      UINT32_C(0x43C40000)
 #define BVSTK_I2C_SLAVE_SIZE      UINT32_C(0x00010000)
 
+/*
+ * The playground SD controller is an AXI4-Lite peripheral with its 512-byte
+ * block buffer inside the same address window.  It deliberately reuses the
+ * old SPI-master slot; the playground FPGA design no longer contains that
+ * legacy core.
+ */
+#define BVSTK_SD_CONTROLLER_BASE  UINT32_C(0x43C30000)
+#define BVSTK_SD_CONTROLLER_SIZE  UINT32_C(0x00010000)
+#define BVSTK_SD_SECTOR_SIZE      UINT32_C(512)
+#define BVSTK_SD_CLOCK_DIV_DEFAULT UINT16_C(5)
+
+/* The playground XSA intentionally contains only the custom SD PL core. */
+#define BVSTK_PLAYGROUND_SD_ONLY 1
+
 /* ARM GIC interrupt IDs used by the fabric interrupt inputs. */
 #define BVSTK_IRQ_SMI_MASTER      UINT32_C(61)
 #define BVSTK_IRQ_SMI_SLAVE       UINT32_C(62)

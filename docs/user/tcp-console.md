@@ -62,6 +62,8 @@ cd flash
 ls /config
 cat /config/network.json
 cp flash:/config/network.json sd:/backup/network.json
+cd sd-pl
+ls 2:/
 ```
 
 | Команда | Формат |
@@ -78,7 +80,8 @@ cp flash:/config/network.json sd:/backup/network.json
 | `cp -r <src> <dst>` | копирование каталога |
 | `mv <src> <dst>` | перемещение или переименование |
 
-Том можно выбрать явным префиксом `sd:/` или `flash:/`, либо командой `cd sd`/`cd flash`.
+Том можно выбрать явным префиксом `0:/`, `1:/`, `2:/`, `sd:/`, `sd-pl:/` или
+`flash:/`, либо командой `cd sd`/`cd sd-pl`/`cd flash`.
 
 ## 5. Сеть
 

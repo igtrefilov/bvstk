@@ -11,7 +11,8 @@ FreeRTOS-вариант BVSTK представляет собой сетевое
 | HTTP | `80` | JSON API, файловые маршруты и web UI |
 | DCP2 | `8889` | бинарный протокол для host-клиентов |
 
-Файловые тома доступны как `sd:/` и `flash:/`. Конфигурация и web-ресурсы обычно находятся на `flash:/`.
+Файловые тома доступны как `sd:/` (`0:/`), `sd-pl:/` (`2:/`) и `flash:/`
+(`1:/`). Конфигурация и web-ресурсы обычно находятся на `flash:/`.
 
 ```mermaid
 flowchart TB
@@ -19,7 +20,7 @@ flowchart TB
     Shell[TCP / SSH shell]
     HTTP[HTTP API + web UI]
     DCP[DCP2 client]
-    Files[sd:/ и flash:/]
+    Files[sd:/, sd-pl:/ и flash:/]
     PL[I2C / SMI / SPI]
     Device --> Shell
     Device --> HTTP
@@ -86,6 +87,7 @@ TCP и SSH используют общий command dispatcher. HTTP и DCP2 об
 | `flash:/config/smi/*.json` | PHY SMI, policy, settings и autopoll |
 | `flash:/www/` | статические web-ресурсы |
 | `sd:/` | обменные и пользовательские файлы |
+| `sd-pl:/` | файлы внешней MicroSD через PL |
 
 Пример проверки:
 

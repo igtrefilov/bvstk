@@ -4,6 +4,7 @@
 #include <strings.h>
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/storage/sd/sd_card.h"
+#include "xstatus.h"
 
 #ifndef TCP_CONSOLE_TAB_DEBUG
 #define TCP_CONSOLE_TAB_DEBUG 0
