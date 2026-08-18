@@ -10,6 +10,7 @@
 #include "hardware/boards/ax7020/bvstk_qspi_layout.h"
 #include "ports/freertos-xilinx/storage/qspi-flash/qspi_flash.h"
 #include "ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.h"
+#include "xil_printf.h"
 #include "xil_types.h"
 #include "xparameters.h"
 #include "xstatus.h"
@@ -87,6 +88,33 @@ static int qspi_lba_to_flash_addr(u32 *out_addr, LBA_t sector, u32 count)
     }
     *out_addr = (u32)(QSPI_FS_BASE_BYTES + byte_addr);
     return 1;
+}
+
+static void report_pl_sd_write_failure(LBA_t sector,
+                                       UINT count,
+                                       bvstk_status_t result)
+{
+    bvstk_sd_controller_status_t controller_status;
+
+    if (bvstk_sd_pl_get_status(&controller_status) == BVSTK_OK) {
+        xil_printf("SD-PL: disk_write failed lba=0x%08x count=%d result=%d "
+                   "busy=%d done=%d err=%d code=0x%02x r1=0x%02x cmd=0x%02x\r\n",
+                   (u32)sector,
+                   (int)count,
+                   (int)result,
+                   controller_status.busy ? 1 : 0,
+                   controller_status.done ? 1 : 0,
+                   controller_status.error ? 1 : 0,
+                   controller_status.error_code,
+                   controller_status.last_r1,
+                   controller_status.current_cmd);
+    } else {
+        xil_printf("SD-PL: disk_write failed lba=0x%08x count=%d result=%d "
+                   "status=unavailable\r\n",
+                   (u32)sector,
+                   (int)count,
+                   (int)result);
+    }
 }
 
 static DRESULT qspi_write_sector(LBA_t sector, const BYTE *buffer)
@@ -357,7 +385,9 @@ DRESULT disk_read(BYTE pdrv, BYTE *buffer, LBA_t sector, UINT count)
 
 DRESULT disk_ioctl(BYTE pdrv, BYTE command, void *buffer)
 {
-    if (!valid_pdrv(pdrv) || buffer == NULL) {
+    /* FatFs specifies a NULL argument for CTRL_SYNC. */
+    if (!valid_pdrv(pdrv) ||
+        (buffer == NULL && command != CTRL_SYNC)) {
         return RES_PARERR;
     }
     if ((disk_status(pdrv) & STA_NOINIT) != 0U) {
@@ -449,11 +479,16 @@ DRESULT disk_write(BYTE pdrv,
     if (!lba_range_valid(sector, count)) {
         return RES_PARERR;
     }
-    return bvstk_sd_pl_write((uint32_t)sector,
-                             buffer,
-                             (size_t)count) == BVSTK_OK
-               ? RES_OK
-               : RES_ERROR;
+    {
+        bvstk_status_t result = bvstk_sd_pl_write((uint32_t)sector,
+                                                  buffer,
+                                                  (size_t)count);
+        if (result != BVSTK_OK) {
+            report_pl_sd_write_failure(sector, count, result);
+            return RES_ERROR;
+        }
+        return RES_OK;
+    }
 }
 #endif
 

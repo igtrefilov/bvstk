@@ -45,7 +45,13 @@
 #define BVSTK_SD_CONTROLLER_BASE  UINT32_C(0x43C30000)
 #define BVSTK_SD_CONTROLLER_SIZE  UINT32_C(0x00010000)
 #define BVSTK_SD_SECTOR_SIZE      UINT32_C(512)
-#define BVSTK_SD_CLOCK_DIV_DEFAULT UINT16_C(5)
+/*
+ * The AX7020 wiring/card combination is reliable at approximately 500 kHz.
+ * At the former 5 MHz setting the card returns a valid data-response token,
+ * but the PL sampler can miss it.  Keep the conservative value as the
+ * default until the PL sampling phase is corrected.
+ */
+#define BVSTK_SD_CLOCK_DIV_DEFAULT UINT16_C(50)
 
 /* The playground XSA intentionally contains only the custom SD PL core. */
 #define BVSTK_PLAYGROUND_SD_ONLY 1

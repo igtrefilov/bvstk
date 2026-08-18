@@ -359,6 +359,49 @@ static void cmd_fs_touch(int fd, console_session_t *session, const char *path)
     }
 }
 
+static void cmd_fs_format(int fd, const char *device_arg, const char *confirm_arg)
+{
+    const fs_device_info_t *dev;
+    FRESULT res;
+    fs_shared_format_diag_t diag;
+
+    if (!device_arg || !confirm_arg) {
+        write_str(fd, "ERR: use `fs format sd-pl confirm`\r\n");
+        return;
+    }
+    if (strcasecmp(confirm_arg, "confirm") != 0 &&
+        strcasecmp(confirm_arg, "-y") != 0 &&
+        strcasecmp(confirm_arg, "--yes") != 0) {
+        write_str(fd, "ERR: confirm required (use `fs format sd-pl confirm`)\r\n");
+        return;
+    }
+    if (strcasecmp(device_arg, "sd-pl") != 0 &&
+        strcasecmp(device_arg, "sdpl") != 0) {
+        write_str(fd, "ERR: only sd-pl formatting is supported\r\n");
+        return;
+    }
+
+    dev = fs_device_by_name("sd-pl");
+    if (!dev || !dev->ctx || fs_device_prepare(dev) != XST_SUCCESS) {
+        write_str(fd, "ERR: sd-pl is not ready\r\n");
+        return;
+    }
+    res = fs_shared_format_ex(dev->ctx, &diag);
+    if (res == FR_OK) {
+        write_str(fd, "OK: sd-pl formatted as FAT32\r\n");
+    } else {
+        char line[96];
+        int n = snprintf(line, sizeof(line),
+                         "ERR: format failed (FR=%d phase=%d/%d/%d)\r\n",
+                         (int)res,
+                         (int)diag.unmount,
+                         (int)diag.mkfs,
+                         (int)diag.mount);
+        if (n > 0 && n < (int)sizeof(line)) write_str(fd, line);
+        else write_str(fd, "ERR: format failed\r\n");
+    }
+}
+
 static void cmd_fs_cat(int fd, console_session_t *session, const char *path)
 {
     char full[CONSOLE_PATH_MAX];
@@ -504,6 +547,10 @@ bool fs_handle(char *tok, char **save, int fd, console_session_t *session)
         char *sub = strtok_r(NULL, " \t", save);
         if (!sub || strcasecmp(sub, "-h") == 0 || strcasecmp(sub, "--help") == 0 || strcasecmp(sub, "-help") == 0) {
             cmd_help_fs(fd);
+        } else if (strcasecmp(sub, "format") == 0) {
+            char *device = strtok_r(NULL, " \t", save);
+            char *confirm = strtok_r(NULL, " \t", save);
+            cmd_fs_format(fd, device, confirm);
         } else {
             write_str(fd, "ERR\r\n");
         }
@@ -568,5 +615,6 @@ void fs_help(int fd)
     write_str(fd, "  cp <src> <dst>\r\n");
     write_str(fd, "  cp -r <src> <dst>\r\n");
     write_str(fd, "  mv <src> <dst>\r\n");
+    write_str(fd, "  format sd-pl confirm  (destructive FAT32 format)\r\n");
     write_str(fd, "  (use sd:/, flash:/ or sd-pl:/ prefixes to target another device)\r\n");
 }

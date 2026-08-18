@@ -12,6 +12,7 @@
 |---|---|---|
 | help | `help` | вывести список команд |
 | fs | `fs` или `fs -h` | справка файлового слоя |
+| fs format | `fs format sd-pl confirm` | разрушительно форматировать PL SD в FAT32 |
 | reboot | `reboot -y [delay_ms]` | перезапуск с подтверждением |
 | reboot | `reboot confirm [delay_ms]` | альтернативная форма подтверждения |
 | quit | `quit` или `exit` | закрыть сессию |
@@ -48,6 +49,10 @@ cd sd-pl
 ls 2:/
 cp 2:/backup/input.bin 0:/backup/input.bin
 ```
+
+`fs format sd-pl confirm` удаляет текущую файловую систему и все данные на карте,
+после чего создаёт FAT32 через PL SD-контроллер. Без слова `confirm` команда не
+выполняется.
 
 ## 4. Диагностика PL SD
 

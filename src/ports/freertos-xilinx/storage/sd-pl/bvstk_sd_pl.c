@@ -188,6 +188,24 @@ bvstk_status_t bvstk_sd_pl_get_sector_count(uint32_t *sector_count)
     return BVSTK_OK;
 }
 
+bvstk_status_t bvstk_sd_pl_get_status(
+    bvstk_sd_controller_status_t *status)
+{
+    bvstk_status_t result;
+
+    if (!s_controller_ready || !s_mutex_ready) {
+        return BVSTK_ERR_NOT_READY;
+    }
+    result = bvstk_mutex_lock(&s_controller.mutex,
+                              BVSTK_SD_PL_TRANSFER_TIMEOUT_MS);
+    if (result != BVSTK_OK) {
+        return result;
+    }
+    result = bvstk_sd_controller_get_status(&s_controller, status);
+    bvstk_mutex_unlock(&s_controller.mutex);
+    return result;
+}
+
 bvstk_status_t bvstk_sd_pl_read(uint32_t first_sector,
                                 uint8_t *buffer,
                                 size_t sector_count)

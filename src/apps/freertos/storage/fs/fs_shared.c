@@ -65,22 +65,77 @@ static const char *fs_shared_entry_name(const FILINFO *fno, char *out, size_t ou
 int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label)
 {
     if (!ctx || !ctx->fatfs || !ctx->ready || !ctx->root) return XST_FAILURE;
+    if (!fs_shared_lock(ctx)) return XST_FAILURE;
     FRESULT res = f_mount(ctx->fatfs, ctx->root, 1);
     if (res != FR_OK) {
         if (res == FR_NO_FILESYSTEM) {
             BYTE work[FF_MAX_SS];
             BYTE mkfs_opt = (BYTE)(FM_ANY | FM_SFD);
             res = f_mkfs(ctx->root, mkfs_opt, 0, work, sizeof(work));
-            if (res != FR_OK) return XST_FAILURE;
+            if (res != FR_OK) {
+                fs_shared_unlock(ctx);
+                return XST_FAILURE;
+            }
             res = f_mount(ctx->fatfs, ctx->root, 1);
-            if (res != FR_OK) return XST_FAILURE;
+            if (res != FR_OK) {
+                fs_shared_unlock(ctx);
+                return XST_FAILURE;
+            }
         } else {
+            fs_shared_unlock(ctx);
             return XST_FAILURE;
         }
     }
     *(ctx->ready) = 1;
     xil_printf("%s: mounted %s\r\n", label ? label : "FS", ctx->root);
+    fs_shared_unlock(ctx);
     return XST_SUCCESS;
+}
+
+FRESULT fs_shared_format(fs_shared_ctx_t *ctx)
+{
+    return fs_shared_format_ex(ctx, NULL);
+}
+
+FRESULT fs_shared_format_ex(fs_shared_ctx_t *ctx,
+                            fs_shared_format_diag_t *diag)
+{
+    BYTE work[FF_MAX_SS];
+    FRESULT res;
+
+    if (diag) {
+        diag->unmount = FR_INVALID_PARAMETER;
+        diag->mkfs = FR_INVALID_PARAMETER;
+        diag->mount = FR_INVALID_PARAMETER;
+    }
+    if (!ctx || !ctx->fatfs || !ctx->ready || !ctx->root) {
+        return FR_INVALID_PARAMETER;
+    }
+    if (!fs_shared_lock(ctx)) {
+        return FR_TIMEOUT;
+    }
+    if (!*(ctx->ready)) {
+        fs_shared_unlock(ctx);
+        return FR_NOT_READY;
+    }
+
+    *(ctx->ready) = 0;
+    res = f_mount(NULL, ctx->root, 0);
+    if (diag) diag->unmount = res;
+    if (res == FR_OK) {
+        res = f_mkfs(ctx->root, (BYTE)(FM_FAT32 | FM_SFD), 0,
+                     work, sizeof(work));
+        if (diag) diag->mkfs = res;
+    }
+    if (res == FR_OK) {
+        res = f_mount(ctx->fatfs, ctx->root, 1);
+        if (diag) diag->mount = res;
+    }
+    if (res == FR_OK) {
+        *(ctx->ready) = 1;
+    }
+    fs_shared_unlock(ctx);
+    return res;
 }
 
 int fs_shared_is_ready(const fs_shared_ctx_t *ctx)
