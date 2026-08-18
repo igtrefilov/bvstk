@@ -26,29 +26,7 @@ typedef struct {
     bool initialized;
     bool high_capacity;
     uint8_t error_code;
-    uint8_t last_r1;
-    uint8_t current_cmd;
 } bvstk_sd_controller_status_t;
-
-#define BVSTK_SD_DEBUG_TRACE_LENGTH 32U
-
-typedef struct {
-    uint32_t state;
-    uint32_t counters;
-    uint32_t last_cmd_hi;
-    uint32_t last_cmd_lo;
-    uint32_t response;
-    uint32_t acmd41;
-    uint32_t cmd55;
-    uint32_t pins;
-    uint32_t cmd55_hi;
-    uint32_t cmd55_lo;
-    uint32_t cmd41_hi;
-    uint32_t cmd41_lo;
-    uint32_t last_byte;
-    uint32_t diag;
-    uint32_t trace[BVSTK_SD_DEBUG_TRACE_LENGTH];
-} bvstk_sd_controller_debug_t;
 
 typedef struct {
     bvstk_mmio_region_t registers;
@@ -69,10 +47,6 @@ void bvstk_sd_controller_shutdown(bvstk_sd_controller_t *controller);
 bvstk_status_t bvstk_sd_controller_get_status(
     const bvstk_sd_controller_t *controller,
     bvstk_sd_controller_status_t *status);
-
-bvstk_status_t bvstk_sd_controller_get_debug(
-    const bvstk_sd_controller_t *controller,
-    bvstk_sd_controller_debug_t *debug);
 
 bvstk_status_t bvstk_sd_controller_initialize_card(
     bvstk_sd_controller_t *controller,

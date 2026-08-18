@@ -1,10 +1,8 @@
 #include "apps/freertos/storage/sd-pl/sd_pl_card.h"
 
 #include "apps/freertos/storage/fs/fs_shared.h"
-#include "ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.h"
 #include "semphr.h"
 #include "task.h"
-#include "xil_printf.h"
 #include "xstatus.h"
 
 #define SD_PL_TASK_STACK 1024U
@@ -29,9 +27,7 @@ static void sd_pl_card_task(void *argument)
     (void)argument;
     for (;;) {
         if (!s_ready) {
-            if (sd_pl_card_try_mount() != XST_SUCCESS) {
-                xil_printf("SD-PL: mount retry\r\n");
-            }
+            (void)sd_pl_card_try_mount();
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
     }

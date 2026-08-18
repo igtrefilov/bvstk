@@ -94,20 +94,9 @@ int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label)
 
 FRESULT fs_shared_format(fs_shared_ctx_t *ctx)
 {
-    return fs_shared_format_ex(ctx, NULL);
-}
-
-FRESULT fs_shared_format_ex(fs_shared_ctx_t *ctx,
-                            fs_shared_format_diag_t *diag)
-{
     BYTE work[FF_MAX_SS];
     FRESULT res;
 
-    if (diag) {
-        diag->unmount = FR_INVALID_PARAMETER;
-        diag->mkfs = FR_INVALID_PARAMETER;
-        diag->mount = FR_INVALID_PARAMETER;
-    }
     if (!ctx || !ctx->fatfs || !ctx->ready || !ctx->root) {
         return FR_INVALID_PARAMETER;
     }
@@ -121,15 +110,12 @@ FRESULT fs_shared_format_ex(fs_shared_ctx_t *ctx,
 
     *(ctx->ready) = 0;
     res = f_mount(NULL, ctx->root, 0);
-    if (diag) diag->unmount = res;
     if (res == FR_OK) {
         res = f_mkfs(ctx->root, (BYTE)(FM_FAT32 | FM_SFD), 0,
                      work, sizeof(work));
-        if (diag) diag->mkfs = res;
     }
     if (res == FR_OK) {
         res = f_mount(ctx->fatfs, ctx->root, 1);
-        if (diag) diag->mount = res;
     }
     if (res == FR_OK) {
         *(ctx->ready) = 1;

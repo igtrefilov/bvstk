@@ -21,16 +21,8 @@ typedef struct {
     const char *root;
 } fs_shared_ctx_t;
 
-typedef struct {
-    FRESULT unmount;
-    FRESULT mkfs;
-    FRESULT mount;
-} fs_shared_format_diag_t;
-
 int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label);
 FRESULT fs_shared_format(fs_shared_ctx_t *ctx);
-FRESULT fs_shared_format_ex(fs_shared_ctx_t *ctx,
-                            fs_shared_format_diag_t *diag);
 int fs_shared_is_ready(const fs_shared_ctx_t *ctx);
 
 int fs_shared_fs_ls(const fs_shared_ctx_t *ctx, const char *path, int fd);

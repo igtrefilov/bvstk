@@ -22,8 +22,6 @@ static bool s_card_ready;
 static uint32_t s_sector_count;
 static bool s_sector_count_ready;
 
-static void print_debug_snapshot(void);
-
 static uint16_t read_le16(const uint8_t *data)
 {
     return (uint16_t)data[0] | ((uint16_t)data[1] << 8U);
@@ -133,16 +131,7 @@ bvstk_status_t bvstk_sd_pl_initialize(void)
     status = bvstk_sd_controller_initialize_card(&s_controller,
                                                   BVSTK_SD_PL_INIT_TIMEOUT_MS);
     if (status != BVSTK_OK) {
-        bvstk_sd_controller_status_t card_status;
-        if (bvstk_sd_controller_get_status(&s_controller, &card_status) == BVSTK_OK) {
-            xil_printf("SD-PL: init failed code=0x%02x r1=0x%02x cmd=0x%02x\r\n",
-                       card_status.error_code,
-                       card_status.last_r1,
-                       card_status.current_cmd);
-        } else {
-            xil_printf("SD-PL: init failed status=%d\r\n", (int)status);
-        }
-        print_debug_snapshot();
+        xil_printf("SD-PL: init failed status=%d\r\n", (int)status);
         return status;
     }
     s_card_ready = true;
@@ -188,24 +177,6 @@ bvstk_status_t bvstk_sd_pl_get_sector_count(uint32_t *sector_count)
     return BVSTK_OK;
 }
 
-bvstk_status_t bvstk_sd_pl_get_status(
-    bvstk_sd_controller_status_t *status)
-{
-    bvstk_status_t result;
-
-    if (!s_controller_ready || !s_mutex_ready) {
-        return BVSTK_ERR_NOT_READY;
-    }
-    result = bvstk_mutex_lock(&s_controller.mutex,
-                              BVSTK_SD_PL_TRANSFER_TIMEOUT_MS);
-    if (result != BVSTK_OK) {
-        return result;
-    }
-    result = bvstk_sd_controller_get_status(&s_controller, status);
-    bvstk_mutex_unlock(&s_controller.mutex);
-    return result;
-}
-
 bvstk_status_t bvstk_sd_pl_read(uint32_t first_sector,
                                 uint8_t *buffer,
                                 size_t sector_count)
@@ -232,48 +203,4 @@ bvstk_status_t bvstk_sd_pl_write(uint32_t first_sector,
                                      buffer,
                                      sector_count,
                                      BVSTK_SD_PL_TRANSFER_TIMEOUT_MS);
-}
-
-bvstk_status_t bvstk_sd_pl_get_debug(bvstk_sd_controller_debug_t *debug)
-{
-    bvstk_status_t status;
-
-    if (!s_controller_ready || !s_mutex_ready) {
-        return BVSTK_ERR_NOT_READY;
-    }
-    status = bvstk_mutex_lock(&s_controller.mutex,
-                              BVSTK_SD_PL_TRANSFER_TIMEOUT_MS);
-    if (status != BVSTK_OK) {
-        return status;
-    }
-    status = bvstk_sd_controller_get_debug(&s_controller, debug);
-    bvstk_mutex_unlock(&s_controller.mutex);
-    return status;
-}
-
-static void print_debug_snapshot(void)
-{
-    bvstk_sd_controller_debug_t debug;
-
-    if (bvstk_sd_pl_get_debug(&debug) != BVSTK_OK) {
-        xil_printf("SD-PL: DBG unavailable\r\n");
-        return;
-    }
-    xil_printf("SD-PL: DBG state=%08x cnt=%08x acmd=%08x c55=%08x rsp=%08x seq=%08x pins=%08x last=%08x diag=%08x\r\n",
-               debug.state,
-               debug.counters,
-               debug.acmd41,
-               debug.cmd55,
-               debug.response,
-               debug.cmd55,
-               debug.pins,
-               debug.last_byte,
-               debug.diag);
-    xil_printf("SD-PL: DBG CMD55=%08x%04x CMD41=%08x%04x LAST=%08x%04x\r\n",
-               debug.cmd55_hi,
-               debug.cmd55_lo & 0xffffU,
-               debug.cmd41_hi,
-               debug.cmd41_lo & 0xffffU,
-               debug.last_cmd_hi,
-               debug.last_cmd_lo & 0xffffU);
 }

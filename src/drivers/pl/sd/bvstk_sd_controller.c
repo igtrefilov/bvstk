@@ -88,10 +88,6 @@ static bvstk_status_t read_status(
     status->high_capacity = (value & BVSTK_SD_STATUS_HIGH_CAPACITY) != 0U;
     status->error_code = (uint8_t)((value & BVSTK_SD_STATUS_ERROR_MASK) >>
                                    BVSTK_SD_STATUS_ERROR_SHIFT);
-    status->last_r1 = (uint8_t)((value & BVSTK_SD_STATUS_LAST_R1_MASK) >>
-                                BVSTK_SD_STATUS_LAST_R1_SHIFT);
-    status->current_cmd = (uint8_t)((value & BVSTK_SD_STATUS_CURRENT_CMD_MASK) >>
-                                    BVSTK_SD_STATUS_CURRENT_CMD_SHIFT);
     return BVSTK_OK;
 }
 
@@ -256,57 +252,6 @@ bvstk_status_t bvstk_sd_controller_get_status(
         return BVSTK_ERR_NOT_READY;
     }
     return read_status(controller, status);
-}
-
-bvstk_status_t bvstk_sd_controller_get_debug(
-    const bvstk_sd_controller_t *controller,
-    bvstk_sd_controller_debug_t *debug)
-{
-    size_t index;
-
-    if (controller == NULL || !controller->initialized || debug == NULL) {
-        return BVSTK_ERR_NOT_READY;
-    }
-    memset(debug, 0, sizeof(*debug));
-    {
-        struct debug_register {
-            size_t offset;
-            uint32_t *value;
-        } registers[] = {
-            {BVSTK_SD_DEBUG_STATE_OFFSET, &debug->state},
-            {BVSTK_SD_DEBUG_COUNTERS_OFFSET, &debug->counters},
-            {BVSTK_SD_DEBUG_LAST_CMD_HI_OFFSET, &debug->last_cmd_hi},
-            {BVSTK_SD_DEBUG_LAST_CMD_LO_OFFSET, &debug->last_cmd_lo},
-            {BVSTK_SD_DEBUG_RESPONSE_OFFSET, &debug->response},
-            {BVSTK_SD_DEBUG_ACMD41_OFFSET, &debug->acmd41},
-            {BVSTK_SD_DEBUG_CMD55_OFFSET, &debug->cmd55},
-            {BVSTK_SD_DEBUG_PINS_OFFSET, &debug->pins},
-            {BVSTK_SD_DEBUG_CMD55_HI_OFFSET, &debug->cmd55_hi},
-            {BVSTK_SD_DEBUG_CMD55_LO_OFFSET, &debug->cmd55_lo},
-            {BVSTK_SD_DEBUG_CMD41_HI_OFFSET, &debug->cmd41_hi},
-            {BVSTK_SD_DEBUG_CMD41_LO_OFFSET, &debug->cmd41_lo},
-            {BVSTK_SD_DEBUG_LAST_BYTE_OFFSET, &debug->last_byte},
-            {BVSTK_SD_DEBUG_DIAG_OFFSET, &debug->diag}
-        };
-        for (index = 0U; index < sizeof(registers) / sizeof(registers[0]); ++index) {
-            if (read32(controller,
-                       registers[index].offset,
-                       registers[index].value) != BVSTK_OK) {
-                return BVSTK_ERR_IO;
-            }
-        }
-    }
-    for (index = 0U; index < BVSTK_SD_DEBUG_TRACE_LENGTH; ++index) {
-        if (write32(controller,
-                    BVSTK_SD_DEBUG_TRACE_INDEX_OFFSET,
-                    (uint32_t)index) != BVSTK_OK ||
-            read32(controller,
-                   BVSTK_SD_DEBUG_TRACE_DATA_OFFSET,
-                   &debug->trace[index]) != BVSTK_OK) {
-            return BVSTK_ERR_IO;
-        }
-    }
-    return BVSTK_OK;
 }
 
 bvstk_status_t bvstk_sd_controller_initialize_card(
