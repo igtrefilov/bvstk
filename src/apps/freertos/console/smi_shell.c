@@ -14,6 +14,7 @@
 #include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 static void smi_writef(int fd, const char *fmt, ...)
 {
@@ -117,6 +118,10 @@ static void cmd_r(int fd, uint8_t phy, const char *s_reg)
     bool ok = false;
     unsigned long reg = parse_num(s_reg, &ok);
     if (!ok || reg > 31ul) { write_str(fd, "ERR\r\n"); return; }
+#if !BVSTK_PL_HAS_SMI_CORE
+    write_str(fd, "ERR (SMI not available)\r\n");
+    return;
+#else
     uint16_t val = 0;
     bvstk_smi_service_t *service = bvstk_runtime_smi_service();
     size_t device_id = 0U;
@@ -141,6 +146,7 @@ static void cmd_r(int fd, uint8_t phy, const char *s_reg)
         return;
     }
     smi_writef(fd, "OK REG 0x%02lX = 0x%04" PRIX16 " %" PRIu16 "\r\n", reg, val, val);
+#endif
 }
 
 static void cmd_w(int fd, uint8_t phy, const char *s_reg, const char *s_val)
@@ -150,6 +156,10 @@ static void cmd_w(int fd, uint8_t phy, const char *s_reg, const char *s_val)
     unsigned long reg = parse_num(s_reg, &okr);
     unsigned long val = parse_num(s_val, &okv);
     if (!okr || !okv || reg > 31ul || val > 0xFFFFul) { write_str(fd, "ERR\r\n"); return; }
+#if !BVSTK_PL_HAS_SMI_CORE
+    write_str(fd, "ERR (SMI not available)\r\n");
+    return;
+#else
     bvstk_smi_service_t *service = bvstk_runtime_smi_service();
     size_t device_id = 0U;
     bvstk_status_t status;
@@ -177,6 +187,7 @@ static void cmd_w(int fd, uint8_t phy, const char *s_reg, const char *s_val)
         return;
     }
     write_str(fd, "OK\r\n");
+#endif
 }
 
 static void cmd_policy(int fd, smi_phy_config_t *cfg, const char *mode)

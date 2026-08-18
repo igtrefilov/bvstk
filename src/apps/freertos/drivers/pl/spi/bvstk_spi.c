@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "xil_printf.h"
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 typedef struct {
     uint32_t csr_snapshot;
@@ -47,6 +48,9 @@ static void spi_ISR(void *CallBackRef)
 
 void start_spi(void)
 {
+#if !BVSTK_PL_HAS_SPI_CORE
+    return;
+#else
     spi_bus_mutex = xSemaphoreCreateMutex();
     configASSERT(spi_bus_mutex);
 
@@ -70,6 +74,7 @@ void start_spi(void)
                "off"
 #endif
     );
+#endif
 }
 
 void spi_set_cfg(const spi_runtime_cfg_t *cfg)
@@ -86,8 +91,10 @@ void spi_set_cfg(const spi_runtime_cfg_t *cfg)
     s_cfg.read_en = cfg->read_en;
     taskEXIT_CRITICAL();
 
+#if BVSTK_PL_HAS_SPI_CORE
     reg_write32(SPI_TIMEOUT_OFFSET, s_cfg.timeout_ticks);
     reg_write32(SPI_SIG_REG_OFFSET, (uint32_t)s_cfg.p_clk_div);
+#endif
 }
 
 void spi_get_cfg(spi_runtime_cfg_t *out)
@@ -125,6 +132,14 @@ bool spi_transfer_words(const uint32_t *tx_words,
                         size_t rx_capacity,
                         TickType_t timeout_ticks)
 {
+#if !BVSTK_PL_HAS_SPI_CORE
+    (void)tx_words;
+    (void)tx_count;
+    (void)rx_words;
+    (void)rx_capacity;
+    (void)timeout_ticks;
+    return false;
+#else
     if (!tx_words || tx_count == 0) return false;
 
     if (!spi_bus_mutex) return false;
@@ -164,4 +179,5 @@ bool spi_transfer_words(const uint32_t *tx_words,
     spi_irq_clear();
     xSemaphoreGive(spi_bus_mutex);
     return done;
+#endif
 }

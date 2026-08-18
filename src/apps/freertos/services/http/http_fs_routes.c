@@ -31,6 +31,7 @@
 #include "apps/freertos/storage/fs/fs_shared.h"
 #include "apps/freertos/storage/qspi/qspi_fs.h"
 #include "hardware/boards/ax7020/bvstk_qspi_layout.h"
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
 #include "apps/freertos/storage/tar/tar.h"
 
 enum { WEB_INDEX_NAME_MAX = 16 };
@@ -40,6 +41,41 @@ extern struct netif *netif;
 extern unsigned char mac_ethernet_address[];
 extern size_t xPortGetFreeHeapSize(void);
 extern size_t xPortGetMinimumEverFreeHeapSize(void);
+
+typedef struct {
+    uintptr_t base;
+    uintptr_t size;
+} http_mmio_range_t;
+
+static bool http_mmio_allowed(uintptr_t address, uintptr_t size)
+{
+    static const http_mmio_range_t ranges[] = {
+#if BVSTK_PL_HAS_I2C_CORE
+        { BVSTK_I2C_MASTER_BASE, BVSTK_I2C_MASTER_SIZE },
+        { BVSTK_I2C_SLAVE_BASE, BVSTK_I2C_SLAVE_SIZE },
+        { BVSTK_I2C_BRAM_BASE, BVSTK_I2C_BRAM_SIZE },
+#endif
+#if BVSTK_PL_HAS_SMI_CORE
+        { BVSTK_SMI_MASTER_BASE, BVSTK_SMI_MASTER_SIZE },
+        { BVSTK_SMI_SLAVE_BASE, BVSTK_SMI_SLAVE_SIZE },
+        { BVSTK_SMI_BRAM_BASE, BVSTK_SMI_BRAM_SIZE },
+#endif
+#if BVSTK_PL_HAS_SPI_CORE
+        { BVSTK_SPI_MASTER_BASE, BVSTK_SPI_MASTER_SIZE },
+        { BVSTK_SPI_BRAM_BASE, BVSTK_SPI_BRAM_SIZE },
+#endif
+#if BVSTK_PL_HAS_SD_CONTROLLER
+        { BVSTK_SD_CONTROLLER_BASE, BVSTK_SD_CONTROLLER_SIZE },
+#endif
+    };
+
+    if (size == 0U || address > UINTPTR_MAX - size) return false;
+    for (size_t i = 0U; i < sizeof(ranges) / sizeof(ranges[0]); ++i) {
+        uintptr_t range_end = ranges[i].base + ranges[i].size;
+        if (address >= ranges[i].base && address + size <= range_end) return true;
+    }
+    return false;
+}
 
 static int ctx_lock(const fs_shared_ctx_t *ctx)
 {
@@ -957,6 +993,13 @@ static void api_diag_i2c_write(http_conn_t *conn)
 static void api_diag_smi_read(http_conn_t *conn)
 {
     if (!conn) return;
+#if !BVSTK_PL_HAS_SMI_CORE
+    char ignored[256];
+    size_t ignored_len = 0;
+    (void)read_body_to_buf(conn, ignored, sizeof(ignored), &ignored_len);
+    http_reply_simple(conn->fd, 503, "Service Unavailable", "smi unavailable\r\n");
+    return;
+#else
     char body[256];
     size_t blen = 0;
     if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
@@ -981,11 +1024,19 @@ static void api_diag_smi_read(http_conn_t *conn)
         if (n > 0) http_write_str(conn->fd, b);
     }
     http_write_str(conn->fd, "}\n");
+#endif
 }
 
 static void api_diag_smi_write(http_conn_t *conn)
 {
     if (!conn) return;
+#if !BVSTK_PL_HAS_SMI_CORE
+    char ignored[256];
+    size_t ignored_len = 0;
+    (void)read_body_to_buf(conn, ignored, sizeof(ignored), &ignored_len);
+    http_reply_simple(conn->fd, 503, "Service Unavailable", "smi unavailable\r\n");
+    return;
+#else
     char body[256];
     size_t blen = 0;
     if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
@@ -1002,6 +1053,7 @@ static void api_diag_smi_write(http_conn_t *conn)
     }
     http_reply_json_hdr(conn->fd, 200, "OK");
     http_write_str(conn->fd, "{\"ok\":true}\n");
+#endif
 }
 
 static void api_diag_mem_read(http_conn_t *conn)
@@ -1016,6 +1068,10 @@ static void api_diag_mem_read(http_conn_t *conn)
     uint32_t addr = 0;
     if (!json_get_u32_val(body, "addr", &addr)) { http_reply_simple(conn->fd, 400, "Bad Request", "bad addr\r\n"); return; }
     uintptr_t a = (uintptr_t)addr;
+    if (!http_mmio_allowed(a, ((a & 3U) == 0U) ? 4U : 1U)) {
+        http_reply_simple(conn->fd, 403, "Forbidden", "address not available\r\n");
+        return;
+    }
     http_reply_json_hdr(conn->fd, 200, "OK");
     if ((a & 3U) == 0U) {
         uint32_t v = Xil_In32((UINTPTR)a);
@@ -1047,12 +1103,20 @@ static void api_diag_mem_write(http_conn_t *conn)
     if (!json_get_u32_val(body, "val", &val)) { http_reply_simple(conn->fd, 400, "Bad Request", "bad val\r\n"); return; }
     uintptr_t a = (uintptr_t)addr;
     if ((a & 3U) == 0U) {
+        if (!http_mmio_allowed(a, 4U)) {
+            http_reply_simple(conn->fd, 403, "Forbidden", "address not available\r\n");
+            return;
+        }
         Xil_Out32((UINTPTR)a, (uint32_t)val);
         http_reply_json_hdr(conn->fd, 200, "OK");
         http_write_str(conn->fd, "{\"ok\":true,\"width\":32}\n");
         return;
     }
     if (val > 0xFFu) { http_reply_simple(conn->fd, 400, "Bad Request", "unaligned requires 8-bit val\r\n"); return; }
+    if (!http_mmio_allowed(a, 1U)) {
+        http_reply_simple(conn->fd, 403, "Forbidden", "address not available\r\n");
+        return;
+    }
     Xil_Out8((UINTPTR)a, (uint8_t)val);
     http_reply_json_hdr(conn->fd, 200, "OK");
     http_write_str(conn->fd, "{\"ok\":true,\"width\":8}\n");

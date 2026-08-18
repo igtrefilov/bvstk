@@ -10,6 +10,7 @@
 #include "drivers/pl/i2c/bvstk_i2c_master.h"
 #include "drivers/pl/i2c/bvstk_i2c_slave.h"
 #include "drivers/pl/smi/bvstk_smi_core.h"
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
 #include "hardware/pl/spi/bvstk_spi_regs.h"
 #include "ports/freertos-xilinx/os/bvstk_sync_freertos.h"
 #include "ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.h"
@@ -32,23 +33,9 @@ static volatile int s_i2c_ready;
 static volatile int s_i2c_slave_ready;
 static volatile int s_smi_ready;
 static volatile int s_spi_ready;
+#if BVSTK_PL_RUNTIME_ENABLED
 static TaskHandle_t s_runtime_task;
-
-static void publish_event(void *context, const bvstk_event_t *event)
-{
-    (void)context;
-    if (event == NULL) {
-        return;
-    }
-    dcp2_notify_publish_simple(event->type,
-                               event->status,
-                               (dcp2_notify_source_t)event->source,
-                               (dcp2_notify_bus_t)event->bus,
-                               (dcp2_notify_op_t)event->operation,
-                               event->arg0,
-                               event->arg1,
-                               event->arg2);
-}
+#endif
 
 static void update_setting(i2c_device_config_t *config,
                            uint8_t reg,
@@ -69,6 +56,24 @@ static void update_setting(i2c_device_config_t *config,
     }
 }
 
+#if BVSTK_PL_RUNTIME_ENABLED
+static void publish_event(void *context, const bvstk_event_t *event)
+{
+    (void)context;
+    if (event == NULL) {
+        return;
+    }
+    dcp2_notify_publish_simple(event->type,
+                               event->status,
+                               (dcp2_notify_source_t)event->source,
+                               (dcp2_notify_bus_t)event->bus,
+                               (dcp2_notify_op_t)event->operation,
+                               event->arg0,
+                               event->arg1,
+                               event->arg2);
+}
+
+#if BVSTK_PL_HAS_I2C_CORE
 static int initialize_i2c(const i2c_device_config_t *configs,
                           size_t config_count,
                           const bvstk_event_sink_t *events)
@@ -128,17 +133,27 @@ static int initialize_i2c(const i2c_device_config_t *configs,
     }
     return 1;
 }
+#endif
 
 static void runtime_task(void *argument)
 {
+#if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_SMI_CORE
     bvstk_event_sink_t events;
+#endif
+#if BVSTK_PL_HAS_SPI_CORE
     bvstk_spi_core_config_t spi_config;
+#endif
+#if BVSTK_PL_HAS_I2C_CORE
     const i2c_device_config_t *devices;
-    const smi_phy_config_t *smi_devices;
     size_t device_count;
+#endif
+#if BVSTK_PL_HAS_SMI_CORE
+    const smi_phy_config_t *smi_devices;
     size_t smi_device_count;
+#endif
 
     (void)argument;
+#if BVSTK_PL_HAS_SPI_CORE
     memset(&spi_config, 0, sizeof(spi_config));
     spi_config.packets_mode = BVSTK_SPI_MODE_MULTI;
     spi_config.timeout_ticks = 1U;
@@ -153,14 +168,19 @@ static void runtime_task(void *argument)
     } else {
         bvstk_freertos_mutex_destroy(&s_spi_mutex);
     }
+#endif
 
+#if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_SMI_CORE
     if (config_store_wait_ready(10000U) != 0) {
+#if BVSTK_PL_HAS_I2C_CORE
         devices = config_store_get_i2c_devices();
         device_count = config_store_get_i2c_device_count();
         memset(&events, 0, sizeof(events));
         events.publish = publish_event;
         (void)initialize_i2c(devices, device_count, &events);
+#endif
 
+#if BVSTK_PL_HAS_SMI_CORE
         smi_devices = config_store_get_smi_devices();
         smi_device_count = config_store_get_smi_device_count();
         if (bvstk_freertos_mutex_init(&s_smi_mutex) == BVSTK_OK &&
@@ -181,13 +201,19 @@ static void runtime_task(void *argument)
         } else {
             bvstk_freertos_mutex_destroy(&s_smi_mutex);
         }
+#endif
     }
+#endif
     s_runtime_task = NULL;
     vTaskDelete(NULL);
 }
+#endif
 
 void bvstk_runtime_start(void)
 {
+#if !BVSTK_PL_RUNTIME_ENABLED
+    return;
+#else
     if (s_runtime_task != NULL || s_i2c_ready != 0) {
         return;
     }
@@ -197,6 +223,7 @@ void bvstk_runtime_start(void)
                       NULL,
                       tskIDLE_PRIORITY + 2U,
                       &s_runtime_task);
+#endif
 }
 
 bvstk_i2c_master_service_t *bvstk_runtime_i2c_master_service(void)

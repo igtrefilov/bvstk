@@ -296,14 +296,23 @@ static bool dcp2_mem_width_valid(uint8_t width_bits)
 static bool dcp2_mmio_allowed(uint32_t addr, uint32_t size_bytes)
 {
     static const mmio_range_t ranges[] = {
+#if BVSTK_PL_HAS_I2C_CORE
         { (uint32_t)BVSTK_I2C_MASTER_BASE, 0x1000u },
         { (uint32_t)BVSTK_I2C_SLAVE_BASE,  0x1000u },
         { (uint32_t)BVSTK_I2C_BRAM_BASE,   0x3000u },
+#endif
+#if BVSTK_PL_HAS_SMI_CORE
         { (uint32_t)MASTER_BASEADDR, 0x1000u },
         { (uint32_t)SLAVE_BASEADDR,  0x1000u },
         { (uint32_t)BRAM_BASEADDR,   (uint32_t)(BRAM_HIGHADDR - BRAM_BASEADDR + 1u) },
+#endif
+#if BVSTK_PL_HAS_SPI_CORE
         { (uint32_t)SPI_BASEADDR,    0x1000u },
         { (uint32_t)SPI_BRAM_BASEADDR, 0x2000u },
+#endif
+#if BVSTK_PL_HAS_SD_CONTROLLER
+        { (uint32_t)BVSTK_SD_CONTROLLER_BASE, (uint32_t)BVSTK_SD_CONTROLLER_SIZE },
+#endif
     };
     uint64_t start = (uint64_t)addr;
     uint64_t end = start + (uint64_t)size_bytes;
@@ -460,6 +469,10 @@ static int dcp2_handle_mem(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
 
 static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
 {
+#if !BVSTK_PL_HAS_I2C_CORE
+    return dcp2_send_response(fd, srv, opcode, seq,
+                              DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+#else
     size_t dev_idx = 0;
     bvstk_i2c_master_service_t *service =
         bvstk_runtime_i2c_master_service();
@@ -544,10 +557,15 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
                               DCP2_STATUS_ERR_INTERNAL,
                               NULL,
                               0U);
+#endif
 }
 
 static int dcp2_handle_smi(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
 {
+#if !BVSTK_PL_HAS_SMI_CORE
+    return dcp2_send_response(fd, srv, opcode, seq,
+                              DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+#else
     smi_phy_config_t *cfg = NULL;
     bvstk_smi_service_t *common_service = bvstk_runtime_smi_service();
 
@@ -639,6 +657,7 @@ static int dcp2_handle_smi(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
     }
 
     return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+#endif
 }
 
 static int dcp2_handle_notify(int fd,
@@ -753,16 +772,30 @@ static int dcp2_dispatch_request(int fd,
     case DCP2_SRV_NOTIFY:
         return dcp2_handle_notify(fd, state, srv, opcode, seq, body, body_len);
     case DCP2_SRV_I2C:
+#if BVSTK_PL_HAS_I2C_CORE
         if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
             return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
         }
         return dcp2_handle_i2c(fd, srv, opcode, seq, body, body_len);
+#else
+        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+#endif
     case DCP2_SRV_SMI:
+#if BVSTK_PL_HAS_SMI_CORE
         if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
             return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
         }
         return dcp2_handle_smi(fd, srv, opcode, seq, body, body_len);
+#else
+        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+#endif
     case DCP2_SRV_SPI:
+#if BVSTK_PL_HAS_SPI_CORE
+        if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
+            return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
+        }
+#endif
+        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
     case DCP2_SRV_UART:
         if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
             return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);

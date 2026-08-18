@@ -53,8 +53,18 @@
  */
 #define BVSTK_SD_CLOCK_DIV_DEFAULT UINT16_C(50)
 
-/* The playground XSA intentionally contains only the custom SD PL core. */
-#define BVSTK_PLAYGROUND_SD_ONLY 1
+/*
+ * PL capabilities exported by the current design.xsa.  The portable
+ * services for the unavailable cores remain part of the PS image, but their
+ * hardware backends must not be started or reached through fallback paths.
+ */
+#define BVSTK_PL_HAS_SD_CONTROLLER 1
+#define BVSTK_PL_HAS_I2C_CORE      0
+#define BVSTK_PL_HAS_SMI_CORE      0
+#define BVSTK_PL_HAS_SPI_CORE      0
+
+#define BVSTK_PL_RUNTIME_ENABLED \
+    (BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_SMI_CORE || BVSTK_PL_HAS_SPI_CORE)
 
 /* ARM GIC interrupt IDs used by the fabric interrupt inputs. */
 #define BVSTK_IRQ_SMI_MASTER      UINT32_C(61)

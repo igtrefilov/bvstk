@@ -7,7 +7,9 @@
 
 #include "apps/freertos/drivers/pl/spi/bvstk_spi.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
 
+#if BVSTK_PL_HAS_SPI_CORE
 static void spi_writef(int fd, const char *fmt, ...)
 {
     char buf[256];
@@ -19,9 +21,14 @@ static void spi_writef(int fd, const char *fmt, ...)
     if (n >= (int)sizeof(buf)) n = (int)sizeof(buf) - 1;
     (void)console_stream_write(fd, buf, (size_t)n);
 }
+#endif
 
 static void cmd_info(int fd)
 {
+#if !BVSTK_PL_HAS_SPI_CORE
+    write_str(fd, "ERR (SPI not available)\r\n");
+    return;
+#else
     bvstk_spi_core_t *core = bvstk_runtime_spi_core();
     if (core != NULL) {
         bvstk_spi_core_config_t c;
@@ -47,11 +54,16 @@ static void cmd_info(int fd)
                (unsigned long)c.timeout_ticks,
                (unsigned)c.p_clk_div,
                c.read_en ? "on" : "off");
+#endif
 }
 
 static void cmd_cfg(int fd, const char *k, const char *v)
 {
     if (!k || !v) { write_str(fd, "ERR\r\n"); return; }
+#if !BVSTK_PL_HAS_SPI_CORE
+    write_str(fd, "ERR (SPI not available)\r\n");
+    return;
+#else
 
     spi_runtime_cfg_t c;
     spi_get_cfg(&c);
@@ -96,10 +108,16 @@ static void cmd_cfg(int fd, const char *k, const char *v)
         spi_set_cfg(&c);
     }
     write_str(fd, "OK\r\n");
+#endif
 }
 
 static void cmd_xfer(int fd, char **save)
 {
+#if !BVSTK_PL_HAS_SPI_CORE
+    (void)save;
+    write_str(fd, "ERR (SPI not available)\r\n");
+    return;
+#else
     uint32_t tx[64];
     uint32_t rx[64];
     size_t n = 0;
@@ -134,6 +152,7 @@ static void cmd_xfer(int fd, char **save)
         spi_writef(fd, "RX[%u]=0x%08lX\r\n", (unsigned)i, (unsigned long)rx[i]);
     }
     write_str(fd, "OK\r\n");
+#endif
 }
 
 bool spi_handle(char *tok, char **save, int fd)

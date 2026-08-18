@@ -2,6 +2,7 @@
 
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 #ifndef SMI_ENABLE_MASTER_IRQ
 #define SMI_ENABLE_MASTER_IRQ 0
@@ -70,6 +71,9 @@ static inline void smi_irq_enable(void)
 
 void start_smi(void)
 {
+#if !BVSTK_PL_HAS_SMI_CORE
+    return;
+#else
     q_master = xQueueCreate(128, sizeof(master_evt_t));
     q_slave  = xQueueCreate(128, sizeof(slave_evt_t));
     q_s2h_evt = xQueueCreate(1, sizeof(uint32_t));
@@ -91,6 +95,7 @@ void start_smi(void)
     if (xTaskCreate(smi_task, "smi_task", SMI_TASK_STACK_SIZE, NULL, SMI_TASK_PRIORITY, NULL) != pdPASS) {
         xil_printf("Error creating SMI task\n\r");
     }
+#endif
 }
 
 void smi_task(void *pvParameters)
@@ -163,6 +168,12 @@ void smi_task(void *pvParameters)
 
 void mdio_write(uint8_t phy, uint8_t reg, uint16_t data)
 {
+#if !BVSTK_PL_HAS_SMI_CORE
+    (void)phy;
+    (void)reg;
+    (void)data;
+    return;
+#else
     if (smi_bus_mutex) xSemaphoreTake(smi_bus_mutex, portMAX_DELAY);
     uint32_t x = (uint32_t)data
                | ((uint32_t)(reg & 0x1F) << 16)
@@ -170,10 +181,18 @@ void mdio_write(uint8_t phy, uint8_t reg, uint16_t data)
                | ((uint32_t)1u << 26);
     Xil_Out32(MASTER_BASEADDR + TX_FIFO_m, x);
     if (smi_bus_mutex) xSemaphoreGive(smi_bus_mutex);
+#endif
 }
 
 bool smi_write_checked_source(uint8_t phy, uint8_t reg, uint16_t data, uint8_t source)
 {
+#if !BVSTK_PL_HAS_SMI_CORE
+    (void)phy;
+    (void)reg;
+    (void)data;
+    (void)source;
+    return false;
+#else
     uint8_t phy5 = (uint8_t)(phy & 0x1Fu);
     uint8_t reg5 = (uint8_t)(reg & 0x1Fu);
     dcp2_notify_publish_simple(DCP2_NOTIFY_EV_REG_ATTEMPT,
@@ -226,6 +245,7 @@ bool smi_write_checked_source(uint8_t phy, uint8_t reg, uint16_t data, uint8_t s
                                (uint32_t)reg5,
                                (uint32_t)data);
     return true;
+#endif
 }
 
 bool smi_write_checked(uint8_t phy, uint8_t reg, uint16_t data)
@@ -235,15 +255,28 @@ bool smi_write_checked(uint8_t phy, uint8_t reg, uint16_t data)
 
 void mdio_read(uint8_t phy, uint8_t reg)
 {
+#if !BVSTK_PL_HAS_SMI_CORE
+    (void)phy;
+    (void)reg;
+    return;
+#else
     uint32_t x = 0
                | ((uint32_t)(reg & 0x1F) << 16)
                | ((uint32_t)(phy & 0x1F) << 21)
                | ((uint32_t)0u << 26);
     Xil_Out32(MASTER_BASEADDR + TX_FIFO_m, x);
+#endif
 }
 
 bool smi_read_blocking(uint8_t phy, uint8_t reg, uint16_t *out_value, TickType_t timeout_ticks)
 {
+#if !BVSTK_PL_HAS_SMI_CORE
+    (void)phy;
+    (void)reg;
+    (void)out_value;
+    (void)timeout_ticks;
+    return false;
+#else
     if (!out_value || !q_s2h_evt) return false;
 
     if (smi_bus_mutex) xSemaphoreTake(smi_bus_mutex, portMAX_DELAY);
@@ -267,21 +300,31 @@ bool smi_read_blocking(uint8_t phy, uint8_t reg, uint16_t *out_value, TickType_t
 
     *out_value = (uint16_t)(word & 0xFFFFU);
     return true;
+#endif
 }
 
 void timeout_write(uint16_t timeout)
 {
+#if !BVSTK_PL_HAS_SMI_CORE
+    (void)timeout;
+    return;
+#else
     uint32_t x = 0
                | ((uint32_t)(timeout & 0x7FFF) << 15)
                | ((uint32_t)1u << 31);
     Xil_Out32(MASTER_BASEADDR + TIMEOUT_m, x);
+#endif
 }
 
 uint16_t timeout_read(void)
 {
+#if !BVSTK_PL_HAS_SMI_CORE
+    return 0U;
+#else
     uint16_t timeout = (Xil_In32(MASTER_BASEADDR + TIMEOUT_m) & 0x3FFF8000U) >> 15;
     xil_printf("\n\rTimeout = %lu us \n\r\n\r", (uint32_t)(timeout/100U));
     return timeout;
+#endif
 }
 
 static void master_ISR(void *CallBackRef)
