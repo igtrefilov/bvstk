@@ -115,11 +115,19 @@ Web UI раздаётся из `flash:/www/`; каталог `/` HTTP-серве
 
 ```sh
 scp ./network.json root@<device-ip>:/flash:/config/network.json
+scp ./xrc.log root@<device-ip>:/sd-pl:/test1/xrc.log
 scp -r ./www root@<device-ip>:/flash:/
 sftp root@<device-ip>
 ```
 
-Для классического SCP используется `-O`. `/sd` и `/sd:/` выбирают PS SD, `/sd-pl` и `/sd-pl:/` — PL SD, `/flash` и `/flash:/` — QSPI.
+Для классического SCP используется `-O`:
+
+```sh
+scp -O ./xrc.log root@<device-ip>:/sd-pl:/test1/xrc.log
+```
+
+`/sd` и `/sd:/` выбирают PS SD, `/sd-pl` и `/sd-pl:/` — PL SD,
+`/flash` и `/flash:/` — QSPI. PL SD также доступен по числовому пути `2:/`.
 
 ## 8. Диагностика файлового слоя
 

@@ -92,6 +92,7 @@ SFTP и современный OpenSSH SCP используют виртуаль
 ```sh
 sftp root@192.168.0.10
 scp ./file.bin root@192.168.0.10:/sd:/file.bin
+scp ./file.bin root@192.168.0.10:/sd-pl:/test1/file.bin
 scp root@192.168.0.10:/flash:/config/network.json ./network.json
 scp -r ./config root@192.168.0.10:/flash:/
 ```
@@ -100,6 +101,7 @@ scp -r ./config root@192.168.0.10:/flash:/
 
 ```sh
 scp -O ./file.bin root@192.168.0.10:/sd:/file.bin
+scp -O ./file.bin root@192.168.0.10:/sd-pl:/test1/file.bin
 scp -O -r ./config root@192.168.0.10:/flash:/
 ```
 
@@ -107,6 +109,7 @@ scp -O -r ./config root@192.168.0.10:/flash:/
 |---|---|
 | `/sd`, `/sd:/` | SD, логический том `0:/` |
 | `/flash`, `/flash:/` | QSPI, логический том `1:/` |
+| `/sd-pl`, `/sd-pl:/` | внешняя MicroSD через PL, логический том `2:/` |
 | `/config/...` | путь относительно текущего default root, обычно SD |
 
 Операции ограничены возможностями FatFs: Unix-владельцы, символические ссылки и полный набор POSIX-метаданных отсутствуют. Для каталогов используется `-r`.

@@ -732,7 +732,15 @@ FRESULT fs_shared_file_open_write(const fs_shared_ctx_t *ctx, const char *path,
 {
     if (!ctx || !path || !file || !fs_shared_is_ready(ctx)) return FR_NOT_READY;
     if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
-    FRESULT res = f_open(file, path, FA_WRITE | FA_CREATE_ALWAYS);
+    /* On the xilffs/FatFs combination used by the PL-backed SD volume,
+     * FA_CREATE_ALWAYS can reject an existing directory entry. OPEN_ALWAYS
+     * followed by truncate has the same create-or-replace semantics and also
+     * works for both new and existing files. */
+    FRESULT res = f_open(file, path, FA_WRITE | FA_OPEN_ALWAYS);
+    if (res == FR_OK) {
+        res = f_truncate(file);
+        if (res != FR_OK) (void)f_close(file);
+    }
     fs_shared_unlock(ctx);
     return res;
 }

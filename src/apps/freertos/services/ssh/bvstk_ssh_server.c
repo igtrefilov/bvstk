@@ -43,7 +43,7 @@
 #define SSH_LINE_SIZE 256
 #define SSH_RX_SIZE 1024
 #define SSH_MATCH_MAX 32
-#define SSH_TOKEN_MAX 4
+#define SSH_TOKEN_MAX 8
 #define SSH_HISTORY_LEN 16
 
 #ifdef WOLFSSH_SCP
@@ -118,12 +118,12 @@ static WOLFSSH_CTX *s_ssh_ctx;
 static const char *const s_ssh_commands[] = {
     "fs", "tar", "ip", "smi", "spi", "mem", "i2c",
     "pwd", "ls", "cd", "mkdir", "touch", "cat", "rm", "cp", "mv",
-    "help", "reboot", "quit", "exit"
+    "help", "-h", "--help", "-help", "reboot", "quit", "exit"
 };
 
 typedef struct {
     const char *items[SSH_MATCH_MAX];
-    char storage[SSH_MATCH_MAX][I2C_CFG_NAME_MAX * 2];
+    char storage[SSH_MATCH_MAX][FS_NAME_MAX];
     size_t count;
 } ssh_match_set_t;
 
@@ -186,9 +186,14 @@ static int scp_resolve_path(const char *input, const fs_device_info_t **device_o
     if (!input || !device_out || !path_out || path_out_size == 0) return 0;
     while (*path == ' ' || *path == '\t') ++path;
 
-    /* Accept the short mount-point spelling commonly used with scp, such as
-     * /sd or /flash, in addition to the canonical /sd:/ and /flash:/ forms. */
-    if (!strncasecmp(path, "/sd", 3) &&
+    /* Accept short mount-point spellings commonly used with scp, such as
+     * /sd, /sd-pl, or /flash, in addition to canonical FatFs aliases. */
+    if (!strncasecmp(path, "/sd-pl", 6) &&
+        (path[6] == '\0' || path[6] == '/')) {
+        needed = snprintf(normalized, sizeof(normalized), "sd-pl:%s", path + 6);
+        if (needed < 0 || (size_t)needed >= sizeof(normalized)) return 0;
+        path = normalized;
+    } else if (!strncasecmp(path, "/sd", 3) &&
         (path[3] == '\0' || path[3] == '/')) {
         needed = snprintf(normalized, sizeof(normalized), "sd:%s", path + 3);
         if (needed < 0 || (size_t)needed >= sizeof(normalized)) return 0;
@@ -201,16 +206,23 @@ static int scp_resolve_path(const char *input, const fs_device_info_t **device_o
     }
 
     /* scp clients and wolfSSH may present an absolute-looking alias as
-     * /sd:/file. FatFs aliases are kept as sd:/file internally. */
+     * /sd:/file. FatFs aliases are kept without the leading slash
+     * internally. */
     if (path[0] == '/' &&
-        (!strncasecmp(path + 1, "sd:", 3) ||
+        (!strncasecmp(path + 1, "sd-pl:", 6) ||
+         !strncasecmp(path + 1, "sd:", 3) ||
          !strncasecmp(path + 1, "flash:", 6) ||
          !strncasecmp(path + 1, "0:", 2) ||
-         !strncasecmp(path + 1, "1:", 2))) {
+         !strncasecmp(path + 1, "1:", 2) ||
+         !strncasecmp(path + 1, "2:", 2))) {
         ++path;
     }
 
-    if (!strncasecmp(path, "sd:", 3)) {
+    if (!strncasecmp(path, "sd-pl:", 6)) {
+        device = fs_device_by_name("sd-pl");
+        relative = path + 6;
+        if (*relative == '/') ++relative;
+    } else if (!strncasecmp(path, "sd:", 3)) {
         device = fs_device_by_name("sd");
         relative = path + 3;
         if (*relative == '/') ++relative;
@@ -226,6 +238,10 @@ static int scp_resolve_path(const char *input, const fs_device_info_t **device_o
         device = fs_device_by_name("flash");
         relative = path + 2;
         if (*relative == '/') ++relative;
+    } else if (!strncasecmp(path, "2:", 2)) {
+        device = fs_device_by_name("sd-pl");
+        relative = path + 2;
+        if (*relative == '/') ++relative;
     }
 
     if (!device || !device->ctx || !device->ctx->root ||
@@ -238,6 +254,18 @@ static int scp_resolve_path(const char *input, const fs_device_info_t **device_o
         needed = snprintf(path_out, path_out_size, "%s", path);
     }
     if (needed < 0 || (size_t)needed >= path_out_size) return 0;
+
+    /* FatFs may reject f_stat() for a non-root directory with a trailing
+     * separator. Keep the device root spelling intact, but canonicalize
+     * ordinary directory paths before stat/open operations. */
+    {
+        size_t root_len = strlen(device->ctx->root);
+        size_t path_len = strlen(path_out);
+        while (path_len > root_len && path_len > 0 &&
+               path_out[path_len - 1] == '/') {
+            path_out[--path_len] = '\0';
+        }
+    }
     *device_out = device;
     return 1;
 }
@@ -332,7 +360,9 @@ static int scp_validate_receive_base(WOLFSSH *ssh, const char *base_path,
     FRESULT res;
 
     if (scp->recv_short_mount) {
-        device = fs_device_by_name(scp->recv_short_mount == 1 ? "sd" : "flash");
+        device = fs_device_by_name(scp->recv_short_mount == 1 ? "sd" :
+                                   scp->recv_short_mount == 2 ? "flash" :
+                                   "sd-pl");
         if (!device || !device->ctx || !device->ctx->root) {
             return scp_fail(ssh, "destination filesystem is unavailable");
         }
@@ -769,6 +799,9 @@ static int ssh_scp_short_mount(const char *command)
     const char *marker;
 
     if (!command) return 0;
+    marker = strstr(command, " -t /sd-pl");
+    if (marker && (marker[10] == '\0' || marker[10] == '/' ||
+                   marker[10] == ' ' || marker[10] == '\t')) return 3;
     marker = strstr(command, " -t /sd");
     if (marker && (marker[7] == '\0' || marker[7] == '/' ||
                    marker[7] == ' ' || marker[7] == '\t')) return 1;
@@ -1019,8 +1052,12 @@ static void ssh_match_add(ssh_match_set_t *set, const char *prefix,
     if (!set || !candidate) return;
     if (!prefix) prefix = "";
     size_t prefix_len = strlen(prefix);
-    if (strncasecmp(candidate, prefix, prefix_len) != 0 ||
-        set->count >= SSH_MATCH_MAX) return;
+    if (strncasecmp(candidate, prefix, prefix_len) != 0) return;
+    for (size_t i = 0; i < set->count; ++i) {
+        /* Keep case-sensitive alternatives such as -r and -R visible. */
+        if (strcmp(set->items[i], candidate) == 0) return;
+    }
+    if (set->count >= SSH_MATCH_MAX) return;
     strncpy(set->storage[set->count], candidate,
             sizeof(set->storage[set->count]) - 1);
     set->storage[set->count][sizeof(set->storage[set->count]) - 1] = '\0';
@@ -1086,7 +1123,7 @@ static void ssh_collect_smi_selector(const char *prefix, ssh_match_set_t *set)
 }
 
 static size_t ssh_split_tokens_before(const char *line, size_t upto,
-                                      char tokens[][I2C_CFG_NAME_MAX * 2],
+                                      char tokens[][FS_NAME_MAX],
                                       size_t tokens_max)
 {
     size_t count = 0;
@@ -1111,12 +1148,254 @@ static size_t ssh_split_tokens_before(const char *line, size_t upto,
     return count;
 }
 
+static const fs_device_info_t *ssh_completion_device_alias(const char *path,
+                                                            const char **suffix)
+{
+    const char *scan;
+    const char *separator;
+    char alias[FS_NAME_MAX];
+    size_t alias_len;
+    const fs_device_info_t *device = NULL;
+
+    if (suffix) *suffix = NULL;
+    if (!path || path[0] == '\0') return NULL;
+
+    scan = path;
+    if (scan[0] == '/' && scan[1] != '\0') {
+        scan++;
+    }
+    separator = strchr(scan, ':');
+    {
+        const char *slash = strchr(scan, '/');
+        if (!separator || (slash && slash < separator)) separator = slash;
+    }
+
+    if (separator) {
+        alias_len = (size_t)(separator - scan);
+        if (suffix) *suffix = separator + 1;
+    } else {
+        alias_len = strlen(scan);
+        if (suffix) *suffix = scan + alias_len;
+    }
+    if (alias_len == 0 || alias_len >= sizeof(alias)) return NULL;
+    memcpy(alias, scan, alias_len);
+    alias[alias_len] = '\0';
+
+    if (strcasecmp(alias, "0") == 0) {
+        device = fs_device_at(0);
+    } else if (strcasecmp(alias, "1") == 0) {
+        device = fs_device_at(1);
+    } else if (strcasecmp(alias, "2") == 0) {
+        device = fs_device_at(2);
+    } else {
+        device = fs_device_by_name(alias);
+    }
+    if (!device || !device->ctx || !device->ctx->root) return NULL;
+    return device;
+}
+
+static int ssh_completion_join_path(const char *base, const char *suffix,
+                                    char *out, size_t out_size)
+{
+    size_t base_len;
+    size_t suffix_len;
+
+    if (!base || !out || out_size == 0) return 0;
+    while (suffix && *suffix == '/') ++suffix;
+    base_len = strlen(base);
+    suffix_len = suffix ? strlen(suffix) : 0;
+    if (base_len == 0 ||
+        base_len + suffix_len + (suffix_len != 0 && base[base_len - 1] != '/' ? 1 : 0) >= out_size) {
+        return 0;
+    }
+
+    memcpy(out, base, base_len);
+    out[base_len] = '\0';
+    if (suffix_len != 0) {
+        if (out[base_len - 1] != '/') {
+            out[base_len++] = '/';
+            out[base_len] = '\0';
+        }
+        memcpy(out + base_len, suffix, suffix_len);
+        out[base_len + suffix_len] = '\0';
+    }
+    return 1;
+}
+
+static int ssh_completion_build_directory(const bvstk_ssh_session_t *session,
+                                          const char *token,
+                                          const char *directory_token,
+                                          char *out, size_t out_size)
+{
+    const fs_device_info_t *device = NULL;
+    const char *suffix = NULL;
+    const char *root;
+    const char *base;
+
+    if (!session || !token || !directory_token || !out || out_size == 0) return 0;
+
+    device = ssh_completion_device_alias(directory_token, &suffix);
+    if (device) {
+        if (fs_device_prepare(device) != XST_SUCCESS) return 0;
+        return ssh_completion_join_path(device->ctx->root, suffix, out, out_size);
+    }
+
+    root = console_session_get_root(&session->console);
+    base = session->console.cwd[0] ? session->console.cwd : root;
+    if (token[0] == '/' || directory_token[0] == '/') {
+        while (*directory_token == '/') ++directory_token;
+        return ssh_completion_join_path(root, directory_token, out, out_size);
+    }
+    return ssh_completion_join_path(base, directory_token, out, out_size);
+}
+
+static void ssh_collect_path_matches(const bvstk_ssh_session_t *session,
+                                     const char *token,
+                                     ssh_match_set_t *set,
+                                     size_t *replacement_prefix_len)
+{
+    static const char *const device_words[] = {
+        "sd:/", "sd-pl:/", "flash:/", "0:/", "1:/", "2:/"
+    };
+    char directory_token[FS_PATH_MAX];
+    char path_token[FS_PATH_MAX];
+    char full_directory[FS_PATH_MAX];
+    char entries[SSH_MATCH_MAX][FS_NAME_MAX];
+    const char *last_slash;
+    const char *entry_prefix;
+    size_t token_len;
+    size_t directory_len;
+    int entry_count = 0;
+    int root_alias = 0;
+
+    if (!session || !token || !set || !replacement_prefix_len) return;
+    token_len = strlen(token);
+    if (token_len >= sizeof(path_token)) return;
+    memcpy(path_token, token, token_len + 1);
+
+    last_slash = strrchr(path_token, '/');
+    if (last_slash) {
+        directory_len = (size_t)(last_slash - path_token);
+        entry_prefix = last_slash + 1;
+    } else {
+        directory_len = 0;
+        entry_prefix = path_token;
+    }
+    *replacement_prefix_len = strlen(entry_prefix);
+
+    if (!last_slash && strchr(path_token, ':') == NULL) {
+        ssh_match_add_words(set, path_token, device_words,
+                            sizeof(device_words) / sizeof(device_words[0]));
+    }
+
+    if (!last_slash && token_len != 0 && path_token[token_len - 1] == ':') {
+        const fs_device_info_t *device = ssh_completion_device_alias(path_token, NULL);
+        if (device) {
+            root_alias = 1;
+            *replacement_prefix_len = token_len;
+            directory_len = token_len;
+            entry_prefix = "";
+        }
+    }
+
+    if (directory_len >= sizeof(directory_token)) return;
+    memcpy(directory_token, path_token, directory_len);
+    directory_token[directory_len] = '\0';
+    if (!ssh_completion_build_directory(session, path_token, directory_token,
+                                         full_directory, sizeof(full_directory))) {
+        return;
+    }
+
+    const fs_device_info_t *directory_device = fs_device_for_path(full_directory);
+    const fs_shared_ctx_t *directory_ctx = directory_device ? directory_device->ctx :
+                                            console_session_get_fs(&session->console);
+    if (directory_device && fs_device_prepare(directory_device) != XST_SUCCESS) return;
+    if (!directory_ctx ||
+        fs_shared_fs_complete(directory_ctx, full_directory, entry_prefix,
+                              entries, SSH_MATCH_MAX, &entry_count) != XST_SUCCESS) {
+        return;
+    }
+
+    for (int i = 0; i < entry_count && i < SSH_MATCH_MAX; ++i) {
+        char candidate[FS_NAME_MAX];
+        if (root_alias) {
+            int n = snprintf(candidate, sizeof(candidate), "%s/%s",
+                             path_token, entries[i]);
+            if (n < 0 || (size_t)n >= sizeof(candidate)) continue;
+            ssh_match_add(set, path_token, candidate);
+        } else {
+            ssh_match_add(set, entry_prefix, entries[i]);
+        }
+    }
+}
+
+static int ssh_token_is(const char *token, const char *word)
+{
+    return token && word && strcasecmp(token, word) == 0;
+}
+
+static int ssh_token_is_any(const char *token, const char *const *words,
+                            size_t count)
+{
+    if (!token || !words) return 0;
+    for (size_t i = 0; i < count; ++i) {
+        if (ssh_token_is(token, words[i])) return 1;
+    }
+    return 0;
+}
+
+static int ssh_filesystem_path_argument(const char *const *tokens,
+                                        size_t token_count)
+{
+    static const char *const one_path[] = { "ls", "cd", "mkdir", "touch", "cat" };
+    const char *command;
+
+    if (!tokens || token_count == 0) return 0;
+    command = tokens[0];
+    if (ssh_token_is_any(command, one_path,
+                         sizeof(one_path) / sizeof(one_path[0]))) {
+        return token_count == 1;
+    }
+    if (ssh_token_is(command, "rm")) {
+        if (token_count == 1) return 1;
+        return token_count == 2 &&
+               (ssh_token_is(tokens[1], "-r") || ssh_token_is(tokens[1], "-R") ||
+                ssh_token_is(tokens[1], "-rf") || ssh_token_is(tokens[1], "-fr") ||
+                ssh_token_is(tokens[1], "-Rf") || ssh_token_is(tokens[1], "-rF") ||
+                ssh_token_is(tokens[1], "-RF") || ssh_token_is(tokens[1], "-FR"));
+    }
+    if (ssh_token_is(command, "cp")) {
+        if (token_count == 1) return 1;
+        if (token_count == 2 && ssh_token_is_any(tokens[1], (const char *const[]){ "-r", "-R" }, 2)) {
+            return 1;
+        }
+        if (token_count == 3 &&
+            ssh_token_is_any(tokens[1], (const char *const[]){ "-r", "-R" }, 2)) {
+            return 1;
+        }
+        return token_count == 2;
+    }
+    if (ssh_token_is(command, "mv")) return token_count == 1 || token_count == 2;
+    if (ssh_token_is(command, "tar")) {
+        if (token_count < 2) return 0;
+        if (ssh_token_is_any(tokens[1], (const char *const[]){ "c", "x" }, 2)) {
+            return token_count == 2 || token_count == 3;
+        }
+        return ssh_token_is(tokens[1], "t") && token_count == 2;
+    }
+    return 0;
+}
+
 static void ssh_collect_argument_matches(const char *const *tokens,
                                          size_t token_count,
                                          const char *prefix,
-                                         ssh_match_set_t *set)
+                                         const bvstk_ssh_session_t *session,
+                                         ssh_match_set_t *set,
+                                         size_t *replacement_prefix_len)
 {
-    if (!tokens || token_count == 0) return;
+    if (!tokens || token_count == 0 || !prefix || !session || !set ||
+        !replacement_prefix_len) return;
+    *replacement_prefix_len = strlen(prefix);
     const char *command = tokens[0];
     if (strcasecmp(command, "i2c") == 0) {
         if (token_count == 1) {
@@ -1168,6 +1447,96 @@ static void ssh_collect_argument_matches(const char *const *tokens,
             static const char *const words[] = { "clear" };
             ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
         }
+    } else if (strcasecmp(command, "fs") == 0) {
+        if (token_count == 1) {
+            static const char *const words[] = { "format", "-h", "--help", "-help" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 2 && ssh_token_is(tokens[1], "format")) {
+            static const char *const words[] = { "sd-pl", "sdpl" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 3 && ssh_token_is(tokens[1], "format")) {
+            static const char *const words[] = { "confirm", "-y", "--yes" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        }
+    } else if (strcasecmp(command, "tar") == 0) {
+        if (token_count == 1) {
+            static const char *const words[] = { "c", "x", "t", "-h", "--help", "-help" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        }
+    } else if (strcasecmp(command, "ip") == 0) {
+        if (token_count == 1) {
+            static const char *const words[] = {
+                "addr", "a", "address", "route", "r", "link", "l", "save",
+                "-h", "--help"
+            };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 2 &&
+                   (ssh_token_is_any(tokens[1], (const char *const[]){ "addr", "a", "address", "route", "r" }, 5))) {
+            static const char *const words[] = { "show", "set", "add" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 2 && ssh_token_is_any(tokens[1], (const char *const[]){ "link", "l" }, 2)) {
+            static const char *const words[] = { "show", "set" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 3 &&
+                   ssh_token_is_any(tokens[1], (const char *const[]){ "route", "r" }, 2) &&
+                   ssh_token_is_any(tokens[2], (const char *const[]){ "set", "add" }, 2)) {
+            static const char *const words[] = { "default" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 4 &&
+                   ssh_token_is_any(tokens[1], (const char *const[]){ "route", "r" }, 2) &&
+                   ssh_token_is(tokens[2], "set") && ssh_token_is(tokens[3], "default")) {
+            static const char *const words[] = { "via" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 3 && ssh_token_is_any(tokens[1], (const char *const[]){ "link", "l" }, 2) &&
+                   ssh_token_is(tokens[2], "set")) {
+            static const char *const words[] = { "address" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        }
+    } else if (strcasecmp(command, "mem") == 0) {
+        if (token_count == 1) {
+            static const char *const words[] = { "r", "w", "-h", "--help" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        }
+    } else if (strcasecmp(command, "spi") == 0) {
+        if (token_count == 1) {
+            static const char *const words[] = { "info", "cfg", "xfer", "tx", "-h", "--help" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 2 && ssh_token_is(tokens[1], "cfg")) {
+            static const char *const words[] = { "mode", "timeout", "div", "p_clk_div", "read" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 3 && ssh_token_is(tokens[1], "cfg") &&
+                   ssh_token_is(tokens[2], "mode")) {
+            static const char *const words[] = { "single", "multi", "fall", "fallthrough" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        } else if (token_count == 3 && ssh_token_is(tokens[1], "cfg") &&
+                   ssh_token_is(tokens[2], "read")) {
+            static const char *const words[] = { "on", "off", "1", "0" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        }
+    } else if (strcasecmp(command, "reboot") == 0) {
+        if (token_count == 1) {
+            static const char *const words[] = { "-y", "--yes", "confirm" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        }
+    } else if (strcasecmp(command, "help") == 0) {
+        if (token_count == 1) {
+            ssh_match_add_words(set, prefix, s_ssh_commands,
+                                sizeof(s_ssh_commands) / sizeof(s_ssh_commands[0]));
+        }
+    }
+
+    if (strcasecmp(command, "rm") == 0 && token_count == 1) {
+        static const char *const words[] = {
+            "-r", "-R", "-rf", "-fr", "-Rf", "-rF", "-RF", "-FR"
+        };
+        ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+    } else if (strcasecmp(command, "cp") == 0 && token_count == 1) {
+        static const char *const words[] = { "-r", "-R" };
+        ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+    }
+
+    if (ssh_filesystem_path_argument(tokens, token_count)) {
+        ssh_collect_path_matches(session, prefix, set, replacement_prefix_len);
     }
 }
 
@@ -1179,7 +1548,8 @@ static void ssh_apply_matches(bvstk_ssh_session_t *session, size_t prefix_len,
         const char *match = set->items[0];
         size_t match_len = strlen(match);
         size_t suffix_len = (match_len > prefix_len) ? match_len - prefix_len : 0;
-        size_t add_space = (session->cursor == session->line_len) ? 1 : 0;
+        size_t add_space = (session->cursor == session->line_len && match_len != 0 &&
+                            match[match_len - 1] != '/') ? 1 : 0;
         if (session->line_len + suffix_len + add_space >= sizeof(session->line)) return;
         size_t tail = session->line_len - session->cursor;
         if (suffix_len != 0) {
@@ -1232,7 +1602,7 @@ static void ssh_complete_command(bvstk_ssh_session_t *session)
         --start;
     }
     size_t prefix_len = session->cursor - start;
-    char token_storage[SSH_TOKEN_MAX][I2C_CFG_NAME_MAX * 2];
+    char token_storage[SSH_TOKEN_MAX][FS_NAME_MAX];
     const char *tokens[SSH_TOKEN_MAX];
     size_t token_count = ssh_split_tokens_before(session->line, start,
                                                  token_storage, SSH_TOKEN_MAX);
@@ -1240,15 +1610,17 @@ static void ssh_complete_command(bvstk_ssh_session_t *session)
 
     ssh_match_set_t matches;
     ssh_match_set_init(&matches);
+    size_t replacement_prefix_len = prefix_len;
     if (token_count == 0) {
         ssh_match_add_words(&matches, session->line + start,
                             s_ssh_commands,
                             sizeof(s_ssh_commands) / sizeof(s_ssh_commands[0]));
     } else {
         ssh_collect_argument_matches(tokens, token_count,
-                                      session->line + start, &matches);
+                                      session->line + start, session,
+                                      &matches, &replacement_prefix_len);
     }
-    ssh_apply_matches(session, prefix_len, &matches);
+    ssh_apply_matches(session, replacement_prefix_len, &matches);
 }
 
 static void ssh_handle_escape_final(bvstk_ssh_session_t *session, byte c)
@@ -1439,6 +1811,42 @@ static void ssh_finish_session(bvstk_ssh_session_t *session, int status)
     (void)wolfSSH_stream_exit(session->ssh, status);
 }
 
+#ifdef WOLFSSH_SCP
+static void ssh_scp_wait_for_peer_close(WOLFSSH *ssh, int fd)
+{
+    unsigned int ticks;
+
+    if (!ssh) return;
+    for (ticks = 0; ticks < 100; ++ticks) {
+        int ret = wolfSSH_worker(ssh, NULL);
+        int error = wolfSSH_get_error(ssh);
+
+        if (ret == WS_CHANNEL_CLOSED || error == WS_CHANNEL_CLOSED) return;
+        if (ret < 0 && ret != WS_WANT_READ && ret != WS_WANT_WRITE &&
+            ret != WS_REKEYING && ret != WS_WINDOW_FULL &&
+            ret != WS_CHAN_RXD && ret != WS_EOF &&
+            error != WS_WANT_READ && error != WS_WANT_WRITE &&
+            error != WS_REKEYING && error != WS_WINDOW_FULL &&
+            error != WS_CHAN_RXD && error != WS_EOF) {
+            return;
+        }
+
+        if (ret == WS_WANT_READ || error == WS_WANT_READ) {
+            fd_set read_fds;
+            struct timeval timeout;
+
+            FD_ZERO(&read_fds);
+            FD_SET(fd, &read_fds);
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 1000;
+            (void)lwip_select(fd + 1, &read_fds, NULL, NULL, &timeout);
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(1));
+        }
+    }
+}
+#endif
+
 #ifdef WOLFSSH_SFTP
 static int ssh_sftp_is_retryable(int ret, int error)
 {
@@ -1580,11 +1988,21 @@ static void ssh_service_client(int fd)
 
 #ifdef WOLFSSH_SFTP
     if (accept_ret == WS_SFTP_COMPLETE) {
-        const fs_device_info_t *sd = fs_device_by_name("sd");
         int sftp_ret;
+        int filesystem_ready = 0;
 
-        if (!sd || fs_device_prepare(sd) != XST_SUCCESS) {
-            xil_printf("SSH: SFTP requires a mounted SD filesystem\r\n");
+        /* SFTP paths select their FatFs volume after the protocol starts.
+         * Do not require the PS SD volume here: an explicit /sd-pl:/ path
+         * must work when only the PL-backed volume is available. */
+        for (int index = 0; index < fs_device_count(); ++index) {
+            const fs_device_info_t *device = fs_device_at(index);
+            if (device && fs_device_prepare(device) == XST_SUCCESS) {
+                filesystem_ready = 1;
+                break;
+            }
+        }
+        if (!filesystem_ready) {
+            xil_printf("SSH: SFTP requires a mounted filesystem\r\n");
             console_stream_unregister(SSH_CONSOLE_FD);
             wolfSSH_free(ssh);
             return;
@@ -1597,6 +2015,10 @@ static void ssh_service_client(int fd)
         } else {
             xil_printf("SSH: SFTP session completed\r\n");
         }
+        /* A subsystem channel still needs an SSH exit-status packet. Without
+         * it OpenSSH reports a completed SFTP transfer as a broken connection
+         * even when the file data and SFTP status replies were successful. */
+        (void)wolfSSH_stream_exit(ssh, sftp_ret == WS_SUCCESS ? 0 : 1);
         console_stream_unregister(SSH_CONSOLE_FD);
 #ifdef WOLFSSH_SCP
         scp_cleanup(&session.scp);
@@ -1675,10 +2097,12 @@ static void ssh_service_client(int fd)
 
         if (scp_ret == WS_SCP_COMPLETE) {
             xil_printf("SSH: SCP transfer completed\r\n");
-            /* The wolfSSH sink acknowledges the final file but does not
-             * emit the channel exit status required by OpenSSH scp. */
+            /* The SCP state machine has now observed the peer's final
+             * confirmation/close. Send the channel status only here, after
+             * the complete transfer, so it cannot race the initial sink ACK. */
             if (session.scp.recv_requested) {
                 (void)wolfSSH_stream_exit(ssh, 0);
+                ssh_scp_wait_for_peer_close(ssh, fd);
             }
         }
         console_stream_unregister(SSH_CONSOLE_FD);
