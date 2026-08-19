@@ -2,20 +2,30 @@ diff --git a/src/wolfsftp.c b/src/wolfsftp.c
 index c2d71a9..c06c9ab 100644
 --- a/src/wolfsftp.c
 +++ b/src/wolfsftp.c
-@@ -1585,0 +1586,4 @@
+@@ -1585,0 +1586,10 @@
 +#ifdef WOLFSSH_BVSTK_FATFS
 +static int SFTP_SendStatus(WOLFSSH* ssh, byte type, int reqId, const char* msg);
++int wolfSSH_SFTP_RecvFSetSTAT(WOLFSSH* ssh, int reqId, byte* data, word32 maxSz)
++{
++    WOLFSSH_UNUSED(data);
++    WOLFSSH_UNUSED(maxSz);
++    return SFTP_SendStatus(ssh, WOLFSSH_FTP_OK, reqId, "Set Attributes");
++}
 +#endif
 +
-@@ -1750,0 +1751,9 @@
+@@ -1750,0 +1751,13 @@
 +#elif defined(WOLFSSH_BVSTK_FATFS)
 +                /* Unix mode/time metadata is not representable by this
 +                 * FatFs service; acknowledge it so standard SCP clients
 +                 * can complete the data transfer. */
 +                case WOLFSSH_FTP_SETSTAT:
-+                case WOLFSSH_FTP_FSETSTAT:
 +                    ret = SFTP_SendStatus(ssh, WOLFSSH_FTP_OK,
 +                            state->reqId, "Set Attributes");
++                    break;
++                case WOLFSSH_FTP_FSETSTAT:
++                    ret = wolfSSH_SFTP_RecvFSetSTAT(ssh, state->reqId,
++                            wolfSSH_SFTP_buffer_data(&state->buffer),
++                            wolfSSH_SFTP_buffer_size(&state->buffer));
 +                    break;
 @@ -1940,0 +1941,74 @@ int wolfSSH_SFTP_CreateStatus(WOLFSSH* ssh, word32 status, word32 reqId,
 +#ifdef WOLFSSH_BVSTK_FATFS
@@ -92,13 +102,13 @@ index c2d71a9..c06c9ab 100644
 +}
 +#endif /* WOLFSSH_BVSTK_FATFS */
 +
-@@ -2019,0 +2094,6 @@ static int GetAndCleanPath(const char* defaultPath,
+@@ -2018 +2093,6 @@
+ #endif /* WOLFSSH_HAVE_SYMLINK */
 +#ifdef WOLFSSH_BVSTK_FATFS
 +    if (ret == WS_SUCCESS) {
 +        ret = BvstkFatFsPath(s, sSz);
 +    }
 +#endif
-+
 @@ -2226 +2292,0 @@ int ff_open(const char *fname, int flag, int perm)
 -    PRINTF("\r\nfatFS open: %s", fname);
 @@ -2235 +2300,13 @@ int ff_open(const char *fname, int flag, int perm)
@@ -118,15 +128,44 @@ index c2d71a9..c06c9ab 100644
 +                }
 @@ -2237 +2302,0 @@ int ff_open(const char *fname, int flag, int perm)
 -                PRINTF("\r\nfatFS open success: %d", i);
-@@ -2258 +2323,2 @@ int ff_close(int fd)
+@@ -2258,16 +2323,21 @@
 -int ff_pwrite(int fd, const byte *buffer, int sz)
+-{
+-    FIL *f;
+-    FRESULT ret;
+-    unsigned int rsz;
+-
+-    if (fd < 0 || fd >= WOLFSSH_FATFS_MAX_FILES)
+-        return -1;
+-    f = &fd_pool[fd].f;
+-    if (fd_pool[fd].used == 0)
+-        return -1;
+-    ret = f_write(f, buffer, sz, &rsz);
+-    if (ret != FR_OK)
+-        return -1;
+-    return rsz;
+-}
 +int ff_pwrite(int fd, const byte *buffer, int sz,
 +        const unsigned int* shortOffset)
-@@ -2268,0 +2335,4 @@ int ff_pwrite(int fd, const byte *buffer, int sz)
++{
++    FIL *f;
++    FRESULT ret;
++    unsigned int rsz;
++
++    if (fd < 0 || fd >= WOLFSSH_FATFS_MAX_FILES)
++        return -1;
++    f = &fd_pool[fd].f;
++    if (fd_pool[fd].used == 0)
++        return -1;
 +    if (shortOffset == NULL || shortOffset[1] != 0 ||
 +            f_lseek(f, shortOffset[0]) != FR_OK) {
 +        return -1;
 +    }
++    ret = f_write(f, buffer, sz, &rsz);
++    if (ret != FR_OK)
++        return -1;
++    return rsz;
++}
 @@ -2274 +2344,2 @@ int ff_pwrite(int fd, const byte *buffer, int sz)
 -int ff_pread(int fd, byte *buffer, int sz)
 +int ff_pread(int fd, byte *buffer, int sz,
@@ -176,3 +215,23 @@ index cb1c08b..ffd8fd1 100644
 +#else
 @@ -1360,0 +1372 @@ extern "C" {
 +#endif
+diff --git a/src/ssh.c b/src/ssh.c
+index 3d01517..17cccbb 100644
+--- a/src/ssh.c
++++ b/src/ssh.c
+@@ -1302,7 +1302,13 @@ int wolfSSH_stream_read(WOLFSSH* ssh, byte* buf, word32 bufSz)
+         else {
+             WMEMCPY(buf, inputBuffer->buffer + inputBuffer->idx, n);
+             ret = _UpdateChannelWindow(ssh->channelList);
++            /* _UpdateChannelWindow() may have already consumed/compacted the
++             * bytes and only report WS_WANT_WRITE because the WINDOW_ADJUST
++             * packet could not be flushed.  The caller still owns the n
++             * bytes copied above; returning a negative status here makes the
++             * SFTP state machine retry into the same output buffer and lose
++             * stream progress. */
+-            if (ret == WS_SUCCESS) {
++            if (ret == WS_SUCCESS || ret == WS_WANT_WRITE) {
+                 inputBuffer->idx += n;
+                 ret = n;
+             }
+         }

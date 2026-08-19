@@ -1874,32 +1874,74 @@ static int ssh_service_sftp(WOLFSSH *ssh, int fd)
         FD_ZERO(&read_fds);
         FD_ZERO(&write_fds);
         FD_SET(fd, &read_fds);
-        if (want_write) FD_SET(fd, &write_fds);
+        if (want_write) {
+            FD_SET(fd, &write_fds);
+        }
         timeout.tv_sec = 1;
         timeout.tv_usec = 0;
 
         int select_ret = lwip_select(fd + 1, &read_fds, &write_fds,
                                      NULL, &timeout);
         if (select_ret < 0) return WS_FATAL_ERROR;
-        if (select_ret == 0) continue;
 
-        if (wolfSSH_SFTP_PendingSend(ssh) && FD_ISSET(fd, &write_fds)) {
-            ret = wolfSSH_SFTP_read(ssh);
-            error = wolfSSH_get_error(ssh);
-            if (ret == WS_EOF || error == WS_EOF) return WS_SUCCESS;
-            if (!ssh_sftp_is_retryable(ret, error)) return ret;
-            if (wolfSSH_SFTP_PendingSend(ssh)) continue;
-        }
-
-        if (FD_ISSET(fd, &read_fds)) {
-            ret = wolfSSH_worker(ssh, NULL);
-            error = wolfSSH_get_error(ssh);
-            if (ret == WS_EOF || error == WS_EOF ||
-                ret == WS_CHANNEL_CLOSED || error == WS_CHANNEL_CLOSED) {
-                return WS_SUCCESS;
+        if (select_ret > 0) {
+            /* Flush a previous SFTP response before accepting a pipelined
+             * request. wolfSSH has one recvState response buffer; calling
+             * wolfSSH_SFTP_read() for the next request first would replace the
+             * response and make OpenSSH's default pipelined scp stall. */
+            if (wolfSSH_SFTP_PendingSend(ssh) && FD_ISSET(fd, &write_fds)) {
+                ret = wolfSSH_SFTP_read(ssh);
+                error = wolfSSH_get_error(ssh);
+                if (ret == WS_EOF || error == WS_EOF) return WS_SUCCESS;
+                if (error == WS_WANT_READ || error == WS_WANT_WRITE ||
+                    error == WS_CHAN_RXD || error == WS_REKEYING ||
+                    error == WS_WINDOW_FULL) {
+                    ret = error;
+                }
+                if (!ssh_sftp_is_retryable(ret, error)) return ret;
+                if (wolfSSH_SFTP_PendingSend(ssh)) continue;
             }
-            if (!ssh_sftp_is_retryable(ret, error)) return ret;
+
+            if (FD_ISSET(fd, &read_fds)) {
+                ret = wolfSSH_worker(ssh, NULL);
+                error = wolfSSH_get_error(ssh);
+                if (ret == WS_EOF || error == WS_EOF ||
+                    ret == WS_CHANNEL_CLOSED || error == WS_CHANNEL_CLOSED) {
+                    return WS_SUCCESS;
+                }
+                if (ret == WS_WANT_WRITE || error == WS_WANT_WRITE) {
+                    continue;
+                }
+                if (error == WS_WANT_READ || error == WS_REKEYING ||
+                    error == WS_WINDOW_FULL) {
+                    ret = error;
+                    continue;
+                }
+                if (ret != WS_SUCCESS && ret != WS_CHAN_RXD) return ret;
+            } else if (FD_ISSET(fd, &write_fds) &&
+                       (ret == WS_WANT_WRITE || error == WS_WANT_WRITE)) {
+                /* A window-adjust or SSH packet can be queued without an SFTP
+                 * response being pending.  On a non-blocking socket the write
+                 * readiness event must still drive wolfSSH_worker(), otherwise
+                 * the queued packet is never flushed and the peer eventually
+                 * stops sending when its channel window is exhausted. */
+                ret = wolfSSH_worker(ssh, NULL);
+                error = wolfSSH_get_error(ssh);
+                if (ret == WS_EOF || error == WS_EOF ||
+                    ret == WS_CHANNEL_CLOSED || error == WS_CHANNEL_CLOSED) {
+                    return WS_SUCCESS;
+                }
+                if (ret == WS_WANT_WRITE || error == WS_WANT_WRITE) continue;
+                if (error == WS_WANT_READ || error == WS_REKEYING ||
+                    error == WS_WINDOW_FULL) {
+                    ret = error;
+                    continue;
+                }
+                if (ret != WS_SUCCESS && ret != WS_CHAN_RXD) return ret;
+            }
         }
+
+        if (wolfSSH_SFTP_PendingSend(ssh)) continue;
 
         ret = wolfSSH_stream_peek(ssh, peek, sizeof(peek));
         error = wolfSSH_get_error(ssh);
@@ -1907,6 +1949,16 @@ static int ssh_service_sftp(WOLFSSH *ssh, int fd)
             ret = wolfSSH_SFTP_read(ssh);
             error = wolfSSH_get_error(ssh);
             if (ret == WS_EOF || error == WS_EOF) return WS_SUCCESS;
+            if (error == WS_WANT_READ || error == WS_WANT_WRITE ||
+                error == WS_CHAN_RXD || error == WS_REKEYING ||
+                error == WS_WINDOW_FULL) {
+                ret = error;
+            }
+            if (wolfSSH_SFTP_PendingSend(ssh)) continue;
+            if (error == WS_WANT_WRITE ||
+                wolfSSH_SFTP_PendingSend(ssh)) {
+                continue;
+            }
             if (!ssh_sftp_is_retryable(ret, error)) return ret;
         } else if (ret == WS_EOF || error == WS_EOF ||
                    ret == WS_CHANNEL_CLOSED || error == WS_CHANNEL_CLOSED) {

@@ -295,7 +295,7 @@ app config -name $APP_NAME -add include-path $SRC_REAL
 if {$ssh_enabled} {
     app config -name $APP_NAME -add include-path [file join $WOLFSSL_ROOT include]
     app config -name $APP_NAME -add include-path $WOLFSSH_ROOT
-    app config -name $APP_NAME -add compiler-misc "-DBVSTK_SSH_ENABLE -DWOLFSSH_SCP -DWOLFSSH_SCP_USER_CALLBACKS -DWOLFSSH_SFTP -DWOLFSSH_FATFS -DWOLFSSH_BVSTK_FATFS -DWOLFSSH_MAX_SFTP_RW=4096 -DWOLFSSH_MAX_SFTP_RECV=8192 -DWOLFSSH_TERM -DNO_TERMIOS -DWOLFSSL_LWIP -DNO_FILESYSTEM -DNO_WOLFSSL_DIR -DWC_RNG_SEED_CB"
+    app config -name $APP_NAME -add compiler-misc "-DBVSTK_SSH_ENABLE -DWOLFSSH_SCP -DWOLFSSH_SCP_USER_CALLBACKS -DWOLFSSH_SFTP -DWOLFSSH_FATFS -DWOLFSSH_BVSTK_FATFS -DWOLFSSH_MAX_SFTP_RW=32768 -DWOLFSSH_MAX_SFTP_RECV=4096 -DWOLFSSH_TERM -DNO_TERMIOS -DWOLFSSL_LWIP -DNO_FILESYSTEM -DNO_WOLFSSL_DIR -DWC_RNG_SEED_CB"
     app config -name $APP_NAME -add library-search-path [file join $WOLFSSL_ROOT lib]
     app config -name $APP_NAME -add library-search-path $WOLFSSH_LIB_DIR
     app config -name $APP_NAME -add libraries wolfssh

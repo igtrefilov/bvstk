@@ -451,12 +451,11 @@ DRESULT disk_write(BYTE pdrv,
     if (!lba_range_valid(sector, count)) {
         return RES_PARERR;
     }
-    {
-        bvstk_status_t result = bvstk_sd_pl_write((uint32_t)sector,
-                                                  buffer,
-                                                  (size_t)count);
-        return result == BVSTK_OK ? RES_OK : RES_ERROR;
-    }
+    return bvstk_sd_pl_write((uint32_t)sector,
+                             buffer,
+                             (size_t)count) == BVSTK_OK
+               ? RES_OK
+               : RES_ERROR;
 }
 #endif
 
