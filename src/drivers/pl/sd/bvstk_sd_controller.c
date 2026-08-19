@@ -45,6 +45,7 @@ static bvstk_status_t normalize_config(
     if (output == NULL) {
         return BVSTK_ERR_MALFORMED;
     }
+    memset(output, 0, sizeof(*output));
     if (input != NULL) {
         *output = *input;
     } else {
@@ -94,12 +95,25 @@ static bvstk_status_t read_status(
 static bvstk_status_t wait_for_done(bvstk_sd_controller_t *controller,
                                     uint32_t timeout_ms)
 {
+    bvstk_sd_completion_wait_fn wait_fn = controller->config.completion.wait;
+    void *wait_context = controller->config.completion.context;
     uint64_t started = bvstk_clock_now_ms(&controller->clock);
     uint32_t effective = effective_timeout(controller, timeout_ms);
 
     for (;;) {
         bvstk_sd_controller_status_t status;
-        bvstk_status_t result = read_status(controller, &status);
+        bvstk_status_t result;
+
+        if (wait_fn != NULL) {
+            result = wait_fn(wait_context, effective);
+            if (result != BVSTK_OK && result != BVSTK_ERR_TIMEOUT) {
+                return result;
+            }
+        } else {
+            result = BVSTK_OK;
+        }
+
+        result = read_status(controller, &status);
 
         if (result != BVSTK_OK) {
             return result;
@@ -110,11 +124,21 @@ static bvstk_status_t wait_for_done(bvstk_sd_controller_t *controller,
             }
             return status.done ? BVSTK_OK : BVSTK_ERR_IO;
         }
-        if (bvstk_clock_now_ms(&controller->clock) - started >= effective) {
+        if (wait_fn != NULL ||
+            bvstk_clock_now_ms(&controller->clock) - started >= effective) {
             return BVSTK_ERR_TIMEOUT;
         }
         bvstk_clock_sleep_ms(&controller->clock, 1U);
     }
+}
+
+static bvstk_status_t prepare_completion(bvstk_sd_controller_t *controller)
+{
+    if (controller->config.completion.prepare == NULL) {
+        return BVSTK_OK;
+    }
+    return controller->config.completion.prepare(
+        controller->config.completion.context);
 }
 
 static bvstk_status_t clear_result(bvstk_sd_controller_t *controller)
@@ -126,17 +150,21 @@ static bvstk_status_t clear_result(bvstk_sd_controller_t *controller)
 
 static bvstk_status_t copy_buffer_from_controller(
     const bvstk_sd_controller_t *controller,
-    uint8_t *buffer)
+    uint8_t *buffer,
+    size_t sector_count)
 {
     size_t word;
+    size_t word_count = sector_count * BVSTK_SD_BUFFER_WORDS_PER_BLOCK;
 
-    if (write32(controller, BVSTK_SD_BUFFER_INDEX_OFFSET, 0U) != BVSTK_OK) {
+    if (sector_count == 0U || sector_count > BVSTK_SD_MAX_TRANSFER_BLOCKS ||
+        write32(controller, BVSTK_SD_BUFFER_INDEX_OFFSET, 0U) != BVSTK_OK) {
         return BVSTK_ERR_IO;
     }
-    for (word = 0U; word < BVSTK_SD_BUFFER_WORDS; ++word) {
+    for (word = 0U; word < word_count; ++word) {
         uint32_t value;
         bvstk_status_t result = read32(controller,
-                                       BVSTK_SD_DATA_OFFSET,
+                                       BVSTK_SD_DATA_WINDOW_OFFSET +
+                                           word * sizeof(value),
                                        &value);
         if (result != BVSTK_OK) {
             return result;
@@ -148,42 +176,60 @@ static bvstk_status_t copy_buffer_from_controller(
 
 static bvstk_status_t copy_buffer_to_controller(
     const bvstk_sd_controller_t *controller,
-    const uint8_t *buffer)
+    const uint8_t *buffer,
+    size_t sector_count)
 {
     size_t word;
+    size_t word_count = sector_count * BVSTK_SD_BUFFER_WORDS_PER_BLOCK;
 
-    if (write32(controller, BVSTK_SD_BUFFER_INDEX_OFFSET, 0U) != BVSTK_OK) {
+    if (sector_count == 0U || sector_count > BVSTK_SD_MAX_TRANSFER_BLOCKS ||
+        write32(controller, BVSTK_SD_BUFFER_INDEX_OFFSET, 0U) != BVSTK_OK) {
         return BVSTK_ERR_IO;
     }
-    for (word = 0U; word < BVSTK_SD_BUFFER_WORDS; ++word) {
+    for (word = 0U; word < word_count; ++word) {
         uint32_t value;
         memcpy(&value, buffer + word * sizeof(value), sizeof(value));
-        if (write32(controller, BVSTK_SD_DATA_OFFSET, value) != BVSTK_OK) {
+        if (write32(controller,
+                    BVSTK_SD_DATA_WINDOW_OFFSET + word * sizeof(value),
+                    value) != BVSTK_OK) {
             return BVSTK_ERR_IO;
         }
     }
     return BVSTK_OK;
 }
 
-static bvstk_status_t transfer_one_sector(
+static bvstk_status_t transfer_chunk(
     bvstk_sd_controller_t *controller,
     uint32_t sector,
     uint8_t *read_buffer,
     const uint8_t *write_buffer,
     bool write,
+    size_t sector_count,
     uint32_t timeout_ms)
 {
     bvstk_status_t result;
 
+    if (sector_count == 0U || sector_count > BVSTK_SD_MAX_TRANSFER_BLOCKS) {
+        return BVSTK_ERR_RANGE;
+    }
     result = write32(controller, BVSTK_SD_BLOCK_OFFSET, sector);
+    if (result == BVSTK_OK) {
+        result = write32(controller,
+                         BVSTK_SD_BLOCK_COUNT_OFFSET,
+                         (uint32_t)sector_count);
+    }
     if (result != BVSTK_OK) {
         return result;
     }
     if (write) {
-        result = copy_buffer_to_controller(controller, write_buffer);
+        result = copy_buffer_to_controller(controller, write_buffer,
+                                           sector_count);
     }
     if (result == BVSTK_OK) {
         result = clear_result(controller);
+    }
+    if (result == BVSTK_OK) {
+        result = prepare_completion(controller);
     }
     if (result == BVSTK_OK) {
         result = write32(controller,
@@ -194,7 +240,8 @@ static bvstk_status_t transfer_one_sector(
         result = wait_for_done(controller, timeout_ms);
     }
     if (result == BVSTK_OK && !write) {
-        result = copy_buffer_from_controller(controller, read_buffer);
+        result = copy_buffer_from_controller(controller, read_buffer,
+                                             sector_count);
     }
     return result;
 }
@@ -269,6 +316,9 @@ bvstk_status_t bvstk_sd_controller_initialize_card(
     }
     result = clear_result(controller);
     if (result == BVSTK_OK) {
+        result = prepare_completion(controller);
+    }
+    if (result == BVSTK_OK) {
         result = write32(controller,
                          BVSTK_SD_CONTROL_OFFSET,
                          BVSTK_SD_CONTROL_INIT);
@@ -308,13 +358,19 @@ bvstk_status_t bvstk_sd_controller_read(
             result = BVSTK_ERR_NOT_READY;
         }
     }
-    for (sector = 0U; result == BVSTK_OK && sector < sector_count; ++sector) {
-        result = transfer_one_sector(controller,
-                                     first_sector + (uint32_t)sector,
-                                     buffer + sector * BVSTK_SD_BLOCK_SIZE,
-                                     NULL,
-                                     false,
-                                     timeout_ms);
+    for (sector = 0U; result == BVSTK_OK && sector < sector_count;) {
+        size_t chunk = sector_count - sector;
+        if (chunk > BVSTK_SD_MAX_TRANSFER_BLOCKS) {
+            chunk = BVSTK_SD_MAX_TRANSFER_BLOCKS;
+        }
+        result = transfer_chunk(controller,
+                                first_sector + (uint32_t)sector,
+                                buffer + sector * BVSTK_SD_BLOCK_SIZE,
+                                NULL,
+                                false,
+                                chunk,
+                                timeout_ms);
+        sector += chunk;
     }
     bvstk_mutex_unlock(&controller->mutex);
     return result;
@@ -348,13 +404,19 @@ bvstk_status_t bvstk_sd_controller_write(
             result = BVSTK_ERR_NOT_READY;
         }
     }
-    for (sector = 0U; result == BVSTK_OK && sector < sector_count; ++sector) {
-        result = transfer_one_sector(controller,
-                                     first_sector + (uint32_t)sector,
-                                     NULL,
-                                     buffer + sector * BVSTK_SD_BLOCK_SIZE,
-                                     true,
-                                     timeout_ms);
+    for (sector = 0U; result == BVSTK_OK && sector < sector_count;) {
+        size_t chunk = sector_count - sector;
+        if (chunk > BVSTK_SD_MAX_TRANSFER_BLOCKS) {
+            chunk = BVSTK_SD_MAX_TRANSFER_BLOCKS;
+        }
+        result = transfer_chunk(controller,
+                                first_sector + (uint32_t)sector,
+                                NULL,
+                                buffer + sector * BVSTK_SD_BLOCK_SIZE,
+                                true,
+                                chunk,
+                                timeout_ms);
+        sector += chunk;
     }
     bvstk_mutex_unlock(&controller->mutex);
     return result;

@@ -19,7 +19,7 @@ FreeRTOS сверяет значения с Vitis `xparameters.h` через `bv
 | `i2c-master` | `0x43C00000` | `0x10000` | control |
 | `smi-master` | `0x43C10000` | `0x10000` | control |
 | `smi-slave` | `0x43C20000` | `0x10000` | control |
-| `spi-master` | `0x43C30000` | `0x10000` | control |
+| `spi-master` / `sd-controller` | `0x43C30000` | `0x10000` | control + data window |
 | `i2c-slave` | `0x43C40000` | `0x10000` | control |
 | `i2c-bram` | `0x40000000` | `0x2000` | BRAM |
 | `smi-bram` | `0x42000000` | `0x2000` | BRAM |
@@ -36,6 +36,7 @@ FreeRTOS сверяет значения с Vitis `xparameters.h` через `bv
 | I2C master | `BVSTK_IRQ_I2C_MASTER` | `63` |
 | I2C slave | `BVSTK_IRQ_I2C_SLAVE` | `64` |
 | SPI master | `BVSTK_IRQ_SPI_MASTER` | `65` |
+| SD controller | `BVSTK_IRQ_SD_CONTROLLER` | `66` |
 
 I2C slave IRQ получает FreeRTOS adapter `src/ports/freertos-xilinx/os/i2c/`. Остальные cores выполняют операции через общий MMIO/sync слой; конкретный IRQ flow определяется целевой интеграцией.
 

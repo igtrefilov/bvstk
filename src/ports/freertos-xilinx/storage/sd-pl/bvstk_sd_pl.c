@@ -3,8 +3,15 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "FreeRTOS.h"
 #include "drivers/pl/sd/bvstk_sd_controller.h"
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
+#include "hardware/pl/sd/bvstk_sd_regs.h"
 #include "ports/freertos-xilinx/os/bvstk_sync_freertos.h"
+#include "portmacro.h"
+#include "semphr.h"
+#include "task.h"
+#include "xil_io.h"
 #include "xil_printf.h"
 
 enum {
@@ -19,8 +26,64 @@ static bvstk_freertos_mutex_t s_mutex;
 static bool s_mutex_ready;
 static bool s_controller_ready;
 static bool s_card_ready;
+static bool s_irq_ready;
+static SemaphoreHandle_t s_completion;
 static uint32_t s_sector_count;
 static bool s_sector_count_ready;
+
+static void sd_pl_irq_handler(void *context)
+{
+    uint32_t events;
+    BaseType_t higher_priority_task_woken = pdFALSE;
+
+    (void)context;
+    if (s_completion == NULL) {
+        return;
+    }
+    events = Xil_In32(BVSTK_SD_CONTROLLER_BASE +
+                      BVSTK_SD_IRQ_STATUS_OFFSET);
+    if (events == 0U) {
+        return;
+    }
+    Xil_Out32(BVSTK_SD_CONTROLLER_BASE + BVSTK_SD_IRQ_STATUS_OFFSET,
+              events);
+    (void)xSemaphoreGiveFromISR(s_completion,
+                                &higher_priority_task_woken);
+    portYIELD_FROM_ISR(higher_priority_task_woken);
+}
+
+static bvstk_status_t sd_pl_prepare_completion(void *context)
+{
+    (void)context;
+    if (s_completion == NULL || !s_irq_ready) {
+        return BVSTK_ERR_NOT_READY;
+    }
+    while (xSemaphoreTake(s_completion, 0U) == pdTRUE) {
+    }
+    Xil_Out32(BVSTK_SD_CONTROLLER_BASE + BVSTK_SD_IRQ_STATUS_OFFSET,
+              BVSTK_SD_IRQ_TRANSFER_DONE | BVSTK_SD_IRQ_ERROR);
+    Xil_Out32(BVSTK_SD_CONTROLLER_BASE + BVSTK_SD_IRQ_ENABLE_OFFSET,
+              BVSTK_SD_IRQ_TRANSFER_DONE | BVSTK_SD_IRQ_ERROR);
+    return BVSTK_OK;
+}
+
+static bvstk_status_t sd_pl_wait_completion(void *context,
+                                            uint32_t timeout_ms)
+{
+    TickType_t ticks;
+
+    (void)context;
+    if (s_completion == NULL || !s_irq_ready) {
+        return BVSTK_ERR_NOT_READY;
+    }
+    ticks = pdMS_TO_TICKS(timeout_ms);
+    if (timeout_ms != 0U && ticks == 0U) {
+        ticks = 1U;
+    }
+    return xSemaphoreTake(s_completion, ticks) == pdTRUE
+               ? BVSTK_OK
+               : BVSTK_ERR_TIMEOUT;
+}
 
 static uint16_t read_le16(const uint8_t *data)
 {
@@ -101,7 +164,12 @@ bvstk_status_t bvstk_sd_pl_initialize(void)
 {
     bvstk_sd_controller_config_t config = {
         .timeout_ms = BVSTK_SD_PL_TRANSFER_TIMEOUT_MS,
-        .clock_div = BVSTK_SD_CLOCK_DIV_DEFAULT
+        .clock_div = BVSTK_SD_CLOCK_DIV_DEFAULT,
+        .completion = {
+            .context = NULL,
+            .prepare = sd_pl_prepare_completion,
+            .wait = sd_pl_wait_completion
+        }
     };
     bvstk_status_t status;
 
@@ -115,6 +183,14 @@ bvstk_status_t bvstk_sd_pl_initialize(void)
         }
         s_mutex_ready = true;
     }
+    if (s_completion == NULL) {
+        s_completion = xSemaphoreCreateBinary();
+        if (s_completion == NULL) {
+            bvstk_freertos_mutex_destroy(&s_mutex);
+            s_mutex_ready = false;
+            return BVSTK_ERR_INTERNAL;
+        }
+    }
     if (!s_controller_ready) {
         status = bvstk_sd_controller_init(&s_controller,
                                           &config,
@@ -122,10 +198,28 @@ bvstk_status_t bvstk_sd_pl_initialize(void)
                                           &s_mutex.public_mutex);
         if (status != BVSTK_OK) {
             bvstk_freertos_mutex_destroy(&s_mutex);
+            vSemaphoreDelete(s_completion);
+            s_completion = NULL;
             s_mutex_ready = false;
             return status;
         }
         s_controller_ready = true;
+    }
+
+    if (!s_irq_ready) {
+        if (xPortInstallInterruptHandler(BVSTK_IRQ_SD_CONTROLLER,
+                                         sd_pl_irq_handler,
+                                         NULL) != pdPASS) {
+            bvstk_sd_controller_shutdown(&s_controller);
+            s_controller_ready = false;
+            vSemaphoreDelete(s_completion);
+            s_completion = NULL;
+            bvstk_freertos_mutex_destroy(&s_mutex);
+            s_mutex_ready = false;
+            return BVSTK_ERR_INTERNAL;
+        }
+        s_irq_ready = true;
+        vPortEnableInterrupt(BVSTK_IRQ_SD_CONTROLLER);
     }
 
     status = bvstk_sd_controller_initialize_card(&s_controller,
@@ -142,17 +236,27 @@ bvstk_status_t bvstk_sd_pl_initialize(void)
 
 void bvstk_sd_pl_shutdown(void)
 {
+    if (s_irq_ready) {
+        vPortDisableInterrupt(BVSTK_IRQ_SD_CONTROLLER);
+        Xil_Out32(BVSTK_SD_CONTROLLER_BASE + BVSTK_SD_IRQ_ENABLE_OFFSET,
+                  0U);
+        s_irq_ready = false;
+    }
     if (s_controller_ready) {
         bvstk_sd_controller_shutdown(&s_controller);
     }
     if (s_mutex_ready) {
         bvstk_freertos_mutex_destroy(&s_mutex);
     }
+    if (s_completion != NULL) {
+        vSemaphoreDelete(s_completion);
+    }
     memset(&s_controller, 0, sizeof(s_controller));
     memset(&s_mutex, 0, sizeof(s_mutex));
     s_controller_ready = false;
     s_mutex_ready = false;
     s_card_ready = false;
+    s_completion = NULL;
     s_sector_count = 0U;
     s_sector_count_ready = false;
 }

@@ -6,17 +6,28 @@
 #include <stdint.h>
 
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
+#include "hardware/pl/sd/bvstk_sd_regs.h"
 #include "shared/base/bvstk_status.h"
 #include "shared/interfaces/bvstk_clock.h"
 #include "shared/interfaces/bvstk_mmio.h"
 #include "shared/interfaces/bvstk_sync.h"
 
 #define BVSTK_SD_BLOCK_SIZE ((size_t)BVSTK_SD_SECTOR_SIZE)
-#define BVSTK_SD_BUFFER_WORDS (BVSTK_SD_BLOCK_SIZE / sizeof(uint32_t))
+
+typedef bvstk_status_t (*bvstk_sd_completion_prepare_fn)(void *context);
+typedef bvstk_status_t (*bvstk_sd_completion_wait_fn)(void *context,
+                                                       uint32_t timeout_ms);
+
+typedef struct {
+    void *context;
+    bvstk_sd_completion_prepare_fn prepare;
+    bvstk_sd_completion_wait_fn wait;
+} bvstk_sd_completion_ops_t;
 
 typedef struct {
     uint32_t timeout_ms;
     uint16_t clock_div;
+    bvstk_sd_completion_ops_t completion;
 } bvstk_sd_controller_config_t;
 
 typedef struct {

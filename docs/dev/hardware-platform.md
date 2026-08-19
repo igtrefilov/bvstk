@@ -32,7 +32,7 @@ flowchart LR
 | I2C | master, slave | общий mailbox BRAM |
 | SMI | master, slave | общий mailbox BRAM |
 | SPI | master | BRAM окна ответа |
-| SD через PL | AXI controller + internal buffer | 512-byte buffer внутри IP |
+| SD через PL | AXI controller + IRQ | 4096-byte buffer внутри IP |
 
 Текущая карта адресов:
 
@@ -61,6 +61,7 @@ IRQ-контракт:
 | I2C master | `63` |
 | I2C slave | `64` |
 | SPI master | `65` |
+| SD controller | `66` |
 
 ## 3. Карта PL-регионов
 
@@ -123,8 +124,10 @@ SPI использует control-регистры master и BRAM-область 
 ### 4.4. SD через PL
 
 SD controller использует единственное AXI4-Lite окно: native-регистры и
-512-байтный buffer находятся внутри одного IP. PS последовательно записывает
-или читает 128 слов через `DATA`; отдельный `BVSTK_SD_BRAM_BASE` не нужен.
+4096-байтный buffer находятся внутри одного IP. Окно `0x100..0x10ff` содержит
+1024 32-битных слова; `BLOCK_COUNT` задаёт batch до 8 секторов, а `IRQ_STATUS`
+и `IRQ_ENABLE` сообщают PS о завершении или ошибке. Отдельный
+`BVSTK_SD_BRAM_BASE` не нужен.
 
 ## 5. Связь с Vivado и Vitis
 

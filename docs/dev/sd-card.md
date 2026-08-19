@@ -11,7 +11,7 @@ flowchart LR
     DiskIO --> Port[FreeRTOS SD-PL port]
     Port --> Core[portable PL SD driver]
     Core --> AXI[AXI4-Lite SD controller]
-    AXI --> BRAM[512-byte internal BRAM buffer]
+    AXI --> BRAM[4096-byte internal BRAM buffer]
     AXI --> SPI[CS / SCK / MOSI / MISO]
     SPI --> Card[MicroSD in SPI mode]
 ```
@@ -30,14 +30,17 @@ FatFs, `fs_shared`, shell, HTTP, SCP/SFTP и `config_store` работают п�
 | FatFs glue | `src/ports/freertos-xilinx/fs-fatfs/diskio.c` | drive `0:` PS SD, `1:` QSPI, `2:` PL SD |
 | Application | `src/apps/freertos/storage/sd/`, `src/apps/freertos/storage/sd-pl/` | mount-task и общий FS context |
 
-Драйвер работает секторами по 512 байт. Один вызов FatFs на несколько секторов
-разбивается на последовательные операции `CMD17` или `CMD24`; блоковая передача
-не требует от FatFs знания внутреннего SPI-протокола.
+Драйвер работает секторами по 512 байт. Внутри один вызов FatFs на несколько
+секторов группируется в chunks до 8 секторов: PS заполняет/считывает окно
+данных одним batch, запускает одну PL-операцию и получает одно IRQ завершения.
+На самой SPI-линии текущий batch-engine последовательно выполняет `CMD17` или
+`CMD24` для каждого сектора; настоящие `CMD18`/`CMD25` и AXI DMA оставлены
+отдельным следующим этапом.
 
 ## 3. AXI-регистры
 
 Регистровое окно контроллера должно быть размещено по адресу `0x43C30000` и
-иметь размер `0x10000`. Буфер 512 байт находится внутри этого окна, отдельное
+иметь размер `0x10000`. Буфер 4096 байт находится внутри этого окна, отдельное
 PS BRAM-окно не используется.
 
 | Offset | Регистр | Назначение |
@@ -46,8 +49,13 @@ PS BRAM-окно не используется.
 | `0x04` | `STATUS` | `BUSY`, `DONE`, `ERROR`, initialized, SDHC/SDXC, initialization active |
 | `0x08` | `BLOCK` | LBA сектора |
 | `0x0C` | `DATA` | 32-битное слово буфера, auto-increment |
-| `0x10` | `BUFFER_INDEX` | индекс слова `0..127` |
+| `0x10` | `BUFFER_INDEX` | индекс слова `0..1023` |
 | `0x14` | `CLOCK_DIV` | делитель полупериода SCK |
+| `0x18` | `IRQ_STATUS` | sticky `DONE`/`ERROR`, W1C |
+| `0x1C` | `IRQ_ENABLE` | маска `DONE`/`ERROR` |
+| `0x20` | `BLOCK_COUNT` | batch из `1..8` секторов |
+| `0x24` | `CAPABILITIES` | возможности контроллера |
+| `0x100..0x10ff` | `DATA_WINDOW` | 1024 32-битных слов буфера |
 
 Для чтения `DATA` AXI-wrapper обязан корректно завершать обычный AXI read после
 синхронного ответа native-порта (`host_rvalid_o`). Это важно: PS-драйвер не
@@ -63,7 +71,9 @@ PS-контроллер использует штатный `XSdPs`, PL-конт
 1. 80 тактов с `CS=1` на безопасной частоте;
 2. `CMD0`, `CMD8`, `CMD55`/`ACMD41` (HCS + 3.3 V window), `CMD58`;
 3. проверку ответа и флага high-capacity;
-4. чтение/запись FAT-секторов через `CMD17`/`CMD24`.
+4. чтение/запись FAT-секторов через batch `CMD17`/`CMD24`; после каждой
+   операции PL выставляет sticky IRQ, а FreeRTOS-port будит ожидающую задачу
+   через semaphore.
 
 Первая версия рассчитана на SDHC/SDXC в SPI mode, включая карту 32 GB. Legacy
 SD v1/MMC и аппаратный card-detect не заявляются.
@@ -71,8 +81,8 @@ SD v1/MMC и аппаратный card-detect не заявляются.
 ## 5. FPGA-контракт и рабочие параметры
 
 AXI4-Lite wrapper для native-порта `sd_spi_controller` подключён к PL clock
-50 MHz, а SPI-сигналы выведены на J10. Регистровое окно содержит только
-рабочие регистры контроллера и буфер сектора.
+50 MHz, а SPI-сигналы выведены на J10. Регистровое окно содержит рабочие
+регистры контроллера и 4 KiB data window.
 
 На AX7020 для проверенной связки платы и MicroSD-адаптера драйвер по умолчанию
 использует `CLOCK_DIV=50` (примерно 500 кГц). При прежнем `CLOCK_DIV=5` карта

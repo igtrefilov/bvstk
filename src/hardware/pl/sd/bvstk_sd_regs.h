@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
+
 /* Byte offsets in the AXI4-Lite register window of sd_spi_controller. */
 #define BVSTK_SD_CONTROL_OFFSET       UINT32_C(0x00)
 #define BVSTK_SD_STATUS_OFFSET        UINT32_C(0x04)
@@ -10,6 +12,17 @@
 #define BVSTK_SD_DATA_OFFSET          UINT32_C(0x0c)
 #define BVSTK_SD_BUFFER_INDEX_OFFSET  UINT32_C(0x10)
 #define BVSTK_SD_CLOCK_DIV_OFFSET     UINT32_C(0x14)
+#define BVSTK_SD_IRQ_STATUS_OFFSET    UINT32_C(0x18)
+#define BVSTK_SD_IRQ_ENABLE_OFFSET    UINT32_C(0x1c)
+#define BVSTK_SD_BLOCK_COUNT_OFFSET   UINT32_C(0x20)
+#define BVSTK_SD_CAPABILITIES_OFFSET  UINT32_C(0x24)
+#define BVSTK_SD_DATA_WINDOW_OFFSET   UINT32_C(0x100)
+
+#define BVSTK_SD_MAX_TRANSFER_BLOCKS  8U
+#define BVSTK_SD_BUFFER_WORDS_PER_BLOCK \
+    (BVSTK_SD_SECTOR_SIZE / sizeof(uint32_t))
+#define BVSTK_SD_BUFFER_WORDS \
+    (BVSTK_SD_MAX_TRANSFER_BLOCKS * BVSTK_SD_BUFFER_WORDS_PER_BLOCK)
 
 #define BVSTK_SD_CONTROL_INIT         (UINT32_C(1) << 0)
 #define BVSTK_SD_CONTROL_READ         (UINT32_C(1) << 1)
@@ -24,5 +37,8 @@
 #define BVSTK_SD_STATUS_INIT_ACTIVE  (UINT32_C(1) << 5)
 #define BVSTK_SD_STATUS_ERROR_SHIFT   8U
 #define BVSTK_SD_STATUS_ERROR_MASK    UINT32_C(0x0000ff00)
+
+#define BVSTK_SD_IRQ_TRANSFER_DONE    (UINT32_C(1) << 0)
+#define BVSTK_SD_IRQ_ERROR            (UINT32_C(1) << 1)
 
 #endif /* BVSTK_PL_SD_REGS_H */
