@@ -3,6 +3,7 @@
 #include "apps/freertos/storage/qspi/qspi_fs.h"
 #include "apps/freertos/storage/sd-pl/sd_pl_card.h"
 #include "apps/freertos/storage/sd/sd_card.h"
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 #include "xstatus.h"
 #include "task.h"
@@ -28,6 +29,11 @@ void fs_devices_init(void)
 int fs_device_prepare(const fs_device_info_t *dev)
 {
     if (!dev || !dev->ctx) return XST_FAILURE;
+#if !BVSTK_PL_SD_CAN_FILESYSTEM
+    if (strcasecmp(dev->name, "sd-pl") == 0) {
+        return XST_FAILURE;
+    }
+#endif
     if (fs_shared_is_ready(dev->ctx)) return XST_SUCCESS;
     for (int attempt = 0; attempt < 4; ++attempt) {
         if (fs_shared_mount(dev->ctx, dev->label) == XST_SUCCESS) return XST_SUCCESS;

@@ -116,7 +116,7 @@ typedef struct {
 static WOLFSSH_CTX *s_ssh_ctx;
 
 static const char *const s_ssh_commands[] = {
-    "fs", "tar", "ip", "smi", "spi", "mem", "i2c",
+    "fs", "tar", "ip", "smi", "spi", "sd-pl", "mem", "i2c",
     "pwd", "ls", "cd", "mkdir", "touch", "cat", "rm", "cp", "mv",
     "help", "-h", "--help", "-help", "reboot", "quit", "exit"
 };
@@ -1511,6 +1511,11 @@ static void ssh_collect_argument_matches(const char *const *tokens,
         } else if (token_count == 3 && ssh_token_is(tokens[1], "cfg") &&
                    ssh_token_is(tokens[2], "read")) {
             static const char *const words[] = { "on", "off", "1", "0" };
+            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        }
+    } else if (strcasecmp(command, "sd-pl") == 0) {
+        if (token_count == 1) {
+            static const char *const words[] = { "init", "-h", "--help", "help" };
             ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
         }
     } else if (strcasecmp(command, "reboot") == 0) {

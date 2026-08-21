@@ -56,4 +56,11 @@ qcc -V"$QCC_VARIANT" \
   -lsocket \
   -o "$BUILD_DIR/bvstkd"
 
-echo "Neutrino applications: $BUILD_DIR/bvstkctl and $BUILD_DIR/bvstkd"
+qcc -V"$QCC_VARIANT" \
+  -Wall -Wextra -Werror -O2 \
+  -I"$REPO_ROOT/src" \
+  -DBVSTK_PLATFORM_NEUTRINO=1 \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_qspi_raw.c" \
+  -o "$BUILD_DIR/bvstk-qspi-fat"
+
+echo "Neutrino applications: $BUILD_DIR/bvstkctl, $BUILD_DIR/bvstkd and $BUILD_DIR/bvstk-qspi-fat"

@@ -30,19 +30,18 @@
 #define BVSTK_SMI_SLAVE_BASE      UINT32_C(0x43C20000)
 #define BVSTK_SMI_SLAVE_SIZE      UINT32_C(0x00010000)
 
-#define BVSTK_SPI_MASTER_BASE     UINT32_C(0x43C30000)
+#define BVSTK_SPI_MASTER_BASE     UINT32_C(0x43C50000)
 #define BVSTK_SPI_MASTER_SIZE     UINT32_C(0x00010000)
 
 #define BVSTK_I2C_SLAVE_BASE      UINT32_C(0x43C40000)
 #define BVSTK_I2C_SLAVE_SIZE      UINT32_C(0x00010000)
 
 /*
- * The playground SD controller is an AXI4-Lite peripheral with its 4096-byte
- * eight-sector buffer inside the same address window.  It deliberately
- * reuses the old SPI-master slot; the playground FPGA design no longer
- * contains that legacy core.
+ * The current SD-visible PL peripheral is the SPI master exported by the
+ * develop FPGA design.  Its command sequencer writes initialization replies
+ * to the shared SPI BRAM mailbox at BVSTK_SPI_BRAM_BASE.
  */
-#define BVSTK_SD_CONTROLLER_BASE  UINT32_C(0x43C30000)
+#define BVSTK_SD_CONTROLLER_BASE  BVSTK_SPI_MASTER_BASE
 #define BVSTK_SD_CONTROLLER_SIZE  UINT32_C(0x00010000)
 #define BVSTK_SD_SECTOR_SIZE      UINT32_C(512)
 /*
@@ -62,6 +61,18 @@
 #define BVSTK_PL_HAS_I2C_CORE      0
 #define BVSTK_PL_HAS_SMI_CORE      0
 #define BVSTK_PL_HAS_SPI_CORE      0
+
+/*
+ * The installed SD-visible core currently exposes only its card
+ * initialization sequencer.  Keep the block/FatFs services in the image so
+ * they can be enabled with the next PL contract without reimplementing the
+ * PS side, but do not start or reach them in this configuration.
+ */
+#define BVSTK_PL_SD_INIT_ONLY            1
+#define BVSTK_PL_SD_CAN_INIT             1
+#define BVSTK_PL_SD_CAN_BLOCK_IO         0
+#define BVSTK_PL_SD_CAN_FILESYSTEM       0
+#define BVSTK_PL_SD_AUTOSTART_FILESYSTEM 0
 
 #define BVSTK_PL_RUNTIME_ENABLED \
     (BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_SMI_CORE || BVSTK_PL_HAS_SPI_CORE)

@@ -48,6 +48,9 @@
     #######################################################################
     display_msg Starting SDMMC driver for SD card(SDIO0)...
     devb-sdmmc mem name=/below4G blk memory=/below4G,cache=64m sdio hc=sdhci,addr=0xE0100000,irq=56 disk name=sd cam quiet
+    waitfor /dev/hd0 5
+    display_msg Mounting PS SD FAT volume at /sd...
+    mount -t dos /dev/hd0t12 /sd
 
     #######################################################################
     ## SPI driver - not started by default, no SPI devices on board
@@ -59,8 +62,13 @@
     #######################################################################
     ## QSPI Flash Chip
     #######################################################################
-    display_msg Starting QSPI driver(/dev/fs0p0)...
-    devf-qspi-zynq7000 -r &
+    display_msg Starting QSPI FAT backend...
+    /usr/sbin/bvstk-qspi-fat &
+    waitfor /dev/bvstk-qspi-fat 5
+    devb-loopback blk cache=128k,auto=none loopback rw,sync,blksz=512,prefix=qspi,fd=/dev/bvstk-qspi-fat &
+    waitfor /dev/qspi0 5
+    display_msg Mounting QSPI FAT volume at /flash...
+    mount -t dos /dev/qspi0 /flash
 
     #######################################################################
     ## OCM
@@ -139,11 +147,17 @@
 [type=link] /bin/sh=/proc/boot/ksh
 [type=link] /dev/console=/dev/ser1
 [type=link] /tmp=/dev/shmem
+[type=dir dperms=0755] /sd
+[type=dir dperms=0755] /flash
+[type=link] /sd:=/sd
+[type=link] /flash:=/flash
 [type=dir dperms=0755] /var
 [type=dir dperms=0755] /var/run
 [type=dir dperms=0755] /var/chroot
 [type=dir dperms=0755] /var/chroot/sshd
 [type=dir dperms=0755] /root
+[type=link] /root/sd:=/sd
+[type=link] /root/flash:=/flash
 [type=dir dperms=0700] /root/.ssh
 [uid=0 gid=0 perms=0600] /etc/ssh/ssh_host_rsa_key = ${BVSTK_SSH_HOST_KEY}
 [uid=0 gid=0 perms=0644] /etc/ssh/ssh_host_rsa_key.pub = ${BVSTK_SSH_HOST_KEY_PUB}
@@ -264,18 +278,7 @@ exec /usr/sbin/sshd
 fdisk
 mkdosfs
 devb-sdmmc
-
-###########################################################################
-## SPI Flash driver
-## SPI Flash chip can be formatted like so: flashctl -p /dev/fs0p0 -e -f -m
-## After formatting a partition will appear in /fs0p0
-###########################################################################
-flashctl
-
-###########################################################################
-## QSPI flash driver
-###########################################################################
-devf-qspi-zynq7000
+devb-loopback
 
 ###########################################################################
 ## I2C driver

@@ -1,0 +1,37 @@
+#ifndef BVSTK_PL_SD_INIT_REGS_H
+#define BVSTK_PL_SD_INIT_REGS_H
+
+#include <stdint.h>
+
+/* AXI4-Lite offsets exported by the SD initialization sequencer. */
+#define BVSTK_SD_INIT_CSR_OFFSET          UINT32_C(0x00)
+#define BVSTK_SD_INIT_IRQ_OFFSET          UINT32_C(0x04)
+#define BVSTK_SD_INIT_PACKET_OFFSET       UINT32_C(0x08)
+#define BVSTK_SD_INIT_TIMEOUT_OFFSET      UINT32_C(0x0C)
+#define BVSTK_SD_INIT_CONTROL_OFFSET      UINT32_C(0x14)
+#define BVSTK_SD_INIT_SPI_SIG_OFFSET      UINT32_C(0x18)
+
+#define BVSTK_SD_INIT_CSR_SOFT_RESET      UINT32_C(1u << 0)
+#define BVSTK_SD_INIT_CSR_START           UINT32_C(1u << 1)
+#define BVSTK_SD_INIT_CSR_READ_ENABLE     UINT32_C(1u << 2)
+
+#define BVSTK_SD_INIT_IRQ_SOFT_DONE       UINT32_C(1u << 0)
+#define BVSTK_SD_INIT_IRQ_HARD_DONE       UINT32_C(1u << 1)
+
+#define BVSTK_SD_INIT_CLOCK_COUNT         UINT32_C(100)
+#define BVSTK_SD_INIT_CLOCK_DIV           UINT32_C(0x0200)
+#define BVSTK_SD_INIT_TIMEOUT_TICKS       UINT32_C(1)
+#define BVSTK_SD_INIT_PACKET_MODE         UINT32_C(0x03)
+
+/* Response mailbox offsets after the develop FPGA address-map change. */
+#define BVSTK_SD_INIT_RESP_CMD0           UINT32_C(0x00)
+#define BVSTK_SD_INIT_RESP_CMD8_FIRST     UINT32_C(0x04)
+#define BVSTK_SD_INIT_RESP_CMD8_SECOND    UINT32_C(0x08)
+#define BVSTK_SD_INIT_RESP_ACMD41         UINT32_C(0x0C)
+#define BVSTK_SD_INIT_RESP_CMD55          UINT32_C(0x10)
+#define BVSTK_SD_INIT_RESP_CMD58_FIRST    UINT32_C(0x14)
+#define BVSTK_SD_INIT_RESP_CMD58_SECOND   UINT32_C(0x18)
+
+#define BVSTK_SD_INIT_RESPONSE_COUNT      7U
+
+#endif /* BVSTK_PL_SD_INIT_REGS_H */

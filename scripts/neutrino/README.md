@@ -1,7 +1,9 @@
 # Neutrino: сборка, IFS и JTAG
 
 Скрипты каталога собирают приложения `bvstkctl` и `bvstkd`, формируют IFS для
-AX7020 и выполняют JTAG-загрузку с последующей SSH-проверкой.
+AX7020 и выполняют JTAG-загрузку с последующей SSH-проверкой. Образ также
+подключает PS SD и существующий FatFs-совместимый QSPI-том как Neutrino-пути
+`/sd:` и `/flash:`.
 
 ## 1. Входные зависимости
 
@@ -29,10 +31,11 @@ source /etc/profile.d/kpda_env_2024.sh
 |---|---|
 | `build/neutrino/bvstkctl` | CLI для PL и сервисов |
 | `build/neutrino/bvstkd` | DCP2 daemon на TCP `8889` |
+| `build/neutrino/bvstk-qspi-fat` | resource manager для FatFs-совместимого QSPI-окна |
 | `build/neutrino/*.o` | производные object files |
 
 `build.sh` компилирует common drivers/services/protocols и Neutrino ports
-явным списком `COMMON_SOURCES`.
+явным списком `COMMON_SOURCES`, а также отдельный QSPI resource manager.
 
 ## 3. Формирование IFS
 

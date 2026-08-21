@@ -28,7 +28,7 @@ flowchart LR
     XSA --> Vitis[scripts/vitis/build.sh]
     Vitis --> ELF[vitis_ws/.../app_bvstk.elf]
     XSA --> NBuild[scripts/neutrino/build.sh]
-    NBuild --> Apps[build/neutrino/bvstkctl + bvstkd]
+    NBuild --> Apps[build/neutrino/bvstkctl + bvstkd + bvstk-qspi-fat]
     Apps --> Image[scripts/neutrino/build_image.sh]
     NBuild --> Image
     Image --> IFS[build/neutrino/*.raw]
@@ -157,7 +157,9 @@ source /etc/profile.d/kpda_env_2024.sh
 ./build.sh neutrino-image
 ```
 
-`scripts/neutrino/build.sh` компилирует `bvstkctl` и `bvstkd` из общего набора PL cores, сервисов, control API и DCP2. `scripts/neutrino/build_image.sh` выполняет дополнительные операции:
+`scripts/neutrino/build.sh` компилирует `bvstkctl`, `bvstkd` и QSPI resource
+manager `bvstk-qspi-fat` из общего набора PL cores, сервисов, control API и
+DCP2. `scripts/neutrino/build_image.sh` выполняет дополнительные операции:
 
 ```mermaid
 sequenceDiagram
@@ -169,7 +171,7 @@ sequenceDiagram
 
     Build->>Keys: создать host key и authorized_keys
     Build->>Build: подготовить root.shadow
-    Build->>Apps: собрать bvstkctl и bvstkd
+    Build->>Apps: собрать bvstkctl, bvstkd и bvstk-qspi-fat
     Build->>BSP: взять install tree и base .build
     Build->>Mkifs: добавить приложения и параметры SSH
     Mkifs-->>Build: создать IFS

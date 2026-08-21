@@ -141,3 +141,29 @@ scp -O ./xrc.log root@<device-ip>:/sd-pl:/test1/xrc.log
 | запись QSPI не сохраняется | проверить mount, разметку и журналы QSPI |
 
 При подозрении на повреждение данных сначала снимите копию доступных файлов на SD, затем выполняйте операции восстановления.
+
+## 8. Neutrino
+
+В образе Neutrino доступны те же два тома:
+
+| Путь | Точка монтирования Neutrino | Источник |
+|---|---|---|
+| `sd:/` и `/sd:` | `/sd` | PS SD через `devb-sdmmc` + `fs-dos.so` |
+| `flash:/` и `/flash:` | `/flash` | FatFs-совместимое QSPI-окно через `bvstk-qspi-fat` + `devb-loopback` + `fs-dos.so` |
+
+Например, в SSH shell Neutrino можно использовать:
+
+```text
+ls sd:/test1
+ls flash:/config
+cat flash:/config/network.json
+```
+
+`sd-pl:/` в Neutrino намеренно не добавляется: PL SD-контроллер пока не является
+частью этого storage path. QSPI не форматируется штатным `devf-qspi-zynq7000`:
+resource manager обращается к тому же окну `8 MiB .. 32 MiB`, что и FatFs во
+FreeRTOS, поэтому существующее содержимое `flash:/` сохраняет совместимость.
+
+FreeRTOS и Neutrino не должны одновременно записывать одну и ту же карту или
+QSPI. Перед переключением ОС нужно корректно размонтировать том либо полностью
+завершить работу предыдущего runtime.

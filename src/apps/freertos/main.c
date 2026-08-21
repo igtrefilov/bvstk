@@ -16,7 +16,7 @@ int main()
 	xil_printf("Hello from bvstk\r\n");
 	qspi_flash_self_test();
 	start_sd_card();
-	#if BVSTK_PL_HAS_SD_CONTROLLER
+	#if BVSTK_PL_HAS_SD_CONTROLLER && BVSTK_PL_SD_AUTOSTART_FILESYSTEM
 	start_sd_pl_card();
 	#endif
 	start_qspi_fs();

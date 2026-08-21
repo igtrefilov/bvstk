@@ -162,6 +162,9 @@ static void discover_volume_size(void)
 
 bvstk_status_t bvstk_sd_pl_initialize(void)
 {
+#if !BVSTK_PL_SD_CAN_BLOCK_IO
+    return BVSTK_ERR_UNSUPPORTED;
+#else
     bvstk_sd_controller_config_t config = {
         .timeout_ms = BVSTK_SD_PL_TRANSFER_TIMEOUT_MS,
         .clock_div = BVSTK_SD_CLOCK_DIV_DEFAULT,
@@ -232,10 +235,14 @@ bvstk_status_t bvstk_sd_pl_initialize(void)
     discover_volume_size();
     xil_printf("SD-PL: initialized\r\n");
     return BVSTK_OK;
+#endif
 }
 
 void bvstk_sd_pl_shutdown(void)
 {
+#if !BVSTK_PL_SD_CAN_BLOCK_IO
+    return;
+#else
     if (s_irq_ready) {
         vPortDisableInterrupt(BVSTK_IRQ_SD_CONTROLLER);
         Xil_Out32(BVSTK_SD_CONTROLLER_BASE + BVSTK_SD_IRQ_ENABLE_OFFSET,
@@ -259,6 +266,7 @@ void bvstk_sd_pl_shutdown(void)
     s_completion = NULL;
     s_sector_count = 0U;
     s_sector_count_ready = false;
+#endif
 }
 
 int bvstk_sd_pl_is_ready(void)
@@ -268,6 +276,10 @@ int bvstk_sd_pl_is_ready(void)
 
 bvstk_status_t bvstk_sd_pl_get_sector_count(uint32_t *sector_count)
 {
+#if !BVSTK_PL_SD_CAN_BLOCK_IO
+    (void)sector_count;
+    return BVSTK_ERR_UNSUPPORTED;
+#else
     if (!s_card_ready) {
         return BVSTK_ERR_NOT_READY;
     }
@@ -279,12 +291,19 @@ bvstk_status_t bvstk_sd_pl_get_sector_count(uint32_t *sector_count)
     }
     *sector_count = s_sector_count;
     return BVSTK_OK;
+#endif
 }
 
 bvstk_status_t bvstk_sd_pl_read(uint32_t first_sector,
                                 uint8_t *buffer,
                                 size_t sector_count)
 {
+#if !BVSTK_PL_SD_CAN_BLOCK_IO
+    (void)first_sector;
+    (void)buffer;
+    (void)sector_count;
+    return BVSTK_ERR_UNSUPPORTED;
+#else
     if (!s_card_ready) {
         return BVSTK_ERR_NOT_READY;
     }
@@ -293,12 +312,19 @@ bvstk_status_t bvstk_sd_pl_read(uint32_t first_sector,
                                     buffer,
                                     sector_count,
                                     BVSTK_SD_PL_TRANSFER_TIMEOUT_MS);
+#endif
 }
 
 bvstk_status_t bvstk_sd_pl_write(uint32_t first_sector,
                                  const uint8_t *buffer,
                                  size_t sector_count)
 {
+#if !BVSTK_PL_SD_CAN_BLOCK_IO
+    (void)first_sector;
+    (void)buffer;
+    (void)sector_count;
+    return BVSTK_ERR_UNSUPPORTED;
+#else
     if (!s_card_ready) {
         return BVSTK_ERR_NOT_READY;
     }
@@ -307,4 +333,5 @@ bvstk_status_t bvstk_sd_pl_write(uint32_t first_sector,
                                      buffer,
                                      sector_count,
                                      BVSTK_SD_PL_TRANSFER_TIMEOUT_MS);
+#endif
 }
