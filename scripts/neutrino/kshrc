@@ -1,0 +1,28 @@
+# Context-sensitive prompt for the AX7020 Neutrino shell.
+#
+# The storage aliases are exposed in two equivalent forms:
+#   /flash and /root/flash:
+#   /sd    and /root/sd:
+# Keep the prompt independent of the alias through which the user entered
+# the volume, while preserving the path below the volume root.
+case "$-" in
+*i*)
+    PS1='$(case "$PWD" in
+        /root/flash:|/root/flash:/|/flash|/flash/)
+            printf "flash:/# " ;;
+        /root/flash:/*)
+            printf "flash:%s# " "${PWD#/root/flash:}" ;;
+        /flash/*)
+            printf "flash:%s# " "${PWD#/flash}" ;;
+        /root/sd:|/root/sd:/|/sd|/sd/)
+            printf "sd:/# " ;;
+        /root/sd:/*)
+            printf "sd:%s# " "${PWD#/root/sd:}" ;;
+        /sd/*)
+            printf "sd:%s# " "${PWD#/sd}" ;;
+        *)
+            printf "# " ;;
+    esac)'
+    export PS1
+    ;;
+esac

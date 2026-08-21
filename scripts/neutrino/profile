@@ -1,0 +1,14 @@
+# Minimal login profile for the read-only Neutrino IFS.
+#
+# The BSP profile also updates .lastlogin and probes tty.  Those operations
+# are not useful in this immutable image, so keep only the environment needed
+# by the BVSTK shell.
+PATH=${PATH:-/proc/boot:/bin:/sbin:/usr/bin:/usr/sbin}
+TMPDIR=${TMPDIR:-/tmp}
+export PATH TMPDIR
+
+if test -x /root/.sh; then
+    ENV=/root/.sh
+    export ENV
+    . /root/.sh
+fi

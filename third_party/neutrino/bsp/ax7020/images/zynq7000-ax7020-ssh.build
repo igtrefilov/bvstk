@@ -139,6 +139,7 @@
     HOME=/
     PATH=/proc/boot:/sbin:/bin:/usr/sbin:/usr/bin:/opt/bin
     LD_LIBRARY_PATH=/proc/boot:/lib:/usr/lib:/lib/dll:/opt/lib
+    ENV=/root/.sh
 
     [+session] ksh &
 }
@@ -147,6 +148,7 @@
 [type=link] /bin/sh=/proc/boot/ksh
 [type=link] /dev/console=/dev/ser1
 [type=link] /tmp=/dev/shmem
+[uid=0 gid=0 perms=0644] /etc/profile = ${BVSTK_PROFILE}
 [type=dir dperms=0755] /sd
 [type=dir dperms=0755] /flash
 [type=link] /sd:=/sd
@@ -158,6 +160,7 @@
 [type=dir dperms=0755] /root
 [type=link] /root/sd:=/sd
 [type=link] /root/flash:=/flash
+[uid=0 gid=0 perms=0755] /root/.sh = ${BVSTK_KSHRC}
 [type=dir dperms=0700] /root/.ssh
 [uid=0 gid=0 perms=0600] /etc/ssh/ssh_host_rsa_key = ${BVSTK_SSH_HOST_KEY}
 [uid=0 gid=0 perms=0644] /etc/ssh/ssh_host_rsa_key.pub = ${BVSTK_SSH_HOST_KEY_PUB}
@@ -250,6 +253,7 @@ PubkeyAuthentication yes
 PermitRootLogin yes
 PermitEmptyPasswords no
 SetEnv PATH=/proc/boot:/bin:/sbin:/usr/bin:/usr/sbin
+SetEnv ENV=/root/.sh
 UseDNS no
 PidFile /var/run/sshd.pid
 Subsystem sftp /usr/libexec/sftp-server
