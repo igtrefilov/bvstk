@@ -44,13 +44,15 @@
     wdtkick-xzynq -T10 -t2000
 
     #######################################################################
-    ## SD memory card driver
+    ## PS SD memory card and FAT filesystem
     #######################################################################
-    display_msg Starting SDMMC driver for SD card(SDIO0)...
-    devb-sdmmc mem name=/below4G blk memory=/below4G,cache=64m sdio hc=sdhci,addr=0xE0100000,irq=56 disk name=sd cam quiet
-    waitfor /dev/hd0 5
+    display_msg Starting PS SD raw backend for SD card(SDIO0)...
+    /usr/sbin/bvstk-sd-raw &
+    waitfor /dev/bvstk-sd-fat 5
+    devb-loopback blk cache=128k,auto=none loopback rw,sync,blksz=512,prefix=sd,fd=/dev/bvstk-sd-fat &
+    waitfor /dev/sd0 5
     display_msg Mounting PS SD FAT volume at /sd...
-    mount -t dos /dev/hd0t12 /sd
+    mount -t dos /dev/sd0 /sd
 
     #######################################################################
     ## SPI driver - not started by default, no SPI devices on board
@@ -281,7 +283,6 @@ exec /usr/sbin/sshd
 ###########################################################################
 fdisk
 mkdosfs
-devb-sdmmc
 devb-loopback
 
 ###########################################################################

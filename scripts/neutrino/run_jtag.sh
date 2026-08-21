@@ -50,7 +50,7 @@ export IFS_FILE BITSTREAM_FILE PS7_INIT_TCL
 xsct "$SCRIPT_DIR/run_jtag.tcl"
 sleep 3
 
-if ! rg -q "Welcome to KPDA Neutrino|Starting Network driver|Starting platform-control" "$LOG_FILE"; then
+if ! grep -Eq "Welcome to KPDA Neutrino|Starting Network driver|Starting platform-control" "$LOG_FILE"; then
   echo "Neutrino startup signature not found in $LOG_FILE" >&2
   exit 2
 fi
