@@ -12,7 +12,7 @@ BVSTK — программная платформа для Zynq-7000. В сос�
 | Конфигурация | JSON-конфиги сети, устройств и политик; сохранение в QSPI |
 | Диагностика | TCP-консоль, HTTP API, DCP2, PL read/write |
 | Файлы | FatFs-тома `sd:/`, `sd-pl:/` и `flash:/`, web-ресурсы |
-| Целевые ОС | FreeRTOS для полного прикладного runtime; Neutrino для I²C runtime, `bvstkctl`, `bvstkd` и IFS |
+| Целевые ОС | FreeRTOS для полного прикладного runtime; Neutrino для I²C runtime, `bvstkctl`, `bvstkd`, `bvstk-shell` и IFS |
 
 ## 2. Модель выполнения
 
@@ -50,7 +50,8 @@ FreeRTOS-вариант запускается из `src/apps/freertos/main.c`. 
 
 ### 3.2. Neutrino
 
-Neutrino-сборка формирует три приложения:
+Neutrino-сборка формирует приложения `i2c`, `bvstkctl`, `bvstkd` и
+интерактивный `bvstk-shell`:
 
 | Приложение | Назначение |
 |---|---|

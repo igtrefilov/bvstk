@@ -31,3 +31,11 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -o "$TEST_TMP/test_shared"
 
 "$TEST_TMP/test_shared"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic \
+  -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_i2c_completion.c" \
+  "$REPO_ROOT/src/shared/cli/bvstk_i2c_completion.c" \
+  -o "$TEST_TMP/test_i2c_completion"
+
+"$TEST_TMP/test_i2c_completion"

@@ -4,6 +4,7 @@
 #include <strings.h>
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/storage/sd/sd_card.h"
+#include "shared/cli/bvstk_i2c_completion.h"
 #include "xstatus.h"
 
 #ifndef TCP_CONSOLE_TAB_DEBUG
@@ -128,37 +129,6 @@ static size_t common_prefix_len_ci_n_buf(const char items[][FS_NAME_MAX], size_t
         if (l == 0) break;
     }
     return l;
-}
-
-static int complete_i2c_selector(const char *prefix, char out[][FS_NAME_MAX], int out_max, int *out_total)
-{
-    if (out_total) *out_total = 0;
-    if (!out_total) return 0;
-
-    int total = 0;
-    static const char *const head_words[] = { "list", "-h", "--help" };
-    (void)complete_words(prefix, head_words, sizeof(head_words) / sizeof(head_words[0]), out, out_max, &total);
-
-    if (!config_store_is_ready()) { *out_total = total; return total; }
-    const i2c_device_config_t *cfgs = config_store_get_i2c_devices();
-    size_t n = config_store_get_i2c_device_count();
-    if (!cfgs || n == 0) { *out_total = total; return total; }
-
-    if (prefix && prefix[0] == '@') {
-        for (size_t i = 0; i < n; ++i) {
-            char tmp[FS_NAME_MAX];
-            snprintf(tmp, sizeof(tmp), "@0x%02X", (unsigned)(cfgs[i].addr_7b & 0x7Fu));
-            (void)add_match_ci(prefix, tmp, out, out_max, &total);
-        }
-    } else {
-        for (size_t i = 0; i < n; ++i) {
-            if (!cfgs[i].name[0]) continue;
-            (void)add_match_ci(prefix, cfgs[i].name, out, out_max, &total);
-        }
-    }
-
-    *out_total = total;
-    return total;
 }
 
 static int complete_smi_selector(const char *prefix, char out[][FS_NAME_MAX], int out_max, int *out_total)
@@ -481,24 +451,61 @@ static void run_client_session(int fd)
                         static const char *const mem1[] = { "r", "w", "-h", "--help" };
                         matches = complete_words(prefix_part_token, mem1, sizeof(mem1) / sizeof(mem1[0]), s_dir_candidates, 16, &total);
                     } else if (strcasecmp(cmd0, "i2c") == 0) {
-                        if (token_index == 1) {
-                            matches = complete_i2c_selector(prefix_part_token, s_dir_candidates, 16, &total);
-                        } else if (token_index == 2 && strcasecmp(tok1, "list") != 0) {
-                            static const char *const i2c2[] = { "info", "r", "w", "addr", "address", "policy" };
-                            matches = complete_words(prefix_part_token, i2c2, sizeof(i2c2) / sizeof(i2c2[0]), s_dir_candidates, 16, &total);
-                        } else if (strcasecmp(tok2, "policy") == 0 && strcasecmp(tok1, "list") != 0) {
-                            if (token_index == 3) {
-                                static const char *const pol[] = { "show", "set", "whitelist", "blacklist" };
-                                matches = complete_words(prefix_part_token, pol, sizeof(pol) / sizeof(pol[0]), s_dir_candidates, 16, &total);
-                            } else if (token_index == 4 && strcasecmp(tok3, "show") == 0) {
-                                static const char *const show[] = { "rules", "whitelist", "blacklist" };
-                                matches = complete_words(prefix_part_token, show, sizeof(show) / sizeof(show[0]), s_dir_candidates, 16, &total);
-                            } else if (token_index == 4 && strcasecmp(tok3, "set") == 0) {
-                                static const char *const setv[] = { "whitelist", "blacklist" };
-                                matches = complete_words(prefix_part_token, setv, sizeof(setv) / sizeof(setv[0]), s_dir_candidates, 16, &total);
-                            } else if (token_index == 4 && (strcasecmp(tok3, "whitelist") == 0 || strcasecmp(tok3, "blacklist") == 0)) {
-                                static const char *const edit[] = { "add", "del", "delete", "clear" };
-                                matches = complete_words(prefix_part_token, edit, sizeof(edit) / sizeof(edit[0]), s_dir_candidates, 16, &total);
+                        bvstk_i2c_completion_device_t devices[I2C_CFG_MAX_DEVICES];
+                        bvstk_i2c_completion_result_t completion;
+                        const i2c_device_config_t *configs = NULL;
+                        size_t device_count = 0U;
+
+                        memset(devices, 0, sizeof(devices));
+                        if (config_store_is_ready()) {
+                            configs = config_store_get_i2c_devices();
+                            device_count = config_store_get_i2c_device_count();
+                            if (configs == NULL) {
+                                device_count = 0U;
+                            }
+                            if (device_count > I2C_CFG_MAX_DEVICES) {
+                                device_count = I2C_CFG_MAX_DEVICES;
+                            }
+                            for (size_t device_index = 0U;
+                                 device_index < device_count;
+                                 ++device_index) {
+                                strncpy(devices[device_index].name,
+                                        configs[device_index].name,
+                                        sizeof(devices[device_index].name) - 1U);
+                                devices[device_index].name[
+                                    sizeof(devices[device_index].name) - 1U] = '\0';
+                                devices[device_index].addr_7b =
+                                    configs[device_index].addr_7b;
+                            }
+                        }
+                        if (bvstk_i2c_complete_line(linebuf,
+                                                    linelen,
+                                                    cursor,
+                                                    devices,
+                                                    device_count,
+                                                    &completion)) {
+                            size_t candidate_count = completion.match_count;
+
+                            if (candidate_count > 16U) {
+                                candidate_count = 16U;
+                            }
+                            for (size_t candidate_index = 0U;
+                                 candidate_index < candidate_count;
+                                 ++candidate_index) {
+                                strncpy(s_dir_candidates[candidate_index],
+                                        completion.candidates[candidate_index],
+                                        FS_NAME_MAX - 1U);
+                                s_dir_candidates[candidate_index][FS_NAME_MAX - 1U] = '\0';
+                            }
+                            matches = (int)candidate_count;
+                            start = completion.token_start;
+                            prefix_part_token[0] = '\0';
+                            if (cursor >= start &&
+                                cursor - start < sizeof(prefix_part_token)) {
+                                memcpy(prefix_part_token,
+                                       linebuf + start,
+                                       cursor - start);
+                                prefix_part_token[cursor - start] = '\0';
                             }
                         }
                     } else if (strcasecmp(cmd0, "smi") == 0) {

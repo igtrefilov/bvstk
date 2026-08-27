@@ -1,6 +1,6 @@
 # Neutrino: сборка, IFS и JTAG
 
-Скрипты каталога собирают приложения `i2c`, `bvstkctl` и `bvstkd`, формируют IFS для
+Скрипты каталога собирают приложения `i2c`, `bvstkctl`, `bvstkd` и `bvstk-shell`, формируют IFS для
 AX7020 и выполняют JTAG-загрузку с последующей SSH-проверкой. Образ также
 подключает PS SD и существующий FatFs-совместимый QSPI-том как Neutrino-пути
 `/sd:` и `/flash:`.
@@ -32,6 +32,7 @@ source /etc/profile.d/kpda_env_2024.sh
 | `build/neutrino/i2c` | FreeRTOS-совместимая I2C shell-команда |
 | `build/neutrino/bvstkctl` | CLI для PL и сервисов |
 | `build/neutrino/bvstkd` | владелец PL I2C runtime и DCP2 daemon на TCP `8889` |
+| `build/neutrino/bvstk-shell` | интерактивная оболочка с контекстным TAB completion |
 | `build/neutrino/bvstk-qspi-fat` | resource manager для FatFs-совместимого QSPI-окна |
 | `build/neutrino/*.o` | производные object files |
 
@@ -42,6 +43,11 @@ source /etc/profile.d/kpda_env_2024.sh
 После монтирования `/flash` образ запускает `bvstkd`. Он загружает
 `/flash/config/i2c/*.json` (legacy fallback `/flash/configs/i2c`), поднимает
 PL master/slave, подключает slave IRQ `84` и создаёт `/dev/bvstk-i2c`.
+Интерактивные UART/SSH-сеансы запускаются через `bvstk-shell`. Он передаёт
+исполнение команд настоящему `/proc/boot/ksh`, добавляет контекстные подсказки
+I2C и сохраняет completion команд и путей (`cd fl<TAB>` → `flash:/`).
+Неинтерактивные вызовы `/bin/sh -c` проходят непосредственно в `ksh`.
+
 Стандартный `i2c-xzynq` не запускается: он обслуживает PS I2C-контроллеры и
 не относится к разорванной PL-шине Host → slave → BRAM → master → PHY.
 
@@ -52,7 +58,7 @@ flowchart TD
     BSP[AX7020 BSP install + base .build]
     Keys[host key + authorized_keys]
     Shadow[root.shadow]
-    Apps[i2c + bvstkctl + bvstkd]
+    Apps[i2c + bvstkctl + bvstkd + bvstk-shell]
     Mkifs[mkifs]
     IFS[ifs-zynq7000-ax7020-bvstk.raw]
 

@@ -117,3 +117,68 @@ int bvstk_i2c_client_execute(int argument_count,
     free(message);
     return result >= 0 && result <= 2 ? result : 1;
 }
+
+int bvstk_i2c_client_list_devices(
+    bvstk_i2c_completion_device_t *devices,
+    size_t device_capacity,
+    size_t *out_device_count)
+{
+    FILE *response;
+    FILE *error_output;
+    char line[256];
+    char *arguments[] = {"list"};
+    size_t device_count = 0U;
+    int result;
+
+    if (out_device_count != NULL) {
+        *out_device_count = 0U;
+    }
+    if ((devices == NULL && device_capacity != 0U) ||
+        out_device_count == NULL) {
+        return 2;
+    }
+    response = tmpfile();
+    error_output = tmpfile();
+    if (response == NULL || error_output == NULL) {
+        if (response != NULL) {
+            fclose(response);
+        }
+        if (error_output != NULL) {
+            fclose(error_output);
+        }
+        return 1;
+    }
+    result = bvstk_i2c_client_execute(1,
+                                      arguments,
+                                      response,
+                                      error_output);
+    if (result == 0) {
+        rewind(response);
+        while (fgets(line, sizeof(line), response) != NULL) {
+            unsigned int index;
+            unsigned int address;
+            char name[I2C_CFG_NAME_MAX];
+
+            if (sscanf(line,
+                       " %u: %31s addr=0x%x",
+                       &index,
+                       name,
+                       &address) != 3 ||
+                address > 0x7FU || device_count >= device_capacity) {
+                continue;
+            }
+            (void)index;
+            strncpy(devices[device_count].name,
+                    name,
+                    sizeof(devices[device_count].name) - 1U);
+            devices[device_count].name[
+                sizeof(devices[device_count].name) - 1U] = '\0';
+            devices[device_count].addr_7b = (uint8_t)address;
+            ++device_count;
+        }
+    }
+    fclose(error_output);
+    fclose(response);
+    *out_device_count = device_count;
+    return result;
+}

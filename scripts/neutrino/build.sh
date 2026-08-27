@@ -53,6 +53,7 @@ NEUTRINO_I2C_RUNTIME_SOURCES=(
 )
 
 I2C_CLIENT_SOURCE="$REPO_ROOT/src/apps/neutrino/i2c/bvstk_i2c_client.c"
+I2C_COMPLETION_SOURCE="$REPO_ROOT/src/shared/cli/bvstk_i2c_completion.c"
 
 qcc -V"$QCC_VARIANT" \
   -Wall -Wextra -Werror -O2 \
@@ -87,6 +88,15 @@ qcc -V"$QCC_VARIANT" \
   -Wall -Wextra -Werror -O2 \
   -I"$REPO_ROOT/src" \
   -DBVSTK_PLATFORM_NEUTRINO=1 \
+  "$REPO_ROOT/src/apps/neutrino/shell/main.c" \
+  "$I2C_CLIENT_SOURCE" \
+  "$I2C_COMPLETION_SOURCE" \
+  -o "$BUILD_DIR/bvstk-shell"
+
+qcc -V"$QCC_VARIANT" \
+  -Wall -Wextra -Werror -O2 \
+  -I"$REPO_ROOT/src" \
+  -DBVSTK_PLATFORM_NEUTRINO=1 \
   "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_qspi_raw.c" \
   -o "$BUILD_DIR/bvstk-qspi-fat"
 
@@ -97,4 +107,4 @@ qcc -V"$QCC_VARIANT" \
   "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c" \
   -o "$BUILD_DIR/bvstk-sd-raw"
 
-echo "Neutrino applications: $BUILD_DIR/i2c, $BUILD_DIR/bvstkctl, $BUILD_DIR/bvstkd, $BUILD_DIR/bvstk-qspi-fat and $BUILD_DIR/bvstk-sd-raw"
+echo "Neutrino applications: $BUILD_DIR/i2c, $BUILD_DIR/bvstkctl, $BUILD_DIR/bvstkd, $BUILD_DIR/bvstk-shell, $BUILD_DIR/bvstk-qspi-fat and $BUILD_DIR/bvstk-sd-raw"

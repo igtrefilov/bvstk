@@ -12,6 +12,7 @@ IFS_FILE="${NEUTRINO_IFS_FILE:-$BUILD_DIR/ifs-zynq7000-ax7020-bvstk.raw}"
 BVSTKCTL="$BUILD_DIR/bvstkctl"
 BVSTKD="$BUILD_DIR/bvstkd"
 I2C_CLIENT="$BUILD_DIR/i2c"
+BVSTK_SHELL="$BUILD_DIR/bvstk-shell"
 BVSTK_QSPI_FAT="$BUILD_DIR/bvstk-qspi-fat"
 BVSTK_SD_RAW="$BUILD_DIR/bvstk-sd-raw"
 SSH_IDENTITY="${SSH_IDENTITY:-$BUILD_DIR/ax7020_ssh_client}"
@@ -86,8 +87,8 @@ ensure_ssh_keys
 ensure_root_shadow
 "$SCRIPT_DIR/build.sh"
 cp "$BASE_BUILD" "$GENERATED_BUILD"
-printf '\n# Burevestnik multi-OS applications\n[perms=0755] /usr/bin/i2c = %s\n[perms=0755] /usr/bin/bvstkctl = %s\n[perms=0755] /usr/bin/bvstkd = %s\n[perms=0755] /usr/sbin/bvstk-qspi-fat = %s\n' \
-  "$I2C_CLIENT" "$BVSTKCTL" "$BVSTKD" "$BVSTK_QSPI_FAT" >> "$GENERATED_BUILD"
+printf '\n# Burevestnik multi-OS applications\n[perms=0755] /usr/bin/i2c = %s\n[perms=0755] /usr/bin/bvstkctl = %s\n[perms=0755] /usr/bin/bvstkd = %s\n[perms=0755] /usr/bin/bvstk-shell = %s\n[perms=0755] /usr/sbin/bvstk-qspi-fat = %s\n' \
+  "$I2C_CLIENT" "$BVSTKCTL" "$BVSTKD" "$BVSTK_SHELL" "$BVSTK_QSPI_FAT" >> "$GENERATED_BUILD"
 printf '[perms=0755] /usr/sbin/bvstk-sd-raw = %s\n' "$BVSTK_SD_RAW" >> "$GENERATED_BUILD"
 
 BVSTK_SSH_HOST_KEY="$SSH_HOST_KEY" \
@@ -99,4 +100,4 @@ BVSTK_PROFILE="$REPO_ROOT/scripts/neutrino/profile" \
 mkifs -r "$BSP_DIR/install" "$GENERATED_BUILD" "$IFS_FILE"
 
 echo "Neutrino IFS: $IFS_FILE"
-echo "Included applications: /usr/bin/i2c, /usr/bin/bvstkctl, /usr/bin/bvstkd, /usr/sbin/bvstk-qspi-fat and /usr/sbin/bvstk-sd-raw"
+echo "Included applications: /usr/bin/i2c, /usr/bin/bvstkctl, /usr/bin/bvstkd, /usr/bin/bvstk-shell, /usr/sbin/bvstk-qspi-fat and /usr/sbin/bvstk-sd-raw"

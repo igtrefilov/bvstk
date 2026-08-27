@@ -150,11 +150,11 @@
     LD_LIBRARY_PATH=/proc/boot:/lib:/usr/lib:/lib/dll:/opt/lib
     ENV=/root/.sh
 
-    [+session] ksh &
+    [+session] /usr/bin/bvstk-shell &
 }
 
 # Redirect console messages
-[type=link] /bin/sh=/proc/boot/ksh
+[type=link] /bin/sh=/usr/bin/bvstk-shell
 [type=link] /dev/console=/dev/ser1
 [type=link] /tmp=/dev/shmem
 [uid=0 gid=0 perms=0644] /etc/profile = ${BVSTK_PROFILE}

@@ -22,7 +22,7 @@ flowchart TB
 ```
 
 FreeRTOS composition root находится в `src/apps/freertos/`. Neutrino root
-содержит `i2c`, `bvstkctl` и `bvstkd` в `src/apps/neutrino/`. Подробнее слои описаны в
+содержит `i2c`, `bvstkctl`, `bvstkd` и `bvstk-shell` в `src/apps/neutrino/`. Подробнее слои описаны в
 [architecture.md](architecture.md), а правила включения исходников — в
 [source-layout.md](source-layout.md).
 

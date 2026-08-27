@@ -6,7 +6,7 @@
 | Вариант | Основной артефакт | Роль в проекте |
 |---|---|---|
 | FreeRTOS + Xilinx BSP | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | полный runtime устройства: сеть, файлы, консоль, HTTP, DCP2 и PL |
-| Neutrino + Zynq7000 BSP | `build/neutrino/bvstkctl`, `bvstkd`, IFS | POSIX-приложения и сервисный слой для работы с тем же PL-контрактом |
+| Neutrino + Zynq7000 BSP | `build/neutrino/bvstkctl`, `bvstkd`, `bvstk-shell`, IFS | POSIX-приложения и сервисный слой для работы с тем же PL-контрактом |
 
 Программная часть работает поверх аппаратного дизайна Zynq: PS предоставляет
 процессор и стандартную периферию, PL содержит ядра I²C, SMI/MDIO и SPI. Адреса
@@ -35,7 +35,7 @@ MMIO, BRAM и IRQ описаны в `src/hardware/` и должны соотве
 flowchart LR
     HW["Vivado design<br/>bit + XSA"] --> PL["PL contract<br/>MMIO · BRAM · IRQ"]
     PL --> FW["FreeRTOS application<br/>app_bvstk.elf"]
-    PL --> NTO["Neutrino applications<br/>bvstkctl · bvstkd"]
+    PL --> NTO["Neutrino applications<br/>bvstkctl · bvstkd · bvstk-shell"]
     FW --> SHELL["TCP/SSH shell<br/>8888 / 22"]
     FW --> HTTP["HTTP API + Web UI<br/>80"]
     FW --> DCP["DCP2<br/>8889"]
@@ -82,7 +82,7 @@ curl http://<device-ip>/api/version
 ```sh
 ./build.sh check             # архитектурные проверки и host-тесты
 ./build.sh freertos          # FreeRTOS ELF
-./build.sh neutrino          # bvstkctl и bvstkd
+./build.sh neutrino          # bvstkctl, bvstkd и bvstk-shell
 ./build.sh neutrino-image    # Neutrino IFS
 ./build.sh all               # FreeRTOS ELF и Neutrino IFS
 ```

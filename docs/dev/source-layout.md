@@ -33,7 +33,7 @@ src/
 │   └── neutrino-zynq7000/           Neutrino/POSIX/Zynq
 ├── apps/                            composition roots
 │   ├── freertos/                    ELF, tasks, shell and network services
-│   └── neutrino/                    i2c, bvstkctl and bvstkd
+│   └── neutrino/                    i2c, bvstkctl, bvstkd and bvstk-shell
 └── vendor/lwip/                     project-maintained lwIP extensions
 ```
 
@@ -80,7 +80,7 @@ flowchart TB
 | `ports/freertos-xilinx/storage` | QSPI flash driver |
 | `protocols` | DCP2 codec/control |
 | `services` | common services |
-| `shared` | common models and interfaces |
+| `shared` | common models, interfaces and CLI completion |
 | `vendor/lwip` | local lwIP extensions |
 
 Linker files `lscript.ld` и `Xilinx.spec` находятся в
@@ -98,6 +98,7 @@ hardware map и Neutrino ports. FreeRTOS application, lwIP, FatFs и Xilinx BSP 
 flowchart LR
     COMMON["drivers + services + protocols\nshared + hardware"] --> CTL["bvstkctl"]
     COMMON --> CLI["i2c client"]
+    COMMON --> SHELL["bvstk-shell"]
     COMMON --> DAEMON["bvstkd"]
     NPORT["ports/neutrino-zynq7000"] --> CTL
     NPORT --> DAEMON
@@ -121,6 +122,8 @@ resource manager или daemon. В проекте `bvstkd` владеет I²C r
 | startup и composition | `src/apps/<target>/` |
 | пользовательский транспорт | `src/apps/freertos/services/` |
 | shell command | `src/apps/freertos/console/` |
+| shared completion | `src/shared/cli/` |
+| Neutrino interactive shell | `src/apps/neutrino/shell/` |
 | сборочный состав | `scripts/vitis/build.tcl` или `scripts/neutrino/build.sh` |
 
 ## 6. Ключевые файлы

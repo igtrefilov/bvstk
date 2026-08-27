@@ -27,7 +27,7 @@ flowchart LR
 |---|---|---|
 | `scripts/fpga/` | Vivado project, implementation и XSA/bitstream export | [FPGA build](fpga/README.md) |
 | `scripts/vitis/` | Vitis platform, FreeRTOS ELF и JTAG | [Vitis/JTAG](vitis/README.md) |
-| `scripts/neutrino/` | `i2c`, `bvstkctl`, `bvstkd`, IFS и Neutrino JTAG | [Neutrino](neutrino/README.md) |
+| `scripts/neutrino/` | `i2c`, `bvstkctl`, `bvstkd`, `bvstk-shell`, IFS и Neutrino JTAG | [Neutrino](neutrino/README.md) |
 | `scripts/vscode/` | compile commands и GDB preparation | [VSCode](vscode/README.md) |
 | `scripts/compat/` | совместимость со старыми путями | исходники wrappers |
 | `scripts/dcp2/` | host-инструменты DCP2/NOTIFY | [DCP2 usage](../docs/user/dcp2-usage.md) |
@@ -39,7 +39,7 @@ flowchart LR
 | 1 | `./scripts/fpga/build_fpga.sh` | `artifacts/fpga/design.xsa`, `design.bit` |
 | 2 | `./build.sh check` | архитектурные, host- и doc-проверки |
 | 3 | `./build.sh freertos` | `vitis_ws/.../app_bvstk.elf` |
-| 4 | `./build.sh neutrino` | `build/neutrino/i2c`, `bvstkctl`, `bvstkd` |
+| 4 | `./build.sh neutrino` | `build/neutrino/i2c`, `bvstkctl`, `bvstkd`, `bvstk-shell` |
 | 5 | `./build.sh neutrino-image` | Neutrino IFS |
 | 6 | `./run.sh <target> jtag` | загрузка на AX7020 и runtime smoke |
 

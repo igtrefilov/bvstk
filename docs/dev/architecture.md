@@ -101,7 +101,7 @@ sequenceDiagram
 
 ## 4. Startup Neutrino
 
-Neutrino собирает `i2c`, `bvstkctl` и `bvstkd` из явного списка исходников.
+Neutrino собирает `i2c`, `bvstkctl`, `bvstkd` и `bvstk-shell` из явного списка исходников.
 Общие I²C cores/services и Neutrino ports используются единым process-lifetime
 runtime внутри `bvstkd`.
 

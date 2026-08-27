@@ -16,12 +16,12 @@ flowchart TD
 
 | Уровень | Команда | Что проверяет |
 |---|---|---|
-| host | `./tests/host/run.sh` | общие cores, services, DCP2 codec/control |
+| host | `./tests/host/run.sh` | общие cores, services, DCP2 codec/control и I2C completion |
 | архитектура | `./scripts/check_architecture.sh` | зависимости и target boundaries |
 | документы | `./scripts/check_docs.sh` | локальные Markdown-ссылки и stale patterns |
 | общий check | `./build.sh check` | host + architecture + docs |
 | FreeRTOS | `./build.sh freertos` | Vitis platform, BSP, source view, ELF |
-| Neutrino | `./build.sh neutrino` | `i2c`, `bvstkctl` и `bvstkd` |
+| Neutrino | `./build.sh neutrino` | `i2c`, `bvstkctl`, `bvstkd` и `bvstk-shell` |
 | IFS | `./build.sh neutrino-image` | mkifs composition |
 | runtime | `./run.sh ... jtag` | PL, PS7, image и сетевые сервисы |
 
@@ -100,6 +100,7 @@ source /etc/profile.d/kpda_env_2024.sh
 test -x build/neutrino/bvstkctl
 test -x build/neutrino/bvstkd
 test -x build/neutrino/i2c
+test -x build/neutrino/bvstk-shell
 test -f build/neutrino/ifs-zynq7000-ax7020-bvstk.raw
 ```
 
@@ -125,6 +126,15 @@ Neutrino:
 выполняет по SSH `bvstkctl version`, `bvstkctl pl list`, проверяет
 `/dev/bvstk-i2c` и запускает `i2c list` через resource manager.
 
+Интерактивный smoke test completion выполняется в SSH-сеансе:
+
+```text
+i2c <Tab>                 # list, -h, --help, устройства
+i2c axp15060 <Tab>       # info, r, w, addr, address, policy
+i2c axp15060 p<Tab>      # policy
+cd fl<Tab>                # flash:/
+```
+
 ## 8. Проверка PL-изменений
 
 После изменения аппаратного контракта выполняется:
@@ -145,6 +155,6 @@ Neutrino:
 | host tests | exit code `0` |
 | architecture/docs checks | exit code `0` |
 | FreeRTOS | ELF собран |
-| Neutrino | `i2c`, `bvstkctl` и `bvstkd` собраны |
+| Neutrino | `i2c`, `bvstkctl`, `bvstkd` и `bvstk-shell` собраны |
 | IFS | image собран |
 | runtime | сервисы отвечают через предусмотренный интерфейс |
