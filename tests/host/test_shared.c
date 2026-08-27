@@ -353,6 +353,83 @@ int main(void)
     bvstk_i2c_slave_service_shutdown(&i2c_slave_service);
 
     CHECK(bvstk_i2c_slave_hw_init(&i2c_slave_hw) == BVSTK_OK);
+    CHECK(bvstk_i2c_slave_hw_set_address(&i2c_slave_hw, 0x36U) == BVSTK_OK);
+    {
+        uint32_t word = 0U;
+        uint32_t request_header = (3U << BVSTK_I2C_SLV_HEADER_BYTES_SHIFT) | 0x36U;
+        uint32_t write_header = (2U << BVSTK_I2C_SLV_HEADER_BYTES_SHIFT) | 0x36U;
+        uint8_t slave_frame[4] = {0U};
+        uint8_t slave_response[] = {0x11U, 0x22U, 0x33U};
+        size_t slave_frame_size = 0U;
+        uint8_t slave_addr = 0U;
+        bvstk_i2c_slave_irq_event_t slave_event;
+
+        memcpy(&word,
+               (const void *)(i2c_slave_hw.slave.mapped_base +
+                              BVSTK_I2C_SLV_ADDR_LIST_1),
+               sizeof(word));
+        CHECK(word == (UINT32_C(1) << 22));
+        memcpy((void *)(i2c_slave_hw.slave.mapped_base +
+                        BVSTK_I2C_SLV_IRQ_OFFSET),
+               &(uint32_t){BVSTK_I2C_SLV_IRQ_DATA_VALID |
+                           BVSTK_I2C_SLV_IRQ_RD_REQUEST},
+               sizeof(word));
+        memcpy((void *)(i2c_slave_hw.slave.mapped_base +
+                        BVSTK_I2C_SLV_REQ_OFFSET),
+               &request_header,
+               sizeof(request_header));
+        CHECK(bvstk_i2c_slave_hw_capture_irq(&i2c_slave_hw,
+                                             &slave_event) == BVSTK_OK);
+        CHECK(slave_event.irq_flags ==
+                  (BVSTK_I2C_SLV_IRQ_DATA_VALID |
+                   BVSTK_I2C_SLV_IRQ_RD_REQUEST) &&
+              slave_event.request_addr == 0x36U &&
+              slave_event.request_size == 3U);
+        memcpy(&word,
+               (const void *)(i2c_slave_hw.slave.mapped_base +
+                              BVSTK_I2C_SLV_IRQ_OFFSET),
+               sizeof(word));
+        CHECK(word == BVSTK_I2C_SLV_IRQ_RESET_BIT);
+
+        memcpy((void *)(i2c_slave_hw.bram.mapped_base +
+                        BVSTK_I2C_BRAM_SLAVE_WR_OFFSET),
+               &write_header,
+               sizeof(write_header));
+        word = UINT32_C(0x0000BBAA);
+        memcpy((void *)(i2c_slave_hw.bram.mapped_base +
+                        BVSTK_I2C_BRAM_SLAVE_WR_OFFSET + sizeof(word)),
+               &word,
+               sizeof(word));
+        CHECK(bvstk_i2c_slave_hw_read_frame(&i2c_slave_hw,
+                                            slave_frame,
+                                            sizeof(slave_frame),
+                                            &slave_frame_size,
+                                            &slave_addr) == BVSTK_OK);
+        CHECK(slave_frame_size == 2U && slave_addr == 0x36U &&
+              slave_frame[0] == 0xAAU && slave_frame[1] == 0xBBU);
+
+        CHECK(bvstk_i2c_slave_hw_write_read_window(&i2c_slave_hw,
+                                                   0x36U,
+                                                   slave_response,
+                                                   sizeof(slave_response)) == BVSTK_OK);
+        memcpy(&word,
+               (const void *)(i2c_slave_hw.bram.mapped_base +
+                              BVSTK_I2C_BRAM_SLAVE_RD_OFFSET),
+               sizeof(word));
+        CHECK(word == (((uint32_t)sizeof(slave_response) <<
+                        BVSTK_I2C_SLV_HEADER_BYTES_SHIFT) | 0x36U));
+        memcpy(&word,
+               (const void *)(i2c_slave_hw.bram.mapped_base +
+                              BVSTK_I2C_BRAM_SLAVE_RD_OFFSET + sizeof(word)),
+               sizeof(word));
+        CHECK(word == UINT32_C(0x00332211));
+        CHECK(bvstk_i2c_slave_hw_accept_read(&i2c_slave_hw) == BVSTK_OK);
+        memcpy(&word,
+               (const void *)(i2c_slave_hw.slave.mapped_base +
+                              BVSTK_I2C_SLV_CSR_OFFSET),
+               sizeof(word));
+        CHECK(word == BVSTK_I2C_SLV_CSR_RD_VALID_BIT);
+    }
     bvstk_i2c_slave_hw_shutdown(&i2c_slave_hw);
     CHECK(bvstk_smi_service_init(&smi_service,
                                  NULL,

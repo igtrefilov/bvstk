@@ -38,19 +38,20 @@ flowchart LR
 
 | Регион | База | Размер |
 |---|---:|---:|
-| `i2c-bram` | `0x40000000` | `0x2000` |
+| `i2c-bram` | `0x40000000` | `0x3000`* |
 | `smi-bram` | `0x42000000` | `0x2000` |
 | `spi-bram` | `0x44000000` | `0x2000` |
 | `i2c-master` | `0x43C00000` | `0x10000` |
-| `smi-master` | `0x43C10000` | `0x10000` |
-| `smi-slave` | `0x43C20000` | `0x10000` |
-| `spi-master` (legacy design) | `0x43C30000` | `0x10000` |
-| `i2c-slave` | `0x43C40000` | `0x10000` |
-| `sd-controller` (playground, replaces SPI) | `0x43C30000` | `0x10000` |
+| `i2c-slave` | `0x43C10000` | `0x10000` |
+| `smi-master` | `0x43C20000` | `0x10000` |
+| `smi-slave` | `0x43C30000` | `0x10000` |
+| `spi-slave` | `0x43C40000` | `0x10000` |
+| `spi-master` / `sd-controller` | `0x43C50000` | `0x10000` |
 
-В legacy XSA адрес `0x43C30000` принадлежит SPI master. В playground он
-переиспользуется SD controller; одновременно загружать оба ядра по этому
-адресу нельзя.
+`*` The response window of the `develop` I2C slave starts at offset `0x2000`.
+The PS uses the first `0x3000` bytes. Vivado maps the physical AXI segment as
+`0x4000` because address segments must have a power-of-two size; the final
+`0x1000` bytes are reserved.
 
 IRQ-контракт:
 
@@ -59,9 +60,8 @@ IRQ-контракт:
 | SMI master | `61` |
 | SMI slave | `62` |
 | I2C master | `63` |
-| I2C slave | `64` |
-| SPI master | `65` |
-| SD controller | `66` |
+| I2C slave | `84` |
+| SPI master / SD controller | `64` |
 
 ## 3. Карта PL-регионов
 
@@ -105,9 +105,9 @@ bvstkctl pl write spi-master 0x00 0x00000001
 
 | Окно | Смещение внутри I2C BRAM | Назначение |
 |---|---:|---|
-| slave write | `0x0000` | mailbox от внешнего I2C slave path |
-| master | `0x0500` | transaction buffer master path |
-| slave read | `0x1000` | ответ slave path |
+| master | `0x0000` | transaction buffer master path |
+| slave write | `0x1000` | mailbox от внешнего I2C slave path |
+| slave read | `0x2000` | ответ slave path |
 
 ### 4.2. SMI
 

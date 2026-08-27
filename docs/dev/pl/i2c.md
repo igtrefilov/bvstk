@@ -54,13 +54,27 @@ I2C slave core предоставляет:
 | Операция | Назначение |
 |---|---|
 | `hw_init` | открыть slave MMIO и BRAM |
-| `enable_irq` | разрешить аппаратное событие |
-| `capture_irq` | снять frame size и read phase |
-| `read_frame` | прочитать mailbox из BRAM |
-| `write_read_window` | подготовить ответ для внешнего master |
+| `set_address` | записать host-facing address bitmap |
+| `clear_irq` / `capture_irq` | снять sticky IRQ flags и request header |
+| `read_frame` | прочитать header и mailbox из `BRAM + 0x1000` |
+| `write_read_window` | записать header и данные в `BRAM + 0x2000` |
+| `accept_read` | выставить `CSR.rd_valid` после подготовки ответа |
 | `clear_frame` | завершить обработку mailbox |
 
 Операции core не знают о FreeRTOS queue, task или Neutrino thread.
+
+Регистровый протокол slave из `fpga/develop`:
+
+| Offset | Read | Write |
+|---:|---|---|
+| `0x00` | busy/core state | soft reset, start, `rd_valid` |
+| `0x04` | sticky IRQ flags | clear IRQ, bit 0 |
+| `0x08` | current request header | — |
+| `0x10..0x1C` | address bitmap | address bitmap |
+
+Header имеет формат `num_bytes << 7 | phy_addr`. Write mailbox начинается с
+`0x1000`, response mailbox — с `0x2000`; response header находится первым
+словом окна, данные — со второго слова.
 
 ## 3. Device registry
 

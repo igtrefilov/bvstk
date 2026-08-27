@@ -5,15 +5,20 @@
 #include <stdint.h>
 
 /*
- * AX7020 Burevestnik PL contract exported by artifacts/fpga/design.xsa.
+ * AX7020 Burevestnik PS contract for the I2C cores in fpga/develop.
  *
  * This file is the single source of truth shared by the FreeRTOS and
  * Neutrino builds. The FreeRTOS/Xilinx port validates these constants against
  * xparameters.h in ports/freertos-xilinx/board/ax7020/bvstk_hw_validate.c.
+ * The I2C response window requires the PL BRAM range to cover 0x3000 bytes.
+ * Vivado maps the physical AXI segment as 0x4000 because segments must have
+ * a power-of-two size; the PS uses only the first 0x3000 bytes.
  */
 
 #define BVSTK_I2C_BRAM_BASE       UINT32_C(0x40000000)
-#define BVSTK_I2C_BRAM_SIZE       UINT32_C(0x00002000)
+/* Covers master [0x0000..0x0fff], slave write [0x1000..0x1fff] and
+ * slave response header/data starting at 0x2000. */
+#define BVSTK_I2C_BRAM_SIZE       UINT32_C(0x00003000)
 
 #define BVSTK_SMI_BRAM_BASE       UINT32_C(0x42000000)
 #define BVSTK_SMI_BRAM_SIZE       UINT32_C(0x00002000)
@@ -24,16 +29,16 @@
 #define BVSTK_I2C_MASTER_BASE     UINT32_C(0x43C00000)
 #define BVSTK_I2C_MASTER_SIZE     UINT32_C(0x00010000)
 
-#define BVSTK_SMI_MASTER_BASE     UINT32_C(0x43C10000)
+#define BVSTK_SMI_MASTER_BASE     UINT32_C(0x43C20000)
 #define BVSTK_SMI_MASTER_SIZE     UINT32_C(0x00010000)
 
-#define BVSTK_SMI_SLAVE_BASE      UINT32_C(0x43C20000)
+#define BVSTK_SMI_SLAVE_BASE      UINT32_C(0x43C30000)
 #define BVSTK_SMI_SLAVE_SIZE      UINT32_C(0x00010000)
 
 #define BVSTK_SPI_MASTER_BASE     UINT32_C(0x43C50000)
 #define BVSTK_SPI_MASTER_SIZE     UINT32_C(0x00010000)
 
-#define BVSTK_I2C_SLAVE_BASE      UINT32_C(0x43C40000)
+#define BVSTK_I2C_SLAVE_BASE      UINT32_C(0x43C10000)
 #define BVSTK_I2C_SLAVE_SIZE      UINT32_C(0x00010000)
 
 /*
@@ -53,12 +58,12 @@
 #define BVSTK_SD_CLOCK_DIV_DEFAULT UINT16_C(50)
 
 /*
- * PL capabilities exported by the current design.xsa.  The portable
+ * PL capabilities exported by the fpga/develop design.xsa.  The portable
  * services for the unavailable cores remain part of the PS image, but their
  * hardware backends must not be started or reached through fallback paths.
  */
 #define BVSTK_PL_HAS_SD_CONTROLLER 1
-#define BVSTK_PL_HAS_I2C_CORE      0
+#define BVSTK_PL_HAS_I2C_CORE      1
 #define BVSTK_PL_HAS_SMI_CORE      0
 #define BVSTK_PL_HAS_SPI_CORE      0
 
@@ -81,10 +86,10 @@
 #define BVSTK_IRQ_SMI_MASTER      UINT32_C(61)
 #define BVSTK_IRQ_SMI_SLAVE       UINT32_C(62)
 #define BVSTK_IRQ_I2C_MASTER      UINT32_C(63)
-#define BVSTK_IRQ_I2C_SLAVE       UINT32_C(64)
-#define BVSTK_IRQ_SPI_MASTER      UINT32_C(65)
-#define BVSTK_IRQ_SD_CONTROLLER   UINT32_C(66)
+#define BVSTK_IRQ_I2C_SLAVE       UINT32_C(84)
+#define BVSTK_IRQ_SPI_MASTER      UINT32_C(64)
+#define BVSTK_IRQ_SD_CONTROLLER   UINT32_C(64)
 
-#define BVSTK_PL_CONTRACT_VERSION UINT32_C(1)
+#define BVSTK_PL_CONTRACT_VERSION UINT32_C(2)
 
 #endif /* BVSTK_AX7020_HW_CONFIG_H */

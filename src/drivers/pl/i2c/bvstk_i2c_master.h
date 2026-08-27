@@ -12,7 +12,7 @@
 
 /* Maximum result that can fit in the master BRAM mailbox. */
 #define BVSTK_I2C_MASTER_RESULT_MAX_BYTES \
-    (BVSTK_I2C_BRAM_SIZE - BVSTK_I2C_BRAM_MASTER_OFFSET - sizeof(uint32_t))
+    (BVSTK_I2C_BRAM_MASTER_WINDOW_SIZE - sizeof(uint32_t))
 
 /* OS-independent master-side implementation of the PL I2C protocol. */
 typedef struct {

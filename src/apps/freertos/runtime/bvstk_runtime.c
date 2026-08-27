@@ -78,6 +78,7 @@ static int initialize_i2c(const i2c_device_config_t *configs,
                           size_t config_count,
                           const bvstk_event_sink_t *events)
 {
+    bvstk_i2c_device_t target_device;
     bvstk_status_t status;
 
     status = bvstk_i2c_devices_init_from_config(&s_i2c_devices,
@@ -120,7 +121,12 @@ static int initialize_i2c(const i2c_device_config_t *configs,
 
     s_i2c_ready = 1;
     if (config_count != 0U &&
+        bvstk_i2c_master_service_device_info(&s_i2c_master_service,
+                                             0U,
+                                             &target_device) == BVSTK_OK &&
         bvstk_i2c_slave_hw_init(&s_i2c_slave_hw) == BVSTK_OK &&
+        bvstk_i2c_slave_hw_set_address(&s_i2c_slave_hw,
+                                       target_device.addr_7b) == BVSTK_OK &&
         bvstk_i2c_slave_service_init(&s_i2c_slave_service,
                                      &s_i2c_devices,
                                      &s_i2c_cache,
