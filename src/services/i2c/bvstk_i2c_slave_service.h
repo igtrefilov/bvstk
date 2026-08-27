@@ -34,6 +34,8 @@ bvstk_status_t bvstk_i2c_slave_service_set_target(
     size_t target_device);
 size_t bvstk_i2c_slave_service_target(
     const bvstk_i2c_slave_service_t *service);
+void bvstk_i2c_slave_service_end_transaction(
+    bvstk_i2c_slave_service_t *service);
 
 /* Translate one hardware mailbox event into a response read window. */
 bvstk_status_t bvstk_i2c_slave_service_handle_frame(

@@ -12,7 +12,7 @@ BVSTK — программная платформа для Zynq-7000. В сос�
 | Конфигурация | JSON-конфиги сети, устройств и политик; сохранение в QSPI |
 | Диагностика | TCP-консоль, HTTP API, DCP2, PL read/write |
 | Файлы | FatFs-тома `sd:/`, `sd-pl:/` и `flash:/`, web-ресурсы |
-| Целевые ОС | FreeRTOS для полного прикладного runtime; Neutrino для `bvstkctl`, `bvstkd` и IFS |
+| Целевые ОС | FreeRTOS для полного прикладного runtime; Neutrino для I²C runtime, `bvstkctl`, `bvstkd` и IFS |
 
 ## 2. Модель выполнения
 
@@ -50,12 +50,13 @@ FreeRTOS-вариант запускается из `src/apps/freertos/main.c`. 
 
 ### 3.2. Neutrino
 
-Neutrino-сборка формирует два приложения:
+Neutrino-сборка формирует три приложения:
 
 | Приложение | Назначение |
 |---|---|
-| `bvstkctl` | локальная диагностика PL и операции I2C через командную строку |
-| `bvstkd` | DCP2-сервер на TCP-порту `8889` |
+| `i2c` | FreeRTOS-совместимые shell-команды I²C через `/dev/bvstk-i2c` |
+| `bvstkctl` | локальная диагностика PL и проксирование I²C-команд |
+| `bvstkd` | единственный владелец I²C runtime и DCP2-сервер на TCP-порту `8889` |
 
 Скрипт `scripts/neutrino/build_image.sh` добавляет приложения в IFS вместе с компонентами BSP и SSH-конфигурацией. Полный цикл описан в [руководстве по сборке](build.md) и [документе о двух ОС](multi-os.md).
 
@@ -71,7 +72,7 @@ Neutrino-сборка формирует два приложения:
 | PS SDIO | том `sd:/` |
 | PL SD SPI | том `sd-pl:/` |
 | PS QSPI NOR | том `flash:/`, конфигурация и web-файлы |
-| PL I2C | master-операции, а также slave-путь в FreeRTOS |
+| PL I2C | master-операции и slave-путь в FreeRTOS/Neutrino |
 | PL SMI | операции MDIO и политика PHY |
 | PL SPI | доступ к SPI-регистрам и пакетным операциям |
 

@@ -21,7 +21,7 @@ flowchart TD
 | документы | `./scripts/check_docs.sh` | локальные Markdown-ссылки и stale patterns |
 | общий check | `./build.sh check` | host + architecture + docs |
 | FreeRTOS | `./build.sh freertos` | Vitis platform, BSP, source view, ELF |
-| Neutrino | `./build.sh neutrino` | `bvstkctl` и `bvstkd` |
+| Neutrino | `./build.sh neutrino` | `i2c`, `bvstkctl` и `bvstkd` |
 | IFS | `./build.sh neutrino-image` | mkifs composition |
 | runtime | `./run.sh ... jtag` | PL, PS7, image и сетевые сервисы |
 
@@ -99,6 +99,7 @@ source /etc/profile.d/kpda_env_2024.sh
 ./build.sh neutrino-image
 test -x build/neutrino/bvstkctl
 test -x build/neutrino/bvstkd
+test -x build/neutrino/i2c
 test -f build/neutrino/ifs-zynq7000-ax7020-bvstk.raw
 ```
 
@@ -117,9 +118,12 @@ Neutrino:
 
 ```sh
 ./run.sh neutrino jtag
+./scripts/neutrino/verify_ssh.sh
 ```
 
-Скрипт Neutrino проверяет UART startup signature и затем выполняет `bvstkctl version` и `bvstkctl pl list` по SSH.
+Сценарий загрузки проверяет UART startup signature, а `verify_ssh.sh` затем
+выполняет по SSH `bvstkctl version`, `bvstkctl pl list`, проверяет
+`/dev/bvstk-i2c` и запускает `i2c list` через resource manager.
 
 ## 8. Проверка PL-изменений
 
@@ -141,6 +145,6 @@ Neutrino:
 | host tests | exit code `0` |
 | architecture/docs checks | exit code `0` |
 | FreeRTOS | ELF собран |
-| Neutrino | оба приложения собраны |
+| Neutrino | `i2c`, `bvstkctl` и `bvstkd` собраны |
 | IFS | image собран |
 | runtime | сервисы отвечают через предусмотренный интерфейс |

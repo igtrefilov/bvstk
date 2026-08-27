@@ -91,6 +91,9 @@ cp 2:/backup/input.bin 0:/backup/input.bin
 | `i2c <sel> policy blacklist clear` | очистить список |
 
 `<sel>` — имя устройства, 7-битный адрес или селектор `@0xNN`. Policy проверяет пару `(reg, value)`.
+Синтаксис одинаков в FreeRTOS shell и в Neutrino `/usr/bin/i2c`. В Neutrino
+команда обращается к единственному владельцу PL через `/dev/bvstk-i2c`;
+`bvstkctl i2c ...` является совместимым alias-клиентом.
 
 ## 6. SMI
 

@@ -61,14 +61,14 @@ flowchart LR
     Core --> Port[MMIO + FreeRTOS/Neutrino port]
     SlaveCore[I2C slave core] --> SlaveService[slave service]
     SlaveService --> Master
-    IRQ[FreeRTOS slave IRQ adapter] --> SlaveService
+    IRQ["FreeRTOS/Neutrino slave IRQ adapters"] --> SlaveService
 ```
 
 I2C policy проверяет пару `(register, value)`. `settings[]` хранит значения для persistence. Автополинг в I2C-модели отсутствует. Подробные регистры, mailbox и жизненный цикл описаны в [I2C](pl/i2c.md).
 
 ## 5. SMI
 
-SMI работает с адресом PHY и 5-битным регистром. Общий service поддерживает cache, policy, settings и функцию `bvstk_smi_service_poll()`. Runtime FreeRTOS и Neutrino инициализируют core/service для on-demand операций; планирование периодического poll выполняется отдельным composition-кодом, если оно требуется конкретной платформе.
+SMI работает с адресом PHY и 5-битным регистром. Общий service поддерживает cache, policy, settings и функцию `bvstk_smi_service_poll()`. В текущем Neutrino I²C-профиле SMI не инициализируется; его composition остаётся задачей отдельной реализации.
 
 Конфигурация SMI содержит `autopoll_enabled`, список регистров и задержки цикла. Эти поля относятся к SMI и остаются частью JSON-модели. Полное описание приведено в [SMI](pl/smi.md).
 
@@ -96,13 +96,13 @@ sequenceDiagram
 
 | Возможность | FreeRTOS | Neutrino |
 |---|---|---|
-| Общие I2C master services | runtime task после config store | `bvstkctl` и `bvstkd` composition |
-| I2C slave IRQ | `bvstk_i2c_slave_freertos` | отдельный adapter пока не включён в build |
-| SMI core/service | `bvstk_runtime` | `bvstkd` |
-| SPI core | `bvstk_runtime` + shell | `bvstkd` |
+| Общие I2C master services | runtime task после config store | process-lifetime runtime в `bvstkd` |
+| I2C slave IRQ | `bvstk_i2c_slave_freertos` | `bvstk_i2c_slave_neutrino`, IRQ thread `84` |
+| SMI core/service | `bvstk_runtime` | не включён в текущий профиль |
+| SPI core | `bvstk_runtime` + shell | не включён в текущий профиль |
 | SD core | FreeRTOS FatFs `diskio` | пока не включён |
 | MMIO/sync | `src/ports/freertos-xilinx` | `src/ports/neutrino-zynq7000` |
-| Внешние поверхности | TCP, SSH, HTTP, DCP2 | CLI и DCP2 daemon |
+| Внешние поверхности | TCP, SSH, HTTP, DCP2 | `/usr/bin/i2c`, `bvstkctl`, `/dev/bvstk-i2c`, DCP2 daemon |
 
 Приложение Neutrino компилирует общий код явным списком в `scripts/neutrino/build.sh`. FreeRTOS получает source roots из `scripts/vitis/build.tcl`.
 

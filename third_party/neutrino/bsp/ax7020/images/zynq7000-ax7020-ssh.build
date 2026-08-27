@@ -52,7 +52,7 @@
     devb-loopback blk cache=128k,auto=none loopback rw,sync,blksz=512,prefix=sd,fd=/dev/bvstk-sd-fat &
     waitfor /dev/sd0 5
     display_msg Mounting PS SD FAT volume at /sd...
-    mount -t dos /dev/sd0 /sd
+    mount -t dos /dev/sd0 /sd &
 
     #######################################################################
     ## SPI driver - not started by default, no SPI devices on board
@@ -122,6 +122,13 @@
     #display_msg Obtaining DHCP network address...
     #if_up -p -a xzynq0
     #dhcp.client -i xzynq0
+
+    #######################################################################
+    ## Burevestnik PL I2C bridge
+    #######################################################################
+    display_msg Starting Burevestnik PL I2C runtime...
+    /usr/bin/bvstkd &
+    waitfor /dev/bvstk-i2c 5
 
     #######################################################################
     ## Pseudo-terminals for interactive SSH sessions

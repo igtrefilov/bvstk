@@ -14,7 +14,7 @@ flowchart TB
     SlaveService[Slave service]
     MasterCore[PL I2C master core]
     SlaveCore[PL I2C slave core]
-    Port[MMIO / sync / FreeRTOS IRQ adapter]
+    Port["MMIO / sync / FreeRTOS + Neutrino IRQ adapters"]
     Surface --> MasterService
     Devices --> MasterService
     Cache --> MasterService
@@ -34,6 +34,7 @@ flowchart TB
 | master service | `src/services/i2c/bvstk_i2c_master_service.*` | связывает core, device, cache и policy |
 | slave service | `src/services/i2c/bvstk_i2c_slave_service.*` | mailbox protocol и ответы из cache |
 | FreeRTOS adapter | `src/ports/freertos-xilinx/os/i2c/` | ISR, queue и worker task |
+| Neutrino adapter | `src/ports/neutrino-zynq7000/os/i2c/` | IRQ thread `84` и resource-manager runtime |
 
 ## 2. Hardware core
 
@@ -163,16 +164,14 @@ Slave service поддерживает состояние выбранного �
 sequenceDiagram
     participant Bus as внешний I2C master
     participant PL as slave core
-    participant ISR as FreeRTOS ISR
-    participant Queue as event queue
-    participant Worker as worker task
+    participant IRQ as OS IRQ adapter
+    participant Worker as worker/task thread
     participant Service as slave service
     participant Cache
 
     Bus->>PL: write mailbox
-    PL->>ISR: IRQ
-    ISR->>Queue: frame_size + read_phase
-    Queue->>Worker: event
+    PL->>IRQ: IRQ
+    IRQ->>Worker: captured mailbox event
     Worker->>PL: read_frame
     Worker->>Service: handle_frame
     Service->>Cache: read/update
@@ -180,7 +179,11 @@ sequenceDiagram
     Worker->>PL: write_read_window + clear_frame
 ```
 
-FreeRTOS adapter находится в `src/ports/freertos-xilinx/os/i2c/`. Neutrino build сейчас использует common master/service набор; отдельный Neutrino slave IRQ adapter в `scripts/neutrino/build.sh` не подключён.
+FreeRTOS adapter находится в `src/ports/freertos-xilinx/os/i2c/`. Neutrino
+adapter находится в `src/ports/neutrino-zynq7000/os/i2c/`: отдельный поток
+подключает IRQ `84` через `InterruptAttachEvent()`, ожидает его через
+`InterruptWait()`, обрабатывает mailbox и вызывает `InterruptUnmask()`.
+Операции slave, shell и DCP2 сериализуются одним runtime state mutex.
 
 ## 8. FreeRTOS runtime
 
@@ -193,6 +196,12 @@ FreeRTOS adapter находится в `src/ports/freertos-xilinx/os/i2c/`. Neut
 5. запуск slave core/service/adapter при успешной инициализации.
 
 Read/write operations доступны через `bvstk_runtime_i2c_master_service()` после готовности service.
+
+Neutrino использует process-lifetime runtime внутри `bvstkd`. Только daemon
+владеет MMIO master/slave/BRAM; `/usr/bin/i2c` и `bvstkctl i2c` обращаются к
+нему через `/dev/bvstk-i2c`. Конфигурация загружается из
+`/flash/config/i2c`, затем из legacy `/flash/configs/i2c`, затем из embedded
+defaults.
 
 ## 9. Конфигурация
 
@@ -225,9 +234,9 @@ i2c axp15060 w 0x13 0x10
 
 | Симптом | Проверка |
 |---|---|
-| `I2C not ready` | `config_store`, mount QSPI и время runtime task |
+| `I2C not ready` | `config_store`, mount QSPI и время runtime task/daemon |
 | `device not found` | имя, адрес и загруженный JSON |
 | `DENIED` | активная policy и пара `(reg,val)` |
 | `timeout` | XSA/bitstream, адрес core, PL clock и transaction state |
-| slave event отсутствует | IRQ `64`, FreeRTOS adapter и BRAM mailbox |
+| slave event отсутствует | IRQ `84`, соответствующий OS adapter и BRAM mailbox |
 | policy отображается пустой | использовать `policy show rules` или `policy whitelist/blacklist` для списка |

@@ -93,7 +93,7 @@ i2c axp15060 w 0x13 0x10
 
 | Ошибка | Причина для проверки |
 |---|---|
-| `I2C not ready` | runtime task ещё ждёт config store или core init |
+| `I2C not ready` | FreeRTOS runtime ещё ждёт config store/core init или Neutrino `bvstkd` не запустил I²C runtime |
 | `device not found` | имя/address отсутствует в активной модели |
 | `DENIED by policy` | пара `(reg,val)` отсутствует в whitelist или входит в blacklist |
 | `WRITE_FAILED` | hardware timeout, XSA/bitstream или QSPI save |

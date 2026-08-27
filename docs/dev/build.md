@@ -8,7 +8,7 @@
 |---|---|
 | `./build.sh check` | host-тесты, проверка архитектурных ограничений и документации |
 | `./build.sh freertos` | FreeRTOS ELF `vitis_ws/app_bvstk/Debug/app_bvstk.elf` |
-| `./build.sh neutrino` | приложения `build/neutrino/bvstkctl` и `build/neutrino/bvstkd` |
+| `./build.sh neutrino` | приложения `build/neutrino/i2c`, `bvstkctl` и `bvstkd` |
 | `./build.sh neutrino-image` | Neutrino IFS `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` |
 | `./build.sh all` | FreeRTOS ELF и Neutrino IFS последовательно |
 
@@ -28,7 +28,7 @@ flowchart LR
     XSA --> Vitis[scripts/vitis/build.sh]
     Vitis --> ELF[vitis_ws/.../app_bvstk.elf]
     XSA --> NBuild[scripts/neutrino/build.sh]
-    NBuild --> Apps[build/neutrino/bvstkctl + bvstkd + bvstk-qspi-fat]
+    NBuild --> Apps[build/neutrino/i2c + bvstkctl + bvstkd + bvstk-qspi-fat]
     Apps --> Image[scripts/neutrino/build_image.sh]
     NBuild --> Image
     Image --> IFS[build/neutrino/*.raw]
@@ -157,7 +157,7 @@ source /etc/profile.d/kpda_env_2024.sh
 ./build.sh neutrino-image
 ```
 
-`scripts/neutrino/build.sh` компилирует `bvstkctl`, `bvstkd` и QSPI resource
+`scripts/neutrino/build.sh` компилирует `i2c`, `bvstkctl`, `bvstkd` и QSPI resource
 manager `bvstk-qspi-fat` из общего набора PL cores, сервисов, control API и
 DCP2. `scripts/neutrino/build_image.sh` выполняет дополнительные операции:
 
@@ -171,7 +171,7 @@ sequenceDiagram
 
     Build->>Keys: создать host key и authorized_keys
     Build->>Build: подготовить root.shadow
-    Build->>Apps: собрать bvstkctl, bvstkd и bvstk-qspi-fat
+    Build->>Apps: собрать i2c, bvstkctl, bvstkd и bvstk-qspi-fat
     Build->>BSP: взять install tree и base .build
     Build->>Mkifs: добавить приложения и параметры SSH
     Mkifs-->>Build: создать IFS
@@ -206,6 +206,7 @@ sequenceDiagram
 test -x vitis_ws/app_bvstk/Debug/app_bvstk.elf
 test -x build/neutrino/bvstkctl
 test -x build/neutrino/bvstkd
+test -x build/neutrino/i2c
 test -f build/neutrino/ifs-zynq7000-ax7020-bvstk.raw
 ```
 

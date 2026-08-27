@@ -19,6 +19,7 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
   "$REPO_ROOT/src/shared/base/bvstk_parse.c" \
   "$REPO_ROOT/src/shared/base/bvstk_status.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
   "$REPO_ROOT/src/shared/pl/access/bvstk_pl_service.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_cache.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \

@@ -15,6 +15,7 @@
 #include "protocols/dcp2/bvstk_dcp2_control.h"
 #include "shared/base/bvstk_parse.h"
 #include "shared/base/bvstk_status.h"
+#include "shared/config/bvstk_i2c_config_codec.h"
 #include "shared/config/bvstk_config_model.h"
 #include "shared/events/bvstk_event.h"
 #include "shared/interfaces/bvstk_mmio.h"
@@ -186,6 +187,53 @@ int bvstk_mmio_write32(const bvstk_mmio_region_t *region,
     return 0;
 }
 
+static int test_i2c_config_codec(void)
+{
+    static const char source[] =
+        "{\n"
+        "  \"name\": \"axp15060\",\n"
+        "  \"addr_7b\": 54,\n"
+        "  \"reg_count\": 74,\n"
+        "  \"max_value_code\": 64,\n"
+        "  \"policy\": \"whitelist\",\n"
+        "  \"whitelist\": [{\"reg\":19,\"val\":16}],\n"
+        "  \"blacklist\": [],\n"
+        "  \"settings\": [{\"reg\":19,\"val\":17}]\n"
+        "}\n";
+    i2c_device_config_t config;
+    i2c_device_config_t decoded;
+    char json[4096];
+    size_t json_size = 0U;
+
+    CHECK(bvstk_i2c_config_parse_json(source, &config) == BVSTK_OK);
+    CHECK(strcmp(config.name, "axp15060") == 0 &&
+          config.addr_7b == 0x36U && config.reg_count == 74U &&
+          config.max_value_code == 64U &&
+          config.policy == I2C_POLICY_WHITELIST &&
+          config.whitelist_len == 1U && config.blacklist_len == 0U &&
+          config.settings_len == 1U);
+    CHECK(bvstk_i2c_config_serialize_json(&config,
+                                          json,
+                                          sizeof(json),
+                                          &json_size) == BVSTK_OK);
+    CHECK(json_size != 0U && json_size == strlen(json));
+    CHECK(bvstk_i2c_config_parse_json(json, &decoded) == BVSTK_OK);
+    CHECK(decoded.addr_7b == config.addr_7b &&
+          decoded.whitelist_len == config.whitelist_len &&
+          decoded.whitelist[0].reg == 19U &&
+          decoded.whitelist[0].val == 16U &&
+          decoded.settings_len == 1U &&
+          decoded.settings[0].val == 17U);
+
+    config.whitelist[0].reg = 74U;
+    CHECK(bvstk_i2c_config_validate(&config) == BVSTK_ERR_RANGE);
+    CHECK(bvstk_i2c_config_parse_json(
+              "{\"name\":\"bad\",\"addr_7b\":128,\"reg_count\":1,"
+              "\"max_value_code\":1,\"policy\":\"blacklist\"}",
+              &decoded) == BVSTK_ERR_MALFORMED);
+    return 0;
+}
+
 int main(void)
 {
     const bvstk_pl_region_desc_t *spi;
@@ -246,6 +294,7 @@ int main(void)
     bvstk_control_api_t control = {0};
     size_t response_size = 0U;
 
+    CHECK(test_i2c_config_codec() == 0);
     CHECK(strcmp(bvstk_status_string(BVSTK_ERR_TIMEOUT), "timeout") == 0);
     CHECK(parse_num("42", &ok) == 42UL && ok);
     CHECK(parse_num("0x2a", &ok) == 42UL && ok);
@@ -348,7 +397,26 @@ int main(void)
                                                    sizeof(response),
                                                    &read_window_size,
                                                    10U) == BVSTK_OK);
-        CHECK(read_window_size != 0U && response[0] == 0xA5U);
+        CHECK(read_window_size == 0U);
+        CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                                                   NULL,
+                                                   0U,
+                                                   1U,
+                                                   response,
+                                                   sizeof(response),
+                                                   &read_window_size,
+                                                   10U) == BVSTK_OK);
+        CHECK(read_window_size == 1U && response[0] == 0xA5U);
+        bvstk_i2c_slave_service_end_transaction(&i2c_slave_service);
+        CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                                                   NULL,
+                                                   0U,
+                                                   1U,
+                                                   response,
+                                                   sizeof(response),
+                                                   &read_window_size,
+                                                   10U) == BVSTK_OK);
+        CHECK(read_window_size == 0U);
     }
     bvstk_i2c_slave_service_shutdown(&i2c_slave_service);
 

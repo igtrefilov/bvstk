@@ -13,7 +13,7 @@ flowchart TB
     COMMON --> FRT["FreeRTOS + Xilinx BSP"]
     COMMON --> NTO["Neutrino + Zynq7000 BSP"]
     FRT --> ELF["app_bvstk.elf"]
-    NTO --> BIN["bvstkctl + bvstkd + IFS"]
+    NTO --> BIN["i2c + bvstkctl + bvstkd + IFS"]
 ```
 
 ## 2. Общие слои
@@ -39,9 +39,9 @@ flowchart TB
 | MMIO | Xilinx MMIO и platform adapter | `ThreadCtl` + `mmap_device_memory` |
 | sync | FreeRTOS mutex/semaphore | POSIX/Neutrino synchronization |
 | build | XSCT/Vitis | `qcc` + `mkifs` |
-| primary output | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | `build/neutrino/bvstkctl`, `bvstkd` |
+| primary output | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | `build/neutrino/i2c`, `bvstkctl`, `bvstkd` |
 | boot artifact | JTAG ELF flow | `ifs-zynq7000-ax7020-bvstk.raw` |
-| standard services | storage, LAN, shell, SSH, HTTP, DCP2, PL runtime | `bvstkctl`, `bvstkd`, DCP2 |
+| standard services | storage, LAN, shell, SSH, HTTP, DCP2, PL runtime | `i2c`, `bvstkctl`, `bvstkd`, DCP2 |
 
 ## 4. PL reuse
 
@@ -49,11 +49,9 @@ flowchart TB
 flowchart LR
     I2C["I²C raw cores"] --> IS["I²C services\ndevices/cache/policy/master/slave"]
     IS --> FR["FreeRTOS\nmaster + slave adapter"]
-    IS --> NT["Neutrino\nmaster + control API"]
+    IS --> NT["Neutrino\nmaster + slave IRQ + config store"]
     SMI["SMI core + service"] --> FRSMI["FreeRTOS runtime"]
-    SMI --> NTSMI["Neutrino bvstkd"]
     SPI["SPI core"] --> FRSPI["FreeRTOS runtime"]
-    SPI --> NTSPI["Neutrino bvstkd"]
 ```
 
 OS-specific code owns scheduling, IRQ attachment, memory mapping and lifetime.

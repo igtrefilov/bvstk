@@ -1,6 +1,6 @@
 # Neutrino: сборка, IFS и JTAG
 
-Скрипты каталога собирают приложения `bvstkctl` и `bvstkd`, формируют IFS для
+Скрипты каталога собирают приложения `i2c`, `bvstkctl` и `bvstkd`, формируют IFS для
 AX7020 и выполняют JTAG-загрузку с последующей SSH-проверкой. Образ также
 подключает PS SD и существующий FatFs-совместимый QSPI-том как Neutrino-пути
 `/sd:` и `/flash:`.
@@ -29,13 +29,21 @@ source /etc/profile.d/kpda_env_2024.sh
 
 | Файл | Назначение |
 |---|---|
+| `build/neutrino/i2c` | FreeRTOS-совместимая I2C shell-команда |
 | `build/neutrino/bvstkctl` | CLI для PL и сервисов |
-| `build/neutrino/bvstkd` | DCP2 daemon на TCP `8889` |
+| `build/neutrino/bvstkd` | владелец PL I2C runtime и DCP2 daemon на TCP `8889` |
 | `build/neutrino/bvstk-qspi-fat` | resource manager для FatFs-совместимого QSPI-окна |
 | `build/neutrino/*.o` | производные object files |
 
 `build.sh` компилирует common drivers/services/protocols и Neutrino ports
-явным списком `COMMON_SOURCES`, а также отдельный QSPI resource manager.
+явным списком `COMMON_SOURCES`, генерирует embedded I2C defaults, а также
+собирает I2C, QSPI и SD resource-manager части.
+
+После монтирования `/flash` образ запускает `bvstkd`. Он загружает
+`/flash/config/i2c/*.json` (legacy fallback `/flash/configs/i2c`), поднимает
+PL master/slave, подключает slave IRQ `84` и создаёт `/dev/bvstk-i2c`.
+Стандартный `i2c-xzynq` не запускается: он обслуживает PS I2C-контроллеры и
+не относится к разорванной PL-шине Host → slave → BRAM → master → PHY.
 
 ## 3. Формирование IFS
 
@@ -44,7 +52,7 @@ flowchart TD
     BSP[AX7020 BSP install + base .build]
     Keys[host key + authorized_keys]
     Shadow[root.shadow]
-    Apps[bvstkctl + bvstkd]
+    Apps[i2c + bvstkctl + bvstkd]
     Mkifs[mkifs]
     IFS[ifs-zynq7000-ax7020-bvstk.raw]
 
@@ -103,10 +111,22 @@ keys и shadow-файл относятся к локальным произво�
 
 ```sh
 ssh -i build/neutrino/ax7020_ssh_client \
-  root@<device-ip> '/usr/bin/bvstkctl version && /usr/bin/bvstkctl pl list'
+  root@<device-ip> '/usr/bin/bvstkctl version && /usr/bin/bvstkctl pl list && test -c /dev/bvstk-i2c && /usr/bin/i2c list'
 ```
 
 ## 6. Диагностика
+
+После загрузки:
+
+```sh
+ls -l /dev/bvstk-i2c
+i2c list
+i2c axp15060 info
+i2c axp15060 r 0x13
+i2c axp15060 w 0x13 0x10
+i2c axp15060 policy show rules
+cat /flash/config/i2c/axp15060.json
+```
 
 | Симптом | Проверка |
 |---|---|
@@ -116,3 +136,4 @@ ssh -i build/neutrino/ax7020_ssh_client \
 | SSH не принимает ключ | сравнить `SSH_IDENTITY` и injected `authorized_keys` |
 | пароль root не подходит | передать корректный `NEUTRINO_ROOT_SHADOW_FILE` |
 | IFS не создаётся | проверить `build/neutrino/*.build` и mkifs log |
+| `/dev/bvstk-i2c` отсутствует | проверить startup log `bvstkd`, IRQ/MMIO contract и JSON в `/flash/config/i2c` |

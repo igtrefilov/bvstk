@@ -93,10 +93,10 @@ SMI policy работает на уровне номера регистра:
 
 | Возможность | FreeRTOS | Neutrino |
 |---|---|---|
-| общий SMI core | `bvstk_runtime` | `bvstkd` |
-| общий SMI service | `bvstk_runtime` | `bvstkd` |
+| общий SMI core | `bvstk_runtime` | не включён в текущий Neutrino I²C-профиль |
+| общий SMI service | `bvstk_runtime` | не включён в текущий Neutrino I²C-профиль |
 | legacy task flow | исходники сохранены, `start_smi()` отключён | не входит в build |
-| DCP2 read/write | общий runtime service | `bvstkd` service |
+| DCP2 read/write | общий runtime service | не включён в текущий профиль |
 | HTTP diag | legacy compatibility path | отсутствует в `bvstkd` |
 
 ## 7. Shell и конфигурация

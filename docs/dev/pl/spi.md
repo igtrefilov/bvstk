@@ -91,7 +91,8 @@ DCP2 service `SPI` использует opcode `SPI_TRANSFER`. Body содерж
 
 `bvstk_runtime` создаёт mutex и инициализирует common SPI core. Shell получает core через `bvstk_runtime_spi_core()`. Legacy adapter остаётся доступным для совместимых участков приложения.
 
-Neutrino `bvstkd` создаёт common SPI core с default config и передаёт его в `bvstk_control_api_t`.
+Текущий Neutrino I²C-профиль не создаёт SPI core в `bvstkd`; для включения SPI
+нужен отдельный composition profile с соответствующими capability flags.
 
 ## 6. Диагностика
 

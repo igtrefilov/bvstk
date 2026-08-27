@@ -17,8 +17,8 @@ nc -vz <device-ip> 8889
 | PING | да | да |
 | MEM | да, 8/16/32/64-bit и allowlist | да, общий PL region control |
 | I2C read/write/policy | да | да |
-| SMI read/write | да | да |
-| SPI transfer | `ERR_UNSUPPORTED` в обычном request path | да |
+| SMI read/write | да | не включено в текущий Neutrino I²C-профиль |
+| SPI transfer | `ERR_UNSUPPORTED` в обычном request path | не включено в текущий профиль |
 | NOTIFY subscribe | да | профиль не подключён |
 | PL stream control | control state | профиль не подключён |
 

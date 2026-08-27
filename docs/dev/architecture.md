@@ -101,22 +101,27 @@ sequenceDiagram
 
 ## 4. Startup Neutrino
 
-Neutrino собирает `bvstkctl` и `bvstkd` из явного списка исходников. Оба
-используют common PL cores/services и Neutrino ports.
+Neutrino собирает `i2c`, `bvstkctl` и `bvstkd` из явного списка исходников.
+Общие I²C cores/services и Neutrino ports используются единым process-lifetime
+runtime внутри `bvstkd`.
 
 ```mermaid
 flowchart LR
     BSP["Zynq7000 BSP"] --> IFS["mkifs"]
     COMMON["common drivers/services/protocols"] --> CTL["bvstkctl"]
+    COMMON --> CLI["i2c"]
     COMMON --> DAEMON["bvstkd"]
     CTL --> IFS
+    CLI --> IFS
     DAEMON --> IFS
     IFS --> JTAG["JTAG → DDR → start"]
     DAEMON --> DCP2["DCP2 TCP 8889"]
 ```
 
-`bvstkctl` предназначен для командной проверки PL и control API. `bvstkd`
-поднимает DCP2-сервис на порту `8889`. Сетевые и файловые runtime-сервисы
+`bvstkctl` предназначен для командной проверки PL и запуска I²C-команд через
+IPC. Отдельный `i2c` повторяет grammar FreeRTOS shell и обращается к владельцу
+I²C через `/dev/bvstk-i2c`. `bvstkd` владеет PL I²C master/slave, конфигурацией,
+slave IRQ и DCP2-сервисом на порту `8889`. Сетевые и файловые runtime-сервисы
 FreeRTOS в Neutrino image не включаются.
 
 ## 5. Control surfaces
@@ -165,9 +170,9 @@ legacy layout используется как fallback и источник ми�
 
 | Подсистема | Common code | FreeRTOS runtime | Neutrino |
 |---|---|---|---|
-| I²C | raw master/slave, device/cache/policy/services | master service + slave IRQ/task adapter | master service и control API |
-| SMI | raw core и service, policy, cache, polling API | runtime service через `bvstk_runtime` | core/service в `bvstkd` |
-| SPI | transfer core | runtime shell и mutex | core в `bvstkd` |
+| I²C | raw master/slave, device/cache/policy/services | master service + slave IRQ/task adapter | единый `bvstkd` runtime, slave IRQ thread, `/dev/bvstk-i2c`, CLI и DCP2 |
+| SMI | raw core и service, policy, cache, polling API | runtime service через `bvstk_runtime` | не запускается текущим Neutrino I²C-профилем |
+| SPI | transfer core | runtime shell и mutex | не запускается текущим Neutrino I²C-профилем |
 
 Детальная граница PS ↔ PL приведена в [pl-cores.md](pl-cores.md), а board-level
 контракт — в [hardware-platform.md](hardware-platform.md).

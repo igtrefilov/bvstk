@@ -33,7 +33,7 @@ src/
 │   └── neutrino-zynq7000/           Neutrino/POSIX/Zynq
 ├── apps/                            composition roots
 │   ├── freertos/                    ELF, tasks, shell and network services
-│   └── neutrino/                    bvstkctl and bvstkd
+│   └── neutrino/                    i2c, bvstkctl and bvstkd
 └── vendor/lwip/                     project-maintained lwIP extensions
 ```
 
@@ -97,13 +97,15 @@ hardware map и Neutrino ports. FreeRTOS application, lwIP, FatFs и Xilinx BSP 
 ```mermaid
 flowchart LR
     COMMON["drivers + services + protocols\nshared + hardware"] --> CTL["bvstkctl"]
+    COMMON --> CLI["i2c client"]
     COMMON --> DAEMON["bvstkd"]
     NPORT["ports/neutrino-zynq7000"] --> CTL
     NPORT --> DAEMON
 ```
 
 IRQ-driven фоновые сервисы Neutrino требуют отдельного владельца MMIO —
-resource manager или daemon. Process model Neutrino задаёт собственную
+resource manager или daemon. В проекте `bvstkd` владеет I²C runtime, а `i2c`
+и `bvstkctl` используют его через resource-manager node. Process model Neutrino задаёт собственную
 оркестрацию; FreeRTOS task model переносится на уровень контрактов, а не на
 уровень системных вызовов.
 
@@ -127,9 +129,13 @@ resource manager или daemon. Process model Neutrino задаёт собств
 |---|---|
 | `src/apps/freertos/main.c` | FreeRTOS startup |
 | `src/apps/freertos/runtime/bvstk_runtime.c` | composition common PL services |
+| `src/apps/neutrino/config/` | Neutrino I²C config store and persistence |
+| `src/apps/neutrino/runtime/` | process-lifetime Neutrino I²C runtime |
+| `src/apps/neutrino/i2c/` | I²C IPC resource manager and clients |
 | `src/drivers/pl/i2c/` | raw I²C master/slave |
 | `src/services/i2c/` | I²C devices/cache/policy/services |
 | `src/ports/freertos-xilinx/os/i2c/` | FreeRTOS I²C ISR/task adapter |
+| `src/ports/neutrino-zynq7000/os/i2c/` | Neutrino I²C IRQ-thread adapter |
 | `src/hardware/boards/ax7020/` | board map |
 | `src/protocols/dcp2/` | portable DCP2 codec/control |
 | `tests/host/` | host-level regression tests |

@@ -146,6 +146,10 @@ static void slave_task(void *argument)
                                         read_window,
                                         sizeof(read_window));
         }
+        if ((event.irq_flags & (BVSTK_I2C_SLV_IRQ_FINAL_PACKET |
+                                BVSTK_I2C_SLV_IRQ_ERR_ACK)) != 0U) {
+            bvstk_i2c_slave_service_end_transaction(adapter->service);
+        }
         (void)status;
     }
 }

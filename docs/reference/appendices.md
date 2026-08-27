@@ -59,7 +59,7 @@ FreeRTOS SSH предоставляет shell через wolfSSH. Neutrino SSH �
 | `src/protocols/` | wire-format и протокольные адаптеры |
 | `src/ports/` | OS/BSP adapters |
 | `src/apps/freertos/` | FreeRTOS composition root, shell, HTTP, DCP2 и storage |
-| `src/apps/neutrino/` | `bvstkctl`, `bvstkd` и Neutrino composition roots |
+| `src/apps/neutrino/` | `i2c`, `bvstkctl`, `bvstkd` и Neutrino composition roots |
 | `configs/` | исходные JSON-файлы конфигурации |
 | `scripts/` | сборка, запуск, проверки и диагностические утилиты |
 | `web/` | Web UI и средства загрузки статики |
@@ -76,6 +76,7 @@ FreeRTOS SSH предоставляет shell через wolfSSH. Neutrino SSH �
 | Bitstream | `artifacts/fpga/design.bit` | программирование PL |
 | FreeRTOS ELF | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | приложение FreeRTOS |
 | Neutrino control utility | `build/neutrino/bvstkctl` | локальное управление PL через SSH |
+| Neutrino I²C client | `build/neutrino/i2c` | FreeRTOS-совместимые I²C-команды через `/dev/bvstk-i2c` |
 | Neutrino daemon | `build/neutrino/bvstkd` | DCP2 daemon на порту `8889` |
 | Neutrino IFS | `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` | загрузочный образ Neutrino |
 

@@ -23,7 +23,7 @@ SSH_OPTIONS=(
 
 for attempt in $(seq 1 30); do
   if ssh "${SSH_OPTIONS[@]}" "$SSH_USER@$DEVICE_IP" \
-      '/usr/bin/bvstkctl version && /usr/bin/bvstkctl pl list'; then
+      '/usr/bin/bvstkctl version && /usr/bin/bvstkctl pl list && test -c /dev/bvstk-i2c && /usr/bin/i2c list'; then
     exit 0
   fi
   sleep 1

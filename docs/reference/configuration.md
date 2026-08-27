@@ -147,7 +147,12 @@ sequenceDiagram
     Store->>Flash: save JSON
 ```
 
-Операцию следует считать сохранённой после проверки `saved` в HTTP-ответе или после чтения файла через shell. Для I2C запись регистра через DCP2 синхронизирует settings; HTTP diagnostic write обновляет runtime-модель без отдельного `save`.
+Операцию следует считать сохранённой после проверки `saved` в HTTP-ответе или после чтения файла через shell. Для I2C запись регистра через DCP2 синхронизирует settings и в FreeRTOS, и в Neutrino; HTTP diagnostic write обновляет runtime-модель без отдельного `save`.
+
+В Neutrino canonical-каталог имеет POSIX-путь `/flash/config/i2c`, legacy
+fallback — `/flash/configs/i2c`. Если оба каталога не содержат валидных
+файлов, `bvstkd` загружает embedded defaults из `configs/i2c` и создаёт
+canonical JSON.
 
 ## 8. Диагностика
 
@@ -159,4 +164,4 @@ cat flash:/config/i2c/axp15060.json
 cat flash:/config/smi/lan8720.json
 ```
 
-Если runtime использует defaults, сравните primary и legacy каталоги с source-файлами в `configs/`, затем пересоберите FreeRTOS для обновления embedded header.
+Если runtime использует defaults, сравните primary и legacy каталоги с source-файлами в `configs/`, затем пересоберите соответствующий target: `build.sh freertos` обновляет FreeRTOS embedded header, а `build.sh neutrino` генерирует Neutrino `default_configs.h`.

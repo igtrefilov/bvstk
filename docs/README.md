@@ -46,7 +46,7 @@ flowchart LR
 | [SD через PL](dev/sd-card.md) | SD SPI controller, FreeRTOS port и FatFs |
 | [I²C](dev/pl/i2c.md) | raw cores, services, cache, policy и адаптеры |
 | [SMI](dev/pl/smi.md) | MDIO core, policy и polling |
-| [SPI](dev/pl/spi.md) | transfer core и runtime |
+| [SPI](dev/pl/spi.md) | transfer core и FreeRTOS runtime |
 | [FreeRTOS SSH](dev/freertos-ssh.md) | сборка и подключение SSH-консоли |
 | [Тестирование](dev/testing.md) | host-тесты, архитектурные проверки и smoke-тесты |
 | [Build scripts](../scripts/README.md) | карта скриптов FPGA, Vitis, Neutrino и VSCode |

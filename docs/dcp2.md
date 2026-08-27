@@ -7,7 +7,7 @@ DCP2 — бинарный протокол управления BVSTK повер
 | Профиль | Реализация | Порт | Возможности |
 |---|---|---:|---|
 | FreeRTOS | `src/apps/freertos/services/dcp2/dcp2_server.c` | `8889` | PING, MEM, I2C, SMI, NOTIFY, stream control |
-| Neutrino | `src/apps/neutrino/bvstkd/main.c` + `src/protocols/dcp2/` | `8889` | PING, MEM, I2C, SMI, SPI |
+| Neutrino | `src/apps/neutrino/bvstkd/main.c` + `src/protocols/dcp2/` | `8889` | PING, MEM, I2C |
 | host codec | `src/protocols/dcp2/bvstk_dcp2_codec.c` | — | encode/decode и status mapping |
 
 Версия wire-протокола — `2`. Клиент выбирает профиль по фактическому набору поддержанных service/opcode. Сервер возвращает `ERR_UNSUPPORTED` для операции, отсутствующей в его profile.
@@ -179,7 +179,10 @@ Response data при `OK` — один байт значения.
 | `1` | 1 | `reg` |
 | `2` | 1 | `value` |
 
-Запись проходит через I2C master service и policy. Успешная FreeRTOS-операция синхронизируется с persistent config; Neutrino `bvstkd` использует общий control API.
+Запись проходит через I2C master service и policy. Успешная операция в
+FreeRTOS и Neutrino синхронизирует cache/settings с persistent config;
+Neutrino `bvstkd` выполняет DCP2 и slave IRQ через тот же сериализованный
+runtime.
 
 ### 8.3. POLICY_SET
 
@@ -214,9 +217,12 @@ Response data при `OK` — `value:u16` big-endian.
 | `1` | 1 | `reg` |
 | `2` | 2 | `value:u16` |
 
-SMI policy проверяет регистр. FreeRTOS server сначала использует общий SMI service при его готовности, затем сохраняет legacy fallback path для совместимых runtime-веток. Neutrino `bvstkd` вызывает общий service напрямую.
+SMI policy проверяет регистр. FreeRTOS server сначала использует общий SMI service при его готовности, затем сохраняет legacy fallback path для совместимых runtime-веток. Текущий Neutrino I²C-профиль не поднимает SMI service, поэтому SMI-запросы через его DCP2 endpoint не являются поддержанной операцией.
 
 ## 10. SPI
+
+Текущий Neutrino I²C-профиль не поднимает SPI core в `bvstkd`; описание ниже
+относится к portable control handler и профилям, где SPI composition включён.
 
 ### Neutrino control profile
 

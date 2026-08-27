@@ -18,7 +18,8 @@ static bvstk_status_t load_window(bvstk_i2c_slave_service_t *service,
                                   uint8_t reg,
                                   uint8_t *window,
                                   size_t capacity,
-                                  size_t *size)
+                                  size_t *size,
+                                  uint32_t timeout_ms)
 {
     bvstk_i2c_device_t device;
     size_t count;
@@ -32,18 +33,37 @@ static bvstk_status_t load_window(bvstk_i2c_slave_service_t *service,
     if (reg >= device.reg_count || window == NULL || size == NULL) {
         return BVSTK_ERR_RANGE;
     }
-    count = (size_t)device.reg_count - reg;
-    if (count > capacity) {
-        count = capacity;
-    }
-    for (i = 0U; i < count; ++i) {
-        status = bvstk_i2c_cache_read(service->cache,
-                                      device_id,
-                                      (uint8_t)(reg + i),
-                                      &window[i]);
+    count = 0U;
+    for (i = 0U;
+         i < capacity && (size_t)reg + i < device.reg_count;
+         ++i) {
+        if (bvstk_i2c_cache_is_valid(
+                service->cache,
+                device_id,
+                (uint8_t)((size_t)reg + i)) &&
+            bvstk_i2c_cache_read(service->cache,
+                                 device_id,
+                                 (uint8_t)((size_t)reg + i),
+                                 &window[i]) == BVSTK_OK) {
+            ++count;
+            continue;
+        }
+        /* Do not turn one host read into a burst of slow PHY transactions.
+         * Fetch one missing byte; the PL core raises RD_REQUEST again if the
+         * external master continues reading past this short window. */
+        if (i != 0U) {
+            break;
+        }
+        status = bvstk_i2c_master_service_read(service->master,
+                                                device_id,
+                                                reg,
+                                                &window[0],
+                                                timeout_ms);
         if (status != BVSTK_OK) {
             return status;
         }
+        count = 1U;
+        break;
     }
     *size = count;
     return BVSTK_OK;
@@ -100,6 +120,14 @@ size_t bvstk_i2c_slave_service_target(
                : 0U;
 }
 
+void bvstk_i2c_slave_service_end_transaction(
+    bvstk_i2c_slave_service_t *service)
+{
+    if (service_status(service) == BVSTK_OK) {
+        service->read_armed[service->target_device] = 0U;
+    }
+}
+
 bvstk_status_t bvstk_i2c_slave_service_handle_frame(
     bvstk_i2c_slave_service_t *service,
     const uint8_t *frame,
@@ -145,7 +173,8 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
                              (uint8_t)reg,
                              read_window,
                              read_window_capacity,
-                             read_window_size);
+                             read_window_size,
+                             timeout_ms);
         if (status != BVSTK_OK) {
             return status;
         }
@@ -153,7 +182,6 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
         service->register_pointer[target] =
             (uint8_t)((count != 0U && reg + count < device.reg_count) ?
                           reg + count : 0U);
-        service->read_armed[target] = 0U;
         return BVSTK_OK;
     }
 
@@ -184,10 +212,5 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
     if (frame_size > 1U) {
         service->read_armed[target] = 0U;
     }
-    return load_window(service,
-                       target,
-                       (uint8_t)reg,
-                       read_window,
-                       read_window_capacity,
-                       read_window_size);
+    return BVSTK_OK;
 }
