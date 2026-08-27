@@ -34,6 +34,7 @@
 #include "apps/freertos/console/console_stream.h"
 #include "apps/freertos/console/utils.h"
 #include "apps/freertos/services/ssh/bvstk_ssh_generated.h"
+#include "shared/cli/bvstk_line_editor.h"
 
 #ifndef SSH_THREAD_STACKSIZE
 #define SSH_THREAD_STACKSIZE 12288
@@ -44,7 +45,6 @@
 #define SSH_RX_SIZE 1024
 #define SSH_MATCH_MAX 32
 #define SSH_TOKEN_MAX 8
-#define SSH_HISTORY_LEN 16
 
 #ifdef WOLFSSH_SCP
 #define SCP_PATH_SIZE FS_PATH_MAX
@@ -76,31 +76,15 @@ typedef struct {
 } bvstk_scp_session_t;
 #endif
 
-enum {
-    SSH_ESC_NONE = 0,
-    SSH_ESC_ESC,
-    SSH_ESC_CSI,
-    SSH_ESC_SS3
-};
-
 typedef struct {
     WOLFSSH *ssh;
     WOLFSSH_CHANNEL *channel;
     word32 channel_id;
     console_session_t console;
+    bvstk_line_editor_t *editor;
     char line[SSH_LINE_SIZE];
     size_t line_len;
     size_t cursor;
-    char history[SSH_HISTORY_LEN][SSH_LINE_SIZE];
-    size_t history_count;
-    int history_pos;
-    char history_scratch[SSH_LINE_SIZE];
-    size_t history_scratch_len;
-    char cut_buffer[SSH_LINE_SIZE];
-    size_t cut_len;
-    int escape_state;
-    char escape_params[16];
-    size_t escape_param_len;
     int shell_requested;
     int exec_requested;
     int exec_done;
@@ -874,155 +858,6 @@ static void ssh_redraw_line(bvstk_ssh_session_t *session)
     ssh_move_cursor(session, desired_cursor);
 }
 
-static void ssh_history_add(bvstk_ssh_session_t *session)
-{
-    if (!session || session->line_len == 0) return;
-    if (session->history_count > 0 &&
-        strcmp(session->history[session->history_count - 1], session->line) == 0) {
-        return;
-    }
-    if (session->history_count < SSH_HISTORY_LEN) {
-        memcpy(session->history[session->history_count], session->line,
-               session->line_len + 1);
-        ++session->history_count;
-    } else {
-        for (size_t i = 1; i < SSH_HISTORY_LEN; ++i) {
-            memcpy(session->history[i - 1], session->history[i], SSH_LINE_SIZE);
-        }
-        memcpy(session->history[SSH_HISTORY_LEN - 1], session->line,
-               session->line_len + 1);
-    }
-}
-
-static void ssh_load_line(bvstk_ssh_session_t *session,
-                           const char *line, size_t line_len)
-{
-    if (!session || !line) return;
-    if (line_len >= sizeof(session->line)) line_len = sizeof(session->line) - 1;
-    memcpy(session->line, line, line_len);
-    session->line[line_len] = '\0';
-    session->line_len = line_len;
-    session->cursor = line_len;
-    ssh_redraw_line(session);
-}
-
-static void ssh_history_up(bvstk_ssh_session_t *session)
-{
-    if (!session || session->history_count == 0) return;
-    if (session->history_pos < 0) {
-        memcpy(session->history_scratch, session->line, session->line_len + 1);
-        session->history_scratch_len = session->line_len;
-        session->history_pos = 0;
-    } else if ((size_t)(session->history_pos + 1) < session->history_count) {
-        ++session->history_pos;
-    } else {
-        return;
-    }
-    size_t index = session->history_count - 1 - (size_t)session->history_pos;
-    ssh_load_line(session, session->history[index], strlen(session->history[index]));
-}
-
-static void ssh_history_down(bvstk_ssh_session_t *session)
-{
-    if (!session || session->history_pos < 0) return;
-    if (session->history_pos > 0) {
-        --session->history_pos;
-        size_t index = session->history_count - 1 - (size_t)session->history_pos;
-        ssh_load_line(session, session->history[index], strlen(session->history[index]));
-    } else {
-        session->history_pos = -1;
-        ssh_load_line(session, session->history_scratch,
-                      session->history_scratch_len);
-    }
-}
-
-static void ssh_cut_range(bvstk_ssh_session_t *session, size_t start, size_t end)
-{
-    if (!session || start >= end || end > session->line_len) return;
-    session->cut_len = end - start;
-    if (session->cut_len >= sizeof(session->cut_buffer)) {
-        session->cut_len = sizeof(session->cut_buffer) - 1;
-    }
-    memcpy(session->cut_buffer, session->line + start, session->cut_len);
-    session->cut_buffer[session->cut_len] = '\0';
-    memmove(session->line + start, session->line + end,
-            session->line_len - end);
-    session->line_len -= end - start;
-    session->line[session->line_len] = '\0';
-    session->cursor = start;
-    session->history_pos = -1;
-    ssh_redraw_line(session);
-}
-
-static void ssh_cut_previous_word(bvstk_ssh_session_t *session)
-{
-    if (!session || session->cursor == 0) return;
-    size_t start = session->cursor;
-    while (start > 0 && isspace((unsigned char)session->line[start - 1])) --start;
-    while (start > 0 && !isspace((unsigned char)session->line[start - 1])) --start;
-    ssh_cut_range(session, start, session->cursor);
-}
-
-static void ssh_delete_before_cursor(bvstk_ssh_session_t *session)
-{
-    if (!session || session->cursor == 0) return;
-    memmove(session->line + session->cursor - 1,
-            session->line + session->cursor,
-            session->line_len - session->cursor);
-    --session->cursor;
-    --session->line_len;
-    session->line[session->line_len] = '\0';
-    session->history_pos = -1;
-    ssh_redraw_line(session);
-}
-
-static void ssh_delete_at_cursor(bvstk_ssh_session_t *session)
-{
-    if (!session || session->cursor >= session->line_len) return;
-    memmove(session->line + session->cursor,
-            session->line + session->cursor + 1,
-            session->line_len - session->cursor - 1);
-    --session->line_len;
-    session->line[session->line_len] = '\0';
-    session->history_pos = -1;
-    ssh_redraw_line(session);
-}
-
-static void ssh_insert_cut_buffer(bvstk_ssh_session_t *session)
-{
-    if (!session || session->cut_len == 0 ||
-        session->line_len + session->cut_len >= sizeof(session->line)) return;
-    memmove(session->line + session->cursor + session->cut_len,
-            session->line + session->cursor,
-            session->line_len - session->cursor);
-    memcpy(session->line + session->cursor, session->cut_buffer, session->cut_len);
-    session->line_len += session->cut_len;
-    session->cursor += session->cut_len;
-    session->line[session->line_len] = '\0';
-    session->history_pos = -1;
-    ssh_redraw_line(session);
-}
-
-static void ssh_move_word_left(bvstk_ssh_session_t *session)
-{
-    if (!session) return;
-    size_t position = session->cursor;
-    while (position > 0 && isspace((unsigned char)session->line[position - 1])) --position;
-    while (position > 0 && !isspace((unsigned char)session->line[position - 1])) --position;
-    ssh_move_cursor(session, position);
-}
-
-static void ssh_move_word_right(bvstk_ssh_session_t *session)
-{
-    if (!session) return;
-    size_t position = session->cursor;
-    while (position < session->line_len &&
-           isspace((unsigned char)session->line[position])) ++position;
-    while (position < session->line_len &&
-           !isspace((unsigned char)session->line[position])) ++position;
-    ssh_move_cursor(session, position);
-}
-
 static size_t ssh_common_prefix_ci(const char *const *matches, size_t count)
 {
     if (!matches || count == 0 || !matches[0]) return 0;
@@ -1569,7 +1404,6 @@ static void ssh_apply_matches(bvstk_ssh_session_t *session, size_t prefix_len,
             ++session->cursor;
         }
         session->line[session->line_len] = '\0';
-        session->history_pos = -1;
         ssh_redraw_line(session);
         return;
     }
@@ -1585,7 +1419,6 @@ static void ssh_apply_matches(bvstk_ssh_session_t *session, size_t prefix_len,
                set->items[0] + prefix_len, suffix_len);
         session->line_len += suffix_len;
         session->cursor += suffix_len;
-        session->history_pos = -1;
     }
 
     ssh_send_text(session, "\r\n");
@@ -1628,184 +1461,75 @@ static void ssh_complete_command(bvstk_ssh_session_t *session)
     ssh_apply_matches(session, replacement_prefix_len, &matches);
 }
 
-static void ssh_handle_escape_final(bvstk_ssh_session_t *session, byte c)
+static int ssh_editor_tab(void *context, bvstk_line_editor_t *editor)
 {
-    if (!session) return;
-    int ctrl = (strchr(session->escape_params, '5') != NULL);
-    switch (c) {
-        case 'A':
-            ssh_history_up(session);
-            break;
-        case 'B':
-            ssh_history_down(session);
-            break;
-        case 'C':
-            if (ctrl) {
-                ssh_move_word_right(session);
-            } else if (session->cursor < session->line_len) {
-                ssh_move_cursor(session, session->cursor + 1);
-            }
-            break;
-        case 'D':
-            if (ctrl) {
-                ssh_move_word_left(session);
-            } else if (session->cursor > 0) {
-                ssh_move_cursor(session, session->cursor - 1);
-            }
-            break;
-        case 'H':
-            ssh_move_cursor(session, 0);
-            break;
-        case 'F':
-            ssh_move_cursor(session, session->line_len);
-            break;
-        case '~':
-            if (session->escape_params[0] == '1' ||
-                session->escape_params[0] == '7') {
-                ssh_move_cursor(session, 0);
-            } else if (session->escape_params[0] == '4' ||
-                       session->escape_params[0] == '8') {
-                ssh_move_cursor(session, session->line_len);
-            } else if (session->escape_params[0] == '3') {
-                ssh_delete_at_cursor(session);
-            }
-            break;
-        default:
-            break;
+    bvstk_ssh_session_t *session = (bvstk_ssh_session_t *)context;
+    size_t length;
+    size_t cursor;
+
+    if (session == NULL || editor == NULL) return -1;
+    length = bvstk_line_editor_line_length(editor);
+    cursor = bvstk_line_editor_cursor(editor);
+    if (length >= sizeof(session->line)) return 0;
+    memcpy(session->line, bvstk_line_editor_line(editor), length + 1U);
+    session->line_len = length;
+    session->cursor = cursor;
+    ssh_complete_command(session);
+    if (bvstk_line_editor_set_state(editor,
+                                    session->line,
+                                    session->line_len,
+                                    session->cursor) != 0) {
+        return -1;
+    }
+    bvstk_line_editor_mark_edited(editor);
+    return 0;
+}
+
+static void ssh_editor_prompt(void *context)
+{
+    bvstk_ssh_session_t *session = (bvstk_ssh_session_t *)context;
+
+    if (session != NULL) {
+        console_print_prompt(SSH_CONSOLE_FD, &session->console);
     }
 }
 
-static void ssh_process_escape_byte(bvstk_ssh_session_t *session, byte c)
+static int ssh_editor_submit(void *context, const char *line, size_t length)
 {
-    if (!session) return;
-    if (session->escape_state == SSH_ESC_ESC) {
-        if (c == '[') {
-            session->escape_state = SSH_ESC_CSI;
-            session->escape_param_len = 0;
-            session->escape_params[0] = '\0';
-        } else if (c == 'O') {
-            session->escape_state = SSH_ESC_SS3;
-        } else {
-            session->escape_state = SSH_ESC_NONE;
-        }
-        return;
-    }
-    if (session->escape_state == SSH_ESC_CSI) {
-        if ((c >= '0' && c <= '9') || c == ';') {
-            if (session->escape_param_len + 1 < sizeof(session->escape_params)) {
-                session->escape_params[session->escape_param_len++] = (char)c;
-                session->escape_params[session->escape_param_len] = '\0';
-            }
-            return;
-        }
-        ssh_handle_escape_final(session, c);
-        session->escape_state = SSH_ESC_NONE;
-        session->escape_param_len = 0;
-        return;
-    }
-    if (session->escape_state == SSH_ESC_SS3) {
-        ssh_handle_escape_final(session, c);
-        session->escape_state = SSH_ESC_NONE;
-    }
-}
+    bvstk_ssh_session_t *session = (bvstk_ssh_session_t *)context;
 
-static void ssh_process_line(bvstk_ssh_session_t *session)
-{
-    if (!session) return;
-    session->line[session->line_len] = '\0';
-    if (session->line_len != 0) {
-        ssh_history_add(session);
-        process_console_line(session->line, SSH_CONSOLE_FD, &session->console);
+    if (session == NULL || line == NULL) {
+        return BVSTK_LINE_EDITOR_SUBMIT_STOP;
     }
-    session->line_len = 0;
-    session->cursor = 0;
-    session->history_pos = -1;
-    if (utils_should_close()) session->close_requested = 1;
+    if (length != 0U) {
+        process_console_line(line, SSH_CONSOLE_FD, &session->console);
+    }
+    if (utils_should_close()) {
+        session->close_requested = 1;
+        return BVSTK_LINE_EDITOR_SUBMIT_STOP;
+    }
+    return BVSTK_LINE_EDITOR_SUBMIT_PROMPT;
 }
 
 static void ssh_process_input(bvstk_ssh_session_t *session,
                               const byte *data, size_t len)
 {
-    if (!session || !data) return;
+    if (!session || !session->editor || !data) return;
     for (size_t i = 0; i < len && !session->close_requested; ++i) {
-        byte c = data[i];
-        if (session->escape_state != SSH_ESC_NONE) {
-            ssh_process_escape_byte(session, c);
+        byte character = data[i];
+
+        if (character == '\n' && session->last_was_cr) {
+            session->last_was_cr = 0;
             continue;
         }
-        if (c == 0x1b) {
-            session->escape_state = SSH_ESC_ESC;
-            session->escape_param_len = 0;
-            session->escape_params[0] = '\0';
-            continue;
+        if (character == '\r') {
+            session->last_was_cr = 1;
+            character = '\n';
+        } else {
+            session->last_was_cr = 0;
         }
-        if (c == '\r' || c == '\n') {
-            if (c == '\n' && session->last_was_cr) {
-                session->last_was_cr = 0;
-                continue;
-            }
-            ssh_send_text(session, "\r\n");
-            ssh_process_line(session);
-            session->last_was_cr = (c == '\r');
-            if (!session->close_requested) console_print_prompt(SSH_CONSOLE_FD, &session->console);
-        } else if (c == '\b' || c == 0x7f) {
-            session->last_was_cr = 0;
-            ssh_delete_before_cursor(session);
-        } else if (c == '\t') {
-            session->last_was_cr = 0;
-            ssh_complete_command(session);
-        } else if (c == 0x01) { /* Ctrl-A */
-            session->last_was_cr = 0;
-            ssh_move_cursor(session, 0);
-        } else if (c == 0x02) { /* Ctrl-B */
-            session->last_was_cr = 0;
-            if (session->cursor > 0) ssh_move_cursor(session, session->cursor - 1);
-        } else if (c == 0x03) { /* Ctrl-C */
-            session->last_was_cr = 0;
-            session->line_len = 0;
-            session->cursor = 0;
-            session->history_pos = -1;
-            ssh_send_text(session, "^C\r\n");
-            console_print_prompt(SSH_CONSOLE_FD, &session->console);
-        } else if (c == 0x04) { /* Ctrl-D */
-            session->last_was_cr = 0;
-            ssh_delete_at_cursor(session);
-        } else if (c == 0x05) { /* Ctrl-E */
-            session->last_was_cr = 0;
-            ssh_move_cursor(session, session->line_len);
-        } else if (c == 0x06) { /* Ctrl-F */
-            session->last_was_cr = 0;
-            if (session->cursor < session->line_len) ssh_move_cursor(session, session->cursor + 1);
-        } else if (c == 0x0b) { /* Ctrl-K */
-            session->last_was_cr = 0;
-            ssh_cut_range(session, session->cursor, session->line_len);
-        } else if (c == 0x0e) { /* Ctrl-N */
-            session->last_was_cr = 0;
-            ssh_history_down(session);
-        } else if (c == 0x10) { /* Ctrl-P */
-            session->last_was_cr = 0;
-            ssh_history_up(session);
-        } else if (c == 0x15) { /* Ctrl-U */
-            session->last_was_cr = 0;
-            ssh_cut_range(session, 0, session->cursor);
-        } else if (c == 0x17) { /* Ctrl-W */
-            session->last_was_cr = 0;
-            ssh_cut_previous_word(session);
-        } else if (c == 0x19) { /* Ctrl-Y */
-            session->last_was_cr = 0;
-            ssh_insert_cut_buffer(session);
-        } else if (c >= 0x20 && c != 0x7f) {
-            session->last_was_cr = 0;
-            if (session->line_len + 1 < sizeof(session->line)) {
-                size_t tail = session->line_len - session->cursor;
-                memmove(session->line + session->cursor + 1,
-                        session->line + session->cursor, tail);
-                session->line[session->cursor++] = (char)c;
-                ++session->line_len;
-                session->line[session->line_len] = '\0';
-                session->history_pos = -1;
-                ssh_redraw_line(session);
-            }
+        if (bvstk_line_editor_handle_byte(session->editor, character) != 0) {
+            session->close_requested = 1;
         }
     }
 }
@@ -1977,11 +1701,22 @@ static int ssh_service_sftp(WOLFSSH *ssh, int fd)
 
 static void ssh_service_client(int fd)
 {
+    static bvstk_line_editor_t editor;
     bvstk_ssh_session_t session;
+    bvstk_line_editor_config_t editor_config;
+
     memset(&session, 0, sizeof(session));
-    session.history_pos = -1;
+    session.editor = &editor;
     console_session_init(&session.console);
     utils_reset_close();
+    memset(&editor_config, 0, sizeof(editor_config));
+    editor_config.context = &session;
+    editor_config.write = ssh_write;
+    editor_config.prompt = ssh_editor_prompt;
+    editor_config.submit = ssh_editor_submit;
+    editor_config.tab = ssh_editor_tab;
+    editor_config.eof_on_empty = 0;
+    bvstk_line_editor_init(&editor, &editor_config);
 
     WOLFSSH *ssh = wolfSSH_new(s_ssh_ctx);
     if (!ssh) {

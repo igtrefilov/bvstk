@@ -54,6 +54,7 @@ NEUTRINO_I2C_RUNTIME_SOURCES=(
 
 I2C_CLIENT_SOURCE="$REPO_ROOT/src/apps/neutrino/i2c/bvstk_i2c_client.c"
 I2C_COMPLETION_SOURCE="$REPO_ROOT/src/shared/cli/bvstk_i2c_completion.c"
+LINE_EDITOR_SOURCE="$REPO_ROOT/src/shared/cli/bvstk_line_editor.c"
 
 qcc -V"$QCC_VARIANT" \
   -Wall -Wextra -Werror -O2 \
@@ -91,6 +92,7 @@ qcc -V"$QCC_VARIANT" \
   "$REPO_ROOT/src/apps/neutrino/shell/main.c" \
   "$I2C_CLIENT_SOURCE" \
   "$I2C_COMPLETION_SOURCE" \
+  "$LINE_EDITOR_SOURCE" \
   -o "$BUILD_DIR/bvstk-shell"
 
 qcc -V"$QCC_VARIANT" \

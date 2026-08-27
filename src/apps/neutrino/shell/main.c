@@ -14,14 +14,13 @@
 
 #include "apps/neutrino/i2c/bvstk_i2c_client.h"
 #include "shared/cli/bvstk_i2c_completion.h"
+#include "shared/cli/bvstk_line_editor.h"
 
 #ifndef BVSTK_SHELL_KSH_PATH
 #define BVSTK_SHELL_KSH_PATH "/proc/boot/ksh"
 #endif
 
 enum {
-    BVSTK_SHELL_LINE_MAX = 512,
-    BVSTK_SHELL_HISTORY_MAX = 16,
     BVSTK_SHELL_PATH_MAX = 256,
     BVSTK_SHELL_IO_MAX = 512
 };
@@ -31,19 +30,13 @@ static const char prompt_command[] =
     "printf '\\036BVSTK_PROMPT\\036%s\\036' \"$PWD\"\n";
 
 typedef enum {
-    ESCAPE_NONE = 0,
-    ESCAPE_STARTED,
-    ESCAPE_CSI,
-    ESCAPE_CSI_DELETE
-} escape_state_t;
-
-typedef enum {
     OUTPUT_TEXT = 0,
     OUTPUT_MARKER,
     OUTPUT_PATH_END
 } output_state_t;
 
 typedef struct {
+    bvstk_line_editor_t editor;
     int child_input;
     int child_output;
     pid_t child_pid;
@@ -51,15 +44,7 @@ typedef struct {
     int stop_requested;
     int ignore_next_lf;
 
-    char line[BVSTK_SHELL_LINE_MAX];
-    size_t line_length;
-    size_t cursor;
-    char history[BVSTK_SHELL_HISTORY_MAX][BVSTK_SHELL_LINE_MAX];
-    size_t history_count;
-    int history_position;
-
     char prompt_path[BVSTK_SHELL_PATH_MAX];
-    escape_state_t escape_state;
 
     output_state_t output_state;
     size_t marker_length;
@@ -73,13 +58,7 @@ enum {
     BVSTK_SHELL_COMPLETION_WORD_MAX = BVSTK_SHELL_PATH_MAX
 };
 
-typedef struct {
-    size_t token_start;
-    size_t token_prefix_length;
-    size_t match_count;
-    char candidates[BVSTK_SHELL_COMPLETION_MAX_MATCHES]
-                   [BVSTK_SHELL_COMPLETION_WORD_MAX];
-} shell_completion_result_t;
+typedef bvstk_line_editor_completion_t shell_completion_result_t;
 
 static int write_all(int fd, const void *data, size_t length)
 {
@@ -103,11 +82,6 @@ static int write_all(int fd, const void *data, size_t length)
 static int write_text(int fd, const char *text)
 {
     return text != NULL ? write_all(fd, text, strlen(text)) : -1;
-}
-
-static void beep(void)
-{
-    (void)write_text(STDOUT_FILENO, "\a");
 }
 
 static void print_prompt(shell_state_t *shell)
@@ -154,239 +128,26 @@ static void print_prompt(shell_state_t *shell)
     }
 }
 
-static void redraw_line(shell_state_t *shell)
-{
-    size_t index;
-
-    (void)write_text(STDOUT_FILENO, "\r\033[2K");
-    print_prompt(shell);
-    if (shell->line_length != 0U) {
-        (void)write_all(STDOUT_FILENO, shell->line, shell->line_length);
-    }
-    for (index = shell->cursor; index < shell->line_length; ++index) {
-        (void)write_text(STDOUT_FILENO, "\033[D");
-    }
-}
-
-static void reset_line(shell_state_t *shell)
-{
-    shell->line_length = 0U;
-    shell->cursor = 0U;
-    shell->line[0] = '\0';
-    shell->history_position = -1;
-}
-
-static void add_history(shell_state_t *shell)
-{
-    if (shell->line_length == 0U ||
-        (shell->history_count != 0U &&
-         strcmp(shell->history[shell->history_count - 1U], shell->line) == 0)) {
-        return;
-    }
-    if (shell->history_count == BVSTK_SHELL_HISTORY_MAX) {
-        size_t index;
-
-        for (index = 1U; index < BVSTK_SHELL_HISTORY_MAX; ++index) {
-            memcpy(shell->history[index - 1U],
-                   shell->history[index],
-                   sizeof(shell->history[index - 1U]));
-        }
-        shell->history_count--;
-    }
-    memcpy(shell->history[shell->history_count],
-           shell->line,
-           shell->line_length + 1U);
-    ++shell->history_count;
-}
-
-static void set_line(shell_state_t *shell, const char *line)
-{
-    size_t length = line != NULL ? strlen(line) : 0U;
-
-    if (length >= sizeof(shell->line)) {
-        length = sizeof(shell->line) - 1U;
-    }
-    if (length != 0U) {
-        memcpy(shell->line, line, length);
-    }
-    shell->line[length] = '\0';
-    shell->line_length = length;
-    shell->cursor = length;
-}
-
-static void history_up(shell_state_t *shell)
-{
-    if (shell->history_count == 0U) {
-        beep();
-        return;
-    }
-    if (shell->history_position < 0) {
-        shell->history_position = (int)shell->history_count - 1;
-    } else if (shell->history_position > 0) {
-        --shell->history_position;
-    } else {
-        beep();
-        return;
-    }
-    set_line(shell, shell->history[shell->history_position]);
-    redraw_line(shell);
-}
-
-static void history_down(shell_state_t *shell)
-{
-    if (shell->history_position < 0) {
-        beep();
-        return;
-    }
-    if ((size_t)(shell->history_position + 1) < shell->history_count) {
-        ++shell->history_position;
-        set_line(shell, shell->history[shell->history_position]);
-    } else {
-        reset_line(shell);
-    }
-    redraw_line(shell);
-}
-
-static void insert_character(shell_state_t *shell, char character)
-{
-    size_t tail;
-
-    if (shell->line_length + 1U >= sizeof(shell->line)) {
-        beep();
-        return;
-    }
-    tail = shell->line_length - shell->cursor;
-    memmove(shell->line + shell->cursor + 1U,
-            shell->line + shell->cursor,
-            tail);
-    shell->line[shell->cursor] = character;
-    ++shell->line_length;
-    ++shell->cursor;
-    (void)write_all(STDOUT_FILENO, &character, 1U);
-    if (tail != 0U) {
-        (void)write_all(STDOUT_FILENO,
-                        shell->line + shell->cursor,
-                        tail);
-        while (tail-- != 0U) {
-            (void)write_text(STDOUT_FILENO, "\033[D");
-        }
-    }
-}
-
-static void backspace_character(shell_state_t *shell)
-{
-    size_t tail;
-
-    if (shell->cursor == 0U) {
-        beep();
-        return;
-    }
-    --shell->cursor;
-    tail = shell->line_length - shell->cursor - 1U;
-    memmove(shell->line + shell->cursor,
-            shell->line + shell->cursor + 1U,
-            tail);
-    --shell->line_length;
-    shell->line[shell->line_length] = '\0';
-    redraw_line(shell);
-}
-
-static void delete_character(shell_state_t *shell)
-{
-    size_t tail;
-
-    if (shell->cursor >= shell->line_length) {
-        beep();
-        return;
-    }
-    tail = shell->line_length - shell->cursor - 1U;
-    memmove(shell->line + shell->cursor,
-            shell->line + shell->cursor + 1U,
-            tail);
-    --shell->line_length;
-    shell->line[shell->line_length] = '\0';
-    redraw_line(shell);
-}
-
-static void delete_previous_word(shell_state_t *shell)
-{
-    size_t start = shell->cursor;
-
-    while (start > 0U && isspace((unsigned char)shell->line[start - 1U])) {
-        --start;
-    }
-    while (start > 0U && !isspace((unsigned char)shell->line[start - 1U])) {
-        --start;
-    }
-    if (start == shell->cursor) {
-        beep();
-        return;
-    }
-    memmove(shell->line + start,
-            shell->line + shell->cursor,
-            shell->line_length - shell->cursor);
-    shell->line_length -= shell->cursor - start;
-    shell->cursor = start;
-    shell->line[shell->line_length] = '\0';
-    redraw_line(shell);
-}
-
-static void replace_completion_prefix(shell_state_t *shell,
-                                      size_t token_start,
-                                      size_t prefix_length,
-                                      const char *replacement,
-                                      size_t replacement_length,
-                                      int append_space)
-{
-    size_t tail;
-    size_t new_length;
-
-    if (token_start > shell->cursor ||
-        prefix_length != shell->cursor - token_start ||
-        replacement == NULL) {
-        return;
-    }
-    tail = shell->line_length - shell->cursor;
-    new_length = token_start + replacement_length + tail;
-    if (append_space && replacement_length != 0U &&
-        replacement[replacement_length - 1U] != '/') {
-        ++new_length;
-    }
-    if (new_length >= sizeof(shell->line)) {
-        beep();
-        return;
-    }
-    memmove(shell->line + token_start + replacement_length,
-            shell->line + shell->cursor,
-            tail);
-    memcpy(shell->line + token_start, replacement, replacement_length);
-    shell->line_length = token_start + replacement_length + tail;
-    shell->cursor = token_start + replacement_length;
-    if (append_space && replacement_length != 0U &&
-        replacement[replacement_length - 1U] != '/') {
-        memmove(shell->line + shell->cursor + 1U,
-                shell->line + shell->cursor,
-                tail);
-        shell->line[shell->cursor] = ' ';
-        ++shell->line_length;
-        ++shell->cursor;
-    }
-    shell->line[shell->line_length] = '\0';
-    redraw_line(shell);
-}
-
-static int line_starts_with_i2c(const shell_state_t *shell)
+static int line_starts_with_i2c(const char *line,
+                                size_t line_length,
+                                size_t cursor)
 {
     size_t start = 0U;
     size_t i2c_length = strlen("i2c");
 
-    while (start < shell->cursor && isspace((unsigned char)shell->line[start])) {
+    if (line == NULL) {
+        return 0;
+    }
+    if (cursor > line_length) {
+        cursor = line_length;
+    }
+    while (start < cursor && isspace((unsigned char)line[start])) {
         ++start;
     }
-    return shell->cursor - start >= i2c_length &&
-           strncasecmp(shell->line + start, "i2c", i2c_length) == 0 &&
-           (shell->cursor - start == i2c_length ||
-            isspace((unsigned char)shell->line[start + i2c_length]));
+    return cursor - start >= i2c_length &&
+           strncasecmp(line + start, "i2c", i2c_length) == 0 &&
+           (cursor - start == i2c_length ||
+            isspace((unsigned char)line[start + i2c_length]));
 }
 
 static int shell_completion_copy_fragment(char *output,
@@ -733,64 +494,39 @@ next_path:
     }
 }
 
-static size_t shell_completion_common_prefix_len(
-    const char candidates[][BVSTK_SHELL_COMPLETION_WORD_MAX],
-    size_t candidate_count)
-{
-    size_t length;
-    size_t index;
-
-    if (candidates == NULL || candidate_count == 0U) {
-        return 0U;
-    }
-    length = strlen(candidates[0]);
-    for (index = 1U; index < candidate_count; ++index) {
-        size_t current = 0U;
-
-        while (current < length &&
-               candidates[index][current] != '\0' &&
-               tolower((unsigned char)candidates[0][current]) ==
-                   tolower((unsigned char)candidates[index][current])) {
-            ++current;
-        }
-        length = current;
-        if (length == 0U) {
-            break;
-        }
-    }
-    return length;
-}
-
 static int complete_shell_line(const shell_state_t *shell,
+                               const char *line,
+                               size_t line_length,
+                               size_t cursor,
                                shell_completion_result_t *result)
 {
-    size_t cursor;
     size_t token_start;
     size_t token_prefix_length;
     size_t token_count;
     char prefix[BVSTK_SHELL_COMPLETION_WORD_MAX];
 
-    if (shell == NULL || result == NULL) {
+    if (shell == NULL || line == NULL || result == NULL) {
         return 0;
     }
     memset(result, 0, sizeof(*result));
-    cursor = shell->cursor <= shell->line_length ? shell->cursor
-                                                  : shell->line_length;
+    if (cursor > line_length) {
+        cursor = line_length;
+    }
     token_start = cursor;
-    while (token_start > 0U && shell->line[token_start - 1U] != ' ' &&
-           shell->line[token_start - 1U] != '\t') {
+    while (token_start > 0U && line[token_start - 1U] != ' ' &&
+           line[token_start - 1U] != '\t') {
         --token_start;
     }
     token_prefix_length = cursor - token_start;
     if (shell_completion_copy_fragment(prefix,
                                        sizeof(prefix),
-                                       shell->line + token_start,
+                                       line + token_start,
                                        token_prefix_length) != 0) {
         return 0;
     }
     result->token_start = token_start;
     result->token_prefix_length = token_prefix_length;
-    token_count = shell_completion_token_count(shell->line, token_start);
+    token_count = shell_completion_token_count(line, token_start);
     if (token_count == 0U) {
         complete_shell_commands(prefix, result);
     } else {
@@ -799,115 +535,83 @@ static int complete_shell_line(const shell_state_t *shell,
     return result->match_count != 0U;
 }
 
-static void apply_shell_completion(shell_state_t *shell,
-                                   const shell_completion_result_t *result)
+static int shell_editor_write(void *context,
+                              const void *data,
+                              size_t length)
 {
-    size_t prefix_length;
-    size_t common_length;
-    size_t index;
-
-    if (shell == NULL || result == NULL || result->match_count == 0U) {
-        return;
-    }
-    prefix_length = result->token_prefix_length;
-    if (result->match_count == 1U) {
-        replace_completion_prefix(shell,
-                                  result->token_start,
-                                  prefix_length,
-                                  result->candidates[0],
-                                  strlen(result->candidates[0]),
-                                  1);
-        return;
-    }
-    common_length = shell_completion_common_prefix_len(result->candidates,
-                                                       result->match_count);
-    if (common_length > prefix_length) {
-        replace_completion_prefix(shell,
-                                  result->token_start,
-                                  prefix_length,
-                                  result->candidates[0],
-                                  common_length,
-                                  0);
-    }
-    (void)write_text(STDOUT_FILENO, "\r\n");
-    for (index = 0U; index < result->match_count; ++index) {
-        (void)write_text(STDOUT_FILENO, result->candidates[index]);
-        (void)write_text(STDOUT_FILENO, "  ");
-    }
-    (void)write_text(STDOUT_FILENO, "\r\n");
-    redraw_line(shell);
+    (void)context;
+    return write_all(STDOUT_FILENO, data, length);
 }
 
-static void complete_i2c(shell_state_t *shell)
+static void shell_editor_prompt(void *context)
 {
-    bvstk_i2c_completion_device_t devices[I2C_CFG_MAX_DEVICES];
-    bvstk_i2c_completion_result_t result;
-    size_t device_count = 0U;
-
-    if (!line_starts_with_i2c(shell)) {
-        beep();
-        return;
-    }
-    memset(devices, 0, sizeof(devices));
-    (void)bvstk_i2c_client_list_devices(devices,
-                                        I2C_CFG_MAX_DEVICES,
-                                        &device_count);
-    if (!bvstk_i2c_complete_line(shell->line,
-                                 shell->line_length,
-                                 shell->cursor,
-                                 devices,
-                                 device_count,
-                                 &result)) {
-        beep();
-        return;
-    }
-    if (result.match_count == 1U) {
-        replace_completion_prefix(shell,
-                                  result.token_start,
-                                  result.token_prefix_length,
-                                  result.candidates[0],
-                                  strlen(result.candidates[0]),
-                                  1);
-        return;
-    }
-    if (result.match_count > 1U) {
-        size_t common_length =
-            bvstk_i2c_completion_common_prefix_len(result.candidates,
-                                                   result.match_count);
-        size_t index;
-
-        if (common_length > result.token_prefix_length) {
-            replace_completion_prefix(shell,
-                                      result.token_start,
-                                      result.token_prefix_length,
-                                      result.candidates[0],
-                                      common_length,
-                                      0);
-        }
-        (void)write_text(STDOUT_FILENO, "\r\n");
-        for (index = 0U; index < result.match_count; ++index) {
-            (void)write_text(STDOUT_FILENO, result.candidates[index]);
-            (void)write_text(STDOUT_FILENO, "  ");
-        }
-        (void)write_text(STDOUT_FILENO, "\r\n");
-        redraw_line(shell);
-    }
+    print_prompt((shell_state_t *)context);
 }
 
-static int submit_line(shell_state_t *shell)
+static int shell_editor_submit(void *context,
+                               const char *line,
+                               size_t length)
 {
-    if (write_text(STDOUT_FILENO, "\r\n") != 0 ||
-        write_all(shell->child_input, shell->line, shell->line_length) != 0 ||
+    shell_state_t *shell = (shell_state_t *)context;
+
+    if (shell == NULL || shell->child_input < 0 || line == NULL ||
+        write_all(shell->child_input, line, length) != 0 ||
         write_text(shell->child_input, "\n") != 0 ||
         write_all(shell->child_input,
                   prompt_command,
                   sizeof(prompt_command) - 1U) != 0) {
-        return -1;
+        return BVSTK_LINE_EDITOR_SUBMIT_STOP;
     }
-    add_history(shell);
-    reset_line(shell);
     shell->waiting_for_prompt = 1;
-    return 0;
+    return BVSTK_LINE_EDITOR_SUBMIT_DEFER_PROMPT;
+}
+
+static int shell_editor_complete(void *context,
+                                 const char *line,
+                                 size_t length,
+                                 size_t cursor,
+                                 bvstk_line_editor_completion_t *result)
+{
+    shell_state_t *shell = (shell_state_t *)context;
+
+    if (shell == NULL || line == NULL || result == NULL) {
+        return 0;
+    }
+    if (line_starts_with_i2c(line, length, cursor)) {
+        bvstk_i2c_completion_device_t devices[I2C_CFG_MAX_DEVICES];
+        bvstk_i2c_completion_result_t i2c_result;
+        size_t device_count = 0U;
+        size_t index;
+
+        memset(devices, 0, sizeof(devices));
+        (void)bvstk_i2c_client_list_devices(devices,
+                                            I2C_CFG_MAX_DEVICES,
+                                            &device_count);
+        if (!bvstk_i2c_complete_line(line,
+                                     length,
+                                     cursor,
+                                     devices,
+                                     device_count,
+                                     &i2c_result)) {
+            return 0;
+        }
+        memset(result, 0, sizeof(*result));
+        result->token_start = i2c_result.token_start;
+        result->token_prefix_length = i2c_result.token_prefix_length;
+        result->match_count = i2c_result.match_count;
+        if (result->match_count > BVSTK_LINE_EDITOR_COMPLETION_MAX_MATCHES) {
+            result->match_count = BVSTK_LINE_EDITOR_COMPLETION_MAX_MATCHES;
+        }
+        for (index = 0U; index < result->match_count; ++index) {
+            strncpy(result->candidates[index],
+                    i2c_result.candidates[index],
+                    BVSTK_LINE_EDITOR_COMPLETION_WORD_MAX - 1U);
+            result->candidates[index]
+                    [BVSTK_LINE_EDITOR_COMPLETION_WORD_MAX - 1U] = '\0';
+        }
+        return result->match_count != 0U;
+    }
+    return complete_shell_line(shell, line, length, cursor, result);
 }
 
 static void signal_child_interrupt(shell_state_t *shell)
@@ -916,65 +620,6 @@ static void signal_child_interrupt(shell_state_t *shell)
         (void)kill(-shell->child_pid, SIGINT);
     }
     (void)write_text(STDOUT_FILENO, "^C\r\n");
-}
-
-static void handle_escape_byte(shell_state_t *shell, unsigned char character)
-{
-    if (shell->escape_state == ESCAPE_STARTED) {
-        if (character == '[') {
-            shell->escape_state = ESCAPE_CSI;
-        } else {
-            shell->escape_state = ESCAPE_NONE;
-            beep();
-        }
-        return;
-    }
-    if (shell->escape_state == ESCAPE_CSI) {
-        if (character == 'A') {
-            shell->escape_state = ESCAPE_NONE;
-            history_up(shell);
-        } else if (character == 'B') {
-            shell->escape_state = ESCAPE_NONE;
-            history_down(shell);
-        } else if (character == 'C') {
-            shell->escape_state = ESCAPE_NONE;
-            if (shell->cursor < shell->line_length) {
-                ++shell->cursor;
-                (void)write_text(STDOUT_FILENO, "\033[C");
-            }
-        } else if (character == 'D') {
-            shell->escape_state = ESCAPE_NONE;
-            if (shell->cursor > 0U) {
-                --shell->cursor;
-                (void)write_text(STDOUT_FILENO, "\033[D");
-            }
-        } else if (character == 'H') {
-            shell->escape_state = ESCAPE_NONE;
-            shell->cursor = 0U;
-            redraw_line(shell);
-        } else if (character == 'F') {
-            shell->escape_state = ESCAPE_NONE;
-            shell->cursor = shell->line_length;
-            redraw_line(shell);
-        } else if (character == '3') {
-            shell->escape_state = ESCAPE_CSI_DELETE;
-        } else if (character != ';' && !isdigit(character)) {
-            shell->escape_state = ESCAPE_NONE;
-            beep();
-        }
-        return;
-    }
-    if (shell->escape_state == ESCAPE_CSI_DELETE) {
-        if (character == '~') {
-            shell->escape_state = ESCAPE_NONE;
-            delete_character(shell);
-        } else if (isdigit(character)) {
-            return;
-        } else {
-            shell->escape_state = ESCAPE_NONE;
-            beep();
-        }
-    }
 }
 
 static void handle_waiting_byte(shell_state_t *shell, unsigned char character)
@@ -1003,56 +648,11 @@ static void handle_input_byte(shell_state_t *shell, unsigned char character)
         handle_waiting_byte(shell, character);
         return;
     }
-    if (shell->escape_state != ESCAPE_NONE) {
-        handle_escape_byte(shell, character);
-        return;
-    }
-    if (character == 0x1BU) {
-        shell->escape_state = ESCAPE_STARTED;
-    } else if (character == '\r' || character == '\n') {
+    if (character == '\r') {
         shell->ignore_next_lf = character == '\r';
-        if (submit_line(shell) != 0) {
-            shell->stop_requested = 1;
-        }
-    } else if (character == 0x03U) {
-        reset_line(shell);
-        (void)write_text(STDOUT_FILENO, "^C\r\n");
-        redraw_line(shell);
-    } else if (character == 0x04U) {
-        if (shell->line_length == 0U) {
-            shell->stop_requested = 1;
-        } else {
-            delete_character(shell);
-        }
-    } else if (character == 0x08U || character == 0x7FU) {
-        backspace_character(shell);
-    } else if (character == '\t') {
-        if (line_starts_with_i2c(shell)) {
-            complete_i2c(shell);
-        } else {
-            shell_completion_result_t completion;
-
-            if (complete_shell_line(shell, &completion)) {
-                apply_shell_completion(shell, &completion);
-            } else {
-                beep();
-            }
-        }
-    } else if (character == 0x01U) {
-        shell->cursor = 0U;
-        redraw_line(shell);
-    } else if (character == 0x05U) {
-        shell->cursor = shell->line_length;
-        redraw_line(shell);
-    } else if (character == 0x15U) {
-        reset_line(shell);
-        redraw_line(shell);
-    } else if (character == 0x17U) {
-        delete_previous_word(shell);
-    } else if (character == 0x0CU) {
-        redraw_line(shell);
-    } else if (isprint(character)) {
-        insert_character(shell, (char)character);
+    }
+    if (bvstk_line_editor_handle_byte(&shell->editor, character) != 0) {
+        shell->stop_requested = 1;
     }
 }
 
@@ -1221,6 +821,7 @@ static int stop_child(shell_state_t *shell)
 static int run_interactive(void)
 {
     shell_state_t shell;
+    bvstk_line_editor_config_t editor_config;
     struct termios saved_terminal;
     unsigned char buffer[BVSTK_SHELL_IO_MAX];
     int result = 0;
@@ -1229,9 +830,16 @@ static int run_interactive(void)
     shell.child_input = -1;
     shell.child_output = -1;
     shell.child_pid = -1;
-    shell.history_position = -1;
     shell.output_state = OUTPUT_TEXT;
     (void)snprintf(shell.prompt_path, sizeof(shell.prompt_path), "/");
+    memset(&editor_config, 0, sizeof(editor_config));
+    editor_config.context = &shell;
+    editor_config.write = shell_editor_write;
+    editor_config.prompt = shell_editor_prompt;
+    editor_config.submit = shell_editor_submit;
+    editor_config.complete = shell_editor_complete;
+    editor_config.eof_on_empty = 1;
+    bvstk_line_editor_init(&shell.editor, &editor_config);
     if (start_child(&shell) != 0 || enter_raw_terminal(&saved_terminal) != 0) {
         (void)stop_child(&shell);
         return 1;

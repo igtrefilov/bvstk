@@ -39,3 +39,11 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -o "$TEST_TMP/test_i2c_completion"
 
 "$TEST_TMP/test_i2c_completion"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic \
+  -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_line_editor.c" \
+  "$REPO_ROOT/src/shared/cli/bvstk_line_editor.c" \
+  -o "$TEST_TMP/test_line_editor"
+
+"$TEST_TMP/test_line_editor"
