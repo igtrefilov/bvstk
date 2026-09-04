@@ -22,8 +22,8 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="1.0283203"
-     inkscape:cx="773.59165"
-     inkscape:cy="441.01045"
+     inkscape:cx="774.56411"
+     inkscape:cy="441.98291"
      inkscape:window-width="2510"
      inkscape:window-height="1371"
      inkscape:window-x="0"
@@ -800,12 +800,12 @@
       <path
          id="config-store-to-policy"
          class="lifecycle-connection"
-         d="M 912,292 H 890 V 340 H 585 V 283 H 578"
+         d="M 912,292 H 890 V 365 H 300 V 283 H 338"
          marker-end="url(#lifecycle-arrowhead)" />
       <path
          id="config-store-to-transactions"
          class="lifecycle-connection"
-         d="M 912,296 H 875 V 346 H 585 V 313 H 578"
+         d="M 912,296 H 875 V 375 H 280 V 313 H 338"
          marker-end="url(#lifecycle-arrowhead)" />
     </g>
     <!-- Subsystem services -> common driver -->
