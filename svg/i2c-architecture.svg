@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="1536"
-   height="1024"
-   viewBox="0 0 1536 1024"
+   height="1104"
+   viewBox="0 0 1536 1104"
    version="1.1"
    id="svg1142"
    sodipodi:docname="i2c-architecture.svg"
@@ -22,14 +22,14 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="1.0283203"
-     inkscape:cx="770.67427"
-     inkscape:cy="437.12061"
+     inkscape:cx="772.61919"
+     inkscape:cy="440.03799"
      inkscape:window-width="2510"
      inkscape:window-height="1371"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="zynq-ps" />
+     inkscape:current-layer="pl-core-driver" />
   <title
      id="title1020">PL subsystem architecture: Zynq PS and FPGA PL</title>
   <desc
@@ -92,6 +92,12 @@
       .body { font-family: Arial, Helvetica, sans-serif; font-size: 20px; fill: #050505; }
       .small-body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; fill: #050505; }
       .runtime-body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; fill: #050505; }
+      .runtime-group-title { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; fill: #050505; }
+      .runtime-mechanism-label { font-family: Arial, Helvetica, sans-serif; font-size: 13px; fill: #050505; }
+      .runtime-cell-label { font-family: Arial, Helvetica, sans-serif; font-size: 10px; fill: #050505; }
+      .runtime-storage-title { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; fill: #050505; }
+      .runtime-storage-label { font-family: Arial, Helvetica, sans-serif; font-size: 13px; fill: #050505; }
+      .runtime-volume-label { font-family: Arial, Helvetica, sans-serif; font-size: 12px; fill: #050505; }
       .driver-title { font-family: Arial, Helvetica, sans-serif; font-size: 21px; font-weight: 700; fill: #050505; }
       .driver-container { fill: #ffffff; fill-opacity: 0.28; stroke: #0b2d6a; stroke-width: 2; }
       .cell { fill: #ffffff; fill-opacity: 0.78; stroke: #7187b5; stroke-width: 1.3; }
@@ -101,6 +107,7 @@
       .pl-label { font-family: Arial, Helvetica, sans-serif; font-size: 26px; font-weight: 700; fill: #123b78; }
       .pl-body { font-family: Arial, Helvetica, sans-serif; font-size: 22px; fill: #050505; }
       .connection-label { font-family: Arial, Helvetica, sans-serif; font-size: 22px; fill: #050505; }
+      .mmio-api-text { font-family: Arial, Helvetica, sans-serif; font-size: 18px; fill: #050505; }
       .connection { fill: none; stroke: #050755; stroke-width: 2.5; stroke-linecap: square; stroke-linejoin: miter; }
       .support-connection { fill: none; stroke: #123575; stroke-width: 2; stroke-dasharray: 6,4; stroke-linecap: square; }
       .support-label { font-family: Arial, Helvetica, sans-serif; font-size: 13px; fill: #123575; }
@@ -146,7 +153,7 @@
        x="10"
        y="8"
        width="1515"
-       height="719"
+       height="799"
        fill="url(#zynq-background)" />
     <text
        id="zynq-ps-title"
@@ -198,16 +205,71 @@
           <g
              id="external-neutrino-interface-cells"
              inkscape:label="Neutrino interface cells">
-            <rect id="external-neutrino-shell-cell" class="cell" x="350" y="114" width="99" height="20" />
-            <text id="external-neutrino-shell-label" class="cell-label" x="399.5" y="128" text-anchor="middle">shell</text>
-            <rect id="external-neutrino-ssh-cell" class="cell" x="455" y="114" width="99" height="20" />
-            <text id="external-neutrino-ssh-label" class="cell-label" x="504.5" y="128" text-anchor="middle">SSH</text>
-            <rect id="external-neutrino-pl-core-client-cell" class="cell" x="560" y="114" width="99" height="20" />
-            <text id="external-neutrino-pl-core-client-label" class="cell-label" x="609.5" y="128" text-anchor="middle">PL-core client</text>
-            <rect id="external-neutrino-bvstkctl-cell" class="cell" x="359" y="138" width="145" height="20" />
-            <text id="external-neutrino-bvstkctl-label" class="cell-label" x="431.5" y="152" text-anchor="middle">bvstkctl</text>
-            <rect id="external-neutrino-resource-manager-cell" class="cell" x="510" y="138" width="145" height="20" />
-            <text id="external-neutrino-resource-manager-label" class="cell-label" x="582.5" y="152" text-anchor="middle">resource manager</text>
+            <rect
+               id="external-neutrino-shell-cell"
+               class="cell"
+               x="350"
+               y="114"
+               width="99"
+               height="20" />
+            <text
+               id="external-neutrino-shell-label"
+               class="cell-label"
+               x="399.5"
+               y="128"
+               text-anchor="middle">shell</text>
+            <rect
+               id="external-neutrino-ssh-cell"
+               class="cell"
+               x="455"
+               y="114"
+               width="99"
+               height="20" />
+            <text
+               id="external-neutrino-ssh-label"
+               class="cell-label"
+               x="504.5"
+               y="128"
+               text-anchor="middle">SSH</text>
+            <rect
+               id="external-neutrino-pl-core-client-cell"
+               class="cell"
+               x="560"
+               y="114"
+               width="99"
+               height="20" />
+            <text
+               id="external-neutrino-pl-core-client-label"
+               class="cell-label"
+               x="609.5"
+               y="128"
+               text-anchor="middle">PL-core client</text>
+            <rect
+               id="external-neutrino-bvstkctl-cell"
+               class="cell"
+               x="359"
+               y="138"
+               width="145"
+               height="20" />
+            <text
+               id="external-neutrino-bvstkctl-label"
+               class="cell-label"
+               x="431.5"
+               y="152"
+               text-anchor="middle">bvstkctl</text>
+            <rect
+               id="external-neutrino-resource-manager-cell"
+               class="cell"
+               x="510"
+               y="138"
+               width="145"
+               height="20" />
+            <text
+               id="external-neutrino-resource-manager-label"
+               class="cell-label"
+               x="582.5"
+               y="152"
+               text-anchor="middle">resource manager</text>
           </g>
         </g>
         <g
@@ -231,12 +293,45 @@
           <g
              id="external-freertos-interface-cells"
              inkscape:label="FreeRTOS interface cells">
-            <rect id="external-freertos-console-cell" class="cell" x="699" y="114" width="115" height="20" />
-            <text id="external-freertos-console-label" class="cell-label" x="756.5" y="128" text-anchor="middle">console</text>
-            <rect id="external-freertos-ssh-cell" class="cell" x="820" y="114" width="115" height="20" />
-            <text id="external-freertos-ssh-label" class="cell-label" x="877.5" y="128" text-anchor="middle">SSH</text>
-            <rect id="external-freertos-http-cell" class="cell" x="699" y="138" width="236" height="20" />
-            <text id="external-freertos-http-label" class="cell-label" x="817" y="152" text-anchor="middle">HTTP</text>
+            <rect
+               id="external-freertos-console-cell"
+               class="cell"
+               x="699"
+               y="114"
+               width="115"
+               height="20" />
+            <text
+               id="external-freertos-console-label"
+               class="cell-label"
+               x="756.5"
+               y="128"
+               text-anchor="middle">console</text>
+            <rect
+               id="external-freertos-ssh-cell"
+               class="cell"
+               x="820"
+               y="114"
+               width="115"
+               height="20" />
+            <text
+               id="external-freertos-ssh-label"
+               class="cell-label"
+               x="877.5"
+               y="128"
+               text-anchor="middle">SSH</text>
+            <rect
+               id="external-freertos-http-cell"
+               class="cell"
+               x="699"
+               y="138"
+               width="236"
+               height="20" />
+            <text
+               id="external-freertos-http-label"
+               class="cell-label"
+               x="817"
+               y="152"
+               text-anchor="middle">HTTP</text>
           </g>
         </g>
         <g
@@ -260,8 +355,19 @@
           <g
              id="external-common-interface-cells"
              inkscape:label="Common interface cells">
-            <rect id="external-common-dcp2-cell" class="cell" x="971" y="126" width="207" height="22" />
-            <text id="external-common-dcp2-label" class="cell-label" x="1074.5" y="141" text-anchor="middle">DCP2</text>
+            <rect
+               id="external-common-dcp2-cell"
+               class="cell"
+               x="971"
+               y="126"
+               width="207"
+               height="22" />
+            <text
+               id="external-common-dcp2-label"
+               class="cell-label"
+               x="1074.5"
+               y="141"
+               text-anchor="middle">DCP2</text>
           </g>
         </g>
       </g>
@@ -297,21 +403,87 @@
          x="583"
          y="232"
          text-anchor="middle">Subsystem services</text>
-      <g id="subsystem-service-cells" inkscape:label="Service cells">
-        <rect id="service-api-cell" class="cell" x="338" y="240" width="240" height="26" />
-        <text id="service-api-label" class="cell-label" x="458" y="258" text-anchor="middle">Public API</text>
-        <rect id="service-registry-cell" class="cell" x="588" y="240" width="240" height="26" />
-        <text id="service-registry-label" class="cell-label" x="708" y="258" text-anchor="middle">Device/core registry</text>
-
-        <rect id="service-policy-cell" class="cell" x="338" y="270" width="240" height="26" />
-        <text id="service-policy-label" class="cell-label" x="458" y="288" text-anchor="middle">Policy</text>
-        <rect id="service-state-cell" class="cell" x="588" y="270" width="240" height="26" />
-        <text id="service-state-label" class="cell-label" x="708" y="288" text-anchor="middle">State / cache</text>
-
-        <rect id="service-transactions-cell" class="cell" x="338" y="300" width="240" height="26" />
-        <text id="service-transactions-label" class="cell-label" x="458" y="318" text-anchor="middle">Transactions</text>
-        <rect id="service-events-cell" class="cell" x="588" y="300" width="240" height="26" />
-        <text id="service-events-label" class="cell-label" x="708" y="318" text-anchor="middle">Events / forwarding</text>
+      <g
+         id="subsystem-service-cells"
+         inkscape:label="Service cells">
+        <rect
+           id="service-api-cell"
+           class="cell"
+           x="338"
+           y="240"
+           width="240"
+           height="26" />
+        <text
+           id="service-api-label"
+           class="cell-label"
+           x="458"
+           y="258"
+           text-anchor="middle">Public API</text>
+        <rect
+           id="service-registry-cell"
+           class="cell"
+           x="588"
+           y="240"
+           width="240"
+           height="26" />
+        <text
+           id="service-registry-label"
+           class="cell-label"
+           x="708"
+           y="258"
+           text-anchor="middle">Device/core registry</text>
+        <rect
+           id="service-policy-cell"
+           class="cell"
+           x="338"
+           y="270"
+           width="240"
+           height="26" />
+        <text
+           id="service-policy-label"
+           class="cell-label"
+           x="458"
+           y="288"
+           text-anchor="middle">Policy</text>
+        <rect
+           id="service-state-cell"
+           class="cell"
+           x="588"
+           y="270"
+           width="240"
+           height="26" />
+        <text
+           id="service-state-label"
+           class="cell-label"
+           x="708"
+           y="288"
+           text-anchor="middle">State / cache</text>
+        <rect
+           id="service-transactions-cell"
+           class="cell"
+           x="338"
+           y="300"
+           width="240"
+           height="26" />
+        <text
+           id="service-transactions-label"
+           class="cell-label"
+           x="458"
+           y="318"
+           text-anchor="middle">Transactions</text>
+        <rect
+           id="service-events-cell"
+           class="cell"
+           x="588"
+           y="300"
+           width="240"
+           height="26" />
+        <text
+           id="service-events-label"
+           class="cell-label"
+           x="708"
+           y="318"
+           text-anchor="middle">Events / forwarding</text>
       </g>
     </g>
     <!-- Shared runtime infrastructure supports the subsystem services. -->
@@ -325,29 +497,236 @@
          class="box"
          x="900"
          y="203"
-         width="305"
-         height="150" />
+         width="500"
+         height="275" />
       <text
          id="runtime-infrastructure-title"
          class="title"
-         x="1052.5"
+         x="1150"
          y="232"
          text-anchor="middle">Runtime infrastructure</text>
-      <g id="runtime-mechanism-cells" inkscape:label="Runtime mechanism cells">
-        <rect id="runtime-config-cell" class="cell" x="912" y="240" width="136" height="26" />
-        <text id="runtime-config-label" class="cell-label" x="980" y="258" text-anchor="middle">Config store</text>
-        <rect id="runtime-filesystem-cell" class="cell" x="1056" y="240" width="137" height="26" />
-        <text id="runtime-filesystem-label" class="cell-label" x="1124.5" y="258" text-anchor="middle">Filesystem</text>
+      <g
+         id="runtime-mechanism-cells"
+         inkscape:label="Runtime mechanism cells">
+        <rect
+           id="runtime-config-cell"
+           class="cell"
+           x="912"
+           y="250"
+           width="216"
+           height="36" />
+        <text
+           id="runtime-config-label"
+           class="runtime-mechanism-label"
+           x="1020"
+           y="273"
+           text-anchor="middle">Config store</text>
+        <rect
+           id="runtime-resource-manager-cell"
+           class="cell"
+           x="912"
+           y="294"
+           width="216"
+           height="36" />
+        <text
+           id="runtime-resource-manager-label"
+           class="runtime-mechanism-label"
+           x="1020"
+           y="317"
+           text-anchor="middle">Resource manager</text>
+        <rect
+           id="runtime-synchronization-cell"
+           class="cell"
+           x="912"
+           y="338"
+           width="216"
+           height="36" />
+        <text
+           id="runtime-synchronization-label"
+           class="runtime-mechanism-label"
+           x="1020"
+           y="361"
+           text-anchor="middle">Synchronization</text>
+        <rect
+           id="runtime-threads-cell"
+           class="cell"
+           x="912"
+           y="382"
+           width="216"
+           height="36" />
+        <text
+           id="runtime-threads-label"
+           class="runtime-mechanism-label"
+           x="1020"
+           y="405"
+           text-anchor="middle">Threads / queues</text>
+        <rect
+           id="runtime-lifecycle-cell"
+           class="cell"
+           x="912"
+           y="426"
+           width="216"
+           height="36" />
+        <text
+           id="runtime-lifecycle-label"
+           class="runtime-mechanism-label"
+           x="1020"
+           y="449"
+           text-anchor="middle">Service lifecycle</text>
 
-        <rect id="runtime-resource-manager-cell" class="cell" x="912" y="270" width="136" height="26" />
-        <text id="runtime-resource-manager-label" class="cell-label" x="980" y="288" text-anchor="middle">Resource manager</text>
-        <rect id="runtime-synchronization-cell" class="cell" x="1056" y="270" width="137" height="26" />
-        <text id="runtime-synchronization-label" class="cell-label" x="1124.5" y="288" text-anchor="middle">Synchronization</text>
-
-        <rect id="runtime-threads-cell" class="cell" x="912" y="300" width="136" height="26" />
-        <text id="runtime-threads-label" class="cell-label" x="980" y="318" text-anchor="middle">Threads / queues</text>
-        <rect id="runtime-lifecycle-cell" class="cell" x="1056" y="300" width="137" height="26" />
-        <text id="runtime-lifecycle-label" class="cell-label" x="1124.5" y="318" text-anchor="middle">Service lifecycle</text>
+        <!-- Storage and filesystem hierarchy. -->
+        <g
+           id="runtime-storage-filesystem"
+           inkscape:label="Storage / filesystem">
+          <title
+             id="title1059">Storage / filesystem</title>
+          <rect
+             id="runtime-storage-filesystem-box"
+             class="group-box"
+             x="1135"
+             y="250"
+             width="253"
+             height="224" />
+          <text
+             id="runtime-storage-filesystem-title"
+             class="runtime-storage-title"
+             x="1261.5"
+             y="270"
+             text-anchor="middle">Storage / filesystem</text>
+          <g
+             id="runtime-storage-filesystem-cells"
+             inkscape:label="Storage / filesystem components">
+            <rect
+               id="runtime-filesystem-service-cell"
+               class="cell"
+               x="1145"
+               y="279"
+               width="233"
+               height="24" />
+            <text
+               id="runtime-filesystem-service-label"
+               class="runtime-storage-label"
+               x="1261.5"
+               y="296"
+               text-anchor="middle">Filesystem service</text>
+            <rect
+               id="runtime-storage-manager-cell"
+               class="cell"
+               x="1145"
+               y="307"
+               width="233"
+               height="24" />
+            <text
+               id="runtime-storage-manager-label"
+               class="runtime-storage-label"
+               x="1261.5"
+               y="324"
+               text-anchor="middle">Storage manager</text>
+            <rect
+               id="runtime-fatfs-cell"
+               class="cell"
+               x="1145"
+               y="335"
+               width="233"
+               height="24" />
+            <text
+               id="runtime-fatfs-label"
+               class="runtime-storage-label"
+               x="1261.5"
+               y="352"
+               text-anchor="middle">FatFs</text>
+            <g
+               id="runtime-block-io"
+               inkscape:label="Block I/O">
+               <title
+                 id="title1060">Block I/O</title>
+              <rect
+                 id="runtime-block-io-box"
+                 class="cell"
+                 x="1145"
+                 y="363"
+                 width="233"
+                 height="40" />
+              <text
+                 id="runtime-block-io-label"
+                 class="runtime-storage-label"
+                 x="1261.5"
+                 y="377"
+                 text-anchor="middle">Block I/O</text>
+              <rect
+                 id="runtime-diskio-cell"
+                 class="cell"
+                 x="1170"
+                 y="382"
+                 width="183"
+                 height="16" />
+              <text
+                 id="runtime-diskio-label"
+                 class="runtime-storage-label"
+                 x="1261.5"
+                 y="394"
+                 text-anchor="middle">diskio.c</text>
+            </g>
+            <g
+               id="runtime-mounted-volumes"
+               inkscape:label="Mounted volumes">
+              <title
+                 id="title1061">Mounted volumes</title>
+              <rect
+                 id="runtime-mounted-volumes-box"
+                 class="group-box"
+                 x="1145"
+                 y="407"
+                 width="233"
+                 height="66" />
+              <text
+                 id="runtime-mounted-volumes-title"
+                 class="runtime-group-title"
+                 x="1261.5"
+                 y="418"
+                 text-anchor="middle">Mounted volumes</text>
+              <rect
+                 id="runtime-sd-volume-cell"
+                 class="cell"
+                 x="1155"
+                 y="425"
+                 width="213"
+                 height="13" />
+              <text
+               id="runtime-sd-volume-label"
+                 class="runtime-volume-label"
+                 x="1261.5"
+                 y="437"
+                 text-anchor="middle">sd:/ → PS SD</text>
+              <rect
+                 id="runtime-flash-volume-cell"
+                 class="cell"
+                 x="1155"
+                 y="440"
+                 width="213"
+                 height="13" />
+              <text
+               id="runtime-flash-volume-label"
+                 class="runtime-volume-label"
+                 x="1261.5"
+                 y="452"
+                 text-anchor="middle">flash:/ → QSPI</text>
+              <rect
+                 id="runtime-sd-pl-volume-cell"
+                 class="cell"
+                 x="1155"
+                 y="455"
+                 width="213"
+                 height="13" />
+              <text
+               id="runtime-sd-pl-volume-label"
+                 class="runtime-volume-label"
+                 x="1261.5"
+                 y="467"
+                 text-anchor="middle">sd-pl:/ → PL SD</text>
+            </g>
+          </g>
+        </g>
       </g>
     </g>
     <g
@@ -375,26 +754,27 @@
          id="request-command-label"
          class="connection-label"
          x="311.62582"
-         y="378.98764">request / command</text>
+         y="458">request / command</text>
       <path
          id="request-command-arrow"
          class="connection"
-         d="M 520,353 V 403"
+         d="M 520,353 V 483"
          marker-end="url(#arrowhead)" />
       <text
          id="event-response-label"
          class="connection-label"
          x="713.82526"
-         y="377.66193">event / response</text>
+         y="458">event / response</text>
       <path
          id="event-response-arrow"
          class="connection"
-         d="M 700,353 V 403"
+         d="M 700,353 V 483"
          marker-end="url(#arrowhead)" />
     </g>
     <!-- PL-core driver with common and OS-specific implementation cells. -->
     <g
        id="pl-core-driver"
+       transform="translate(0,80)"
        inkscape:label="PL-core driver">
       <title
          id="title1073">PL-core driver</title>
@@ -411,40 +791,102 @@
          x="764"
          y="431"
          text-anchor="middle">PL-core driver</text>
-
-      <!-- OS-independent part of the driver. -->
+      <!-- Common driver functions. -->
       <g
-         id="pl-core-driver-os-independent"
-         inkscape:label="OS-independent">
+         id="pl-core-driver-common-functions"
+         inkscape:label="Common driver functions">
         <title
-           id="title1075">OS-independent PL-core driver</title>
+           id="title1075">Common PL-core driver functions</title>
         <rect
-           id="pl-core-driver-os-independent-cell"
+           id="pl-core-driver-common-functions-box"
            class="driver-box"
            x="343"
            y="442"
            width="842"
            height="75" />
-        <text
-           id="pl-core-driver-os-independent-title"
-           class="driver-title"
-           x="764"
-           y="466"
-           text-anchor="middle">OS-independent</text>
-        <text
-           id="common-master-driver"
-           class="body"
-           x="764"
-           y="489"
-           text-anchor="middle">transfer, FIFO, CSR, BRAM</text>
-        <text
-           id="common-slave-driver"
-           class="body"
-           x="764"
-           y="512"
-           text-anchor="middle">mailbox, CSR, IRQ status</text>
+        <g
+           id="common-driver-function-cells"
+           inkscape:label="Driver function cells">
+          <rect
+             id="common-transfer-cell"
+             class="cell"
+             x="355"
+             y="449"
+             width="260"
+             height="26" />
+          <text
+             id="common-transfer-label"
+             class="cell-label"
+             x="485"
+             y="467"
+             text-anchor="middle">transfer</text>
+          <rect
+             id="common-fifo-cell"
+             class="cell"
+             x="625"
+             y="449"
+             width="260"
+             height="26" />
+          <text
+             id="common-fifo-label"
+             class="cell-label"
+             x="755"
+             y="467"
+             text-anchor="middle">FIFO</text>
+          <rect
+             id="common-csr-cell"
+             class="cell"
+             x="895"
+             y="449"
+             width="278"
+             height="26" />
+          <text
+             id="common-csr-label"
+             class="cell-label"
+             x="1034"
+             y="467"
+             text-anchor="middle">CSR</text>
+          <rect
+             id="common-bram-cell"
+             class="cell"
+             x="355"
+             y="481"
+             width="260"
+             height="26" />
+          <text
+             id="common-bram-label"
+             class="cell-label"
+             x="485"
+             y="499"
+             text-anchor="middle">BRAM</text>
+          <rect
+             id="common-mailbox-cell"
+             class="cell"
+             x="625"
+             y="481"
+             width="260"
+             height="26" />
+          <text
+             id="common-mailbox-label"
+             class="cell-label"
+             x="755"
+             y="499"
+             text-anchor="middle">mailbox</text>
+          <rect
+             id="common-irq-status-cell"
+             class="cell"
+             x="895"
+             y="481"
+             width="278"
+             height="26" />
+          <text
+             id="common-irq-status-label"
+             class="cell-label"
+             x="1034"
+             y="499"
+             text-anchor="middle">IRQ status</text>
+        </g>
       </g>
-
       <!-- MMIO API boundary between common and OS-specific code. -->
       <g
          id="driver-mmio-api"
@@ -453,9 +895,15 @@
            id="title1080">MMIO API between common and OS-specific driver parts</title>
         <text
            id="mmio-api-label"
-           class="connection-label"
-           x="764"
-           y="535"
+           class="connection-label mmio-api-text"
+           x="596"
+           y="537"
+           text-anchor="middle">MMIO API</text>
+        <text
+           id="mmio-api-label-0"
+           class="connection-label mmio-api-text"
+           x="1043.5"
+           y="537"
            text-anchor="middle">MMIO API</text>
         <path
            id="common-to-neutrino-driver"
@@ -468,7 +916,6 @@
            d="M 987.5,517 V 548"
            marker-end="url(#arrowhead-0)" />
       </g>
-
       <!-- OS-specific driver parts. One variant is selected at build time. -->
       <g
          id="os-specific-drivers"
@@ -559,6 +1006,7 @@
   <!-- ================================================================== -->
   <g
      id="fpga-pl"
+     transform="translate(0,80)"
      inkscape:label="FPGA PL">
     <title
        id="title1102">FPGA PL</title>
@@ -656,8 +1104,9 @@
   <!-- Connections                                                        -->
   <!-- ================================================================== -->
   <g
-       id="mmio-connections"
-       inkscape:label="MMIO connections">
+     id="mmio-connections"
+     transform="translate(0,80)"
+     inkscape:label="MMIO connections">
     <title
        id="title1126">MMIO connections from PL-core driver to FPGA PL</title>
     <desc
@@ -669,34 +1118,34 @@
     <path
        id="mmio-bus"
        class="connection"
-       d="M 500,700 H 1020" />
+       d="m 502.5755,713.30294 h 520" />
     <!-- OS-specific variants -> common MMIO bus. -->
     <path
        id="neutrino-to-mmio-bus"
        class="connection"
-       d="M 540,648 V 658 H 750 V 700"
+       d="M 540,648 V 658 H 750 V 713.30294"
        marker-end="url(#arrowhead)" />
     <path
        id="freertos-to-mmio-bus"
        class="connection"
-       d="M 987.5,648 V 658 H 770 V 700"
+       d="M 987.5,648 V 658 H 770 V 713.30294"
        marker-end="url(#arrowhead)" />
     <text
        id="mmio-label"
        class="connection-label"
-       x="712.7749"
-       y="692.09875"
+       x="701.21173"
+       y="703.3656"
        text-anchor="middle">MMIO</text>
     <!-- Common MMIO bus -> PL endpoints. -->
     <path
        id="mmio-to-pl-slave"
        class="connection"
-       d="M 500,700 V 752"
+       d="M 502.5755,713.30294 V 752"
        marker-end="url(#arrowhead)" />
     <path
        id="mmio-to-pl-master"
        class="connection"
-       d="M 1020,700 V 752"
+       d="M 1022.5755,713.30294 V 752"
        marker-end="url(#arrowhead)" />
     <!-- AXI connections to the shared BRAM. -->
     <path
