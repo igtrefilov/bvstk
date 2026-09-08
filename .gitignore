@@ -44,6 +44,12 @@ web/**
 !docs/
 !docs/**
 
+# Editable architecture diagrams; keep unrelated SVG previews and drafts local.
+!svg/
+svg/*
+!svg/architecture_platform.svg
+!svg/architecture_bvstk.svg
+
 # Editor metadata
 src/.obsidian/
 src/.obsidian/**

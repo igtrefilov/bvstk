@@ -2,9 +2,9 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
      xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-     width="210mm" height="297mm" viewBox="0 0 210 297"
+     width="210mm" height="316mm" viewBox="0 0 210 316"
      version="1.1" id="zynq7000-rtos-architecture"
-     inkscape:version="1.2.2" sodipodi:docname="architecture.svg">
+     inkscape:version="1.2.2" sodipodi:docname="architecture_platform.svg">
   <title>FreeRTOS и ЗОСРВ «Нейтрино» на Zynq-7000</title>
   <desc>
     Два альтернативных варианта загрузки на двухъядерной платформе Zynq-7000
@@ -27,7 +27,19 @@
     DDR — внешняя память платы, её контроллер расположен в PS.
     AXI GP используется для доступа CPU к регистрам и памяти PL;
     IRQ_F2P доставляет прерывания PL контроллеру GIC.
-    Подробные локальные источники и ссылки на документацию: custom-sources.md.
+    Цвета совпадают с architecture_bvstk.svg и теперь обозначают уровень
+    абстракции: L0 — аппаратура, L1 — OS-порт/BSP, L2 — ядро,
+    L3 — системные сервисы/драйверы, L4 — приложения.
+    Смешанные блоки имеют белую штриховую заливку. Цвет не обозначает ОС.
+    Источники и правила согласования схем: ../docs/dev/architecture-diagrams.md.
+    Нумерация L0–L4 задаёт единые функциональные уровни ОС снизу вверх
+    для обеих колонок: L0 — аппаратура; L1 — OS-порт и BSP;
+    L2 — ядро; L3 — системные сервисы и драйверы;
+    L4 — прикладной уровень.
+    В FreeRTOS L3 и L4 находятся в одном ELF и общем адресном пространстве;
+    в Нейтрино L3 обычно представлен пользовательскими системными процессами,
+    а L4 — прикладными процессами. Это разные функциональные уровни,
+    даже если в Нейтрино оба находятся выше микроядра.
   </desc>
   <sodipodi:namedview id="view" pagecolor="#ffffff" bordercolor="#000000"
      inkscape:document-units="mm" showgrid="false"
@@ -48,6 +60,50 @@
       .boot { fill: none; stroke: #000000; stroke-width: 0.22; stroke-dasharray: 1.2 0.7; }
       .arrow { fill: none; stroke: #000000; stroke-width: 0.32; marker-end: url(#arrow-head); }
       .both { marker-start: url(#arrow-head); }
+      .sem-common { fill: #e7f3e8; stroke: #36794c; }
+      .sem-binding { fill: #fff0dc; stroke: #a7671d; }
+      .sem-os { fill: #e8efff; stroke: #4067a5; }
+      .sem-hardware { fill: #edf0f4; stroke: #657588; }
+      .sem-pl { fill: #e1f3f1; stroke: #238379; }
+      .sem-memory { fill: #f5eafa; stroke: #9363a5; }
+      #f-tasks-box, #f-port-box, #f-context-box, #f-tick-box,
+      #f-bsp-box, #f-bsp-memory-box, #f-bsp-peripherals-box, #f-boot-box,
+      #n-processes-box, #n-uart-box, #n-net-box, #n-fs-pl-box,
+      #n-bsp-box, #n-boot-box { fill: #fff0dc; stroke: #a7671d; }
+      #f-libraries-box, #f-kernel-box, #f-scheduler-box, #f-sync-box,
+      #f-events-box, #f-timers-box, #n-libc-box, #n-procnto-box,
+      #n-kernel-box, #n-scheduler-box, #n-ipc-box, #n-synchronization-box,
+      #n-interrupts-box, #n-manager-box, #n-process-control-box,
+      #n-memory-box, #n-namespace-box { fill: #e8efff; stroke: #4067a5; }
+      #ps-resources-box, #ps-cpu-box, #ps-memory-irq-box,
+      #ps-peripherals-box { fill: #edf0f4; stroke: #657588; }
+      #pl-box, #pl-registers-box, #pl-cores-box,
+      #pl-events-box { fill: #e1f3f1; stroke: #238379; }
+      #external-ddr-box { fill: #f5eafa; stroke: #9363a5; }
+      .legend-label { font-size: 2.2px; text-anchor: start; }
+      .level-key { font-size: 2.15px; text-anchor: start; }
+      /* Цвет определяется уровнем абстракции: L0 снизу, L4 сверху. */
+      .level-l0 { fill: #e9eef3; stroke: #607487; }
+      .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
+      .level-l2 { fill: #ffd1c7; stroke: #c65b4e; }
+      .level-l3 { fill: #d9f0ea; stroke: #287f73; }
+      .level-l4 { fill: #d9ebff; stroke: #3f75ad; }
+      .level-mixed { fill: #ffffff; stroke: #7a8996; stroke-dasharray: 1.7 1; }
+      #f-application-box, #f-tasks-box, #f-libraries-box,
+      #n-apps-box, #n-processes-box, #n-libc-box { fill: #d9ebff; stroke: #3f75ad; }
+      #f-kernel-box, #f-scheduler-box, #f-sync-box, #f-events-box,
+      #f-timers-box, #n-procnto-box, #n-kernel-box, #n-scheduler-box,
+      #n-ipc-box, #n-synchronization-box, #n-interrupts-box,
+      #n-manager-box, #n-process-control-box, #n-memory-box,
+      #n-namespace-box { fill: #ffd1c7; stroke: #c65b4e; }
+      #f-port-box, #f-context-box, #f-tick-box, #f-bsp-box,
+      #f-bsp-memory-box, #f-bsp-peripherals-box, #f-boot-box,
+      #n-bsp-box, #n-boot-box { fill: #fff0d6; stroke: #b56b1d; }
+      #n-services-box, #n-uart-box, #n-net-box, #n-fs-pl-box,
+      #n-filesystem-library-box { fill: #d9f0ea; stroke: #287f73; }
+      #ps-resources-box, #ps-cpu-box, #ps-memory-irq-box,
+      #ps-peripherals-box, #pl-box, #pl-registers-box, #pl-cores-box,
+      #pl-events-box, #external-ddr-box, #pl-bram-box { fill: #e9eef3; stroke: #607487; }
     </style>
     <marker id="arrow-head" viewBox="0 0 8 8" refX="7.5" refY="4"
        markerWidth="1.8" markerHeight="1.8" markerUnits="userSpaceOnUse"
@@ -66,16 +122,16 @@
     <text id="freertos-label" class="os-title" x="54.5" y="33"><tspan x="54.5" y="33">FreeRTOS</tspan></text>
     <text id="freertos-image-label" class="tiny" x="54.5" y="37.1"><tspan x="54.5" y="37.1">Один ELF: приложение + ядро + библиотеки + драйверы</tspan></text>
     <rect id="f-application-box" class="section" x="9" y="39" width="91" height="24" />
-    <text id="f-application-label" class="heading" x="54.5" y="43"><tspan x="54.5" y="43">Приложение и библиотеки</tspan></text>
+    <text id="f-application-label" class="heading" x="54.5" y="43"><tspan x="54.5" y="43">L4 · Прикладной уровень</tspan></text>
     <rect id="f-tasks-box" class="cell" x="10.5" y="45" width="42" height="15" />
     <text id="f-tasks-label" class="label" x="31.5" y="51.5"><tspan x="31.5" y="51.5">Задачи приложения</tspan><tspan x="31.5" y="55.6">Прикладные ISR</tspan></text>
     <rect id="f-libraries-box" class="cell" x="54.5" y="45" width="44" height="15" />
     <text id="f-libraries-label" class="small" x="76.5" y="51.5"><tspan x="76.5" y="51.5">lwIP: TCP/IP</tspan><tspan x="76.5" y="55.6">FatFs: файловая система</tspan></text>
     <path id="f-api-left" class="arrow both" d="M 13,64 V 68.6" />
     <path id="f-api-right" class="arrow both" d="M 96,64 V 68.6" />
-    <text id="f-api-label" class="small" x="54.5" y="67.8"><tspan x="54.5" y="67.8">API FreeRTOS и варианты *FromISR()</tspan></text>
+    <text id="f-api-label" class="small" x="54.5" y="67.8"><tspan x="54.5" y="67.8">L3 внутри L4 ELF · сервисы/драйверы · API FreeRTOS/*FromISR()</tspan></text>
     <rect id="f-kernel-box" class="section" x="9" y="70" width="91" height="38" />
-    <text id="f-kernel-label" class="heading" x="54.5" y="74.1"><tspan x="54.5" y="74.1">Ядро FreeRTOS</tspan></text>
+    <text id="f-kernel-label" class="heading" x="54.5" y="74.1"><tspan x="54.5" y="74.1">L2 · Ядро FreeRTOS</tspan></text>
     <rect id="f-scheduler-box" class="cell" x="10.5" y="76" width="42" height="12" />
     <text id="f-scheduler-label" class="small" x="31.5" y="81"><tspan x="31.5" y="81">Задачи · планировщик</tspan><tspan x="31.5" y="85.1">Приоритеты · вытеснение</tspan></text>
     <rect id="f-sync-box" class="cell" x="54.5" y="76" width="44" height="12" />
@@ -86,13 +142,13 @@
     <text id="f-timers-label" class="small" x="76.5" y="94.5"><tspan x="76.5" y="94.5">Программные таймеры</tspan><tspan x="76.5" y="98.6">Задачи таймеров и Idle</tspan></text>
     <text id="f-heap-label" class="small" x="54.5" y="106"><tspan x="54.5" y="106">Память RTOS: pvPortMalloc · vPortFree · heap_4</tspan></text>
     <rect id="f-port-box" class="section" x="9" y="111" width="91" height="20.5" />
-    <text id="f-port-label" class="heading" x="54.5" y="115.2"><tspan x="54.5" y="115.2">Порт ARM Cortex-A9 для Zynq-7000</tspan></text>
+    <text id="f-port-label" class="heading" x="54.5" y="115.2"><tspan x="54.5" y="115.2">L1 · OS-порт ARM Cortex-A9</tspan></text>
     <rect id="f-context-box" class="cell" x="10.5" y="117" width="42" height="12.5" />
     <text id="f-context-label" class="small" x="31.5" y="122.25"><tspan x="31.5" y="122.25">Контекст ARM · FPU</tspan><tspan x="31.5" y="126.35">SVC, IRQ, крит. секции</tspan></text>
     <rect id="f-tick-box" class="cell" x="54.5" y="117" width="44" height="12.5" />
     <text id="f-tick-label" class="label" x="76.5" y="122.25"><tspan x="76.5" y="122.25">Тик: private timer</tspan><tspan x="76.5" y="126.35">XScuTimer + GIC</tspan></text>
     <rect id="f-bsp-box" class="section" x="9" y="134.5" width="91" height="19" />
-    <text id="f-bsp-label" class="heading" x="54.5" y="138.6"><tspan x="54.5" y="138.6">Xilinx BSP и драйверы PS и PL</tspan></text>
+    <text id="f-bsp-label" class="heading" x="54.5" y="138.6"><tspan x="54.5" y="138.6">L1 · Xilinx BSP и аппаратный доступ</tspan></text>
     <rect id="f-bsp-memory-box" class="cell" x="10.5" y="140.5" width="42" height="11" />
     <text id="f-bsp-memory-label" class="small" x="31.5" y="145"><tspan x="31.5" y="145">MMIO · кеши · MMU</tspan><tspan x="31.5" y="149.1">Xil_In32 · Xil_Out32</tspan></text>
     <rect id="f-bsp-peripherals-box" class="cell" x="54.5" y="140.5" width="44" height="11" />
@@ -106,28 +162,30 @@
     <text id="neutrino-label" class="os-title" x="155.5" y="33"><tspan x="155.5" y="33">Нейтрино 2024</tspan></text>
     <text id="neutrino-image-label" class="tiny" x="155.5" y="37.1"><tspan x="155.5" y="37.1">Микроядерная ОС · Cortex-A9 SMP (ARMv7)</tspan></text>
     <rect id="n-user-box" class="section" x="110" y="39" width="91" height="47" />
-    <text id="n-user-label" class="heading" x="155.5" y="43"><tspan x="155.5" y="43">Пользовательское пространство</tspan></text>
+    <text id="n-user-label" class="heading" x="155.5" y="43"><tspan x="155.5" y="43">L3 и L4 · Пользовательские процессы</tspan></text>
     <rect id="n-apps-box" class="section" x="111.5" y="45" width="42" height="32.5" />
-    <text id="n-apps-label" class="label" x="132.5" y="49"><tspan x="132.5" y="49">Приложения</tspan></text>
+    <text id="n-apps-label" class="label" x="132.5" y="49"><tspan x="132.5" y="49">L4 · Приложения</tspan></text>
     <rect id="n-processes-box" class="cell" x="113" y="51" width="39" height="12" />
     <text id="n-processes-label" class="label" x="132.5" y="56"><tspan x="132.5" y="56">Процессы 1 … N</tspan><tspan x="132.5" y="60.1">Потоки pthread</tspan></text>
     <rect id="n-libc-box" class="cell" x="113" y="65" width="39" height="10.5" />
     <text id="n-libc-label" class="small" x="132.5" y="69.35"><tspan x="132.5" y="69.35">POSIX API и libc</tspan><tspan x="132.5" y="73.25">open · read · write</tspan></text>
     <rect id="n-services-box" class="section" x="155.5" y="45" width="44" height="32.5" />
-    <text id="n-services-label" class="small" x="177.5" y="49"><tspan x="177.5" y="49">Системные процессы</tspan></text>
+    <text id="n-services-label" class="small" x="177.5" y="49"><tspan x="177.5" y="49">L3 · Сервисы и драйверы</tspan></text>
     <rect id="n-uart-box" class="cell" x="157" y="51" width="41" height="7" />
     <text id="n-uart-label" class="small" x="177.5" y="55.55"><tspan x="177.5" y="55.55">UART: devc-serxzynq</tspan></text>
     <rect id="n-net-box" class="cell" x="157" y="59" width="41" height="7" />
     <text id="n-net-label" class="tiny" x="177.5" y="63.55"><tspan x="177.5" y="63.55">io-pkt + devnp-zynq7000</tspan></text>
     <rect id="n-fs-pl-box" class="cell" x="157" y="67" width="41" height="8.5" />
-    <text id="n-fs-pl-label" class="tiny" x="177.5" y="70.55"><tspan x="177.5" y="70.55">Файловые системы</tspan><tspan x="177.5" y="74.05">Менеджеры ресурсов PS и PL</tspan></text>
+    <rect id="n-filesystem-library-box" class="cell sem-os" x="157" y="67" width="41" height="4.2" />
+    <text id="n-fs-pl-label" class="tiny" x="177.5" y="70.55">Файловые системы</text>
+    <text id="n-pl-manager-label" class="tiny" x="177.5" y="74.05">Менеджеры ресурсов PS и PL</text>
     <text id="n-mmio-api-label" class="tiny" x="155.5" y="81.1"><tspan x="155.5" y="81.1">MMIO: mmap_device_memory()</tspan></text>
     <text id="n-irq-api-label" class="tiny" x="155.5" y="84.4"><tspan x="155.5" y="84.4">IRQ: InterruptAttachEvent() → поток</tspan></text>
     <path id="n-api-left" class="arrow both" d="M 117,87 V 91.6" />
     <path id="n-api-right" class="arrow both" d="M 194,87 V 91.6" />
     <text id="n-api-label" class="small" x="155.5" y="90.8"><tspan x="155.5" y="90.8">Системные вызовы и IPC</tspan></text>
     <rect id="n-procnto-box" class="section" x="110" y="93" width="91" height="46" />
-    <text id="n-procnto-label" class="heading" x="155.5" y="97.1"><tspan x="155.5" y="97.1">procnto-smp — единый модуль</tspan></text>
+    <text id="n-procnto-label" class="heading" x="155.5" y="97.1"><tspan x="155.5" y="97.1">L2 · procnto-smp: ядро + менеджер процессов</tspan></text>
     <rect id="n-kernel-box" class="section" x="111.5" y="99" width="47.5" height="38" />
     <text id="n-kernel-label" class="heading" x="135.25" y="103"><tspan x="135.25" y="103">Микроядро</tspan></text>
     <rect id="n-scheduler-box" class="cell" x="113" y="105" width="44.5" height="7" />
@@ -147,7 +205,7 @@
     <rect id="n-namespace-box" class="cell" x="162" y="127" width="36" height="8" />
     <text id="n-namespace-label" class="label" x="180" y="132.05"><tspan x="180" y="132.05">Имена · пути</tspan></text>
     <rect id="n-bsp-box" class="section" x="110" y="142" width="91" height="12" />
-    <text id="n-bsp-label" class="heading" x="155.5" y="146.1"><tspan x="155.5" y="146.1">BSP: syspage и callouts</tspan></text>
+    <text id="n-bsp-label" class="heading" x="155.5" y="146.1"><tspan x="155.5" y="146.1">L1 · BSP: syspage и callouts</tspan></text>
     <text id="n-callouts-label" class="small" x="155.5" y="151"><tspan x="155.5" y="151">GIC · таймеры · параметры CPU и RAM</tspan></text>
     <text id="n-address-space-label" class="small" x="155.5" y="159.8"><tspan x="155.5" y="159.8">MMU: изолированная память процессов</tspan></text>
     <rect id="n-boot-box" class="boot" x="110" y="164.5" width="91" height="11" />
@@ -159,7 +217,7 @@
     <path id="n-execution" class="arrow" d="M 155.5,179 V 188.8" />
     <text id="n-cpu-label" class="small" x="178.5" y="185"><tspan x="178.5" y="185">CPU0 + CPU1 · SMP</tspan></text>
     <rect id="ps-resources-box" class="section" x="7" y="190" width="196" height="35" />
-    <text id="ps-resources-label" class="heading" x="105" y="194.2"><tspan x="105" y="194.2">Аппаратные ресурсы PS</tspan></text>
+    <text id="ps-resources-label" class="heading" x="105" y="194.2"><tspan x="105" y="194.2">L0 · Аппаратный уровень PS</tspan></text>
     <rect id="ps-cpu-box" class="cell" x="9" y="196" width="192" height="10" />
     <text id="ps-cpu-label" class="label" x="105" y="200"><tspan x="105" y="200">2 × ARM Cortex-A9: CPU0 и CPU1 · ARMv7-A</tspan><tspan x="105" y="204.1">У каждого ядра: L1, MMU, FPU · NEON · Общие: SCU, кеш L2</tspan></text>
     <rect id="ps-memory-irq-box" class="cell" x="9" y="208" width="93" height="15" />
@@ -176,12 +234,40 @@
     <path id="pl-ps-irq" class="arrow" d="M 170,248.3 V 225.6" />
     <text id="pl-ps-irq-label" class="small" x="188" y="235.8"><tspan x="188" y="235.8">IRQ_F2P</tspan><tspan x="188" y="240">→ GIC</tspan></text>
     <rect id="pl-box" class="frame" x="7" y="249" width="196" height="29" />
-    <text id="pl-label" class="heading" x="105" y="253.6"><tspan x="105" y="253.6">PL — программируемая логика FPGA</tspan></text>
+    <text id="pl-label" class="heading" x="105" y="253.6"><tspan x="105" y="253.6">L0 · Аппаратный уровень PL — программируемая логика FPGA</tspan></text>
     <rect id="pl-registers-box" class="cell" x="10" y="256" width="57" height="18" />
-    <text id="pl-registers-label" class="label" x="38.5" y="264"><tspan x="38.5" y="264">AXI-интерконнект</tspan><tspan x="38.5" y="268.1">Регистры · BRAM</tspan></text>
+    <text id="pl-registers-label" class="label" x="38.5" y="261"><tspan x="38.5" y="261">AXI-интерконнект</tspan><tspan x="38.5" y="265.1">Регистры</tspan></text>
+    <rect id="pl-bram-box" class="cell sem-memory" x="23" y="267" width="31" height="5.5" />
+    <text id="pl-bram-label" class="small" x="38.5" y="270.9">BRAM</text>
     <rect id="pl-cores-box" class="cell" x="70" y="256" width="75" height="18" />
     <text id="pl-cores-label" class="label" x="107.5" y="264"><tspan x="107.5" y="264">Прикладные IP-ядра</tspan><tspan x="107.5" y="268.1">I²C · SMI/MDIO · SPI</tspan></text>
     <rect id="pl-events-box" class="cell" x="148" y="256" width="52" height="18" />
     <text id="pl-events-label" class="label" x="174" y="264"><tspan x="174" y="264">Прерывания · FIFO</tspan><tspan x="174" y="268.1">DMA при наличии IP</tspan></text>
+  </g>
+  <g id="level-legend" inkscape:groupmode="layer" inkscape:label="Единая классификация уровней ОС">
+    <rect id="level-legend-box" class="section" x="7" y="280" width="196" height="14.5" />
+    <text id="level-legend-title" class="tiny" x="105" y="282.8">Единая классификация уровней · номера возрастают снизу вверх</text>
+    <text class="level-key" x="9" y="286.3">L0 · Аппаратура PS/PL</text>
+    <text class="level-key" x="76" y="286.3">L1 · OS-порт и BSP</text>
+    <text class="level-key" x="145" y="286.3">L2 · Ядро ОС</text>
+    <text class="level-key" x="9" y="290.7">L3 · Сервисы и драйверы</text>
+    <text class="level-key" x="76" y="290.7">L4 · Прикладной уровень</text>
+    <text class="level-key" x="145" y="290.7">L3/L4 ≠ адресное пространство</text>
+    <text class="tiny muted" x="105" y="293.4">В FreeRTOS L3 и L4 собраны в одном ELF; в Нейтрино L3 работает как пользовательские системные процессы.</text>
+  </g>
+  <g id="color-legend" inkscape:groupmode="layer" inkscape:label="Единая цветовая легенда">
+    <text id="legend-title" class="tiny" x="105" y="299">Цвет = уровень абстракции, а не выбранная ОС</text>
+    <rect class="cell level-l0" x="8" y="301.4" width="3.4" height="3.4" />
+    <text class="legend-label" x="13" y="304">L0 · аппаратура PS/PL</text>
+    <rect class="cell level-l1" x="76" y="301.4" width="3.4" height="3.4" />
+    <text class="legend-label" x="81" y="304">L1 · OS-порт и BSP</text>
+    <rect class="cell level-l2" x="148" y="301.4" width="3.4" height="3.4" />
+    <text class="legend-label" x="153" y="304">L2 · ядро ОС</text>
+    <rect class="cell level-l3" x="8" y="307" width="3.4" height="3.4" />
+    <text class="legend-label" x="13" y="309.6">L3 · сервисы и драйверы</text>
+    <rect class="cell level-l4" x="76" y="307" width="3.4" height="3.4" />
+    <text class="legend-label" x="81" y="309.6">L4 · приложения</text>
+    <rect class="cell level-mixed" x="148" y="307" width="3.4" height="3.4" />
+    <text class="legend-label" x="153" y="309.6">смешанный блок</text>
   </g>
 </svg>
