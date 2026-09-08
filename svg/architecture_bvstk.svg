@@ -2,7 +2,7 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
      xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-     width="360mm" height="590mm" viewBox="0 0 1800 2950"
+     width="360mm" height="578mm" viewBox="0 0 1800 2890"
      version="1.1" id="bvstk-architecture" sodipodi:docname="architecture_bvstk.svg">
   <title>Архитектура BVSTK на ALINX AX7020: альтернативные сборки FreeRTOS и Нейтрино</title>
   <desc>
@@ -70,9 +70,9 @@
       .level-l4 { fill: #d9ebff; stroke: #3f75ad; }
       .level-mixed { fill: #ffffff; stroke: #7a8996; stroke-dasharray: 7 5; }
       #common-a, #common-c, #f-composition, #n-client-processes,
-      #n-cli-common, #config-contract, #f-os-libraries { fill: #d9ebff; stroke: #3f75ad; }
+      #n-cli-common, #config-contract { fill: #d9ebff; stroke: #3f75ad; }
       #common-b, #common-d, #n-resmgr, #n-config-binding,
-      #n-os-services { fill: #d9f0ea; stroke: #287f73; }
+      #n-os-services, #f-os-libraries { fill: #d9f0ea; stroke: #287f73; }
       #common-e, #f-port-location, #n-port-location, #f-mmio-binding,
       #n-mmio-binding, #clock-sync-contract, #f-clock-sync-binding,
       #n-clock-sync-binding, #f-irq-binding, #n-irq-binding,
@@ -93,7 +93,7 @@
   </defs>
 
   <g id="heading-and-legend" inkscape:groupmode="layer" inkscape:label="Заголовок и общая легенда">
-    <rect id="paper" width="1800" height="2950" fill="#ffffff" />
+    <rect id="paper" width="1800" height="2890" fill="#ffffff" />
     <text id="diagram-title" class="title" x="40" y="64">BVSTK · архитектура системы</text>
     <text id="diagram-subtitle" class="subtitle" x="40" y="105">Общий код → реализация для выбранной ОС → одна плата ALINX AX7020</text>
     <text class="small muted" x="40" y="141">Единая легенда с architecture_platform.svg · цвет = уровень абстракции</text>
@@ -163,7 +163,7 @@
     <text class="tiny muted" x="1442" y="553">hardware/boards/ax7020 · hardware/pl</text>
   </g>
 
-  <g id="execution-models" inkscape:groupmode="layer" inkscape:label="02 — Размещение BVSTK в двух ОС">
+  <g id="execution-models" inkscape:groupmode="layer" inkscape:label="02 — Размещение BVSTK в двух ОС" transform="translate(0,-20)">
     <text class="section-title" x="40" y="625">02   Где работают общие компоненты и кто ими владеет</text>
     <rect id="freertos-runtime-boundary" class="boundary" x="40" y="649" width="842" height="407" rx="10" />
     <text class="section-title center" x="461" y="686">Сборка FreeRTOS</text>
@@ -212,7 +212,7 @@
     <text class="tiny muted" x="942" y="1045">У bvstkctl есть и отдельный прямой диагностический доступ к PL.</text>
   </g>
 
-  <g id="platform-bindings" inkscape:groupmode="layer" inkscape:label="03 — Привязка общих контрактов к ОС">
+  <g id="platform-bindings" inkscape:groupmode="layer" inkscape:label="03 — Привязка общих контрактов к ОС" transform="translate(0,-40)">
     <text class="section-title" x="40" y="1103">03   Реализация системных зависимостей BVSTK</text>
     <text class="small muted" x="60" y="1142">Общий компонент</text>
     <text class="heading" x="410" y="1142">FreeRTOS · приложение и порт</text>
@@ -272,9 +272,15 @@
     <text class="small" x="60" y="1643">Задачи · очереди · mutex</text>
     <text class="tiny" x="60" y="1663">API ядра · для ISR: *FromISR()</text>
     <rect id="f-os-libraries" class="box sem-os" x="392" y="1584" width="490" height="89" rx="7" />
-    <text class="heading" x="412" y="1615">Библиотеки в том же ELF</text>
-    <text class="small" x="412" y="1643">lwIP — сеть · FatFs — файловая система</text>
-    <text class="tiny" x="412" y="1663">Не являются внутренними службами ядра FreeRTOS</text>
+    <text class="heading" x="412" y="1615">L3 · Библиотеки и middleware</text>
+    <rect id="f-l3-network" class="box level-l3" x="412" y="1622" width="225" height="18" rx="4" />
+    <text class="small center" x="524.5" y="1634">Сетевой стек · lwIP</text>
+    <rect id="f-l3-filesystem" class="box level-l3" x="647" y="1622" width="215" height="18" rx="4" />
+    <text class="small center" x="754.5" y="1634">Файловая система · FatFs</text>
+    <rect id="f-l3-drivers" class="box level-l3" x="412" y="1643" width="225" height="18" rx="4" />
+    <text class="small center" x="524.5" y="1655">Драйверы · PS / PL</text>
+    <rect id="f-l3-crypto" class="box level-l3" x="647" y="1643" width="215" height="18" rx="4" />
+    <text class="small center" x="754.5" y="1655">Шифрование · TLS/SSH</text>
     <rect id="n-os-kernel" class="box sem-os" x="918" y="1584" width="350" height="89" rx="7" />
     <text class="heading" x="938" y="1615">procnto-smp</text>
     <text class="tiny" x="938" y="1643">Микроядро + менеджер процессов</text>
@@ -293,7 +299,7 @@
     <text class="tiny muted center" x="900" y="1779">BSP и OS-порт — разные роли. Драйверы PS Нейтрино работают в системных процессах; devnp — модуль io-pkt.</text>
   </g>
 
-  <g id="build-variants" inkscape:groupmode="layer" inkscape:label="04 — Альтернативные образы и загрузка">
+  <g id="build-variants" inkscape:groupmode="layer" inkscape:label="04 — Альтернативные образы и загрузка" transform="translate(0,-60)">
     <text class="section-title" x="40" y="1828">04   Два самостоятельных образа · загружается только один</text>
     <rect id="freertos-build" class="box sem-binding" x="40" y="1850" width="614" height="111" rx="8" />
     <text class="heading" x="60" y="1880">Vitis · исходники + порт FreeRTOS + BSP</text>
@@ -316,7 +322,7 @@
     <path id="load-selected-image" class="arrow" d="M 900,2068 V 2100" />
   </g>
 
-  <g id="hardware-platform" inkscape:groupmode="layer" inkscape:label="05 — ALINX AX7020, PS, PL Core и BRAM">
+  <g id="hardware-platform" inkscape:groupmode="layer" inkscape:label="05 — ALINX AX7020, PS, PL Core и BRAM" transform="translate(0,-60)">
     <rect id="board-boundary" class="frame" x="40" y="2103" width="1720" height="750" rx="12" />
     <text class="section-title" x="64" y="2140">05   ALINX AX7020</text>
     <text class="small" x="1000" y="2140">Одна физическая плата · ОС используют её в разное время</text>
@@ -402,7 +408,7 @@
     <text class="tiny muted" x="88" y="2842">Загрузка и отладка: USB-JTAG платы. Состав PL задают design.bit и XSA; доступные функции — аппаратный контракт BVSTK.</text>
   </g>
 
-  <g id="scope-notes" inkscape:groupmode="layer" inkscape:label="Границы схемы">
+  <g id="scope-notes" inkscape:groupmode="layer" inkscape:label="Границы схемы" transform="translate(0,-60)">
     <text class="small muted" x="40" y="2890">Общий код ≠ одинаковый набор запущенных функций. Состав runtime определяется целевой сборкой и возможностями PL.</text>
     <text class="tiny muted" x="40" y="2919">Исходники и оговорки: docs/dev/architecture-diagrams.md · подробное устройство ОС: architecture_platform.svg</text>
   </g>
