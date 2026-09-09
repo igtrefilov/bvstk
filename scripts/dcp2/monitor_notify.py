@@ -15,14 +15,22 @@ VERSION = 0x0002
 DEFAULT_PORT = 8889
 
 SRV_PING = 0x00
+SRV_MEM = 0x01
 SRV_NOTIFY = 0x06
 
 OP_PING = 0x00
+OP_MEM_READ = 0x00
+OP_MEM_WRITE = 0x01
 OP_NOTIFY_SUBSCRIBE = 0x10
 OP_NOTIFY_UNSUBSCRIBE = 0x11
 
 OP_FLAG_RESP = 0x80
 OP_FLAG_EVENT = 0x40
+MEM_FLAG_AUTOINC = 1 << 0
+
+DCP2_MIN_PAYLOAD = 4
+DCP2_MAX_PAYLOAD = 4096
+MEM_WIDTHS = (8, 16, 32, 64)
 
 STATUS_NAMES: Dict[int, str] = {
     0x0000: "OK",
@@ -143,14 +151,18 @@ def read_frame(sock: socket.socket) -> Frame:
         raise ValueError(f"bad magic: {magic!r}")
     if version != VERSION:
         raise ValueError(f"unsupported version: 0x{version:04X}")
+    if dcp_len < DCP2_MIN_PAYLOAD or dcp_len > DCP2_MAX_PAYLOAD:
+        raise ValueError(f"invalid DCP payload length: {dcp_len}")
     payload = recv_exact(sock, dcp_len)
-    if len(payload) < 4:
+    if len(payload) < DCP2_MIN_PAYLOAD:
         raise ValueError("short DCP payload")
     return Frame(srv=payload[0], op=payload[1], seq=struct.unpack(">H", payload[2:4])[0], body=payload[4:])
 
 
 def build_frame(srv: int, op: int, seq: int, body: bytes = b"") -> bytes:
     payload = bytes([srv, op]) + struct.pack(">H", seq) + body
+    if len(payload) < DCP2_MIN_PAYLOAD or len(payload) > DCP2_MAX_PAYLOAD:
+        raise ValueError(f"invalid DCP payload length: {len(payload)}")
     return struct.pack(">4sHH", MAGIC, VERSION, len(payload)) + payload
 
 
@@ -226,7 +238,7 @@ def wait_for_response(sock: socket.socket, expected_srv: int, expected_opcode: i
     while True:
         frame = read_frame(sock)
         if frame.is_event:
-            print(f"[event-before-subscribe] srv=0x{frame.srv:02X} op=0x{frame.op:02X} seq={frame.seq}", flush=True)
+            print(f"[event-before-response] srv=0x{frame.srv:02X} op=0x{frame.op:02X} seq={frame.seq}", flush=True)
             continue
         if not frame.is_response:
             raise ValueError(f"unexpected non-response frame op=0x{frame.op:02X}")
@@ -242,6 +254,95 @@ def parse_status_from_response(frame: Frame) -> int:
     if len(frame.body) < 2:
         raise ValueError("response body has no status field")
     return struct.unpack(">H", frame.body[:2])[0]
+
+
+def parse_uint(raw: str, field: str, maximum: int) -> int:
+    try:
+        value = int(raw, 0)
+    except ValueError as exc:
+        raise ValueError(f"invalid {field}: {raw!r}") from exc
+    if value < 0 or value > maximum:
+        raise ValueError(f"{field} is out of range: {raw!r}")
+    return value
+
+
+def validate_mem_parameters(address: int,
+                            width: int,
+                            count: int,
+                            autoinc: bool,
+                            data_size: int = 0) -> int:
+    if width not in MEM_WIDTHS:
+        raise ValueError(f"unsupported MEM width: {width}; use one of {MEM_WIDTHS}")
+    if count < 1 or count > 0xFFFF:
+        raise ValueError("MEM count must be in range 1..65535")
+    if address < 0 or address > 0xFFFFFFFF:
+        raise ValueError("MEM address must be in range 0..0xFFFFFFFF")
+
+    width_bytes = width // 8
+    if data_size > DCP2_MAX_PAYLOAD - 12:
+        raise ValueError("MEM_WRITE request is too large for DCP2")
+    if count * width_bytes > DCP2_MAX_PAYLOAD - 6:
+        raise ValueError("MEM_READ response is too large for DCP2")
+    if autoinc and address + (count - 1) * width_bytes > 0xFFFFFFFF:
+        raise ValueError("MEM address range overflows 32-bit address space")
+    return width_bytes
+
+
+def mem_read(sock: socket.socket,
+             seq: int,
+             address: int,
+             width: int,
+             count: int,
+             autoinc: bool) -> list[int]:
+    width_bytes = validate_mem_parameters(address, width, count, autoinc)
+    flags = MEM_FLAG_AUTOINC if autoinc else 0
+    body = struct.pack(">BBIH", flags, width, address, count)
+    sock.sendall(build_frame(SRV_MEM, OP_MEM_READ, seq, body))
+    frame = wait_for_response(sock, SRV_MEM, OP_MEM_READ, seq)
+    status = parse_status_from_response(frame)
+    if status != 0:
+        raise RuntimeError(f"MEM_READ failed: {status_name(status)}")
+
+    data = frame.body[2:]
+    expected_size = count * width_bytes
+    if len(data) != expected_size:
+        raise ValueError(
+            f"invalid MEM_READ response length: expected {expected_size}, got {len(data)}"
+        )
+    return [
+        int.from_bytes(data[offset:offset + width_bytes], "big")
+        for offset in range(0, expected_size, width_bytes)
+    ]
+
+
+def mem_write(sock: socket.socket,
+              seq: int,
+              address: int,
+              width: int,
+              values: list[int],
+              autoinc: bool) -> None:
+    count = len(values)
+    width_bytes = validate_mem_parameters(
+        address,
+        width,
+        count,
+        autoinc,
+        data_size=count * (width // 8),
+    )
+    max_value = (1 << width) - 1
+    if any(value < 0 or value > max_value for value in values):
+        raise ValueError(f"MEM value must fit in {width} bits")
+
+    flags = MEM_FLAG_AUTOINC if autoinc else 0
+    data = b"".join(value.to_bytes(width_bytes, "big") for value in values)
+    body = struct.pack(">BBIH", flags, width, address, count) + data
+    sock.sendall(build_frame(SRV_MEM, OP_MEM_WRITE, seq, body))
+    frame = wait_for_response(sock, SRV_MEM, OP_MEM_WRITE, seq)
+    status = parse_status_from_response(frame)
+    if status != 0:
+        raise RuntimeError(f"MEM_WRITE failed: {status_name(status)}")
+    if len(frame.body) != 2:
+        raise ValueError(f"invalid MEM_WRITE response length: {len(frame.body)}")
 
 
 def ping(sock: socket.socket, seq: int) -> None:
@@ -269,6 +370,76 @@ def unsubscribe_notify(sock: socket.socket, seq: int) -> None:
         raise RuntimeError(f"NOTIFY_UNSUBSCRIBE failed: {status_name(status)}")
 
 
+def run_ping(args: argparse.Namespace) -> int:
+    try:
+        with socket.create_connection((args.host, args.port), timeout=args.timeout) as sock:
+            sock.settimeout(args.timeout)
+            print(f"connected to {args.host}:{args.port}")
+            ping(sock, 1)
+            print("PING -> OK")
+    except (ConnectionError, OSError, RuntimeError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def run_memory_operation(args: argparse.Namespace) -> int:
+    try:
+        if args.mem_read is not None:
+            address = parse_uint(args.mem_read, "MEM address", 0xFFFFFFFF)
+            count = args.count if args.count is not None else 1
+        else:
+            if args.mem_write is None or len(args.mem_write) < 2:
+                raise ValueError("--mem-write requires ADDRESS and at least one VALUE")
+            address = parse_uint(args.mem_write[0], "MEM address", 0xFFFFFFFF)
+            values = [
+                parse_uint(raw, "MEM value", (1 << args.width) - 1)
+                for raw in args.mem_write[1:]
+            ]
+            if args.count is not None and args.count != len(values):
+                raise ValueError(
+                    f"--count={args.count} does not match number of write values ({len(values)})"
+                )
+
+        with socket.create_connection((args.host, args.port), timeout=args.timeout) as sock:
+            sock.settimeout(args.timeout)
+            print(f"connected to {args.host}:{args.port}")
+            ping(sock, 1)
+            print("PING -> OK")
+
+            if args.mem_read is not None:
+                values = mem_read(
+                    sock,
+                    2,
+                    address,
+                    args.width,
+                    count,
+                    args.autoinc,
+                )
+                print(
+                    f"MEM_READ -> OK address=0x{address:08X} width={args.width} "
+                    f"count={count} autoinc={int(args.autoinc)}"
+                )
+                width_digits = args.width // 4
+                width_bytes = args.width // 8
+                for index, value in enumerate(values):
+                    current_address = address + (index * width_bytes if args.autoinc else 0)
+                    print(
+                        f"  [{index}] 0x{current_address:08X} = "
+                        f"0x{value:0{width_digits}X}"
+                    )
+            else:
+                mem_write(sock, 2, address, args.width, values, args.autoinc)
+                print(
+                    f"MEM_WRITE -> OK address=0x{address:08X} width={args.width} "
+                    f"count={len(values)} autoinc={int(args.autoinc)}"
+                )
+    except (ConnectionError, OSError, RuntimeError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def print_frame(frame: Frame, with_timestamp: bool) -> None:
     if frame.is_event:
         if frame.srv == SRV_NOTIFY and frame.opcode == OP_NOTIFY_SUBSCRIBE:
@@ -293,10 +464,50 @@ def print_frame(frame: Frame, with_timestamp: bool) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Connect to the DCP2 server, subscribe to NOTIFY, and print incoming events."
+        description=(
+            "DCP2 client: monitor NOTIFY events or execute one-shot MEM "
+            "read/write operations."
+        )
     )
     parser.add_argument("host", help="device IP or hostname")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"DCP2 TCP port (default: {DEFAULT_PORT})")
+    operation = parser.add_mutually_exclusive_group()
+    operation.add_argument(
+        "--ping",
+        "--ping-only",
+        dest="ping_only",
+        action="store_true",
+        help="send PING and exit",
+    )
+    operation.add_argument(
+        "--mem-read",
+        metavar="ADDRESS",
+        help="read MEM at ADDRESS and exit (hex or decimal)",
+    )
+    operation.add_argument(
+        "--mem-write",
+        nargs="+",
+        metavar="VALUE",
+        help="write MEM: ADDRESS VALUE [VALUE ...] and exit",
+    )
+    parser.add_argument(
+        "--width",
+        type=int,
+        choices=MEM_WIDTHS,
+        default=32,
+        help="MEM element width in bits (default: 32)",
+    )
+    parser.add_argument(
+        "--count",
+        type=int,
+        default=None,
+        help="MEM read element count; for write it must match the number of values",
+    )
+    parser.add_argument(
+        "--autoinc",
+        action="store_true",
+        help="increment MEM address by width/8 for each element",
+    )
     parser.add_argument(
         "--classes",
         default="all",
@@ -332,9 +543,19 @@ def main() -> int:
             "Use: monitor_notify.py <device-ip> --port <port>"
         )
 
+    if args.ping_only:
+        if args.count is not None or args.autoinc or args.width != 32:
+            parser.error("--ping cannot be combined with MEM options")
+        return run_ping(args)
+
     class_mask = parse_mask_arg(args.classes, CLASS_BITS)
     source_mask = parse_mask_arg(args.sources, SOURCE_BITS)
     bus_mask = parse_mask_arg(args.buses, BUS_BITS)
+
+    if args.mem_read is not None or args.mem_write is not None:
+        if args.count is not None and (args.count < 1 or args.count > 0xFFFF):
+            parser.error("--count must be in range 1..65535")
+        return run_memory_operation(args)
 
     flags = 0
     if not args.no_timestamp:
