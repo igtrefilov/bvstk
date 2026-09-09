@@ -14,6 +14,8 @@
 #include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
+#include "apps/freertos/services/dcp2/dcp2_stream_sim.h"
+#include "apps/freertos/console/stream_shell.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 static void smi_writef(int fd, const char *fmt, ...)
@@ -419,6 +421,8 @@ static void cmd_help_smi(int fd)
     write_str(fd, "smi usage:\r\n");
     write_str(fd, "  smi -h|--help\r\n");
     write_str(fd, "  smi list\r\n");
+    write_str(fd, "  smi stream fake enable [period_ms] [counter|ramp|toggle] [words]\r\n");
+    write_str(fd, "  smi stream fake disable|status\r\n");
     write_str(fd, "  smi r <phy> <reg>\r\n");
     write_str(fd, "  smi w <phy> <reg> <data>\r\n");
     write_str(fd, "  smi <name|phy|@phy> [info]\r\n");
@@ -443,6 +447,10 @@ bool smi_handle(char *tok, char **save, int fd)
     if (!sub || strcasecmp(sub, "-h") == 0 || strcasecmp(sub, "--help") == 0) { cmd_help_smi(fd); return true; }
 
     if (strcasecmp(sub, "list") == 0) { cmd_list(fd); return true; }
+    if (strcasecmp(sub, "stream") == 0) {
+        (void)dcp2_stream_shell_handle(DCP2_STREAM_SERVICE_SMI, save, fd);
+        return true;
+    }
 
     /* Legacy forms: smi r <phy> <reg>, smi w <phy> <reg> <data> */
     if (strcasecmp(sub, "r") == 0) {

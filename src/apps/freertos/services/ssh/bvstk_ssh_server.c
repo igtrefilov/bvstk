@@ -100,7 +100,7 @@ typedef struct {
 static WOLFSSH_CTX *s_ssh_ctx;
 
 static const char *const s_ssh_commands[] = {
-    "fs", "tar", "ip", "smi", "spi", "sd-pl", "mem", "i2c",
+    "fs", "tar", "ip", "smi", "spi", "uart", "sd-pl", "mem", "i2c",
     "pwd", "ls", "cd", "mkdir", "touch", "cat", "rm", "cp", "mv",
     "help", "-h", "--help", "-help", "reboot", "quit", "exit"
 };

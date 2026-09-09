@@ -92,4 +92,12 @@
 
 #define BVSTK_PL_CONTRACT_VERSION UINT32_C(2)
 
+/*
+ * DCP2 MEM is a raw diagnostic MMIO path for the current FreeRTOS image.
+ * When enabled, both MEM_READ and MEM_WRITE accept any aligned span in the
+ * 32-bit address space.  The interconnect still determines whether the
+ * requested address is actually mapped and safe to access.
+ */
+#define BVSTK_DCP2_ALLOW_ANY_MEM_ACCESS 1
+
 #endif /* BVSTK_AX7020_HW_CONFIG_H */

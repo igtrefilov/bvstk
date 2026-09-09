@@ -16,6 +16,10 @@ DEFAULT_PORT = 8889
 
 SRV_PING = 0x00
 SRV_MEM = 0x01
+SRV_I2C = 0x02
+SRV_SMI = 0x03
+SRV_SPI = 0x04
+SRV_UART = 0x05
 SRV_NOTIFY = 0x06
 
 OP_PING = 0x00
@@ -23,14 +27,42 @@ OP_MEM_READ = 0x00
 OP_MEM_WRITE = 0x01
 OP_NOTIFY_SUBSCRIBE = 0x10
 OP_NOTIFY_UNSUBSCRIBE = 0x11
+OP_STREAM_SUBSCRIBE = 0x10
+OP_STREAM_UNSUBSCRIBE = 0x11
 
 OP_FLAG_RESP = 0x80
 OP_FLAG_EVENT = 0x40
 MEM_FLAG_AUTOINC = 1 << 0
+STREAM_FLAG_RAW_WORDS = 1 << 0
+STREAM_FLAG_WITH_TIMESTAMP = 1 << 1
+STREAM_FLAG_RESET_LOST_COUNTERS = 1 << 2
+STREAM_EVENT_OVERFLOW = 1 << 0
 
 DCP2_MIN_PAYLOAD = 4
 DCP2_MAX_PAYLOAD = 4096
 MEM_WIDTHS = (8, 16, 32, 64)
+
+STREAM_SERVICES: Dict[str, int] = {
+    "i2c": SRV_I2C,
+    "smi": SRV_SMI,
+    "spi": SRV_SPI,
+    "uart": SRV_UART,
+}
+
+STREAM_SERVICE_NAMES: Dict[int, str] = {
+    value: key.upper() for key, value in STREAM_SERVICES.items()
+}
+
+STREAM_FLAG_BITS: Dict[str, int] = {
+    "raw": STREAM_FLAG_RAW_WORDS,
+    "raw-words": STREAM_FLAG_RAW_WORDS,
+    "raw_words": STREAM_FLAG_RAW_WORDS,
+    "timestamp": STREAM_FLAG_WITH_TIMESTAMP,
+    "with-timestamp": STREAM_FLAG_WITH_TIMESTAMP,
+    "with_timestamp": STREAM_FLAG_WITH_TIMESTAMP,
+    "reset-lost": STREAM_FLAG_RESET_LOST_COUNTERS,
+    "reset_lost": STREAM_FLAG_RESET_LOST_COUNTERS,
+}
 
 STATUS_NAMES: Dict[int, str] = {
     0x0000: "OK",
@@ -174,6 +206,8 @@ def parse_mask_arg(raw: str, table: Dict[str, int]) -> int:
     raw = raw.strip().lower()
     if raw.startswith("0x"):
         return int(raw, 16)
+    if raw.isdigit():
+        return int(raw, 10)
     value = 0
     for part in raw.split(","):
         key = part.strip()
@@ -370,6 +404,172 @@ def unsubscribe_notify(sock: socket.socket, seq: int) -> None:
         raise RuntimeError(f"NOTIFY_UNSUBSCRIBE failed: {status_name(status)}")
 
 
+def stream_flag_names(flags: int) -> str:
+    names = []
+    if flags & STREAM_FLAG_RAW_WORDS:
+        names.append("raw")
+    if flags & STREAM_FLAG_WITH_TIMESTAMP:
+        names.append("timestamp")
+    if flags & STREAM_FLAG_RESET_LOST_COUNTERS:
+        names.append("reset-lost")
+    return ",".join(names) if names else "none"
+
+
+def subscribe_stream(sock: socket.socket, seq: int, service: int, flags: int) -> None:
+    body = bytes([flags])
+    sock.sendall(build_frame(service, OP_STREAM_SUBSCRIBE, seq, body))
+    frame = wait_for_response(sock, service, OP_STREAM_SUBSCRIBE, seq)
+    status = parse_status_from_response(frame)
+    if status != 0:
+        name = STREAM_SERVICE_NAMES.get(service, f"0x{service:02X}")
+        raise RuntimeError(f"{name} STREAM_SUBSCRIBE failed: {status_name(status)}")
+    if len(frame.body) != 2:
+        raise ValueError(f"invalid STREAM_SUBSCRIBE response length: {len(frame.body)}")
+
+
+def unsubscribe_stream(sock: socket.socket, seq: int, service: int) -> None:
+    sock.sendall(build_frame(service, OP_STREAM_UNSUBSCRIBE, seq))
+    frame = wait_for_response(sock, service, OP_STREAM_UNSUBSCRIBE, seq)
+    status = parse_status_from_response(frame)
+    if status != 0:
+        name = STREAM_SERVICE_NAMES.get(service, f"0x{service:02X}")
+        raise RuntimeError(f"{name} STREAM_UNSUBSCRIBE failed: {status_name(status)}")
+    if len(frame.body) != 2:
+        raise ValueError(f"invalid STREAM_UNSUBSCRIBE response length: {len(frame.body)}")
+
+
+def decode_stream_event(frame: Frame, with_timestamp: bool, raw_words: bool) -> str:
+    if not frame.is_event or frame.opcode != OP_STREAM_SUBSCRIBE:
+        return f"unexpected stream frame srv=0x{frame.srv:02X} op=0x{frame.op:02X} seq={frame.seq}"
+    if frame.seq != 0:
+        return f"malformed stream event: expected seq=0, got {frame.seq}"
+
+    offset = 0
+    time_us: Optional[int] = None
+    if with_timestamp:
+        if len(frame.body) < 15:
+            return f"malformed PL_STREAM_EVENT: expected at least 15 bytes, got {len(frame.body)}"
+        time_us = struct.unpack_from(">Q", frame.body, offset)[0]
+        offset += 8
+    if len(frame.body) < offset + 7:
+        return (
+            f"malformed PL_STREAM_EVENT: expected at least {offset + 7} bytes, "
+            f"got {len(frame.body)}"
+        )
+
+    ev_flags = frame.body[offset]
+    offset += 1
+    lost_delta = struct.unpack_from(">I", frame.body, offset)[0]
+    offset += 4
+    data_len = struct.unpack_from(">H", frame.body, offset)[0]
+    offset += 2
+    data = frame.body[offset:]
+    if len(data) != data_len:
+        return (
+            f"malformed PL_STREAM_EVENT: data_len={data_len}, "
+            f"actual={len(data)}"
+        )
+    if raw_words and data_len % 4 != 0:
+        return f"malformed PL_STREAM_EVENT: RAW_WORDS data_len={data_len} is not divisible by 4"
+
+    parts = [
+        f"stream={STREAM_SERVICE_NAMES.get(frame.srv, f'0x{frame.srv:02X}')}",
+    ]
+    if time_us is not None:
+        parts.append(f"time_us={time_us}")
+    parts.append(f"ev_flags=0x{ev_flags:02X}")
+    if ev_flags & STREAM_EVENT_OVERFLOW:
+        parts.append("overflow=1")
+    parts.append(f"lost_delta={lost_delta}")
+    parts.append(f"data_len={data_len}")
+    if raw_words:
+        words = [
+            int.from_bytes(data[index:index + 4], "big")
+            for index in range(0, data_len, 4)
+        ]
+        parts.append("words=" + ",".join(f"0x{word:08X}" for word in words))
+    else:
+        parts.append(f"data={data.hex(' ')}")
+    return " ".join(parts)
+
+
+def run_stream_monitor(args: argparse.Namespace) -> int:
+    try:
+        flags = parse_mask_arg(args.stream_flags, STREAM_FLAG_BITS)
+        if flags & ~(STREAM_FLAG_RAW_WORDS | STREAM_FLAG_WITH_TIMESTAMP | STREAM_FLAG_RESET_LOST_COUNTERS):
+            raise ValueError("stream flags contain reserved bits; use raw,timestamp,reset-lost or a mask 0..0x07")
+
+        services = []
+        for service_name in args.streams:
+            service = STREAM_SERVICES[service_name]
+            if service not in services:
+                services.append(service)
+
+        stop = False
+
+        def handle_signal(_signum: int, _frame: object) -> None:
+            nonlocal stop
+            stop = True
+
+        signal.signal(signal.SIGINT, handle_signal)
+        signal.signal(signal.SIGTERM, handle_signal)
+
+        seq = 1
+        subscribed = []
+        with socket.create_connection((args.host, args.port), timeout=args.timeout) as sock:
+            sock.settimeout(args.timeout)
+            print(f"connected to {args.host}:{args.port}")
+            ping(sock, seq)
+            print("PING -> OK")
+            seq += 1
+
+            for service in services:
+                subscribe_stream(sock, seq, service, flags)
+                subscribed.append(service)
+                print(
+                    f"STREAM_SUBSCRIBE -> OK service={STREAM_SERVICE_NAMES[service]} "
+                    f"flags=0x{flags:02X} ({stream_flag_names(flags)})"
+                )
+                seq += 1
+
+            print("monitoring streams, press Ctrl+C to stop")
+            try:
+                while not stop:
+                    try:
+                        frame = read_frame(sock)
+                        if frame.is_event and frame.srv in services and frame.opcode == OP_STREAM_SUBSCRIBE:
+                            print(
+                                decode_stream_event(
+                                    frame,
+                                    with_timestamp=bool(flags & STREAM_FLAG_WITH_TIMESTAMP),
+                                    raw_words=bool(flags & STREAM_FLAG_RAW_WORDS),
+                                ),
+                                flush=True,
+                            )
+                        else:
+                            print_frame(frame, with_timestamp=False)
+                    except socket.timeout:
+                        continue
+            finally:
+                for service in subscribed:
+                    try:
+                        unsubscribe_stream(sock, seq, service)
+                        print(f"STREAM_UNSUBSCRIBE -> OK service={STREAM_SERVICE_NAMES[service]}")
+                    except Exception as exc:
+                        print(
+                            f"stream unsubscribe failed service={STREAM_SERVICE_NAMES.get(service, service)}: {exc}",
+                            file=sys.stderr,
+                        )
+                    seq += 1
+    except KeyboardInterrupt:
+        stop = True
+    except (ConnectionError, OSError, RuntimeError, ValueError, argparse.ArgumentTypeError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    return 0
+
+
 def run_ping(args: argparse.Namespace) -> int:
     try:
         with socket.create_connection((args.host, args.port), timeout=args.timeout) as sock:
@@ -465,8 +665,8 @@ def print_frame(frame: Frame, with_timestamp: bool) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "DCP2 client: monitor NOTIFY events or execute one-shot MEM "
-            "read/write operations."
+            "DCP2 client: monitor NOTIFY or PL streams, or execute one-shot "
+            "MEM read/write operations."
         )
     )
     parser.add_argument("host", help="device IP or hostname")
@@ -490,6 +690,13 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="VALUE",
         help="write MEM: ADDRESS VALUE [VALUE ...] and exit",
     )
+    operation.add_argument(
+        "--stream",
+        dest="streams",
+        action="append",
+        choices=tuple(STREAM_SERVICES),
+        help="subscribe to a PL stream; repeat for i2c, smi, spi or uart",
+    )
     parser.add_argument(
         "--width",
         type=int,
@@ -507,6 +714,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--autoinc",
         action="store_true",
         help="increment MEM address by width/8 for each element",
+    )
+    parser.add_argument(
+        "--stream-flags",
+        default="raw,timestamp,reset-lost",
+        help="stream flags: raw,timestamp,reset-lost or a hex mask (default: raw,timestamp,reset-lost)",
     )
     parser.add_argument(
         "--classes",
@@ -547,6 +759,11 @@ def main() -> int:
         if args.count is not None or args.autoinc or args.width != 32:
             parser.error("--ping cannot be combined with MEM options")
         return run_ping(args)
+
+    if args.streams:
+        if args.count is not None or args.autoinc or args.width != 32:
+            parser.error("--stream cannot be combined with MEM options")
+        return run_stream_monitor(args)
 
     class_mask = parse_mask_arg(args.classes, CLASS_BITS)
     source_mask = parse_mask_arg(args.sources, SOURCE_BITS)

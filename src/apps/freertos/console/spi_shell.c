@@ -7,6 +7,8 @@
 
 #include "apps/freertos/drivers/pl/spi/bvstk_spi.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
+#include "apps/freertos/services/dcp2/dcp2_stream_sim.h"
+#include "apps/freertos/console/stream_shell.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 #if BVSTK_PL_HAS_SPI_CORE
@@ -164,6 +166,10 @@ bool spi_handle(char *tok, char **save, int fd)
         spi_help(fd);
         return true;
     }
+    if (strcasecmp(sub, "stream") == 0) {
+        (void)dcp2_stream_shell_handle(DCP2_STREAM_SERVICE_SPI, save, fd);
+        return true;
+    }
 
     if (strcasecmp(sub, "info") == 0) { cmd_info(fd); return true; }
     if (strcasecmp(sub, "cfg") == 0) {
@@ -182,6 +188,8 @@ bool spi_handle(char *tok, char **save, int fd)
 void spi_help(int fd)
 {
     write_str(fd, "spi usage:\r\n");
+    write_str(fd, "  spi stream fake enable [period_ms] [counter|ramp|toggle] [words]\r\n");
+    write_str(fd, "  spi stream fake disable|status\r\n");
     write_str(fd, "  spi info\r\n");
     write_str(fd, "  spi cfg mode <single|multi|fallthrough>\r\n");
     write_str(fd, "  spi cfg timeout <ticks>\r\n");

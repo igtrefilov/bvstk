@@ -10,6 +10,7 @@
 #include "mem_shell.h"
 #include "i2c_shell.h"
 #include "spi_shell.h"
+#include "uart_shell.h"
 #include "sd_pl_shell.h"
 #include "tar_shell.h"
 #include "ip_shell.h"
@@ -40,6 +41,7 @@ static void cmd_help_top(int fd)
     write_str(fd, "  ip\r\n");
     write_str(fd, "  smi\r\n");
     write_str(fd, "  spi\r\n");
+    write_str(fd, "  uart\r\n");
     write_str(fd, "  sd-pl\r\n");
     write_str(fd, "  mem\r\n");
     write_str(fd, "  i2c\r\n");
@@ -128,6 +130,7 @@ void process_console_line(const char *line, int socket_fd, console_session_t *se
     if (ip_handle(tok, &save, socket_fd, session)) return;
     if (smi_handle(tok, &save, socket_fd)) return;
     if (spi_handle(tok, &save, socket_fd)) return;
+    if (uart_handle(tok, &save, socket_fd)) return;
     if (sd_pl_handle(tok, &save, socket_fd)) return;
     if (mem_handle(tok, &save, socket_fd)) return;
     if (i2c_handle(tok, &save, socket_fd)) return;

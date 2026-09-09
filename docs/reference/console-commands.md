@@ -73,6 +73,9 @@ cp 2:/backup/input.bin 0:/backup/input.bin
 | Команда | Назначение |
 |---|---|
 | `i2c list` | список устройств |
+| `i2c stream fake enable [period_ms] [pattern] [words]` | включить фейковый I2C-стрим |
+| `i2c stream fake disable` | выключить фейковый I2C-стрим |
+| `i2c stream fake status` | показать состояние фейкового I2C-стрима |
 | `i2c <sel> info` | параметры устройства и policy |
 | `i2c <sel> r <reg>` | чтение регистра |
 | `i2c <sel> w <reg> <val>` | запись регистра |
@@ -91,15 +94,19 @@ cp 2:/backup/input.bin 0:/backup/input.bin
 | `i2c <sel> policy blacklist clear` | очистить список |
 
 `<sel>` — имя устройства, 7-битный адрес или селектор `@0xNN`. Policy проверяет пару `(reg, value)`.
-Синтаксис одинаков в FreeRTOS shell и в Neutrino `/usr/bin/i2c`. В Neutrino
-команда обращается к единственному владельцу PL через `/dev/bvstk-i2c`;
-`bvstkctl i2c ...` является совместимым alias-клиентом.
+Обычные I2C-команды имеют одинаковый синтаксис в FreeRTOS shell и в Neutrino
+`/usr/bin/i2c`. В Neutrino команда обращается к единственному владельцу PL
+через `/dev/bvstk-i2c`; `bvstkctl i2c ...` является совместимым alias-клиентом.
+Команды `i2c stream fake ...` относятся к текущей FreeRTOS/SSH-реализации.
 
 ## 6. SMI
 
 | Команда | Назначение |
 |---|---|
 | `smi list` | список PHY |
+| `smi stream fake enable [period_ms] [pattern] [words]` | включить фейковый SMI-стрим |
+| `smi stream fake disable` | выключить фейковый SMI-стрим |
+| `smi stream fake status` | показать состояние фейкового SMI-стрима |
 | `smi r <phy> <reg>` | legacy-форма чтения |
 | `smi w <phy> <reg> <data>` | legacy-форма записи |
 | `smi <sel> info` | параметры PHY и policy |
@@ -132,8 +139,23 @@ SMI policy проверяет номер регистра. Autopoll относи
 | `spi cfg div` | `spi cfg div <even>` в диапазоне `2..65535` |
 | `spi cfg read` | `spi cfg read <on|off>` |
 | `spi xfer` | `spi xfer <w0> [w1 ...]` |
+| `spi stream fake enable [period_ms] [pattern] [words]` | включить фейковый SPI-стрим |
+| `spi stream fake disable` | выключить фейковый SPI-стрим |
+| `spi stream fake status` | показать состояние фейкового SPI-стрима |
 
 `spi xfer` принимает 32-битные слова. Текущий shell ограничивает одну передачу 64 словами.
+
+## 7.1. UART stream
+
+| Команда | Назначение |
+|---|---|
+| `uart stream fake enable [period_ms] [pattern] [words]` | включить фейковый UART-стрим |
+| `uart stream fake disable` | выключить фейковый UART-стрим |
+| `uart stream fake status` | показать состояние фейкового UART-стрима |
+
+Для всех четырёх шин допустимы шаблоны `counter`, `ramp` и `toggle`.
+Период по умолчанию — 100 мс, число 32-битных слов — 4. Состояние является
+runtime-only и после перезапуска платы сбрасывается.
 
 ## 8. Память и архивы
 

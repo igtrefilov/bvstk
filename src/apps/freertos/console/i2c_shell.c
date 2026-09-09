@@ -7,6 +7,8 @@
 
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
+#include "apps/freertos/services/dcp2/dcp2_stream_sim.h"
+#include "apps/freertos/console/stream_shell.h"
 
 static void i2c_writef(int fd, const char *fmt, ...)
 {
@@ -487,6 +489,10 @@ bool i2c_handle(char *token, char **save, int fd)
         cmd_list(fd);
         return true;
     }
+    if (strcasecmp(subcommand, "stream") == 0) {
+        (void)dcp2_stream_shell_handle(DCP2_STREAM_SERVICE_I2C, save, fd);
+        return true;
+    }
     if (!parse_selector(subcommand, &device_id, &config)) {
         write_str(fd, "ERR (device not found)\r\n");
         return true;
@@ -517,6 +523,8 @@ void i2c_help(int fd)
 {
     write_str(fd, "i2c usage:\r\n");
     write_str(fd, "  i2c list\r\n");
+    write_str(fd, "  i2c stream fake enable [period_ms] [counter|ramp|toggle] [words]\r\n");
+    write_str(fd, "  i2c stream fake disable|status\r\n");
     write_str(fd, "  i2c <name> [info]\r\n");
     write_str(fd, "  i2c <name> r <reg>\r\n");
     write_str(fd, "  i2c <name> w <reg> <val>\r\n");

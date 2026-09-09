@@ -20,6 +20,7 @@
 #include "apps/freertos/drivers/pl/spi/bvstk_spi.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
+#include "apps/freertos/services/dcp2/dcp2_stream_sim.h"
 #include "apps/freertos/services/lan/bvstk_lan.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 
@@ -282,6 +283,61 @@ static int dcp2_drain_notify_events(int fd, dcp2_conn_state_t *state)
     return 0;
 }
 
+static int dcp2_stream_index(uint8_t srv);
+
+static int dcp2_send_stream_event(int fd,
+                                  const dcp2_conn_state_t *state,
+                                  const dcp2_stream_sim_event_t *event)
+{
+    uint8_t body[8u + 1u + 4u + 2u +
+                 (DCP2_STREAM_SIM_MAX_WORDS * sizeof(uint32_t))];
+    uint16_t body_len = 0u;
+    int idx;
+
+    if (state == NULL || event == NULL) return -1;
+    idx = dcp2_stream_index(event->service);
+    if (idx < 0 || !state->stream_enabled[idx]) return 0;
+    if (event->data_len > sizeof(event->data) ||
+        event->data_len > (uint16_t)(sizeof(body) - 15u)) {
+        return -1;
+    }
+
+    if ((state->stream_flags[idx] & DCP2_SUB_WITH_TIMESTAMP) != 0u) {
+        be64_write(body + body_len, event->time_us);
+        body_len = (uint16_t)(body_len + 8u);
+    }
+    body[body_len++] = event->ev_flags;
+    be32_write(body + body_len, event->lost_delta);
+    body_len = (uint16_t)(body_len + 4u);
+    be16_write(body + body_len, event->data_len);
+    body_len = (uint16_t)(body_len + 2u);
+    if (event->data_len != 0u) {
+        memcpy(body + body_len, event->data, event->data_len);
+        body_len = (uint16_t)(body_len + event->data_len);
+    }
+
+    return dcp2_send_event(fd,
+                           event->service,
+                           DCP2_OP_PL_SUBSCRIBE_STREAM,
+                           body,
+                           body_len);
+}
+
+static int dcp2_drain_stream_events(int fd, dcp2_conn_state_t *state)
+{
+    uint8_t srv;
+
+    for (srv = DCP2_SRV_I2C; srv <= DCP2_SRV_UART; ++srv) {
+        int idx = dcp2_stream_index(srv);
+        dcp2_stream_sim_event_t event;
+
+        if (idx < 0 || !state->stream_enabled[idx]) continue;
+        if (!dcp2_stream_sim_next(srv, &event)) continue;
+        if (dcp2_send_stream_event(fd, state, &event) < 0) return -1;
+    }
+    return 0;
+}
+
 static int dcp2_stream_index(uint8_t srv)
 {
     if (srv < DCP2_SRV_I2C || srv > DCP2_SRV_UART) return -1;
@@ -293,8 +349,27 @@ static bool dcp2_mem_width_valid(uint8_t width_bits)
     return width_bits == 8u || width_bits == 16u || width_bits == 32u || width_bits == 64u;
 }
 
-static bool dcp2_mmio_allowed(uint32_t addr, uint32_t size_bytes)
+static bool dcp2_mem_access_allowed(uint64_t address, uint32_t size_bytes)
 {
+    uint64_t end = address + (uint64_t)size_bytes;
+
+    /* The wire address is 32-bit and size is an exclusive-end span. */
+    if (size_bytes == 0u || end < address ||
+        address > (uint64_t)UINT32_MAX ||
+        end > (UINT64_C(1) << 32)) {
+        return false;
+    }
+
+#if BVSTK_DCP2_ALLOW_ANY_MEM_ACCESS
+    /*
+     * This is deliberately a raw diagnostic access mode.  It does not make
+     * an unmapped address valid on the hardware; it only removes the
+     * software whitelist.  Xil_In/Out on an unmapped or unsafe register can
+     * still fault, hang the bus, or have device-specific side effects.
+     */
+    (void)address;
+    return true;
+#else
     static const mmio_range_t ranges[] = {
 #if BVSTK_PL_HAS_I2C_CORE
         { (uint32_t)BVSTK_I2C_MASTER_BASE, 0x1000u },
@@ -314,18 +389,15 @@ static bool dcp2_mmio_allowed(uint32_t addr, uint32_t size_bytes)
         { (uint32_t)BVSTK_SD_CONTROLLER_BASE, (uint32_t)BVSTK_SD_CONTROLLER_SIZE },
 #endif
     };
-    uint64_t start = (uint64_t)addr;
-    uint64_t end = start + (uint64_t)size_bytes;
     size_t i;
-
-    if (size_bytes == 0u || end < start) return false;
 
     for (i = 0; i < (sizeof(ranges) / sizeof(ranges[0])); ++i) {
         uint64_t r_start = (uint64_t)ranges[i].base;
         uint64_t r_end = r_start + (uint64_t)ranges[i].size;
-        if (start >= r_start && end <= r_end) return true;
+        if (address >= r_start && end <= r_end) return true;
     }
     return false;
+#endif
 }
 
 static int dcp2_handle_ping(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
@@ -373,14 +445,16 @@ static int dcp2_handle_mem_read(int fd, uint8_t srv, uint8_t opcode, uint16_t se
     }
 
     for (i = 0; i < count; ++i) {
-        uint32_t cur_addr = addr + (((flags & DCP2_MEM_FLAG_AUTOINC) != 0u) ? (i * width_bytes) : 0u);
+        uint64_t cur_addr64 = (uint64_t)addr +
+            (((flags & DCP2_MEM_FLAG_AUTOINC) != 0u) ?
+             ((uint64_t)i * width_bytes) : 0u);
+        uint32_t cur_addr;
         uint8_t *dst = s_mem_read_buf + (i * width_bytes);
-        if ((cur_addr & (width_bytes - 1u)) != 0u) {
+        if (!dcp2_mem_access_allowed(cur_addr64, width_bytes) ||
+            ((cur_addr64 & (uint64_t)(width_bytes - 1u)) != 0u)) {
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
         }
-        if (!dcp2_mmio_allowed(cur_addr, width_bytes)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
+        cur_addr = (uint32_t)cur_addr64;
 
         if (width_bits == 8u) {
             dst[0] = Xil_In8((UINTPTR)cur_addr);
@@ -431,14 +505,16 @@ static int dcp2_handle_mem_write(int fd, uint8_t srv, uint8_t opcode, uint16_t s
     }
 
     for (i = 0; i < count; ++i) {
-        uint32_t cur_addr = addr + (((flags & DCP2_MEM_FLAG_AUTOINC) != 0u) ? (i * width_bytes) : 0u);
+        uint64_t cur_addr64 = (uint64_t)addr +
+            (((flags & DCP2_MEM_FLAG_AUTOINC) != 0u) ?
+             ((uint64_t)i * width_bytes) : 0u);
+        uint32_t cur_addr;
         const uint8_t *src = body + 8u + (i * width_bytes);
-        if ((cur_addr & (width_bytes - 1u)) != 0u) {
+        if (!dcp2_mem_access_allowed(cur_addr64, width_bytes) ||
+            ((cur_addr64 & (uint64_t)(width_bytes - 1u)) != 0u)) {
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
         }
-        if (!dcp2_mmio_allowed(cur_addr, width_bytes)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
+        cur_addr = (uint32_t)cur_addr64;
 
         if (width_bits == 8u) {
             Xil_Out8((UINTPTR)cur_addr, src[0]);
@@ -741,6 +817,9 @@ static int dcp2_handle_stream_ctl(int fd,
         }
         state->stream_enabled[idx] = true;
         state->stream_flags[idx] = body[0];
+        if ((body[0] & DCP2_SUB_RESET_LOST_COUNTERS) != 0u) {
+            dcp2_stream_sim_reset_lost(srv);
+        }
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
     }
 
@@ -772,29 +851,27 @@ static int dcp2_dispatch_request(int fd,
     case DCP2_SRV_NOTIFY:
         return dcp2_handle_notify(fd, state, srv, opcode, seq, body, body_len);
     case DCP2_SRV_I2C:
-#if BVSTK_PL_HAS_I2C_CORE
         if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
             return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
         }
+#if BVSTK_PL_HAS_I2C_CORE
         return dcp2_handle_i2c(fd, srv, opcode, seq, body, body_len);
 #else
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
 #endif
     case DCP2_SRV_SMI:
-#if BVSTK_PL_HAS_SMI_CORE
         if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
             return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
         }
+#if BVSTK_PL_HAS_SMI_CORE
         return dcp2_handle_smi(fd, srv, opcode, seq, body, body_len);
 #else
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
 #endif
     case DCP2_SRV_SPI:
-#if BVSTK_PL_HAS_SPI_CORE
         if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
             return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
         }
-#endif
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
     case DCP2_SRV_UART:
         if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
@@ -849,6 +926,7 @@ static void dcp2_handle_client(int fd)
         int ready;
 
         if (dcp2_drain_notify_events(fd, &state) < 0) return;
+        if (dcp2_drain_stream_events(fd, &state) < 0) return;
         ready = dcp2_wait_readable(fd, 100);
         if (ready < 0) return;
         if (ready == 0) continue;
@@ -920,10 +998,11 @@ uint16_t dcp2_server_port(void)
 void start_dcp2_server(void)
 {
     bool notify_ok = dcp2_notify_init();
+    bool stream_ok = dcp2_stream_sim_init();
     sys_thread_t th;
 
     th = sys_thread_new("dcp2", dcp2_server_thread, 0, DCP2_THREAD_STACK, tskIDLE_PRIORITY + 1);
-    if (!notify_ok || !th) {
+    if (!notify_ok || !stream_ok || !th) {
         xil_printf("DCP2: failed to start\r\n");
     }
 }
