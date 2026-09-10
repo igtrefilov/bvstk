@@ -47,3 +47,13 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -o "$TEST_TMP/test_line_editor"
 
 "$TEST_TMP/test_line_editor"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic \
+  -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/dcp2_fs_server.c" \
+  "$REPO_ROOT/src/services/fs/bvstk_fs_reader.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_fs.c" \
+  -o "$TEST_TMP/dcp2_fs_server"
+
+PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_dcp2_fs.py" "$TEST_TMP/dcp2_fs_server"

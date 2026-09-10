@@ -2,11 +2,16 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import signal
 import socket
 import struct
 import sys
+import tempfile
+import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, Optional
 
 
@@ -21,6 +26,12 @@ SRV_SMI = 0x03
 SRV_SPI = 0x04
 SRV_UART = 0x05
 SRV_NOTIFY = 0x06
+SRV_FS = 0x07
+
+OP_FS_INFO, OP_FS_STAT, OP_FS_OPEN, OP_FS_READ, OP_FS_CLOSE = range(5)
+FS_FILE, FS_TREE, FS_TAR = 1, 2, 3
+FS_RECURSIVE = 1
+FS_UNKNOWN_SIZE = (1 << 64) - 1
 
 OP_PING = 0x00
 OP_MEM_READ = 0x00
@@ -73,6 +84,12 @@ STATUS_NAMES: Dict[int, str] = {
     0x0005: "ERR_TIMEOUT",
     0x0006: "ERR_RANGE",
     0x0007: "ERR_INTERNAL",
+    0x0100: "ERR_FS_NOT_FOUND",
+    0x0101: "ERR_FS_NOT_READY",
+    0x0102: "ERR_FS_BAD_HANDLE",
+    0x0103: "ERR_FS_TYPE",
+    0x0104: "ERR_FS_IO",
+    0x0105: "ERR_FS_CHANGED",
 }
 
 NOTIFY_FLAG_WITH_TIMESTAMP = 1 << 0
@@ -583,6 +600,249 @@ def run_ping(args: argparse.Namespace) -> int:
     return 0
 
 
+class FsError(RuntimeError):
+    def __init__(self, status: int):
+        self.status = status
+        super().__init__(status_name(status))
+
+
+class FsClient:
+    """DCP2 FS v1 reader. A socket and its receive buffer belong to this client.
+
+    Partial frames survive response timeouts. Retries use a fresh seq but the
+    same open_id or block number, and late responses are consumed and ignored.
+    """
+
+    def __init__(self, sock: socket.socket, timeout: float = 5.0, retries: int = 2):
+        self.sock = sock
+        self.timeout = timeout
+        self.retries = retries
+        self.sequence = 0
+        self.open_id = 0
+        self.received = bytearray()
+
+    def _read_frame(self, deadline: float) -> Frame:
+        while True:
+            if len(self.received) >= 8:
+                magic, version, length = struct.unpack_from(">4sHH", self.received)
+                if magic != MAGIC or version != VERSION or not 4 <= length <= DCP2_MAX_PAYLOAD:
+                    raise ValueError("invalid DCP2 frame header")
+                if len(self.received) >= 8 + length:
+                    payload = bytes(self.received[8:8 + length])
+                    del self.received[:8 + length]
+                    return Frame(payload[0], payload[1], struct.unpack_from(">H", payload, 2)[0], payload[4:])
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise socket.timeout("FS response deadline expired")
+            self.sock.settimeout(remaining)
+            data = self.sock.recv(8192)
+            if not data:
+                raise ConnectionError("connection closed before the FS response")
+            self.received.extend(data)
+
+    def request(self, opcode: int, body: bytes = b"") -> bytes:
+        for attempt in range(self.retries + 1):
+            self.sequence = self.sequence % 0xFFFF + 1
+            seq = self.sequence
+            self.sock.settimeout(self.timeout)
+            # A failed send may have transmitted only a prefix: do not resend it.
+            self.sock.sendall(build_frame(SRV_FS, opcode, seq, body))
+            deadline = time.monotonic() + self.timeout
+            try:
+                while True:
+                    frame = self._read_frame(deadline)
+                    if frame.is_event:
+                        continue
+                    if not frame.is_response:
+                        raise ValueError("unexpected request from FS server")
+                    if frame.seq != seq:
+                        continue
+                    if frame.srv != SRV_FS or frame.opcode != opcode:
+                        raise ValueError("FS response service/opcode mismatch")
+                    status = parse_status_from_response(frame)
+                    if status:
+                        if len(frame.body) != 2:
+                            raise ValueError("FS error response has unexpected data")
+                        raise FsError(status)
+                    return frame.body[2:]
+            except (socket.timeout, FsError) as exc:
+                if isinstance(exc, FsError) and exc.status not in (4, 5, 0x0101):
+                    raise
+                if attempt == self.retries:
+                    raise
+                time.sleep(min(0.05 * (attempt + 1), self.timeout))
+        raise RuntimeError("FS retry loop exhausted")
+
+    @staticmethod
+    def _path(path: str) -> bytes:
+        encoded = path.encode("utf-8")
+        if not encoded or len(encoded) > 0xFFFF or b"\0" in encoded:
+            raise ValueError("invalid FS path length or embedded NUL")
+        return struct.pack(">H", len(encoded)) + encoded
+
+    def info(self) -> dict:
+        body = self.request(OP_FS_INFO)
+        if len(body) < 20:
+            raise ValueError("short FS_INFO response")
+        version, capabilities, block, path, depth, handles, idle, count = struct.unpack_from(">HIHHHHIH", body)
+        if version != 1 or not 1 <= block <= 4078 or not path or not depth or not handles or not idle:
+            raise ValueError("unsupported FS version or invalid limits")
+        offset, volumes = 20, []
+        for _ in range(count):
+            if offset + 2 > len(body):
+                raise ValueError("truncated FS volume")
+            state, length = body[offset:offset + 2]
+            offset += 2
+            if state > 2 or not length or offset + length > len(body):
+                raise ValueError("invalid FS volume record")
+            name = body[offset:offset + length].decode("utf-8")
+            offset += length
+            volumes.append({"root": name + ":/", "state": ("not_ready", "ready", "unsupported")[state]})
+        if offset != len(body):
+            raise ValueError("trailing bytes in FS_INFO")
+        return {"fs_version": version, "capabilities": capabilities, "max_block_size": block,
+                "max_path_bytes": path, "max_depth": depth, "max_handles": handles,
+                "idle_timeout_ms": idle, "volumes": volumes}
+
+    def stat(self, path: str) -> dict:
+        body = self.request(OP_FS_STAT, self._path(path))
+        if len(body) != 10:
+            raise ValueError("invalid FS_STAT response")
+        kind, attributes, size = struct.unpack(">BBQ", body)
+        if kind not in (1, 2) or (kind == 2 and size):
+            raise ValueError("invalid FS object type/size")
+        return {"path": path, "type": "file" if kind == 1 else "directory", "size": size, "attributes": attributes}
+
+    def open(self, path: str, kind: int, recursive: bool = False, block_size: int = 3072,
+             open_id: Optional[int] = None) -> tuple[int, int, int]:
+        if not 0 <= block_size <= 4078:
+            raise ValueError("FS block size must be in range 0..4078")
+        if open_id is None:
+            self.open_id += 1
+            open_id = self.open_id
+        body = self.request(OP_FS_OPEN, struct.pack(">IBBH", open_id, kind, int(recursive), block_size) + self._path(path))
+        if len(body) != 14:
+            raise ValueError("invalid FS_OPEN response")
+        handle, accepted, total = struct.unpack(">IHQ", body)
+        if not handle or not 1 <= accepted <= 4078 or (block_size and accepted > block_size):
+            raise ValueError("invalid FS handle or block size")
+        if kind == FS_FILE and total == FS_UNKNOWN_SIZE:
+            raise ValueError("FILE stream has unknown size")
+        return handle, accepted, total
+
+    def close(self, handle: int) -> None:
+        if self.request(OP_FS_CLOSE, struct.pack(">I", handle)):
+            raise ValueError("unexpected FS_CLOSE response data")
+
+    def read_block(self, handle: int, block_no: int, block_size: int) -> tuple[bytes, bool]:
+        body = self.request(OP_FS_READ, struct.pack(">II", handle, block_no))
+        if len(body) < 12:
+            raise ValueError("short FS_READ response")
+        received_handle, received_no, flags, reserved, length = struct.unpack_from(">IIBBH", body)
+        if (received_handle != handle or received_no != block_no or reserved or flags & ~1 or
+                length != len(body) - 12 or length > block_size or (not length and not flags & 1)):
+            raise ValueError("invalid FS_READ response")
+        return body[12:], bool(flags & 1)
+
+    def stream(self, path: str, kind: int, recursive: bool = False, block_size: int = 3072,
+               verify_repeats: bool = False):
+        handle, accepted, total = self.open(path, kind, recursive, block_size)
+        received = 0
+        try:
+            for block_no in range(1 << 32):
+                data, eof = self.read_block(handle, block_no, accepted)
+                if verify_repeats and self.read_block(handle, block_no, accepted) != (data, eof):
+                    raise ValueError("repeated FS block differs")
+                received += len(data)
+                if total != FS_UNKNOWN_SIZE and (received > total or (eof and received != total)):
+                    raise ValueError("FS stream size differs from FS_OPEN")
+                yield data
+                if eof:
+                    break
+            else:
+                raise ValueError("FS block number exhausted")
+        finally:
+            # Preserve the original exception on a failed or abandoned transfer.
+            if sys.exc_info()[0] is None:
+                self.close(handle)
+            else:
+                try:
+                    self.close(handle)
+                except (ConnectionError, OSError, RuntimeError, ValueError):
+                    pass
+
+    def list_entries(self, path: str, recursive: bool = False, block_size: int = 3072,
+                     verify_repeats: bool = False):
+        pending = bytearray()
+        stream = self.stream(path, FS_TREE, recursive, block_size, verify_repeats)
+        try:
+            for data in stream:
+                pending.extend(data)
+                while len(pending) >= 2:
+                    entry_len = struct.unpack_from(">H", pending)[0]
+                    if entry_len < 15:
+                        raise ValueError("invalid TREE entry length")
+                    if len(pending) < entry_len:
+                        break
+                    _, kind, reserved, size, length = struct.unpack_from(">HBBQH", pending)
+                    if kind not in (1, 2) or reserved or entry_len != 14 + length or (kind == 2 and size):
+                        raise ValueError("invalid TREE entry")
+                    name = bytes(pending[14:entry_len]).decode("utf-8")
+                    if (not name or name.startswith("/") or ":" in name or "\\" in name or
+                            any(part in ("", ".", "..") for part in name.split("/")) or "\0" in name):
+                        raise ValueError("invalid TREE relative path")
+                    del pending[:entry_len]
+                    yield {"path": name, "type": "file" if kind == 1 else "directory", "size": size}
+            if pending:
+                raise ValueError("TREE ended inside a record")
+        finally:
+            stream.close()
+
+
+def run_fs_operation(args: argparse.Namespace) -> int:
+    temporary = None
+    try:
+        with socket.create_connection((args.host, args.port), timeout=args.timeout) as sock:
+            client = FsClient(sock, args.timeout, args.fs_retries)
+            if args.fs_info:
+                print(json.dumps(client.info(), ensure_ascii=False, indent=2))
+            elif args.fs_stat:
+                print(json.dumps(client.stat(args.fs_stat), ensure_ascii=False, indent=2))
+            elif args.fs_list:
+                for entry in client.list_entries(args.fs_list, args.recursive, args.fs_block_size, args.fs_verify_repeats):
+                    print(json.dumps(entry, ensure_ascii=False), flush=True)
+            else:
+                path = args.fs_read or args.fs_tar
+                kind = FS_FILE if args.fs_read else FS_TAR
+                stream = client.stream(path, kind, block_size=args.fs_block_size, verify_repeats=args.fs_verify_repeats)
+                count = 0
+                try:
+                    if args.output:
+                        destination = Path(args.output)
+                        with tempfile.NamedTemporaryFile(mode="wb", prefix=destination.name + ".", suffix=".part",
+                                                         dir=destination.parent, delete=False) as output:
+                            temporary = output.name
+                            for data in stream:
+                                output.write(data)
+                                count += len(data)
+                        os.replace(temporary, destination)
+                        temporary = None
+                        print(f"FS -> OK {count} bytes saved to {destination}", file=sys.stderr)
+                    else:
+                        for data in stream:
+                            sys.stdout.buffer.write(data)
+                        sys.stdout.buffer.flush()
+                finally:
+                    stream.close()
+    except (ConnectionError, OSError, RuntimeError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    finally:
+        if temporary is not None:
+            os.unlink(temporary)
+    return 0
+
+
 def run_memory_operation(args: argparse.Namespace) -> int:
     try:
         if args.mem_read is not None:
@@ -666,7 +926,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "DCP2 client: monitor NOTIFY or PL streams, or execute one-shot "
-            "MEM read/write operations."
+            "MEM read/write or FS read/tree/TAR operations."
         )
     )
     parser.add_argument("host", help="device IP or hostname")
@@ -697,6 +957,16 @@ def build_parser() -> argparse.ArgumentParser:
         choices=tuple(STREAM_SERVICES),
         help="subscribe to a PL stream; repeat for i2c, smi, spi or uart",
     )
+    operation.add_argument("--fs-info", action="store_true", help="show FS limits and volumes as JSON")
+    operation.add_argument("--fs-stat", metavar="PATH", help="show file/directory metadata as JSON")
+    operation.add_argument("--fs-list", metavar="PATH", help="list directory records as JSON lines")
+    operation.add_argument("--fs-read", metavar="PATH", help="read a file to stdout or --output")
+    operation.add_argument("--fs-tar", metavar="PATH", help="export a recursive TAR to stdout or --output")
+    parser.add_argument("--recursive", action="store_true", help="recursively traverse --fs-list")
+    parser.add_argument("--output", metavar="FILE", help="save --fs-read/--fs-tar atomically after successful completion")
+    parser.add_argument("--fs-block-size", type=int, default=3072, help="FS block bytes (0 selects server default)")
+    parser.add_argument("--fs-retries", type=int, default=2, help="FS retries per request (default: 2)")
+    parser.add_argument("--fs-verify-repeats", action="store_true", help="read every FS block twice and compare")
     parser.add_argument(
         "--width",
         type=int,
@@ -754,6 +1024,22 @@ def main() -> int:
             f"'{args.host}' looks like a port, not a host. "
             "Use: monitor_notify.py <device-ip> --port <port>"
         )
+
+    fs_operation = args.fs_info or args.fs_stat or args.fs_list or args.fs_read or args.fs_tar
+    if args.timeout <= 0:
+        parser.error("--timeout must be positive")
+    if fs_operation:
+        if args.count is not None or args.autoinc or args.width != 32:
+            parser.error("FS operations cannot be combined with MEM options")
+        if args.recursive and not args.fs_list:
+            parser.error("--recursive requires --fs-list; TAR always includes subdirectories")
+        if args.output and not (args.fs_read or args.fs_tar):
+            parser.error("--output requires --fs-read or --fs-tar")
+        if not 0 <= args.fs_block_size <= 4078 or not 0 <= args.fs_retries <= 10:
+            parser.error("FS block size must be 0..4078 and retries 0..10")
+        return run_fs_operation(args)
+    if args.recursive or args.output or args.fs_verify_repeats or args.fs_block_size != 3072 or args.fs_retries != 2:
+        parser.error("FS options require an --fs-* operation")
 
     if args.ping_only:
         if args.count is not None or args.autoinc or args.width != 32:

@@ -1,6 +1,7 @@
 #include "apps/freertos/services/dcp2/dcp2_server.h"
 
 #include <stdbool.h>
+#include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -22,6 +23,8 @@
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
 #include "apps/freertos/services/dcp2/dcp2_stream_sim.h"
 #include "apps/freertos/services/lan/bvstk_lan.h"
+#include "apps/freertos/storage/fs/fs_dcp2_backend.h"
+#include "protocols/dcp2/bvstk_dcp2_fs.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 enum {
@@ -41,6 +44,7 @@ enum {
     DCP2_SRV_SPI = 0x04,
     DCP2_SRV_UART = 0x05,
     DCP2_SRV_NOTIFY = 0x06,
+    DCP2_SRV_FS = 0x07,
     DCP2_SRV_VENDOR = 0x7F,
 };
 
@@ -99,6 +103,14 @@ static uint16_t s_port = DCP2_PORT_DEFAULT;
 static uint8_t s_rx_buf[DCP2_MAX_PAYLOAD];
 static uint8_t s_tx_buf[DCP2_HDR_LEN + DCP2_MAX_PAYLOAD];
 static uint8_t s_mem_read_buf[DCP2_MAX_PAYLOAD];
+/* The current server serves one TCP connection at a time. Keep bounded stream
+ * state out of its task stack and destroy it on every disconnect. */
+static bvstk_dcp2_fs_session_t s_fs_session;
+
+static uint32_t dcp2_now_ms(void)
+{
+    return (uint32_t)((uint64_t)xTaskGetTickCount() * portTICK_PERIOD_MS);
+}
 
 static uint16_t be16_read(const uint8_t *p)
 {
@@ -138,11 +150,29 @@ static void be64_write(uint8_t *p, uint64_t v)
     be32_write(p + 4, (uint32_t)(v & 0xFFFFFFFFu));
 }
 
+static int dcp2_wait_io(int fd, bool writing, uint32_t started)
+{
+    fd_set fds;
+    struct timeval timeout;
+    uint32_t elapsed = dcp2_now_ms() - started;
+    uint32_t remaining;
+    if (elapsed >= 5000U) return -1;
+    remaining = 5000U - elapsed;
+    timeout.tv_sec = remaining / 1000U;
+    timeout.tv_usec = (remaining % 1000U) * 1000U;
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+    return lwip_select(fd + 1, writing ? NULL : &fds,
+                        writing ? &fds : NULL, NULL, &timeout) > 0 ? 0 : -1;
+}
+
 static int sock_read_exact(int fd, void *buf, size_t len)
 {
     uint8_t *p = (uint8_t *)buf;
     size_t got = 0;
+    uint32_t started = dcp2_now_ms();
     while (got < len) {
+        if (dcp2_wait_io(fd, false, started) < 0) return -1;
         int r = lwip_read(fd, p + got, (int)(len - got));
         if (r <= 0) return -1;
         got += (size_t)r;
@@ -154,8 +184,13 @@ static int sock_write_all(int fd, const void *buf, size_t len)
 {
     const uint8_t *p = (const uint8_t *)buf;
     size_t sent = 0;
+    uint32_t started = dcp2_now_ms();
     while (sent < len) {
-        int w = lwip_write(fd, p + sent, (int)(len - sent));
+        int w = lwip_send(fd, p + sent, (int)(len - sent), MSG_DONTWAIT);
+        if (w < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            if (dcp2_wait_io(fd, true, started) < 0) return -1;
+            continue;
+        }
         if (w <= 0) return -1;
         sent += (size_t)w;
     }
@@ -848,6 +883,15 @@ static int dcp2_dispatch_request(int fd,
         return dcp2_handle_ping(fd, srv, opcode, seq, body, body_len);
     case DCP2_SRV_MEM:
         return dcp2_handle_mem(fd, srv, opcode, seq, body, body_len);
+    case DCP2_SRV_FS: {
+        uint16_t response_size = 0;
+        uint16_t status = bvstk_dcp2_fs_request(&s_fs_session, opcode, body, body_len,
+                                               dcp2_now_ms(), s_mem_read_buf,
+                                               DCP2_MAX_PAYLOAD - 6U, &response_size);
+        return dcp2_send_response(fd, srv, opcode, seq, status,
+                                  status == 0 ? s_mem_read_buf : NULL,
+                                  status == 0 ? response_size : 0);
+    }
     case DCP2_SRV_NOTIFY:
         return dcp2_handle_notify(fd, state, srv, opcode, seq, body, body_len);
     case DCP2_SRV_I2C:
@@ -925,6 +969,7 @@ static void dcp2_handle_client(int fd)
         uint16_t payload_len;
         int ready;
 
+        bvstk_dcp2_fs_expire(&s_fs_session, dcp2_now_ms());
         if (dcp2_drain_notify_events(fd, &state) < 0) return;
         if (dcp2_drain_stream_events(fd, &state) < 0) return;
         ready = dcp2_wait_readable(fd, 100);
@@ -985,7 +1030,9 @@ static void dcp2_server_thread(void *arg)
         socklen_t rlen = sizeof(remote);
         int c = lwip_accept(s, (struct sockaddr *)&remote, &rlen);
         if (c < 0) continue;
+        bvstk_dcp2_fs_init(&s_fs_session, fs_dcp2_backend());
         dcp2_handle_client(c);
+        bvstk_dcp2_fs_destroy(&s_fs_session);
         lwip_close(c);
     }
 }
