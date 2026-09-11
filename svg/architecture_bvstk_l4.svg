@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="420mm"
+   height="250mm"
+   viewBox="0 0 420 250"
+   version="1.1"
+   id="bvstk-l4-architecture"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="architecture_bvstk_l4.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <title id="title">BVSTK · подробная схема уровня L4</title>
+  <desc id="description">
+    Подробная схема прикладного уровня L4 проекта BVSTK. Слева показана
+    прикладная композиция для FreeRTOS, справа — прикладные процессы и
+    клиенты для ЗОСРВ «Нейтрино», а в центре — общие модели и контракты,
+    используемые обеими сборками. Прикладные блоки BVSTK обозначены
+    штриховой рамкой. Нативные пользовательские приложения базового образа
+    Нейтрино показаны сплошной рамкой; для FreeRTOS отдельные предшествующие
+    L4-приложения не выделены. Нативные задачи, процессы и системные стеки
+    ОС не смешиваются с L4-блоками.
+  </desc>
+  <sodipodi:namedview
+     id="namedview"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:showpageshadow="2" />
+  <defs id="defs">
+    <style id="style">
+      text { font-family: &quot;Noto Sans&quot;, &quot;DejaVu Sans&quot;, sans-serif; fill: #172a3a; stroke: none; text-anchor: middle; }
+      .panel-title { font-size: 4.8px; font-weight: 700; }
+      .panel-subtitle { font-size: 2.55px; font-weight: 400; }
+      .module-title { font-size: 3.05px; font-weight: 700; }
+      .module-text { font-size: 2.65px; font-weight: 500; }
+      .module-small { font-size: 2.35px; font-weight: 500; }
+      .origin { font-size: 2.05px; font-weight: 700; text-anchor: end; letter-spacing: 0.05px; }
+      .muted { fill: #536473; }
+      .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.55; stroke-linejoin: round; }
+      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.6; stroke-dasharray: 2.8 1.6; stroke-linejoin: round; }
+      .common-panel { fill: #fbfdfb; stroke: #36794c; stroke-width: 0.65; stroke-linejoin: round; }
+      .module { stroke-width: 0.42; stroke-linejoin: round; }
+      .native { stroke-dasharray: none; }
+      .bvstk { stroke-width: 0.55; stroke-dasharray: 2 1.2; }
+      .adapter { stroke-width: 0.65; stroke-dasharray: 0.75 0.9; }
+      .origin-os { fill: #536473; }
+      .origin-bvstk { fill: #287f73; }
+      .origin-adapter { fill: #b56b1d; }
+      /* Единая палитра уровней из levels.svg и interaction-схем. */
+      .level-l0 { fill: #e9eef3; stroke: #607487; }
+      .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
+      .level-l2 { fill: #ffd1c7; stroke: #c65b4e; }
+      .level-l3 { fill: #d9f0ea; stroke: #287f73; }
+      .level-l4 { fill: #d9ebff; stroke: #3f75ad; }
+    </style>
+  </defs>
+
+  <g id="sheet" inkscape:groupmode="layer" inkscape:label="BVSTK · уровень L4">
+    <rect id="frame" class="frame" x="5" y="5" width="410" height="240" rx="1" />
+
+    <g id="columns" inkscape:label="FreeRTOS · общие части · Нейтрино">
+      <rect id="freertos-panel" class="os-panel" x="10" y="14" width="126" height="226" rx="2" />
+      <rect id="common-panel" class="common-panel" x="147" y="14" width="126" height="226" rx="2" />
+      <rect id="neutrino-panel" class="os-panel" x="284" y="14" width="126" height="226" rx="2" />
+
+      <text id="freertos-title" class="panel-title" x="73" y="25">FreeRTOS · L4</text>
+      <text id="freertos-subtitle" class="panel-subtitle muted" x="73" y="31">прикладная композиция BVSTK</text>
+      <text id="common-title" class="panel-title" x="210" y="25">Общие части BVSTK · L4</text>
+      <text id="common-subtitle" class="panel-subtitle muted" x="210" y="31">модели и прикладные контракты</text>
+      <text id="neutrino-title" class="panel-title" x="347" y="25">ЗОСРВ «Нейтрино» · L4</text>
+      <text id="neutrino-subtitle" class="panel-subtitle muted" x="347" y="31">нативные приложения и BVSTK</text>
+
+      <!-- FreeRTOS · L4 -->
+      <rect id="f-l4-entry" class="module level-l4 bvstk" x="14" y="42" width="58" height="36" rx="1" />
+      <text id="f-l4-entry-title" class="module-title" x="43" y="54">Точка входа</text>
+      <text id="f-l4-entry-text" class="module-text" x="43" y="62">инициализация сборки</text>
+      <text id="f-l4-entry-text-2" class="module-text" x="43" y="68">запуск прикладных служб</text>
+      <text id="f-l4-entry-origin" class="origin origin-bvstk" x="69" y="47">BVSTK</text>
+
+      <rect id="f-l4-runtime" class="module level-l4 bvstk" x="74" y="42" width="58" height="36" rx="1" />
+      <text id="f-l4-runtime-title" class="module-title" x="103" y="54">Прикладной runtime</text>
+      <text id="f-l4-runtime-text" class="module-text" x="103" y="62">сервисные задачи</text>
+      <text id="f-l4-runtime-text-2" class="module-text" x="103" y="68">общие объекты и состояние</text>
+      <text id="f-l4-runtime-origin" class="origin origin-bvstk" x="129" y="47">BVSTK</text>
+
+      <rect id="f-l4-console" class="module level-l4 bvstk" x="14" y="82" width="58" height="36" rx="1" />
+      <text id="f-l4-console-title" class="module-title" x="43" y="94">Консоль управления</text>
+      <text id="f-l4-console-text" class="module-text" x="43" y="102">UART · TCP · команды</text>
+      <text id="f-l4-console-text-2" class="module-text" x="43" y="108">редактор и диспетчеризация</text>
+      <text id="f-l4-console-origin" class="origin origin-bvstk" x="69" y="87">BVSTK</text>
+
+      <rect id="f-l4-network" class="module level-l4 bvstk" x="74" y="82" width="58" height="36" rx="1" />
+      <text id="f-l4-network-title" class="module-title" x="103" y="94">Сетевые API</text>
+      <text id="f-l4-network-text" class="module-text" x="103" y="102">HTTP · DCP2 · SSH</text>
+      <text id="f-l4-network-text-2" class="module-text" x="103" y="108">внешнее управление</text>
+      <text id="f-l4-network-origin" class="origin origin-bvstk" x="129" y="87">BVSTK</text>
+
+      <rect id="f-l4-config" class="module level-l4 bvstk" x="14" y="122" width="118" height="36" rx="1" />
+      <text id="f-l4-config-title" class="module-title" x="73" y="134">Конфигурационное хранилище</text>
+      <text id="f-l4-config-text" class="module-text" x="73" y="142">загрузка модели устройств</text>
+      <text id="f-l4-config-text-2" class="module-text" x="73" y="148">изменение и сохранение настроек</text>
+      <text id="f-l4-config-origin" class="origin origin-bvstk" x="129" y="127">BVSTK</text>
+
+      <rect id="f-l4-events" class="module level-l4 bvstk" x="14" y="162" width="118" height="36" rx="1" />
+      <text id="f-l4-events-title" class="module-title" x="73" y="174">Уведомления и диагностика</text>
+      <text id="f-l4-events-text" class="module-text" x="73" y="182">статусы · ошибки · события</text>
+      <text id="f-l4-events-text-2" class="module-text" x="73" y="188">вывод в консоль и сеть</text>
+      <text id="f-l4-events-origin" class="origin origin-bvstk" x="129" y="167">BVSTK</text>
+
+      <!-- Общие части BVSTK · L4 -->
+      <rect id="c-l4-command" class="module level-l4 bvstk" x="151" y="42" width="58" height="36" rx="1" />
+      <text id="c-l4-command-title" class="module-title" x="180" y="54">Командная модель</text>
+      <text id="c-l4-command-text" class="module-text" x="180" y="62">операции · параметры</text>
+      <text id="c-l4-command-text-2" class="module-text" x="180" y="68">запросы · ответы</text>
+      <text id="c-l4-command-origin" class="origin origin-bvstk" x="206" y="47">BVSTK</text>
+
+      <rect id="c-l4-config" class="module level-l4 bvstk" x="211" y="42" width="58" height="36" rx="1" />
+      <text id="c-l4-config-title" class="module-title" x="240" y="54">Конфигурация</text>
+      <text id="c-l4-config-text" class="module-text" x="240" y="62">устройства · адреса</text>
+      <text id="c-l4-config-text-2" class="module-text" x="240" y="68">правила · настройки</text>
+      <text id="c-l4-config-origin" class="origin origin-bvstk" x="266" y="47">BVSTK</text>
+
+      <rect id="c-l4-state" class="module level-l4 bvstk" x="151" y="82" width="58" height="36" rx="1" />
+      <text id="c-l4-state-title" class="module-title" x="180" y="94">Состояния и события</text>
+      <text id="c-l4-state-text" class="module-text" x="180" y="102">статус · ошибка</text>
+      <text id="c-l4-state-text-2" class="module-text" x="180" y="108">изменения · уведомления</text>
+      <text id="c-l4-state-origin" class="origin origin-bvstk" x="206" y="87">BVSTK</text>
+
+      <rect id="c-l4-control" class="module level-l4 bvstk" x="211" y="82" width="58" height="36" rx="1" />
+      <text id="c-l4-control-title" class="module-title" x="240" y="94">Управляющий API</text>
+      <text id="c-l4-control-text" class="module-text" x="240" y="102">единые вызовы</text>
+      <text id="c-l4-control-text-2" class="module-text" x="240" y="108">сервисов устройств</text>
+      <text id="c-l4-control-origin" class="origin origin-bvstk" x="266" y="87">BVSTK</text>
+
+      <rect id="c-l4-cli" class="module level-l4 bvstk" x="151" y="122" width="58" height="36" rx="1" />
+      <text id="c-l4-cli-title" class="module-title" x="180" y="134">Общий CLI</text>
+      <text id="c-l4-cli-text" class="module-text" x="180" y="142">редактор · история</text>
+      <text id="c-l4-cli-text-2" class="module-text" x="180" y="148">I²C-дополнение</text>
+      <text id="c-l4-cli-origin" class="origin origin-bvstk" x="206" y="127">BVSTK</text>
+
+      <rect id="c-l4-codec" class="module level-l4 bvstk" x="211" y="122" width="58" height="36" rx="1" />
+      <text id="c-l4-codec-title" class="module-title" x="240" y="134">JSON-модель</text>
+      <text id="c-l4-codec-text" class="module-text" x="240" y="142">разбор · проверка</text>
+      <text id="c-l4-codec-text-2" class="module-text" x="240" y="148">сериализация</text>
+      <text id="c-l4-codec-origin" class="origin origin-bvstk" x="266" y="127">BVSTK</text>
+
+      <rect id="c-l4-device-model" class="module level-l4 bvstk" x="151" y="162" width="58" height="36" rx="1" />
+      <text id="c-l4-device-model-title" class="module-title" x="180" y="174">Модель устройств</text>
+      <text id="c-l4-device-model-text" class="module-small" x="180" y="182">имя · адрес · регистры</text>
+      <text id="c-l4-device-model-text-2" class="module-small" x="180" y="188">описание устройства</text>
+      <text id="c-l4-device-model-origin" class="origin origin-bvstk" x="206" y="167">BVSTK</text>
+
+      <rect id="c-l4-policy" class="module level-l4 bvstk" x="211" y="162" width="58" height="36" rx="1" />
+      <text id="c-l4-policy-title" class="module-title" x="240" y="174">Политика доступа</text>
+      <text id="c-l4-policy-text" class="module-text" x="240" y="182">whitelist · blacklist</text>
+      <text id="c-l4-policy-text-2" class="module-text" x="240" y="188">разрешения записи</text>
+      <text id="c-l4-policy-origin" class="origin origin-bvstk" x="266" y="167">BVSTK</text>
+
+      <!-- ЗОСРВ «Нейтрино» · L4 -->
+      <rect id="n-l4-clients" class="module level-l4 bvstk" x="288" y="42" width="58" height="36" rx="1" />
+      <text id="n-l4-clients-title" class="module-title" x="317" y="54">Командные клиенты</text>
+      <text id="n-l4-clients-text" class="module-text" x="317" y="62">запросы управления</text>
+      <text id="n-l4-clients-text-2" class="module-text" x="317" y="68">текстовый результат</text>
+      <text id="n-l4-clients-origin" class="origin origin-bvstk" x="343" y="47">BVSTK</text>
+
+      <rect id="n-l4-shell" class="module level-l4 bvstk" x="348" y="42" width="58" height="36" rx="1" />
+      <text id="n-l4-shell-title" class="module-title" x="377" y="54">Интерактивная оболочка</text>
+      <text id="n-l4-shell-text" class="module-text" x="377" y="62">редактор строки</text>
+      <text id="n-l4-shell-text-2" class="module-text" x="377" y="68">команды и автодополнение</text>
+      <text id="n-l4-shell-origin" class="origin origin-bvstk" x="403" y="47">BVSTK</text>
+
+      <rect id="n-l4-scenarios" class="module level-l4 bvstk" x="288" y="82" width="118" height="36" rx="1" />
+      <text id="n-l4-scenarios-title" class="module-title" x="347" y="94">Прикладные сценарии</text>
+      <text id="n-l4-scenarios-text" class="module-text" x="347" y="102">управление устройствами</text>
+      <text id="n-l4-scenarios-text-2" class="module-text" x="347" y="108">диагностика и обслуживание</text>
+      <text id="n-l4-scenarios-origin" class="origin origin-bvstk" x="403" y="87">BVSTK</text>
+
+      <rect id="n-l4-config" class="module level-l4 bvstk" x="288" y="122" width="118" height="36" rx="1" />
+      <text id="n-l4-config-title" class="module-title" x="347" y="134">Конфигурационные операции</text>
+      <text id="n-l4-config-text" class="module-text" x="347" y="142">загрузка · просмотр</text>
+      <text id="n-l4-config-text-2" class="module-text" x="347" y="148">изменение · сохранение</text>
+      <text id="n-l4-config-origin" class="origin origin-bvstk" x="403" y="127">BVSTK</text>
+
+      <rect id="n-l4-ipc" class="module level-l4 adapter" x="288" y="162" width="118" height="36" rx="1" />
+      <text id="n-l4-ipc-title" class="module-title" x="347" y="174">Интерфейс процессов</text>
+      <text id="n-l4-ipc-text" class="module-text" x="347" y="182">devctl · IPC · ответы</text>
+      <text id="n-l4-ipc-text-2" class="module-text" x="347" y="188">граница клиента и сервиса</text>
+      <text id="n-l4-ipc-origin" class="origin origin-adapter" x="403" y="167">адаптер</text>
+
+      <!-- Нативные L4-приложения базового образа Нейтрино -->
+      <rect id="n-l4-native-shell" class="module level-l4 native" x="288" y="202" width="37" height="32" rx="1" />
+      <text id="n-l4-native-shell-title" class="module-title" x="306.5" y="214">Оболочка</text>
+      <text id="n-l4-native-shell-text" class="module-small" x="306.5" y="222">команды · сценарии</text>
+      <text id="n-l4-native-shell-text-2" class="module-small" x="306.5" y="228">нативная ОС</text>
+      <text id="n-l4-native-shell-origin" class="origin origin-os" x="322" y="207">ОС</text>
+
+      <rect id="n-l4-native-access" class="module level-l4 native" x="328.5" y="202" width="37" height="32" rx="1" />
+      <text id="n-l4-native-access-title" class="module-title" x="347" y="214">Удалённый доступ</text>
+      <text id="n-l4-native-access-text" class="module-small" x="347" y="222">SSH · login</text>
+      <text id="n-l4-native-access-text-2" class="module-small" x="347" y="228">доступ к системе</text>
+      <text id="n-l4-native-access-origin" class="origin origin-os" x="362.5" y="207">ОС</text>
+
+      <rect id="n-l4-native-tools" class="module level-l4 native" x="369" y="202" width="37" height="32" rx="1" />
+      <text id="n-l4-native-tools-title" class="module-title" x="387.5" y="214">Утилиты ОС</text>
+      <text id="n-l4-native-tools-text" class="module-small" x="387.5" y="222">файлы · процессы</text>
+      <text id="n-l4-native-tools-text-2" class="module-small" x="387.5" y="228">сеть · диагностика</text>
+      <text id="n-l4-native-tools-origin" class="origin origin-os" x="403" y="207">ОС</text>
+    </g>
+  </g>
+</svg>

@@ -49,6 +49,14 @@ web/**
 svg/*
 !svg/architecture_platform.svg
 !svg/architecture_bvstk.svg
+!svg/architecture_bvstk_os.svg
+!svg/architecture_bvstk_l4.svg
+!svg/architecture_bvstk_l3.svg
+!svg/levels.svg
+!svg/freertos_level.svg
+!svg/neutrino_levels.svg
+!svg/freertos_interaction.svg
+!svg/neutrino_interaction.svg
 
 # Editor metadata
 src/.obsidian/

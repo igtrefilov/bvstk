@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="420mm"
+   height="270mm"
+   viewBox="0 0 420 270"
+   version="1.1"
+   id="bvstk-l3-architecture"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="architecture_bvstk_l3.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <title id="title">BVSTK · подробная схема уровня L3</title>
+  <desc id="description">
+    Подробная схема уровня L3 проекта BVSTK. Слева показаны нативные сетевой
+    и файловый стеки FreeRTOS, их OS-привязки и прикладные системные службы;
+    справа — нативные стеки и драйверы ЗОСРВ «Нейтрино», сервис устройств и
+    адаптеры менеджера ресурсов. В центре показаны общие протоколы, сервисы,
+    PL-драйверы и файловые операции. Цвет всех блоков соответствует L3.
+    Нативные компоненты имеют сплошную рамку, код BVSTK — штриховую,
+    адаптеры — точечную. Состав SMI, SPI и SD выбирается профилем платы.
+  </desc>
+  <sodipodi:namedview
+     id="namedview"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:showpageshadow="2" />
+  <defs id="defs">
+    <style id="style">
+      text { font-family: &quot;Noto Sans&quot;, &quot;DejaVu Sans&quot;, sans-serif; fill: #172a3a; stroke: none; text-anchor: middle; }
+      .panel-title { font-size: 4.8px; font-weight: 700; }
+      .panel-subtitle { font-size: 2.55px; font-weight: 400; }
+      .module-title { font-size: 3.05px; font-weight: 700; }
+      .module-text { font-size: 2.65px; font-weight: 500; }
+      .module-small { font-size: 2.35px; font-weight: 500; }
+      .origin { font-size: 2.05px; font-weight: 700; text-anchor: end; letter-spacing: 0.05px; }
+      .muted { fill: #536473; }
+      .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.55; stroke-linejoin: round; }
+      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.6; stroke-dasharray: 2.8 1.6; stroke-linejoin: round; }
+      .common-panel { fill: #fbfdfb; stroke: #36794c; stroke-width: 0.65; stroke-linejoin: round; }
+      .module { stroke-width: 0.42; stroke-linejoin: round; }
+      .native { stroke-dasharray: none; }
+      .bvstk { stroke-width: 0.55; stroke-dasharray: 2 1.2; }
+      .adapter { stroke-width: 0.65; stroke-dasharray: 0.75 0.9; }
+      .origin-os { fill: #536473; }
+      .origin-bvstk { fill: #287f73; }
+      .origin-adapter { fill: #b56b1d; }
+      /* Единая палитра уровней из levels.svg и interaction-схем. */
+      .level-l0 { fill: #e9eef3; stroke: #607487; }
+      .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
+      .level-l2 { fill: #ffd1c7; stroke: #c65b4e; }
+      .level-l3 { fill: #d9f0ea; stroke: #287f73; }
+      .level-l4 { fill: #d9ebff; stroke: #3f75ad; }
+    </style>
+  </defs>
+
+  <g id="sheet" inkscape:groupmode="layer" inkscape:label="BVSTK · уровень L3">
+    <rect id="frame" class="frame" x="5" y="5" width="410" height="260" rx="1" />
+
+    <g id="columns" inkscape:label="FreeRTOS · общие части · Нейтрино">
+      <rect id="freertos-panel" class="os-panel" x="10" y="14" width="126" height="250" rx="2" />
+      <rect id="common-panel" class="common-panel" x="147" y="14" width="126" height="250" rx="2" />
+      <rect id="neutrino-panel" class="os-panel" x="284" y="14" width="126" height="250" rx="2" />
+
+      <text id="freertos-title" class="panel-title" x="73" y="25">FreeRTOS · L3</text>
+      <text id="freertos-subtitle" class="panel-subtitle muted" x="73" y="31">нативные стеки, порты и службы BVSTK</text>
+      <text id="common-title" class="panel-title" x="210" y="25">Общие части BVSTK · L3</text>
+      <text id="common-subtitle" class="panel-subtitle muted" x="210" y="31">протоколы, сервисы и PL-драйверы</text>
+      <text id="neutrino-title" class="panel-title" x="347" y="25">ЗОСРВ «Нейтрино» · L3</text>
+      <text id="neutrino-subtitle" class="panel-subtitle muted" x="347" y="31">нативные стеки и службы BVSTK</text>
+
+      <!-- FreeRTOS · L3 -->
+      <rect id="f-l3-network-stack" class="module level-l3 native" x="14" y="42" width="58" height="34" rx="1" />
+      <text id="f-l3-network-stack-title" class="module-title" x="43" y="53">Сетевой стек</text>
+      <text id="f-l3-network-stack-text" class="module-text" x="43" y="61">TCP/IP · sockets</text>
+      <text id="f-l3-network-stack-text-2" class="module-text" x="43" y="67">нативная ОС</text>
+      <text id="f-l3-network-stack-origin" class="origin origin-os" x="69" y="47">ОС</text>
+
+      <rect id="f-l3-file-stack" class="module level-l3 native" x="74" y="42" width="58" height="34" rx="1" />
+      <text id="f-l3-file-stack-title" class="module-title" x="103" y="53">Файловый стек</text>
+      <text id="f-l3-file-stack-text" class="module-text" x="103" y="61">FatFs · тома · файлы</text>
+      <text id="f-l3-file-stack-text-2" class="module-text" x="103" y="67">нативная ОС</text>
+      <text id="f-l3-file-stack-origin" class="origin origin-os" x="129" y="47">ОС</text>
+
+      <rect id="f-l3-network-port" class="module level-l3 adapter" x="14" y="80" width="58" height="34" rx="1" />
+      <text id="f-l3-network-port-title" class="module-title" x="43" y="91">Сетевой порт</text>
+      <text id="f-l3-network-port-text" class="module-text" x="43" y="99">sockets · netif</text>
+      <text id="f-l3-network-port-text-2" class="module-text" x="43" y="105">граница BVSTK и lwIP</text>
+      <text id="f-l3-network-port-origin" class="origin origin-adapter" x="69" y="85">адаптер</text>
+
+      <rect id="f-l3-file-port" class="module level-l3 adapter" x="74" y="80" width="58" height="34" rx="1" />
+      <text id="f-l3-file-port-title" class="module-title" x="103" y="91">Файловый порт</text>
+      <text id="f-l3-file-port-text" class="module-text" x="103" y="99">FatFs · diskio</text>
+      <text id="f-l3-file-port-text-2" class="module-text" x="103" y="105">граница BVSTK и томов</text>
+      <text id="f-l3-file-port-origin" class="origin origin-adapter" x="129" y="85">адаптер</text>
+
+      <rect id="f-l3-protocol-services" class="module level-l3 bvstk" x="14" y="118" width="58" height="34" rx="1" />
+      <text id="f-l3-protocol-services-title" class="module-title" x="43" y="129">DCP2 и HTTP</text>
+      <text id="f-l3-protocol-services-text" class="module-text" x="43" y="137">запросы · ответы</text>
+      <text id="f-l3-protocol-services-text-2" class="module-text" x="43" y="143">управление устройствами</text>
+      <text id="f-l3-protocol-services-origin" class="origin origin-bvstk" x="69" y="123">BVSTK</text>
+
+      <rect id="f-l3-console-services" class="module level-l3 bvstk" x="74" y="118" width="58" height="34" rx="1" />
+      <text id="f-l3-console-services-title" class="module-title" x="103" y="129">Консольные службы</text>
+      <text id="f-l3-console-services-text" class="module-text" x="103" y="137">TCP · UART · команды</text>
+      <text id="f-l3-console-services-text-2" class="module-text" x="103" y="143">сеансы и вывод</text>
+      <text id="f-l3-console-services-origin" class="origin origin-bvstk" x="129" y="123">BVSTK</text>
+
+      <rect id="f-l3-network-services" class="module level-l3 bvstk" x="14" y="156" width="118" height="34" rx="1" />
+      <text id="f-l3-network-services-title" class="module-title" x="73" y="167">Службы сети</text>
+      <text id="f-l3-network-services-text" class="module-text" x="73" y="175">MQTT · SNTP · SSH</text>
+      <text id="f-l3-network-services-text-2" class="module-text" x="73" y="181">фоновые сетевые функции</text>
+      <text id="f-l3-network-services-origin" class="origin origin-bvstk" x="129" y="161">BVSTK</text>
+
+      <rect id="f-l3-file-operations" class="module level-l3 bvstk" x="14" y="194" width="118" height="34" rx="1" />
+      <text id="f-l3-file-operations-title" class="module-title" x="73" y="205">Файловые операции</text>
+      <text id="f-l3-file-operations-text" class="module-text" x="73" y="213">DCP2 FS · каталоги · TAR</text>
+      <text id="f-l3-file-operations-text-2" class="module-text" x="73" y="219">чтение томов и метаданных</text>
+      <text id="f-l3-file-operations-origin" class="origin origin-bvstk" x="129" y="199">BVSTK</text>
+
+      <rect id="f-l3-volume-binding" class="module level-l3 adapter" x="14" y="232" width="118" height="26" rx="1" />
+      <text id="f-l3-volume-binding-title" class="module-title" x="73" y="242">Слой томов</text>
+      <text id="f-l3-volume-binding-text" class="module-small" x="73" y="250">QSPI · SD · точки монтирования</text>
+      <text id="f-l3-volume-binding-origin" class="origin origin-adapter" x="129" y="237">адаптер</text>
+
+      <!-- Общие части BVSTK · L3 -->
+      <rect id="c-l3-dcp2" class="module level-l3 bvstk" x="151" y="42" width="58" height="34" rx="1" />
+      <text id="c-l3-dcp2-title" class="module-title" x="180" y="53">Командный протокол</text>
+      <text id="c-l3-dcp2-text" class="module-text" x="180" y="61">кадры · статусы</text>
+      <text id="c-l3-dcp2-text-2" class="module-text" x="180" y="67">запросы · ответы</text>
+      <text id="c-l3-dcp2-origin" class="origin origin-bvstk" x="206" y="47">BVSTK</text>
+
+      <rect id="c-l3-fs-protocol" class="module level-l3 bvstk" x="211" y="42" width="58" height="34" rx="1" />
+      <text id="c-l3-fs-protocol-title" class="module-title" x="240" y="53">Файловый протокол</text>
+      <text id="c-l3-fs-protocol-text" class="module-text" x="240" y="61">тома · файлы</text>
+      <text id="c-l3-fs-protocol-text-2" class="module-text" x="240" y="67">метаданные · TAR</text>
+      <text id="c-l3-fs-protocol-origin" class="origin origin-bvstk" x="266" y="47">BVSTK</text>
+
+      <rect id="c-l3-device-services" class="module level-l3 bvstk" x="151" y="80" width="58" height="34" rx="1" />
+      <text id="c-l3-device-services-title" class="module-title" x="180" y="91">Сервисы устройств</text>
+      <text id="c-l3-device-services-text" class="module-text" x="180" y="99">I²C · SMI · SPI</text>
+      <text id="c-l3-device-services-text-2" class="module-text" x="180" y="105">устройства и операции</text>
+      <text id="c-l3-device-services-origin" class="origin origin-bvstk" x="206" y="85">BVSTK</text>
+
+      <rect id="c-l3-policy-cache" class="module level-l3 bvstk" x="211" y="80" width="58" height="34" rx="1" />
+      <text id="c-l3-policy-cache-title" class="module-title" x="240" y="91">Кэш и политика</text>
+      <text id="c-l3-policy-cache-text" class="module-text" x="240" y="99">значения · правила</text>
+      <text id="c-l3-policy-cache-text-2" class="module-text" x="240" y="105">разрешение записи</text>
+      <text id="c-l3-policy-cache-origin" class="origin origin-bvstk" x="266" y="85">BVSTK</text>
+
+      <rect id="c-l3-pl-drivers" class="module level-l3 bvstk" x="151" y="118" width="58" height="34" rx="1" />
+      <text id="c-l3-pl-drivers-title" class="module-title" x="180" y="129">Драйверы PL</text>
+      <text id="c-l3-pl-drivers-text" class="module-text" x="180" y="137">I²C · SMI · SPI · SD</text>
+      <text id="c-l3-pl-drivers-text-2" class="module-text" x="180" y="143">транзакции и BRAM</text>
+      <text id="c-l3-pl-drivers-origin" class="origin origin-bvstk" x="206" y="123">BVSTK</text>
+
+      <rect id="c-l3-pl-access" class="module level-l3 bvstk" x="211" y="118" width="58" height="34" rx="1" />
+      <text id="c-l3-pl-access-title" class="module-title" x="240" y="129">Доступ к PL</text>
+      <text id="c-l3-pl-access-text" class="module-text" x="240" y="137">регионы · MMIO</text>
+      <text id="c-l3-pl-access-text-2" class="module-text" x="240" y="143">диагностические операции</text>
+      <text id="c-l3-pl-access-origin" class="origin origin-bvstk" x="266" y="123">BVSTK</text>
+
+      <rect id="c-l3-file-service" class="module level-l3 bvstk" x="151" y="156" width="58" height="34" rx="1" />
+      <text id="c-l3-file-service-title" class="module-title" x="180" y="167">Файловый сервис</text>
+      <text id="c-l3-file-service-text" class="module-text" x="180" y="175">пути · дескрипторы</text>
+      <text id="c-l3-file-service-text-2" class="module-text" x="180" y="181">чтение и обход дерева</text>
+      <text id="c-l3-file-service-origin" class="origin origin-bvstk" x="206" y="161">BVSTK</text>
+
+      <rect id="c-l3-control-facade" class="module level-l3 bvstk" x="211" y="156" width="58" height="34" rx="1" />
+      <text id="c-l3-control-facade-title" class="module-title" x="240" y="167">Сервисный фасад</text>
+      <text id="c-l3-control-facade-text" class="module-text" x="240" y="175">единый вызов устройств</text>
+      <text id="c-l3-control-facade-text-2" class="module-text" x="240" y="181">I²C · SMI · SPI · PL</text>
+      <text id="c-l3-control-facade-origin" class="origin origin-bvstk" x="266" y="161">BVSTK</text>
+
+      <rect id="c-l3-events" class="module level-l3 bvstk" x="151" y="194" width="58" height="34" rx="1" />
+      <text id="c-l3-events-title" class="module-title" x="180" y="205">События</text>
+      <text id="c-l3-events-text" class="module-text" x="180" y="213">операция · источник</text>
+      <text id="c-l3-events-text-2" class="module-text" x="180" y="219">шина · время</text>
+      <text id="c-l3-events-origin" class="origin origin-bvstk" x="206" y="199">BVSTK</text>
+
+      <rect id="c-l3-status" class="module level-l3 bvstk" x="211" y="194" width="58" height="34" rx="1" />
+      <text id="c-l3-status-title" class="module-title" x="240" y="205">Статусы и ошибки</text>
+      <text id="c-l3-status-text" class="module-text" x="240" y="213">единые коды</text>
+      <text id="c-l3-status-text-2" class="module-text" x="240" y="219">ответы протоколов</text>
+      <text id="c-l3-status-origin" class="origin origin-bvstk" x="266" y="199">BVSTK</text>
+
+      <!-- ЗОСРВ «Нейтрино» · L3 -->
+      <rect id="n-l3-network-stack" class="module level-l3 native" x="288" y="42" width="58" height="34" rx="1" />
+      <text id="n-l3-network-stack-title" class="module-title" x="317" y="53">Сетевой стек</text>
+      <text id="n-l3-network-stack-text" class="module-text" x="317" y="61">TCP/IP · sockets</text>
+      <text id="n-l3-network-stack-text-2" class="module-text" x="317" y="67">нативная ОС</text>
+      <text id="n-l3-network-stack-origin" class="origin origin-os" x="343" y="47">ОС</text>
+
+      <rect id="n-l3-file-stack" class="module level-l3 native" x="348" y="42" width="58" height="34" rx="1" />
+      <text id="n-l3-file-stack-title" class="module-title" x="377" y="53">Файловый стек</text>
+      <text id="n-l3-file-stack-text" class="module-text" x="377" y="61">block · FAT · mount</text>
+      <text id="n-l3-file-stack-text-2" class="module-text" x="377" y="67">нативная ОС</text>
+      <text id="n-l3-file-stack-origin" class="origin origin-os" x="403" y="47">ОС</text>
+
+      <rect id="n-l3-peripheral-drivers" class="module level-l3 native" x="288" y="80" width="58" height="34" rx="1" />
+      <text id="n-l3-peripheral-drivers-title" class="module-title" x="317" y="91">Периферийные драйверы</text>
+      <text id="n-l3-peripheral-drivers-text" class="module-small" x="317" y="99">UART · GPIO · FPGA</text>
+      <text id="n-l3-peripheral-drivers-text-2" class="module-small" x="317" y="105">нативная ОС</text>
+      <text id="n-l3-peripheral-drivers-origin" class="origin origin-os" x="343" y="85">ОС</text>
+
+      <rect id="n-l3-system-services" class="module level-l3 native" x="348" y="80" width="58" height="34" rx="1" />
+      <text id="n-l3-system-services-title" class="module-title" x="377" y="91">Системные службы</text>
+      <text id="n-l3-system-services-text" class="module-small" x="377" y="99">XADC · OCM · watchdog</text>
+      <text id="n-l3-system-services-text-2" class="module-small" x="377" y="105">нативная ОС</text>
+      <text id="n-l3-system-services-origin" class="origin origin-os" x="403" y="85">ОС</text>
+
+      <rect id="n-l3-ipc-adapter" class="module level-l3 adapter" x="288" y="118" width="58" height="34" rx="1" />
+      <text id="n-l3-ipc-adapter-title" class="module-title" x="317" y="129">IPC и devctl</text>
+      <text id="n-l3-ipc-adapter-text" class="module-text" x="317" y="137">клиент · сообщение</text>
+      <text id="n-l3-ipc-adapter-text-2" class="module-text" x="317" y="143">граница процессов</text>
+      <text id="n-l3-ipc-adapter-origin" class="origin origin-adapter" x="343" y="123">адаптер</text>
+
+      <rect id="n-l3-storage-adapter" class="module level-l3 adapter" x="348" y="118" width="58" height="34" rx="1" />
+      <text id="n-l3-storage-adapter-title" class="module-title" x="377" y="129">Привязка носителей</text>
+      <text id="n-l3-storage-adapter-text" class="module-small" x="377" y="137">raw backend · block</text>
+      <text id="n-l3-storage-adapter-text-2" class="module-small" x="377" y="143">тома /sd и /flash</text>
+      <text id="n-l3-storage-adapter-origin" class="origin origin-adapter" x="403" y="123">адаптер</text>
+
+      <rect id="n-l3-device-service" class="module level-l3 bvstk" x="288" y="156" width="118" height="34" rx="1" />
+      <text id="n-l3-device-service-title" class="module-title" x="347" y="167">Сервис устройств</text>
+      <text id="n-l3-device-service-text" class="module-text" x="347" y="175">I²C · состояние · политика</text>
+      <text id="n-l3-device-service-text-2" class="module-text" x="347" y="181">кэш · ведомый обмен · события</text>
+      <text id="n-l3-device-service-origin" class="origin origin-bvstk" x="403" y="161">BVSTK</text>
+
+      <rect id="n-l3-dcp2-service" class="module level-l3 bvstk" x="288" y="194" width="118" height="34" rx="1" />
+      <text id="n-l3-dcp2-service-title" class="module-title" x="347" y="205">DCP2-сервис</text>
+      <text id="n-l3-dcp2-service-text" class="module-text" x="347" y="213">TCP · запросы · ответы</text>
+      <text id="n-l3-dcp2-service-text-2" class="module-text" x="347" y="219">обработка в сервисном процессе</text>
+      <text id="n-l3-dcp2-service-origin" class="origin origin-bvstk" x="403" y="199">BVSTK</text>
+    </g>
+  </g>
+</svg>
