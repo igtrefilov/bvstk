@@ -1,0 +1,29 @@
+// Принципиальная граница, не перечень IP или электрическая схема платы.
+digraph pspl {
+  graph [rankdir=TB, bgcolor="white", fontname="DejaVu Sans", fontsize=15,
+         nodesep=0.65, ranksep=0.9, pad=0.2, newrank=true];
+  node [shape=box, style=filled, fillcolor="#f3f4f5", color="#454b52",
+        fontname="DejaVu Sans", fontsize=14, margin="0.2,0.15"];
+  edge [fontname="DejaVu Sans", fontsize=12, color="#454b52", arrowsize=0.7];
+  subgraph cluster_ps {
+    label="PS — процессорная часть Zynq"; color="#607487"; margin=20;
+    cpu [label="Cortex-A9\nпрограмма и адаптеры ОС"];
+    gic [label="GIC"];
+    peripheral [label="Ethernet · QSPI · PS SD"];
+    {rank=same; cpu; gic;}
+    cpu -> peripheral [label="периферия PS"];
+    gic -> cpu [label="IRQ"];
+  }
+  subgraph cluster_pl {
+    label="PL — загружаемая логика"; labelloc=b; color="#607487"; margin=20;
+    regs [label="Регистры I²C\nи SD initialization"];
+    bram [label="BRAM\nзапросы и ответы"];
+    pins [label="Внешние линии\nпо контракту RTL/XDC"];
+    {rank=same; regs; bram;}
+    regs -> pins [label="операции"];
+  }
+  cpu:s -> regs:n [label="MMIO\nчерез AXI"];
+  cpu:e -> bram:n [label="данные\nчерез AXI"];
+  regs:w -> gic:s [style=dashed, constraint=false];
+  {rank=same; peripheral; cpu; gic;}
+}

@@ -1,0 +1,14 @@
+%% FreeRTOS: корректный PUT apply=true, netif существует.
+sequenceDiagram
+    participant C as Клиент
+    participant H as Обработчик HTTP
+    participant S as config_store
+    participant N as Сетевой<br/>интерфейс
+    C->>H: PUT /api/net, apply=true
+    H->>S: Обновить модель и сохранить JSON
+    S-->>H: Результат сохранения
+    H->>N: Применить IP, маску, шлюз и MAC
+    H-->>C: Попытка отправить HTTP-ответ
+    Note over C,H: После смены адреса<br/>ответ может не дойти
+    C->>H: GET /api/net по новому адресу
+    H-->>C: Текущие параметры

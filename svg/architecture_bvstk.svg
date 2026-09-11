@@ -32,7 +32,7 @@
     абстракции: L0 — аппаратура, L1 — OS-порт/BSP, L2 — ядро,
     L3 — системные сервисы/драйверы, L4 — приложения.
     Смешанные блоки имеют белую штриховую заливку.
-    Подробные источники и ограничения: ../docs/dev/architecture-diagrams.md.
+    Подробные источники и ограничения: ../docs/system/execution.md.
   </desc>
   <sodipodi:namedview id="view" pagecolor="#ffffff" bordercolor="#657588"
      inkscape:document-units="mm" showgrid="false" inkscape:current-layer="common-code" />
@@ -410,6 +410,6 @@
 
   <g id="scope-notes" inkscape:groupmode="layer" inkscape:label="Границы схемы" transform="translate(0,-60)">
     <text class="small muted" x="40" y="2890">Общий код ≠ одинаковый набор запущенных функций. Состав runtime определяется целевой сборкой и возможностями PL.</text>
-    <text class="tiny muted" x="40" y="2919">Исходники и оговорки: docs/dev/architecture-diagrams.md · подробное устройство ОС: architecture_platform.svg</text>
+    <text class="tiny muted" x="40" y="2919">Исходники и оговорки: docs/system/execution.md · подробное устройство ОС: architecture_platform.svg</text>
   </g>
 </svg>

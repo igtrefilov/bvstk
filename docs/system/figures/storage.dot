@@ -1,0 +1,31 @@
+// Текущий IFS: проектные raw-менеджеры + devb-loopback, не devb-sdmmc.
+digraph storage {
+  graph [rankdir=TB, bgcolor="white", fontname="DejaVu Sans", fontsize=15,
+         nodesep=0.6, ranksep=0.5, pad=0.2, newrank=true];
+  node [shape=box, style=filled, fillcolor="#f3f4f5", color="#454b52",
+        fontname="DejaVu Sans", fontsize=14, margin="0.17,0.13"];
+  edge [fontname="DejaVu Sans", fontsize=12, color="#454b52", arrowsize=0.7];
+  subgraph cluster_fr {
+    label="FreeRTOS"; color="#607487"; margin=20;
+    fc [label="Консоль · HTTP · SSH\nDCP2 FS"];
+    ff [label="fs_devices и FatFs\nflash:/ · sd:/"];
+    fd [label="Дисковый слой\nQSPI и PS SD"];
+    fc -> ff [label="файлы"];
+    ff -> fd [label="секторы"];
+  }
+  subgraph cluster_nt {
+    label="Нейтрино"; color="#607487"; margin=20;
+    nc [label="Программы ОС · SSH/SFTP"];
+    nf [label="DOS-файловая система\n/flash · /sd"];
+    nl [label="devb-loopback\n/dev/qspi0 · /dev/sd0"];
+    nd [label="bvstk-qspi-fat\nbvstk-sd-raw"];
+    nc -> nf [label="файлы"];
+    nf -> nl [label="блоки"];
+    nl -> nd [label="псевдофайлы\nустройств"];
+  }
+  {rank=same; fc; nc;}
+  media [label="Носители выбранной ОС\nокно QSPI 8–32 МиБ · PS SD", fillcolor="#e9eef3"];
+  fd -> media; nd -> media;
+  note [shape=plaintext, style="", label="PL SD не предоставляет файловую систему в текущем профиле.", fontsize=12];
+  media -> note [style=invis];
+}

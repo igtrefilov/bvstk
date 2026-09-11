@@ -1,0 +1,19 @@
+// Состояния связаны, но не образуют общей атомарной транзакции.
+digraph configuration {
+  graph [rankdir=TB, bgcolor="white", fontname="DejaVu Sans", fontsize=15,
+         nodesep=0.6, ranksep=0.75, pad=0.2];
+  node [shape=box, style=filled, fillcolor="#f3f4f5", color="#454b52",
+        fontname="DejaVu Sans", fontsize=14, margin="0.2,0.15"];
+  edge [fontname="DejaVu Sans", fontsize=12, color="#454b52", arrowsize=0.7];
+  file [label="JSON на носителе\nсохранённые значения"];
+  ram [label="Модель в памяти\nконфигурация · кэш · политика"];
+  hw [label="Оборудование\nприменённое состояние", fillcolor="#e9eef3"];
+  file -> ram [label="загрузка при запуске"];
+  ram -> file [label="отдельное сохранение", constraint=false];
+  ram -> hw [label="операция сервиса / применение"];
+  direct [label="Прямой MMIO\nдиагностический доступ"];
+  direct -> hw [label="обход модели", style=dashed];
+  note [shape=plaintext, style="", fontsize=12,
+        label="Ошибка сохранения не отменяет уже применённое изменение.\nПрямая замена JSON не перечитывает модель работающего сервиса."];
+  hw -> note [style=invis];
+}

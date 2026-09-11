@@ -1,40 +1,21 @@
-# AX7020: Neutrino BSP snapshot
+# Комплект BSP Нейтрино для AX7020
 
-Snapshot содержит board-specific файлы, необходимые для формирования
-Neutrino IFS проекта Burevestnik.
+`images/zynq7000-ax7020-ssh.build` задаёт базовый состав IFS и сценарий
+запуска. `install/` содержит используемые компоненты BSP. Унаследованное
+имя ZedBoard в отдельных системных файлах не означает, что физическая
+целевая плата — ZedBoard.
 
-## 1. Состав snapshot
+`scripts/neutrino/build_image.sh` дополняет базовое описание шестью
+программами BVSTK и локальными материалами SSH. Для сборки также нужны
+SDK, `qcc`, `mkifs` и общие целевые файлы, на которые ссылается
+описание образа; один каталог BSP не заменяет установленный SDK.
 
-| Путь | Содержимое |
-|---|---|
-| `images/zynq7000-ax7020-ssh.build` | base image description |
-| `install/` | startup, драйверы и runtime libraries BSP |
-| `README.md` | назначение snapshot и правила сборки |
+[Руководство сборки Нейтрино](../../../../docs/build/neutrino.md)
+описывает входы, ключи и парольный файл.
+[Параметры](../../../../docs/reference/build-options.md) позволяют выбрать
+другой BSP через `NEUTRINO_BSP_DIR` и базовое описание через
+`NEUTRINO_BASE_BUILD`.
 
-## 2. Использование
-
-```sh
-NEUTRINO_BSP_DIR=third_party/neutrino/bsp/ax7020 \
-  ./build.sh neutrino-image
-```
-
-Скрипт `scripts/neutrino/build_image.sh` берёт `install/` и base `.build`,
-добавляет `/usr/bin/bvstkctl`, `/usr/bin/bvstkd`, SSH-материалы и создаёт IFS.
-
-## 3. SSH-материалы
-
-| Материал | Где создаётся |
-|---|---|
-| SSH host key | `build/neutrino/ssh/` |
-| `authorized_keys` | `build/neutrino/ssh/` |
-| root shadow line | `build/neutrino/root.shadow` |
-
-Сгенерированные ключи создаются локально при сборке. Пароль root начинается с
-заблокированного состояния; для парольной авторизации используется
-`scripts/neutrino/generate_root_shadow.py`.
-
-## 4. Внешние зависимости
-
-На host-машине остаются обязательными Neutrino SDK (`qcc`, `mkifs`) и generic
-target files, на которые ссылается BSP image description. Подробный workflow
-описан в [`scripts/neutrino/README.md`](../../../../scripts/neutrino/README.md).
+Приватные ключи и `root.shadow` создаются в защищённых локальных
+производных каталогах, не в этом комплекте. По умолчанию локальная
+парольная строка root заблокирована.

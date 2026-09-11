@@ -1,139 +1,58 @@
-# bvstk
+# BVSTK
 
-`bvstk` — прошивка и набор прикладных программ для платформы Burevestnik на
-базе Zynq-7000. Проект собирает два варианта исполнения:
+BVSTK — программы управления и диагностики для платформы Burevestnik
+на Zynq-7000. Проект собирает приложение FreeRTOS и альтернативный
+набор программ с образом Нейтрино. Общие драйверы и сервисы работают
+через порты ОС; состав PL задаётся отдельным аппаратным проектом.
 
-| Вариант | Основной артефакт | Роль в проекте |
-|---|---|---|
-| FreeRTOS + Xilinx BSP | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` | полный runtime устройства: сеть, файлы, консоль, HTTP, DCP2 и PL |
-| Neutrino + Zynq7000 BSP | `build/neutrino/bvstkctl`, `bvstkd`, `bvstk-shell`, IFS | POSIX-приложения и сервисный слой для работы с тем же PL-контрактом |
+Текущий профиль AX7020 включает I²C и инициализацию SD через PL.
+Наличие исходников SMI, SPI и файлового слоя PL SD не означает включения
+этих возможностей. Состав сборок и ограничения перечислены в
+[справочнике профилей](docs/reference/profiles.md).
 
-Программная часть работает поверх аппаратного дизайна Zynq: PS предоставляет
-процессор и стандартную периферию, PL содержит ядра I²C, SMI/MDIO и SPI. Адреса
-MMIO, BRAM и IRQ описаны в `src/hardware/` и должны соответствовать
-`artifacts/fpga/design.xsa` и `design.bit`.
+## Документация
 
-## Быстрая навигация
+- [Работа с устройством](docs/operations/README.md): подключение, сеть, файлы, HTTP и готовый DCP2-клиент.
+- [Сборка и запуск](docs/build/README.md): аппаратный экспорт, FreeRTOS, Нейтрино, IFS, JTAG и отладка.
+- [Устройство системы](docs/system/README.md): исполнение, интерфейсы, хранение и конфигурация.
+- [Разработка](docs/development/README.md): карта исходников, перенос, драйверы и проверки.
+- [Справочник](docs/reference/README.md): поля, команды, адреса и параметры.
+- [Спецификация DCP2](docs/dcp2/dcp2.md): самостоятельное описание протокола.
 
-| Задача | Документ |
-|---|---|
-| начать эксплуатацию устройства | [Руководство пользователя](docs/user/guide.md) |
-| собрать и загрузить FreeRTOS | [Сборка](docs/dev/build.md), [Запуск и отладка](docs/dev/run-and-debug.md) |
-| собрать Neutrino | [Сборка Neutrino](docs/dev/build.md#5-сборка-neutrino) |
-| понять архитектуру | [Архитектура](docs/dev/architecture.md) |
-| разобраться в общей части и портах ОС | [FreeRTOS и Neutrino](docs/dev/multi-os.md), [Структура исходников](docs/dev/source-layout.md) |
-| работать с I²C, SMI или SPI | [Обзор PL](docs/dev/pl-cores.md) |
-| найти точный HTTP-контракт | [HTTP API reference](docs/reference/http-api.md) |
-| реализовать DCP2-клиент | [Практика DCP2](docs/user/dcp2-usage.md), [Спецификация DCP2](docs/dcp2.md) |
-| посмотреть команды и порты | [Справочные таблицы](docs/reference/appendices.md) |
+Полное оглавление — [docs/README.md](docs/README.md).
+Для чтения дерева `flash:/config/` начните с
+[примеров DCP2 FS](docs/operations/dcp2.md#каталоги-и-файлы-freertos).
 
-Полный указатель находится в [docs/README.md](docs/README.md).
+## Точки входа
 
-## Система и интерфейсы
-
-```mermaid
-flowchart LR
-    HW["Vivado design<br/>bit + XSA"] --> PL["PL contract<br/>MMIO · BRAM · IRQ"]
-    PL --> FW["FreeRTOS application<br/>app_bvstk.elf"]
-    PL --> NTO["Neutrino applications<br/>bvstkctl · bvstkd · bvstk-shell"]
-    FW --> SHELL["TCP/SSH shell<br/>8888 / 22"]
-    FW --> HTTP["HTTP API + Web UI<br/>80"]
-    FW --> DCP["DCP2<br/>8889"]
-    NTO --> DCPN["DCP2<br/>8889"]
-```
-
-В FreeRTOS после запуска доступны следующие точки взаимодействия:
-
-| Интерфейс | Порт | Назначение |
-|---|---:|---|
-| TCP-консоль | `8888` | интерактивные команды и диагностика |
-| SSH-консоль | `22` | тот же command dispatcher через wolfSSH; включается при сборке |
-| HTTP | `80` | JSON API, файловые операции и Web UI |
-| DCP2 | `8889` | бинарный request/response и события `NOTIFY` |
-
-TCP-консоль и HTTP работают в доверенном инженерном контуре. Авторизация для
-этих двух интерфейсов отсутствует. SSH использует пароль, заданный во время
-сборки; Neutrino применяет ключевую SSH-проверку из своего build flow.
-
-## Минимальный FreeRTOS flow
+Команды выполняются из корня репозитория после подготовки инструментов
+и согласованного аппаратного экспорта:
 
 ```sh
-source <Vitis-install>/settings64.sh
-cd <repo-root>
 ./build.sh check
 ./build.sh freertos
-./run.sh freertos jtag
+./build.sh neutrino
+./build.sh neutrino-image
 ```
 
-После старта:
+Это разные цели, а не обязательная последовательность для каждого
+изменения. `build.sh all` собирает FreeRTOS и IFS, но не вызывает Vivado.
+Штатная FreeRTOS-сборка может очистить `vitis_ws`; предварительные условия
+и результаты описаны в руководстве сборки.
 
-```sh
-telnet <device-ip> 8888
-curl http://<device-ip>/api/version
-./scripts/dcp2/monitor_notify.py <device-ip> --port 8889
-```
+Загрузка выполняется отдельно: `./run.sh freertos jtag` или
+`./run.sh neutrino jtag`. Она сбрасывает устройство и загружает PL/DDR,
+но не записывает автономный образ в постоянную память.
 
-`./build.sh freertos` использует `artifacts/fpga/design.xsa`. Аппаратный экспорт
-и bitstream создаются скриптом `scripts/fpga/build_fpga.sh` из внешнего
-репозитория hardware platform.
+## Репозитории и безопасность
 
-## Сборка вариантов ОС
+RTL и Vivado-проект находятся во внешнем `hw_platform/fpga`; результат
+экспорта передаётся в `artifacts/fpga/`. BVSTK содержит программы,
+адаптеры ОС, конфигурации, веб-ресурсы и средства проверки. Изменение
+регистров, IRQ и состава IP требует согласованных изменений аппаратного
+и программного контрактов.
 
-```sh
-./build.sh check             # архитектурные проверки и host-тесты
-./build.sh freertos          # FreeRTOS ELF
-./build.sh neutrino          # bvstkctl, bvstkd и bvstk-shell
-./build.sh neutrino-image    # Neutrino IFS
-./build.sh all               # FreeRTOS ELF и Neutrino IFS
-```
-
-JTAG-загрузка выполняется отдельно:
-
-```sh
-./run.sh freertos jtag
-./run.sh neutrino jtag
-```
-
-## Репозитории
-
-```mermaid
-flowchart TB
-    HW["hw_platform/fpga<br/>Vivado · RTL · custom IP"]
-    BV["bvstk<br/>firmware · services · protocols"]
-    ART["artifacts/fpga<br/>design.xsa · design.bit"]
-    VW["vitis_ws<br/>platform · BSP · ELF"]
-    NI["build/neutrino<br/>binaries · IFS"]
-    HW -->|build_fpga.sh| ART
-    ART -->|XSCT/Vitis| VW
-    ART -->|Neutrino JTAG flow| NI
-    BV --> ART
-    BV --> VW
-    BV --> NI
-```
-
-`hw_platform/fpga` содержит RTL и Vivado-проект. `bvstk` содержит программную
-часть, build-скрипты, конфигурацию, web-ресурсы и тесты. Смена MMIO, BRAM, IRQ
-или состава IP требует согласованного обновления обоих репозиториев.
-
-## Каталоги верхнего уровня
-
-| Каталог | Содержимое |
-|---|---|
-| `src/shared/` | общие модели, контракты, статусы и события |
-| `src/hardware/` | карта платы и регистровые контракты PL |
-| `src/drivers/pl/` | переносимые raw-драйверы PL |
-| `src/services/` | переносимые device, cache, policy и control services |
-| `src/protocols/` | переносимые wire/protocol adapters |
-| `src/ports/` | OS/BSP adapters |
-| `src/apps/` | FreeRTOS и Neutrino composition roots |
-| `configs/` | исходные JSON-конфигурации |
-| `scripts/` | сборка, запуск, проверки и диагностические утилиты |
-| `web/` | Web UI и загрузчики статики |
-| `tests/host/` | host-тесты общего кода |
-| `docs/` | документация по ролям и уровням точности |
-
-## Требования к изменению документации
-
-Код и build-скрипты задают источник истины для команд, путей, API и статусов
-возможностей. При изменении публичного контракта обновляются соответствующий
-reference-документ, практическое руководство и пример smoke-теста.
+TCP-консоль, HTTP и DCP2 предназначены для доверенной инженерной сети
+и не аутентифицируют клиента. Включение SSH не защищает другие службы.
+Пароли, приватные ключи и производные образы с ключами хранятся отдельно
+от исходников и публичных журналов.

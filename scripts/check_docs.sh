@@ -77,7 +77,7 @@ check_forbidden_docs \
 check_forbidden_docs \
     "I2C HTTP autopoll fields" \
     'autopoll_(enabled|regs|reg_delay_ms|cycle_delay_ms)' \
-    docs/user/http.md
+    docs/operations/http.md
 
 if (( fail != 0 )); then
     exit 1

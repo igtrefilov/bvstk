@@ -1,0 +1,21 @@
+// Выбор цели находится в apps и сборочных списках.
+digraph dependencies {
+  graph [rankdir=TB, bgcolor="white", fontname="DejaVu Sans", fontsize=15,
+         nodesep=0.65, ranksep=0.6, pad=0.2];
+  node [shape=box, style=filled, fillcolor="#f3f4f5", color="#454b52",
+        fontname="DejaVu Sans", fontsize=14, margin="0.18,0.14"];
+  edge [fontname="DejaVu Sans", fontsize=12, color="#454b52", arrowsize=0.7];
+  apps [label="apps\nсоздание экземпляров"];
+  proto [label="protocols\nразбор и ответы"];
+  srv [label="services\nсостояние и правила"];
+  drv [label="drivers/pl\nтранзакции"];
+  shared [label="shared / hardware\nинтерфейсы и контракты", fillcolor="#e9eef3"];
+  port [label="ports\nсистемная реализация"];
+  os [label="ОС / BSP"];
+  apps -> proto; proto -> srv; srv -> drv; drv -> shared;
+  apps -> port; port -> shared; port -> os;
+  {rank=same; drv; port;}
+  note [shape=plaintext, style="", fontsize=12,
+        label="Стрелка: использует интерфейс или реализацию.\nОбщий код не включает заголовки ОС, BSP, apps и конкретного ports."];
+  shared -> note [style=invis]; os -> note [style=invis];
+}

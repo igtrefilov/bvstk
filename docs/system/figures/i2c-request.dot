@@ -1,0 +1,27 @@
+// Запрос командного клиента и DCP2 в одном владельце I²C.
+digraph request {
+  graph [rankdir=TB, bgcolor="white", fontname="DejaVu Sans", fontsize=15,
+         nodesep=0.45, ranksep=0.7, pad=0.2, compound=true];
+  node [shape=box, style=filled, fillcolor="#f3f4f5", color="#454b52",
+        fontname="DejaVu Sans", fontsize=14, margin="0.18,0.15"];
+  edge [fontname="DejaVu Sans", fontsize=12, color="#454b52", arrowsize=0.7];
+  cli [label="Процесс i2c"];
+  dcp [label="Внешний DCP2-клиент"];
+  {rank=same; cli; dcp;}
+  subgraph cluster_server {
+    label="Процесс bvstkd — владелец состояния I²C";
+    color="#607487"; margin=20;
+    rm [label="Менеджер ресурсов\n/dev/bvstk-i2c"];
+    net [label="Обработчик DCP2"];
+    service [label="Сервис I²C\nустройства · кэш · политика"];
+    driver [label="Драйвер и адаптер MMIO"];
+    {rank=same; rm; net;}
+    rm -> service [label="общая блокировка состояния"];
+    net -> service;
+    service -> driver [label="операция"];
+  }
+  pl [label="I²C в PL", fillcolor="#e9eef3"];
+  cli -> rm [label="IPC: devctl", lhead=cluster_server];
+  dcp -> net [label="TCP", lhead=cluster_server];
+  driver -> pl [label="регистры и BRAM", ltail=cluster_server];
+}

@@ -1,0 +1,27 @@
+// Порядок специализированных адаптеров IRQ, не общий irq_controller.
+digraph irq {
+  graph [rankdir=TB, bgcolor="white", fontname="DejaVu Sans", fontsize=15,
+         nodesep=0.6, ranksep=0.55, pad=0.2, newrank=true];
+  node [shape=box, style=filled, fillcolor="#f3f4f5", color="#454b52",
+        fontname="DejaVu Sans", fontsize=14, margin="0.18,0.14"];
+  edge [fontname="DejaVu Sans", fontsize=12, color="#454b52", arrowsize=0.7];
+  pl [label="Ведомый I²C в PL\nзапрос в BRAM и IRQ", fillcolor="#e9eef3"];
+  subgraph cluster_fr {
+    label="FreeRTOS"; color="#607487"; margin=20;
+    isr [label="ISR\nзахват события"];
+    queue [label="Очередь"];
+    worker [label="Задача-работник\nобработка запроса сервисом"];
+    replyf [label="Подготовка ответа BRAM\nи подтверждение"];
+    isr -> queue; queue -> worker; worker -> replyf;
+  }
+  subgraph cluster_nt {
+    label="Нейтрино"; color="#607487"; margin=20;
+    wait [label="Поток InterruptWait\nпосле InterruptAttachEvent"];
+    lock [label="Блокировка среды I²C\nобработка запроса сервисом"];
+    replyn [label="Подготовка ответа BRAM\nи подтверждение"];
+    unmask [label="InterruptUnmask"];
+    wait -> lock; lock -> replyn; replyn -> unmask;
+  }
+  pl -> isr; pl -> wait;
+  {rank=same; isr; wait;}
+}

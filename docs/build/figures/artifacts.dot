@@ -1,0 +1,26 @@
+// XSA участвует в Vitis. qcc использует константы контракта, а не XSA.
+digraph artifacts {
+  graph [rankdir=TB, bgcolor="white", fontname="DejaVu Sans", fontsize=15,
+         nodesep=0.5, ranksep=0.55, pad=0.2];
+  node [shape=box, style=filled, fillcolor="#f3f4f5", color="#454b52",
+        fontname="DejaVu Sans", fontsize=14, margin="0.18,0.14"];
+  edge [fontname="DejaVu Sans", fontsize=12, color="#454b52", arrowsize=0.7];
+  rtl [label="RTL · XDC · Tcl\nвнешний проект"];
+  viv [label="Vivado"];
+  xsa [label="design.xsa", fillcolor="#e9eef3"];
+  bit [label="design.bit", fillcolor="#e9eef3"];
+  vit [label="Vitis / XSCT\nплатформа и BSP"];
+  elf [label="FreeRTOS ELF", fillcolor="#e9eef3"];
+  init [label="ps7_init.tcl", fillcolor="#e9eef3"];
+  code [label="Исходники BVSTK\nконтракт платы · configs"];
+  qcc [label="qcc\nпрограммы Нейтрино"];
+  bsp [label="BSP · базовый .build\nSDK · SSH-материалы"];
+  mkifs [label="mkifs"];
+  ifs [label="IFS", fillcolor="#e9eef3"];
+  run [label="JTAG: bitstream + PS7 init\nи выбранный ELF либо IFS"];
+  rtl -> viv; viv -> xsa; viv -> bit;
+  xsa -> vit; vit -> elf; vit -> init;
+  code -> vit; code -> qcc;
+  qcc -> mkifs; bsp -> mkifs; mkifs -> ifs;
+  bit -> run; init -> run; elf -> run; ifs -> run;
+}

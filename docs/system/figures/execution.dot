@@ -1,0 +1,33 @@
+// Сверено с apps/freertos/main.c и apps/neutrino/bvstkd/main.c.
+digraph execution {
+  graph [rankdir=TB, bgcolor="white", fontname="DejaVu Sans", fontsize=15,
+         nodesep=0.55, ranksep=0.65, pad=0.2, compound=true, newrank=true];
+  node [shape=box, style=filled, fillcolor="#f3f4f5", color="#454b52",
+        fontname="DejaVu Sans", fontsize=14, margin="0.18,0.14"];
+  edge [fontname="DejaVu Sans", fontsize=12, color="#454b52", arrowsize=0.7];
+  subgraph cluster_fr {
+    label="FreeRTOS: одно приложение ELF\nОбщее адресное пространство";
+    color="#607487"; margin=20;
+    fr_api [label="Задачи сетевых служб\nи консоли"];
+    fr_service [label="Общие I²C-сервисы\nкэш · политика · устройства"];
+    fr_driver [label="Драйверы и порт FreeRTOS\nMMIO · mutex · IRQ"];
+    fr_api -> fr_service [label="вызов функции"];
+    fr_service -> fr_driver [label="операция"];
+  }
+  subgraph cluster_nt {
+    label="Нейтрино: отдельные процессы\nРазные адресные пространства";
+    color="#607487"; margin=20;
+    nt_cli [label="Процесс i2c\nкомандный клиент"];
+    subgraph cluster_daemon {
+      label="Процесс bvstkd"; color="#454b52";
+      nt_service [label="Менеджер ресурсов и DCP2\nОбщие I²C-сервисы"];
+      nt_driver [label="Драйверы и порт Нейтрино\nMMIO · mutex · поток IRQ"];
+      nt_service -> nt_driver [label="операция"];
+    }
+    nt_cli -> nt_service [label="IPC: devctl", lhead=cluster_daemon];
+  }
+  {rank=same; fr_api; nt_cli;}
+  {rank=same; fr_driver; nt_driver;}
+  note [shape=plaintext, style="", label="Варианты загружаются раздельно; одновременно две ОС не запускаются.", fontsize=12];
+  fr_driver -> note [style=invis]; nt_driver -> note [style=invis];
+}

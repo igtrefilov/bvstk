@@ -1,50 +1,24 @@
-# Сторонние зависимости
+# Сторонние компоненты
 
-Каталог содержит исходные архивы, которые нужны для offline-сборки опциональной
-FreeRTOS SSH/SCP/SFTP-подсистемы и для Neutrino BSP snapshot.
+Каталог хранит исходные архивы SSH-зависимостей и проектный комплект
+BSP Нейтрино для AX7020. Он не предназначен для результатов компиляции
+или секретов.
 
-## 1. Состав
-
-| Компонента | Источник | Использование |
+| Компонент | Расположение | Зафиксированная ревизия архива |
 |---|---|---|
-| wolfSSL | `dist/wolfssl-5.9.2.tar.gz` | wolfCrypt, SHA-256, RSA |
-| wolfSSH | `dist/wolfssh-1.5.0.tar.gz` | SSH server, SCP, SFTP |
-| AX7020 BSP | `neutrino/bsp/ax7020/` | Neutrino install tree и image base |
+| wolfSSL 5.9.2 | `dist/wolfssl-5.9.2.tar.gz` | `5b22fa901e81d925a70ab1584ae792c8e92e34a5` |
+| wolfSSH 1.5.0 | `dist/wolfssh-1.5.0.tar.gz` | `6f0cbe3f137fb3c074730acc1dd2cdbfd685d8f5` |
+| BSP AX7020 | [neutrino/bsp/ax7020](neutrino/bsp/ax7020/README.md) | Проектный комплект исходного дерева |
 
-Pinned revisions архивов:
+`scripts/vitis/build_ssh_deps.sh` распаковывает архивы, применяет
+проектные изменения и создаёт библиотеки в `build/ssh-deps/`.
+Процедура подключения — в [сборке FreeRTOS](../docs/build/freertos.md).
+BSP используется при [формировании IFS](../docs/build/neutrino.md).
 
-| Архив | Revision |
-|---|---|
-| `wolfssl-5.9.2.tar.gz` | `5b22fa901e81d925a70ab1584ae792c8e92e34a5` |
-| `wolfssh-1.5.0.tar.gz` | `6f0cbe3f137fb3c074730acc1dd2cdbfd685d8f5` |
+Файлы лицензий находятся внутри соответствующих архивов. Условия
+использования и поставки сверяют с ними для выбранных компонентов;
+эта таблица не заменяет лицензионные документы.
 
-## 2. Build flow
-
-```mermaid
-flowchart LR
-    Archives[third_party/dist] --> Extract[scripts/vitis/build_ssh_deps.sh]
-    Extract --> Patches[project patches]
-    Patches --> Libs[build/ssh-deps]
-    Libs --> FreeRTOS[FreeRTOS ELF]
-    BSP[third_party/neutrino/bsp/ax7020] --> IFS[Neutrino IFS]
-```
-
-SSH dependencies распаковываются в `build/ssh-deps/`. Производные библиотеки
-в каталог `third_party/` не записываются.
-
-## 3. Лицензии и поставка
-
-Архивы содержат исходные license files wolfSSL и wolfSSH. Перед поставкой
-продукта следует проверить условия GPL/commercial licensing по файлам внутри
-соответствующих архивов и выбранной модели лицензирования.
-
-## 4. Правила хранения
-
-| Данные | Размещение |
-|---|---|
-| исходный архив | `third_party/dist/` |
-| проектный patch | `scripts/vitis/` |
-| compiler output | `build/ssh-deps/` |
-| host keys и secrets | локальное защищённое хранилище |
-
-Компиляторные результаты, host keys и пароли в этот каталог не помещаются.
+Архивы и проектные изменения хранятся как входы сборки. Производные
+библиотеки, приватные SSH-ключи, пароли и парольные файлы не помещают
+в `third_party/` и не добавляют к публичным журналам.
