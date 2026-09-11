@@ -1022,7 +1022,7 @@ def main() -> int:
     if args.host.isdigit() and args.port == DEFAULT_PORT:
         parser.error(
             f"'{args.host}' looks like a port, not a host. "
-            "Use: monitor_notify.py <device-ip> --port <port>"
+            "Use: dcp2_client.py <device-ip> --port <port>"
         )
 
     fs_operation = args.fs_info or args.fs_stat or args.fs_list or args.fs_read or args.fs_tar

@@ -19,9 +19,9 @@ cat flash:/config/network.json
 текстовые ответы консоли:
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --fs-list flash:/config/ --recursive
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --fs-tar flash:/config/ --output config-backup.tar
 tar -tf config-backup.tar
 ```

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""End-to-end tests of monitor_notify.py against the production C FS handler."""
+"""End-to-end tests of dcp2_client.py against the production C FS handler."""
 import importlib.util
 import io
 import json
@@ -16,8 +16,8 @@ import unittest
 
 SERVER = sys.argv.pop(1)
 REPO = Path(__file__).resolve().parents[2]
-CLIENT = REPO / "scripts/dcp2/monitor_notify.py"
-SPEC = importlib.util.spec_from_file_location("dcp2_monitor", CLIENT)
+CLIENT = REPO / "scripts/dcp2/dcp2_client.py"
+SPEC = importlib.util.spec_from_file_location("dcp2_client", CLIENT)
 dcp = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = dcp
 SPEC.loader.exec_module(dcp)

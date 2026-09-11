@@ -28,7 +28,7 @@ i2c list
 ```sh
 curl -fsS http://192.168.0.10/api/version
 curl -fsS http://192.168.0.10/api/fs
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 --ping
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --ping
 ```
 
 Ответ одной службы не подтверждает готовность остальных. Если том ещё не

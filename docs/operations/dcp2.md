@@ -1,13 +1,13 @@
 # Работа готовым клиентом DCP2
 
-Скрипт [monitor_notify.py](../../scripts/dcp2/monitor_notify.py) выполняет
+Скрипт [dcp2_client.py](../../scripts/dcp2/dcp2_client.py) выполняет
 одноразовые операции и принимает события. Команды ниже запускаются на
 компьютере из корня BVSTK. Форматы кадров и сервисов описаны только в
 [спецификации DCP2](../dcp2/dcp2.md); эта глава её не заменяет.
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py --help
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 --ping
+python3 scripts/dcp2/dcp2_client.py --help
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --ping
 ```
 
 `--ping` (также `--ping-only`) печатает `PING -> OK` при успешном обмене и
@@ -20,15 +20,15 @@ python3 scripts/dcp2/monitor_notify.py 192.168.0.10 --ping
 Сначала получите сведения о доступных томах и ограничениях сервера:
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 --fs-info
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --fs-info
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --fs-stat flash:/config/network.json
 ```
 
 Рекурсивное перечисление каталога:
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --fs-list flash:/config/ --recursive
 ```
 
@@ -46,9 +46,9 @@ python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
 не читает содержимое файлов. Для одного файла и полного дерева:
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --fs-read flash:/config/network.json --output network.json
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --fs-tar flash:/config/ --output config.tar
 tar -tf config.tar
 ```
@@ -72,7 +72,7 @@ TAR всегда рекурсивен и включает пустые ката�
 частичным; потребитель обязан проверить код завершения процесса.
 
 ```sh
-if python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+if python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
     --fs-tar flash:/config/ --output config.tar; then
   tar -tf config.tar
 else
@@ -85,7 +85,7 @@ fi
 `0` выбирает максимум сервера. Для проверки повторяемого чтения блока:
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --fs-tar flash:/config/ --output config.tar \
   --fs-block-size 513 --fs-verify-repeats
 ```
@@ -102,14 +102,14 @@ python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
 на NOTIFY и печатает события до остановки пользователем:
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 --buses i2c
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --buses i2c
 ```
 
 По умолчанию выбраны все классы, источники `telnet,host,dcp,internal`,
 шина `i2c` и отметка времени. Фильтры сужают наблюдение:
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --classes attempt,commit,denied --sources telnet,host --buses i2c
 ```
 
@@ -132,7 +132,7 @@ i2c stream fake status
 На компьютере:
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --stream i2c --stream-flags raw,timestamp,reset-lost
 ```
 
@@ -158,7 +158,7 @@ python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
 Пример только для заранее проверенного читаемого регистра I²C master:
 
 ```sh
-python3 scripts/dcp2/monitor_notify.py 192.168.0.10 \
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
   --mem-read 0x43c00000 --width 32
 ```
 
