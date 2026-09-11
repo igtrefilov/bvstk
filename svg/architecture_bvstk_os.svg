@@ -46,8 +46,8 @@
       .muted { fill: #536473; }
       .left { text-anchor: start; }
       .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.55; stroke-linejoin: round; }
-      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.6; stroke-dasharray: 2.8 1.6; stroke-linejoin: round; }
-      .common-panel { fill: #fbfdfb; stroke: #36794c; stroke-width: 0.65; stroke-linejoin: round; }
+      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.6; stroke-linejoin: round; }
+      .common-panel { fill: #fbfdfb; stroke: #36794c; stroke-width: 0.65; stroke-dasharray: 2.8 1.6; stroke-linejoin: round; }
       .module { stroke-width: 0.42; stroke-linejoin: round; }
       .native { stroke-dasharray: none; }
       .bvstk { stroke-width: 0.55; stroke-dasharray: 2 1.2; }

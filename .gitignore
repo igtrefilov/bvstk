@@ -52,6 +52,7 @@ svg/*
 !svg/architecture_bvstk_os.svg
 !svg/architecture_bvstk_l4.svg
 !svg/architecture_bvstk_l3.svg
+!svg/architecture_bvstk_l1.svg
 !svg/levels.svg
 !svg/freertos_level.svg
 !svg/neutrino_levels.svg
