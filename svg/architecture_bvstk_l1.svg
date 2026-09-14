@@ -15,10 +15,12 @@
   <desc id="description">
     Детализация платформенного уровня L1 проекта BVSTK. В каждом столбце
     крупные блоки раскрыты вложенными группами и сущностями. Слева показаны
-    нативные примитивы FreeRTOS и Xilinx BSP вместе с адаптерами BVSTK,
+    нативный порт FreeRTOS и Xilinx BSP вместе с адаптерами BVSTK,
     в центре — общие контракты платформы, MMIO, времени, синхронизации,
     IRQ, вывода и таблица регионов PL, справа — POSIX/BSP Нейтрино и его
-    системные адаптеры. Все видимые функциональные блоки относятся к L1.
+    системные адаптеры. Все видимые функциональные блоки относятся к L1;
+    примитивы ядра ОС не выдаются за блоки L1 и упоминаются только как
+    API-зависимости адаптеров.
   </desc>
   <sodipodi:namedview
      id="namedview"
@@ -75,7 +77,7 @@
       <rect id="neutrino-panel" class="os-panel" x="284" y="14" width="126" height="306" rx="2" />
 
       <text id="freertos-title" class="panel-title" x="73" y="25">FreeRTOS · L1</text>
-      <text id="freertos-subtitle" class="panel-subtitle muted" x="73" y="31">нативные примитивы и OS-порт BVSTK</text>
+      <text id="freertos-subtitle" class="panel-subtitle muted" x="73" y="31">BSP и OS-порт BVSTK</text>
       <text id="common-title" class="panel-title" x="210" y="25">Общие части BVSTK · L1</text>
       <text id="common-subtitle" class="panel-subtitle muted" x="210" y="31">платформенные контракты и доступ к PL</text>
       <text id="neutrino-title" class="panel-title" x="347" y="25">ЗОСРВ «Нейтрино» · L1</text>
@@ -84,25 +86,25 @@
       <!-- FreeRTOS · нативная среда -->
       <g id="f-native" class="group group-os">
         <rect x="14" y="38" width="118" height="49" rx="1" />
-        <text class="group-title" x="18" y="46">Нативная ОС и BSP</text>
+        <text class="group-title" x="18" y="46">Нативный порт и BSP</text>
         <text class="group-origin origin-os" x="129" y="46">ОС</text>
 
-        <g id="f-kernel-primitives" class="group group-os">
+        <g id="f-rtos-port" class="group group-os" data-l0-ref="f-irq-api,f-timer-port">
           <rect x="17" y="50" width="55" height="33" rx="0.8" />
-          <text class="group-title" x="19.5" y="57">FreeRTOS</text>
+          <text class="group-title" x="19.5" y="57">Порт FreeRTOS</text>
           <rect class="module level-l1 native" x="19" y="61" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="67">tasks · scheduler</text>
+          <text class="tiny-title" x="44.5" y="67">Таймерный порт</text>
           <rect class="module level-l1 native" x="19" y="71" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="77">queues · semaphores</text>
+          <text class="tiny-title" x="44.5" y="77">Порт FreeRTOS</text>
         </g>
 
-        <g id="f-xilinx-bsp" class="group group-os">
+        <g id="f-xilinx-bsp" class="group group-os" data-l0-ref="f-mmio,f-gic-bsp">
           <rect x="74" y="50" width="55" height="33" rx="0.8" />
           <text class="group-title" x="76.5" y="57">Xilinx BSP</text>
           <rect class="module level-l1 native" x="76" y="61" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="67">Xil I/O · xparameters</text>
+          <text class="tiny-title" x="101.5" y="67">Xilinx BSP: MMIO</text>
           <rect class="module level-l1 native" x="76" y="71" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="77">GIC · timer · UART</text>
+          <text class="tiny-title" x="101.5" y="77">Xilinx BSP: GIC</text>
         </g>
       </g>
 
@@ -112,13 +114,13 @@
         <text class="group-title" x="18" y="100">OS-порт BVSTK</text>
         <text class="group-origin origin-adapter" x="129" y="100">адаптеры</text>
 
-        <g id="f-platform-mmio" class="group group-mixed">
+        <g id="f-platform-mmio" class="group group-mixed" data-l0-ref="f-region">
           <rect x="17" y="105" width="55" height="42" rx="0.8" />
           <text class="group-title" x="19.5" y="112">Платформа и MMIO</text>
           <rect class="module level-l1 adapter" x="19" y="116" width="51" height="8" rx="0.5" />
           <text class="tiny-title" x="44.5" y="122">platform init</text>
           <rect class="module level-l1 adapter" x="19" y="126" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="132">physical base · size</text>
+          <text class="tiny-title" x="44.5" y="132">Адресный регион</text>
           <rect class="module level-l1 adapter" x="19" y="136" width="51" height="8" rx="0.5" />
           <text class="tiny-title" x="44.5" y="142">Xil_In32 · Xil_Out32</text>
         </g>
@@ -127,27 +129,27 @@
           <rect x="74" y="105" width="55" height="42" rx="0.8" />
           <text class="group-title" x="76.5" y="112">Время и sync</text>
           <rect class="module level-l1 adapter" x="76" y="116" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="122">tick → миллисекунды</text>
+          <text class="tiny-title" x="101.5" y="122">now_ms ← tick API</text>
           <rect class="module level-l1 adapter" x="76" y="126" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="132">vTaskDelay</text>
+          <text class="tiny-title" x="101.5" y="132">sleep_ms → tick API</text>
           <rect class="module level-l1 adapter" x="76" y="136" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="142">mutex → semaphore</text>
+          <text class="tiny-title" x="101.5" y="142">lock/unlock → sync API</text>
         </g>
 
-        <g id="f-irq-output" class="group group-mixed">
+        <g id="f-irq-output" class="group group-mixed" data-l0-ref="f-irq-attach">
           <rect x="17" y="151" width="55" height="32" rx="0.8" />
           <text class="group-title" x="19.5" y="158">IRQ</text>
           <rect class="module level-l1 adapter" x="19" y="162" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="168">install · enable</text>
+          <text class="tiny-title" x="44.5" y="168">Подключение IRQ</text>
           <rect class="module level-l1 adapter" x="19" y="172" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="178">ISR → queue → task</text>
+          <text class="tiny-title" x="44.5" y="178">ISR: захват состояния</text>
         </g>
 
-        <g id="f-output" class="group group-mixed">
+        <g id="f-output" class="group group-mixed" data-l0-ref="f-uart">
           <rect x="74" y="151" width="55" height="32" rx="0.8" />
           <text class="group-title" x="76.5" y="158">Вывод</text>
           <rect class="module level-l1 adapter" x="76" y="162" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="168">UART · xil_printf</text>
+          <text class="tiny-title" x="101.5" y="168">UART: аппаратный вывод</text>
           <rect class="module level-l1 adapter" x="76" y="172" width="51" height="8" rx="0.5" />
           <text class="tiny-title" x="101.5" y="178">output callback</text>
         </g>
@@ -159,34 +161,38 @@
         <text class="group-title" x="18" y="202">Портовые контексты</text>
         <text class="group-origin origin-adapter" x="129" y="202">адаптеры</text>
 
-        <g id="f-i2c-context" class="group group-mixed">
+        <g id="f-i2c-context" class="group group-mixed" data-l0-ref="f-irq-entry,f-irq-handler">
           <rect x="17" y="207" width="55" height="98" rx="0.8" />
-          <text class="group-title" x="19.5" y="214">I²C slave</text>
+          <text class="group-title" x="19.5" y="214">PL Slave</text>
           <rect class="module level-l1 adapter" x="19" y="218" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="44.5" y="226">ISR · capture IRQ</text>
+          <text class="module-small" x="44.5" y="226">PL Slave</text>
           <rect class="module level-l1 adapter" x="19" y="234" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="44.5" y="242">event queue</text>
+          <text class="module-small" x="44.5" y="242">event handoff</text>
           <rect class="module level-l1 adapter" x="19" y="250" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="44.5" y="258">worker task</text>
+          <text class="module-small" x="44.5" y="258">deferred handler</text>
           <rect class="module level-l1 adapter" x="19" y="266" width="51" height="13" rx="0.6" />
           <text class="module-small" x="44.5" y="274">state handoff</text>
           <rect class="module level-l1 adapter" x="19" y="282" width="51" height="13" rx="0.6" />
           <text class="module-small" x="44.5" y="290">frame · read window</text>
         </g>
 
-        <g id="f-media-context" class="group group-mixed">
+        <g id="f-media-context" class="group group-mixed" data-l0-ref="f-qspi,f-sd-map,f-sd-control,f-dma-addresses,f-dma-cache,f-ethernet-rings,f-ethernet-control">
           <rect x="74" y="207" width="55" height="98" rx="0.8" />
-          <text class="group-title" x="76.5" y="214">Носители и FS</text>
-          <rect class="module level-l1 adapter" x="76" y="218" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="101.5" y="226">SD completion</text>
-          <rect class="module level-l1 adapter" x="76" y="234" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="101.5" y="242">QSPI mutex</text>
-          <rect class="module level-l1 adapter" x="76" y="250" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="101.5" y="258">diskio bridge</text>
-          <rect class="module level-l1 adapter" x="76" y="266" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="101.5" y="274">binary semaphore</text>
-          <rect class="module level-l1 adapter" x="76" y="282" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="101.5" y="290">lifetime · shutdown</text>
+          <text class="group-title" x="76.5" y="214">Носители, DMA и Ethernet</text>
+          <rect class="module level-l1 adapter" x="76" y="218" width="51" height="10" rx="0.5" />
+          <text class="module-small" x="101.5" y="225">QSPI: доступ через BSP</text>
+          <rect class="module level-l1 adapter" x="76" y="230" width="51" height="10" rx="0.5" />
+          <text class="module-small" x="101.5" y="237">Дисковый адаптер</text>
+          <rect class="module level-l1 adapter" x="76" y="242" width="51" height="10" rx="0.5" />
+          <text class="module-small" x="101.5" y="249">Запуск ADMA</text>
+          <rect class="module level-l1 adapter" x="76" y="254" width="51" height="10" rx="0.5" />
+          <text class="module-small" x="101.5" y="261">Буферы DMA</text>
+          <rect class="module level-l1 adapter" x="76" y="266" width="51" height="10" rx="0.5" />
+          <text class="module-small" x="101.5" y="273">Кэш CPU</text>
+          <rect class="module level-l1 adapter" x="76" y="278" width="51" height="10" rx="0.5" />
+          <text class="module-small" x="101.5" y="285">Кольца TX и RX</text>
+          <rect class="module level-l1 adapter" x="76" y="290" width="51" height="10" rx="0.5" />
+          <text class="module-small" x="101.5" y="297">Управление MAC</text>
         </g>
       </g>
 
@@ -242,7 +248,7 @@
 
         <g id="c-sync-contract" class="group group-bvstk">
           <rect x="154" y="166" width="55" height="59" rx="0.8" />
-          <text class="group-title" x="156.5" y="173">Mutex</text>
+          <text class="group-title" x="156.5" y="173">Синхронизация</text>
           <rect class="module level-l1 bvstk" x="156" y="177" width="51" height="11" rx="0.6" />
           <text class="tiny-title" x="181.5" y="184">context</text>
           <rect class="module level-l1 bvstk" x="156" y="191" width="51" height="11" rx="0.6" />
@@ -253,7 +259,7 @@
 
         <g id="c-irq-output-contract" class="group group-bvstk">
           <rect x="213" y="166" width="55" height="59" rx="0.8" />
-          <text class="group-title" x="215.5" y="173">IRQ · output</text>
+          <text class="group-title" x="215.5" y="173">Подключение IRQ</text>
           <rect class="module level-l1 bvstk" x="215" y="177" width="51" height="11" rx="0.6" />
           <text class="tiny-title" x="240.5" y="184">attach · detach</text>
           <rect class="module level-l1 bvstk" x="215" y="191" width="51" height="11" rx="0.6" />
@@ -269,9 +275,9 @@
         <text class="group-title" x="155" y="248">PL-доступ и жизненный цикл</text>
         <text class="group-origin origin-bvstk" x="266" y="248">BVSTK</text>
 
-        <g id="c-region-catalog" class="group group-bvstk">
+        <g id="c-region-catalog" class="group group-bvstk" data-l0-ref="f-catalog,n-catalog">
           <rect x="154" y="252" width="55" height="52" rx="0.8" />
-          <text class="group-title" x="156.5" y="259">Каталог регионов</text>
+          <text class="group-title" x="156.5" y="259">Каталог PL</text>
           <rect class="module level-l1 bvstk" x="156" y="263" width="51" height="10" rx="0.6" />
           <text class="tiny-title" x="181.5" y="270">id · name · kind</text>
           <rect class="module level-l1 bvstk" x="156" y="276" width="51" height="10" rx="0.6" />
@@ -280,9 +286,9 @@
           <text class="tiny-title" x="181.5" y="296">control · BRAM</text>
         </g>
 
-        <g id="c-region-service" class="group group-bvstk">
+        <g id="c-region-service" class="group group-bvstk" data-l0-ref="f-pl-access,n-pl-access">
           <rect x="213" y="252" width="55" height="52" rx="0.8" />
-          <text class="group-title" x="215.5" y="259">PL service</text>
+          <text class="group-title" x="215.5" y="259">PL-доступ</text>
           <rect class="module level-l1 bvstk" x="215" y="263" width="51" height="10" rx="0.6" />
           <text class="tiny-title" x="240.5" y="270">lazy map</text>
           <rect class="module level-l1 bvstk" x="215" y="276" width="51" height="10" rx="0.6" />
@@ -300,24 +306,24 @@
 
         <g id="n-posix-api" class="group group-os">
           <rect x="291" y="50" width="55" height="41" rx="0.8" />
-          <text class="group-title" x="293.5" y="57">POSIX / libc</text>
+          <text class="group-title" x="293.5" y="57">Системная API</text>
           <rect class="module level-l1 native" x="293" y="61" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="67">pthread · cond</text>
+          <text class="tiny-title" x="318.5" y="67">time · sleep API</text>
           <rect class="module level-l1 native" x="293" y="71" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="77">clock · nanosleep</text>
+          <text class="tiny-title" x="318.5" y="77">sync · thread API</text>
           <rect class="module level-l1 native" x="293" y="81" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="87">stdout · stderr</text>
+          <text class="tiny-title" x="318.5" y="87">stdio · device API</text>
         </g>
 
-        <g id="n-zynq-bsp" class="group group-os">
+        <g id="n-zynq-bsp" class="group group-os" data-l0-ref="n-uart,n-gic-bsp,n-timer-port">
           <rect x="348" y="50" width="55" height="41" rx="0.8" />
           <text class="group-title" x="350.5" y="57">Zynq BSP</text>
           <rect class="module level-l1 native" x="350" y="61" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="67">startup · GIC</text>
+          <text class="tiny-title" x="375.5" y="67">Zynq BSP: GIC</text>
           <rect class="module level-l1 native" x="350" y="71" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="77">timer · UART</text>
+          <text class="tiny-title" x="375.5" y="77">Таймерный порт</text>
           <rect class="module level-l1 native" x="350" y="81" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="87">device I/O</text>
+          <text class="tiny-title" x="375.5" y="87">UART: аппаратный вывод</text>
         </g>
       </g>
 
@@ -327,15 +333,15 @@
         <text class="group-title" x="292" y="109">OS-порт BVSTK</text>
         <text class="group-origin origin-adapter" x="403" y="109">адаптеры</text>
 
-        <g id="n-platform-mmio" class="group group-mixed">
+        <g id="n-platform-mmio" class="group group-mixed" data-l0-ref="n-region,n-mmio">
           <rect x="291" y="114" width="55" height="47" rx="0.8" />
           <text class="group-title" x="293.5" y="121">Платформа и MMIO</text>
           <rect class="module level-l1 adapter" x="293" y="125" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="132">ThreadCtl · I/O</text>
+          <text class="tiny-title" x="318.5" y="132">Прямой MMIO-доступ</text>
           <rect class="module level-l1 adapter" x="293" y="136" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="143">mmap_device_memory</text>
+          <text class="tiny-title" x="318.5" y="143">Отображение региона</text>
           <rect class="module level-l1 adapter" x="293" y="147" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="154">NOCACHE · munmap</text>
+          <text class="tiny-title" x="318.5" y="154">Без кэша и освобождение</text>
         </g>
 
         <g id="n-time-sync" class="group group-mixed">
@@ -346,19 +352,19 @@
           <rect class="module level-l1 adapter" x="350" y="136" width="51" height="9" rx="0.5" />
           <text class="tiny-title" x="375.5" y="143">nanosleep</text>
           <rect class="module level-l1 adapter" x="350" y="147" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="154">pthread_mutex</text>
+          <text class="tiny-title" x="375.5" y="154">lock/unlock → POSIX</text>
         </g>
 
-        <g id="n-irq-output" class="group group-mixed">
+        <g id="n-irq-output" class="group group-mixed" data-l0-ref="n-irq-attach,n-irq-api">
           <rect x="291" y="165" width="55" height="32" rx="0.8" />
           <text class="group-title" x="293.5" y="172">IRQ</text>
           <rect class="module level-l1 adapter" x="293" y="176" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="182">AttachEvent · Wait</text>
+          <text class="tiny-title" x="318.5" y="182">Подключение IRQ</text>
           <rect class="module level-l1 adapter" x="293" y="186" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="192">Unmask · process</text>
+          <text class="tiny-title" x="318.5" y="192">Системный IRQ-интерфейс</text>
         </g>
 
-        <g id="n-output" class="group group-mixed">
+        <g id="n-output" class="group group-mixed" data-l0-ref="n-uart">
           <rect x="348" y="165" width="55" height="32" rx="0.8" />
           <text class="group-title" x="350.5" y="172">Вывод</text>
           <rect class="module level-l1 adapter" x="350" y="176" width="51" height="8" rx="0.5" />
@@ -374,30 +380,36 @@
         <text class="group-title" x="292" y="217">Портовые контексты</text>
         <text class="group-origin origin-adapter" x="403" y="217">адаптеры</text>
 
-        <g id="n-i2c-context" class="group group-mixed">
+        <g id="n-i2c-context" class="group group-mixed" data-l0-ref="n-irq-entry,n-irq-handler">
           <rect x="291" y="222" width="55" height="81" rx="0.8" />
-          <text class="group-title" x="293.5" y="229">I²C IRQ-поток</text>
+          <text class="group-title" x="293.5" y="229">PL Slave IRQ-поток</text>
           <rect class="module level-l1 adapter" x="293" y="233" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="241">pthread_create</text>
+          <text class="module-small" x="318.5" y="241">Ожидание IRQ-события</text>
           <rect class="module level-l1 adapter" x="293" y="248" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="256">startup mutex · cond</text>
+          <text class="module-small" x="318.5" y="256">PL Slave IRQ-поток</text>
           <rect class="module level-l1 adapter" x="293" y="263" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="271">state mutex</text>
+          <text class="module-small" x="318.5" y="271">state protection</text>
           <rect class="module level-l1 adapter" x="293" y="278" width="51" height="12" rx="0.6" />
           <text class="module-small" x="318.5" y="286">InterruptWait · Unmask</text>
         </g>
 
-        <g id="n-media-context" class="group group-mixed">
+        <g id="n-media-context" class="group group-mixed" data-l0-ref="n-qspi,n-sd-map,n-sd-control,n-dma-addresses,n-dma-cache,n-ethernet-rings,n-ethernet-control">
           <rect x="348" y="222" width="55" height="81" rx="0.8" />
-          <text class="group-title" x="350.5" y="229">Носители</text>
-          <rect class="module level-l1 adapter" x="350" y="233" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="375.5" y="241">QSPI raw map</text>
-          <rect class="module level-l1 adapter" x="350" y="248" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="375.5" y="256">SD raw map</text>
-          <rect class="module level-l1 adapter" x="350" y="263" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="375.5" y="271">pthread_mutex</text>
-          <rect class="module level-l1 adapter" x="350" y="278" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="375.5" y="286">process lifetime</text>
+          <text class="group-title" x="350.5" y="229">Носители, DMA и Ethernet</text>
+          <rect class="module level-l1 adapter" x="350" y="233" width="51" height="8" rx="0.5" />
+          <text class="module-small" x="375.5" y="239">Носители: QSPI raw map</text>
+          <rect class="module level-l1 adapter" x="350" y="243" width="51" height="8" rx="0.5" />
+          <text class="module-small" x="375.5" y="249">SD raw map</text>
+          <rect class="module level-l1 adapter" x="350" y="253" width="51" height="8" rx="0.5" />
+          <text class="module-small" x="375.5" y="259">Доступ к FIFO: PIO</text>
+          <rect class="module level-l1 adapter" x="350" y="263" width="51" height="8" rx="0.5" />
+          <text class="module-small" x="375.5" y="269">Буферы DMA</text>
+          <rect class="module level-l1 adapter" x="350" y="273" width="51" height="8" rx="0.5" />
+          <text class="module-small" x="375.5" y="279">Кэш CPU</text>
+          <rect class="module level-l1 adapter" x="350" y="283" width="51" height="8" rx="0.5" />
+          <text class="module-small" x="375.5" y="289">Кольца TX и RX</text>
+          <rect class="module level-l1 adapter" x="350" y="293" width="51" height="8" rx="0.5" />
+          <text class="module-small" x="375.5" y="299">Управление MAC</text>
         </g>
       </g>
     </g>

@@ -36,7 +36,7 @@
       .level { stroke-width: 0.45; stroke-linejoin: round; }
       .subblock { fill: #ffffff; fill-opacity: 0.62; stroke-width: 0.28; stroke-linejoin: round; }
 
-      /* Палитра уровней совпадает с architecture_platform.svg и levels.svg. */
+      /* Палитра уровней совпадает с levels.svg. */
       .level-l0 { fill: #e9eef3; stroke: #607487; }
       .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
       .level-l2 { fill: #ffd1c7; stroke: #c65b4e; }

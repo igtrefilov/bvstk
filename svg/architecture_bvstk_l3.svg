@@ -111,7 +111,7 @@
           <rect x="17" y="108" width="55" height="66" rx="0.8" />
           <text class="group-title" x="19.5" y="115">Системная граница</text>
           <rect class="module level-l3 adapter" x="19" y="119" width="51" height="14" rx="0.6" />
-          <text class="module-small" x="44.5" y="125">I²C slave · IRQ worker</text>
+          <text class="module-small" x="44.5" y="125">PL Slave · IRQ worker</text>
           <rect class="module level-l3 adapter" x="19" y="136" width="51" height="14" rx="0.6" />
           <text class="module-small" x="44.5" y="142">FreeRTOS mutex / queue</text>
           <rect class="module level-l3 adapter" x="19" y="153" width="51" height="14" rx="0.6" />
@@ -222,9 +222,9 @@
           <rect class="module level-l3 bvstk" x="156" y="126" width="25" height="13" rx="0.6" />
           <text class="tiny-title" x="168.5" y="134">устройства</text>
           <rect class="module level-l3 bvstk" x="184" y="126" width="23" height="13" rx="0.6" />
-          <text class="tiny-title" x="195.5" y="134">master</text>
+          <text class="tiny-title" x="195.5" y="134">PL Master</text>
           <rect class="module level-l3 bvstk" x="156" y="142" width="25" height="13" rx="0.6" />
-          <text class="tiny-title" x="168.5" y="150">slave</text>
+          <text class="tiny-title" x="168.5" y="150">PL Slave</text>
           <rect class="module level-l3 bvstk" x="184" y="142" width="23" height="13" rx="0.6" />
           <text class="tiny-title" x="195.5" y="150">cache</text>
           <rect class="module level-l3 bvstk" x="156" y="158" width="51" height="12" rx="0.6" />
@@ -255,7 +255,7 @@
           <rect x="154" y="200" width="55" height="46" rx="0.8" />
           <text class="group-title" x="156.5" y="207">Шины</text>
           <rect class="module level-l3 bvstk" x="156" y="211" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="181.5" y="217">I²C master / slave</text>
+          <text class="tiny-title" x="181.5" y="217">PL Master и PL Slave</text>
           <rect class="module level-l3 bvstk" x="156" y="222" width="51" height="9" rx="0.5" />
           <text class="tiny-title" x="181.5" y="228">SMI core</text>
           <rect class="module level-l3 bvstk" x="156" y="233" width="51" height="9" rx="0.5" />
@@ -353,7 +353,7 @@
           <rect class="module level-l3 adapter" x="293" y="168" width="51" height="12" rx="0.6" />
           <text class="module-small" x="318.5" y="175">devctl · /dev</text>
           <rect class="module level-l3 adapter" x="293" y="183" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="190">I²C IRQ thread</text>
+          <text class="module-small" x="318.5" y="190">PL Slave IRQ thread</text>
         </g>
 
         <g id="n-media" class="group group-mixed">
@@ -381,7 +381,7 @@
           <text class="tiny-title" x="310" y="251">bvstkd</text>
           <text class="tiny-text" x="310" y="257">runtime</text>
           <rect class="module level-l3 bvstk" x="330" y="244" width="34" height="17" rx="0.6" />
-          <text class="tiny-title" x="347" y="251">I²C state</text>
+          <text class="tiny-title" x="347" y="251">PL Slave state</text>
           <text class="tiny-text" x="347" y="257">cache · devices</text>
           <rect class="module level-l3 bvstk" x="367" y="244" width="34" height="17" rx="0.6" />
           <text class="tiny-title" x="384" y="251">policy / events</text>

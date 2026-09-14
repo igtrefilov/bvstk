@@ -17,7 +17,7 @@
      id="description">
     Единая абстрактная модель функциональных уровней операционной системы
     от прикладного уровня L4 до аппаратного уровня L0. Цвета и порядок
-    уровней совпадают с architecture_platform.svg. Состав конкретного уровня
+    уровней задаётся единой палитрой проекта. Состав конкретного уровня
     может отличаться между ОС; схема не задаёт обязательный маршрут вызовов.
   </desc>
   <sodipodi:namedview
@@ -55,7 +55,7 @@
       .level { stroke-width: 0.45; stroke-linejoin: round; }
       .arrow { fill: none; stroke: #000000; stroke-width: 0.28; marker-end: url(#arrow-head); }
 
-      /* Палитра уровней совпадает с architecture_platform.svg. */
+      /* Единая палитра уровней проекта. */
       .level-l0 { fill: #e9eef3; stroke: #607487; }
       .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
       .level-l2 { fill: #ffd1c7; stroke: #c65b4e; }

@@ -38,7 +38,7 @@
       .kernel-gateway { fill: #ffd1c7; fill-opacity: 0.25; stroke: #c65b4e; stroke-width: 0.65; stroke-dasharray: 2 1; }
       .kernel-link { fill: none; stroke: #c65b4e; stroke-width: 0.5; stroke-linecap: round; marker-start: url(#arrow-head); marker-end: url(#arrow-head); }
 
-      /* Палитра уровней совпадает с architecture_platform.svg и levels.svg. */
+      /* Палитра уровней совпадает с levels.svg. */
       .level-l0 { fill: #e9eef3; stroke: #607487; }
       .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
       .level-l2 { fill: #ffd1c7; stroke: #c65b4e; }
