@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="420mm"
-   height="330mm"
-   viewBox="0 0 420 330"
+   height="350mm"
+   viewBox="0 0 420 350"
    version="1.1"
    id="bvstk-l4-architecture"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
@@ -11,14 +11,16 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <title id="title">BVSTK · подробная схема уровня L4</title>
-  <desc id="description">
+  <title
+     id="title">BVSTK · подробная схема уровня L4</title>
+  <desc
+     id="description">
     Детализация прикладного уровня L4 проекта BVSTK. В каждом столбце
     крупные функциональные блоки раскрыты вложенными группами и сущностями.
     Слева показана прикладная композиция FreeRTOS, в центре — общие модели,
-    контракты и пользовательские примитивы, справа — программы BVSTK,
-    адаптеры и нативные приложения ЗОСРВ «Нейтрино». Подписи функциональные
-    и сгруппированы только там, где отдельные элементы перегрузили бы схему.
+    сценарии и пользовательские примитивы, справа — программы BVSTK и
+    нативные приложения ЗОСРВ «Нейтрино». Протоколы, IPC и аппаратные
+    адаптеры вынесены на соответствующие нижние уровни.
   </desc>
   <sodipodi:namedview
      id="namedview"
@@ -29,9 +31,22 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:showpageshadow="2" />
-  <defs id="defs">
-    <style id="style">
+     inkscape:showpageshadow="2"
+     borderopacity="0.25"
+     inkscape:pagecheckerboard="0"
+     inkscape:zoom="1.5920357"
+     inkscape:cx="576.62024"
+     inkscape:cy="1124.6607"
+     inkscape:window-width="2510"
+     inkscape:window-height="1371"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="columns" />
+  <defs
+     id="defs">
+    <style
+       id="style">
       text { font-family: &quot;Noto Sans&quot;, &quot;DejaVu Sans&quot;, sans-serif; fill: #172a3a; stroke: none; text-anchor: middle; }
       .panel-title { font-size: 4.65px; font-weight: 700; }
       .panel-subtitle { font-size: 2.45px; font-weight: 400; }
@@ -43,8 +58,8 @@
       .tiny-title { font-size: 1.9px; font-weight: 700; }
       .tiny-text { font-size: 1.55px; font-weight: 500; }
       .muted { fill: #536473; }
-      .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.55; stroke-linejoin: round; }
-      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.6; stroke-linejoin: round; }
+      .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.85; stroke-linejoin: round; }
+      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.5; stroke-linejoin: round; }
       .common-panel { fill: #fbfdfb; stroke: #36794c; stroke-width: 0.65; stroke-dasharray: 2.8 1.6; stroke-linejoin: round; }
       .group { stroke-width: 0.42; stroke-linejoin: round; }
       .group-bvstk { fill: #f9fdfc; stroke: #287f73; stroke-dasharray: 2 1.2; }
@@ -57,6 +72,16 @@
       .origin-bvstk { fill: #287f73; }
       .origin-adapter { fill: #b56b1d; }
       .origin-os { fill: #536473; }
+      .legend-title { font-size: 1.7px; font-weight: 700; text-anchor: start; }
+      .legend-text { font-size: 1.65px; font-weight: 500; text-anchor: start; }
+      .legend-label { text-anchor: middle; }
+      .legend-origin { font-size: 1.85px; font-weight: 700; letter-spacing: 0.04px; }
+      .legend-swatch { stroke-width: 0.45; }
+      .legend-line { fill: none; stroke-width: 0.55; }
+      .legend-panel { fill: none; stroke: #536473; stroke-width: 0.75; }
+      .legend-os-panel { fill: none; stroke: #536473; stroke-width: 0.5; }
+      .legend-native { fill: #fbfbfb; stroke: #536473; stroke-width: 0.42; }
+      .legend-divider { stroke: #c4ccd3; stroke-width: 0.4; }
       /* Единая палитра уровней из levels.svg и interaction-схем. */
       .level-l0 { fill: #e9eef3; stroke: #607487; }
       .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
@@ -65,341 +90,1356 @@
       .level-l4 { fill: #d9ebff; stroke: #3f75ad; }
     </style>
   </defs>
-
-  <g id="sheet" inkscape:groupmode="layer" inkscape:label="BVSTK · уровень L4">
-    <rect id="frame" class="frame" x="5" y="5" width="410" height="320" rx="1" />
-
-    <g id="columns" inkscape:label="FreeRTOS · общие части · Нейтрино">
-      <rect id="freertos-panel" class="os-panel" x="10" y="14" width="126" height="306" rx="2" />
-      <rect id="common-panel" class="common-panel" x="147" y="14" width="126" height="306" rx="2" />
-      <rect id="neutrino-panel" class="os-panel" x="284" y="14" width="126" height="306" rx="2" />
-
-      <text id="freertos-title" class="panel-title" x="73" y="25">FreeRTOS · L4</text>
-      <text id="freertos-subtitle" class="panel-subtitle muted" x="73" y="31">прикладная композиция BVSTK</text>
-      <text id="common-title" class="panel-title" x="210" y="25">Общие части BVSTK · L4</text>
-      <text id="common-subtitle" class="panel-subtitle muted" x="210" y="31">модели, контракты и примитивы</text>
-      <text id="neutrino-title" class="panel-title" x="347" y="25">ЗОСРВ «Нейтрино» · L4</text>
-      <text id="neutrino-subtitle" class="panel-subtitle muted" x="347" y="31">процессы BVSTK и среда ОС</text>
-
+  <g
+     id="sheet"
+     inkscape:groupmode="layer"
+     inkscape:label="BVSTK · уровень L4">
+    <rect
+       id="frame"
+       class="frame"
+       x="5"
+       y="5"
+       width="410"
+       height="320"
+       rx="1" />
+    <g
+       id="columns"
+       inkscape:label="FreeRTOS · общие части · Нейтрино">
+      <rect
+         id="freertos-panel"
+         class="os-panel"
+         x="10"
+         y="14"
+         width="126"
+         height="306"
+         rx="2" />
+      <rect
+         id="common-panel"
+         class="common-panel"
+         x="147"
+         y="14"
+         width="126"
+         height="306"
+         rx="2" />
+      <rect
+         id="neutrino-panel"
+         class="os-panel"
+         x="284"
+         y="14"
+         width="126"
+         height="306"
+         rx="2" />
+      <text
+         id="freertos-title"
+         class="panel-title"
+         x="73"
+         y="25">FreeRTOS · L4</text>
+      <text
+         id="common-title"
+         class="panel-title"
+         x="210"
+         y="25">Общие части BVSTK · L4</text>
+      <text
+         id="neutrino-title"
+         class="panel-title"
+         x="347"
+         y="25">ЗОСРВ «Нейтрино» · L4</text>
       <!-- FreeRTOS · запуск и состояние -->
-      <g id="f-start" class="group group-bvstk">
-        <rect x="14" y="38" width="118" height="57" rx="1" />
-        <text class="group-title" x="18" y="46">Запуск и состояние</text>
-        <text class="group-origin origin-bvstk" x="129" y="46">BVSTK</text>
-
-        <rect class="module level-l4 bvstk" x="17" y="50" width="55" height="19" rx="0.8" />
-        <text class="module-title" x="44.5" y="58">Инициализация</text>
-        <text class="module-text" x="44.5" y="64">сеть · тома · службы</text>
-
-        <rect class="module level-l4 bvstk" x="74" y="50" width="55" height="19" rx="0.8" />
-        <text class="module-title" x="101.5" y="58">Runtime устройств</text>
-        <text class="module-text" x="101.5" y="64">I²C · SMI · SPI</text>
-
-        <rect class="module level-l4 bvstk" x="17" y="72" width="55" height="19" rx="0.8" />
-        <text class="module-title" x="44.5" y="80">Хранилище настроек</text>
-        <text class="module-text" x="44.5" y="86">network · I²C · SMI</text>
-
-        <rect class="module level-l4 bvstk" x="74" y="72" width="55" height="19" rx="0.8" />
-        <text class="module-title" x="101.5" y="80">Профили по умолчанию</text>
-        <text class="module-text" x="101.5" y="86">встроенный JSON · fallback</text>
+      <g
+         id="f-start"
+         class="group group-bvstk">
+        <rect
+           x="14"
+           y="38"
+           width="118"
+           height="57"
+           rx="1"
+           id="rect248782" />
+        <text
+           class="group-title"
+           x="18"
+           y="46"
+           id="text248784">Запуск и состояние</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="129"
+           y="46"
+           id="text248786">BVSTK</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="17"
+           y="50"
+           width="55"
+           height="19"
+           rx="0.8"
+           id="rect248788" />
+        <text
+           class="module-title"
+           x="44.5"
+           y="58"
+           id="text248790">Сборка приложения</text>
+        <text
+           class="module-text"
+           x="44.5"
+           y="64"
+           id="text248792">состав служб</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="74"
+           y="50"
+           width="55"
+           height="19"
+           rx="0.8"
+           id="rect248794" />
+        <text
+           class="module-title"
+           x="101.5"
+           y="58"
+           id="text248796">Состав устройств</text>
+        <text
+           class="module-text"
+           x="101.5"
+           y="64"
+           id="text248798">сервисы устройств</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="17"
+           y="72"
+           width="55"
+           height="19"
+           rx="0.8"
+           id="rect248800" />
+        <text
+           class="module-title"
+           x="44.5"
+           y="80"
+           id="text248802">Хранилище настроек</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="74"
+           y="72"
+           width="55"
+           height="19"
+           rx="0.8"
+           id="rect248804" />
+        <text
+           class="module-title"
+           x="101.5"
+           y="80"
+           id="text248806">Профили по умолчанию</text>
       </g>
-
       <!-- FreeRTOS · внешние точки доступа -->
-      <g id="f-access" class="group group-bvstk">
-        <rect x="14" y="99" width="118" height="70" rx="1" />
-        <text class="group-title" x="18" y="107">Внешние точки доступа</text>
-        <text class="group-origin origin-bvstk" x="129" y="107">BVSTK</text>
-
-        <rect class="module level-l4 bvstk" x="17" y="112" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="44.5" y="119">TCP-консоль</text>
-        <text class="module-text" x="44.5" y="125">8888 · сессии</text>
-        <rect class="module level-l4 bvstk" x="74" y="112" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="101.5" y="119">UART-консоль</text>
-        <text class="module-text" x="101.5" y="125">локальный ввод</text>
-
-        <rect class="module level-l4 bvstk" x="17" y="131" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="44.5" y="138">HTTP API</text>
-        <text class="module-text" x="44.5" y="144">80 · JSON · web</text>
-        <rect class="module level-l4 bvstk" x="74" y="131" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="101.5" y="138">DCP2-сервер</text>
-        <text class="module-text" x="101.5" y="144">8889 · управление</text>
-
-        <rect class="module level-l4 bvstk" x="17" y="150" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="44.5" y="157">SSH / SCP</text>
-        <text class="module-text" x="44.5" y="163">удалённый доступ</text>
-        <rect class="module level-l4 bvstk" x="74" y="150" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="101.5" y="157">LAN / lwIP</text>
-        <text class="module-text" x="101.5" y="163">Ethernet · sockets</text>
+      <g
+         id="f-access"
+         class="group group-bvstk">
+        <rect
+           x="14"
+           y="99"
+           width="118"
+           height="70"
+           rx="1"
+           id="rect248809" />
+        <text
+           class="group-title"
+           x="18"
+           y="107"
+           id="text248811">Внешние точки доступа</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="129"
+           y="107"
+           id="text248813">BVSTK</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="17"
+           y="112"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248815" />
+        <text
+           class="module-title"
+           x="44.5"
+           y="119"
+           id="text248817">Командный доступ</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="74"
+           y="112"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248819" />
+        <text
+           class="module-title"
+           x="101.5"
+           y="119"
+           id="text248821">Локальная консоль</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="17"
+           y="131"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248823" />
+        <text
+           class="module-title"
+           x="44.5"
+           y="138"
+           id="text248825">Web-доступ</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="74"
+           y="131"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248827" />
+        <text
+           class="module-title"
+           x="101.5"
+           y="138"
+           id="text248829">Удалённое управление</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="17"
+           y="150"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248831" />
+        <text
+           class="module-title"
+           x="44.5"
+           y="157"
+           id="text248833">Удалённые файлы</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="74"
+           y="150"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248835" />
+        <text
+           class="module-title"
+           x="101.5"
+           y="157"
+           id="text248837">Сетевой доступ</text>
       </g>
-
       <!-- FreeRTOS · консоль с вложенными группами -->
-      <g id="f-console" class="group group-bvstk">
-        <rect x="14" y="173" width="118" height="104" rx="1" />
-        <text class="group-title" x="18" y="181">Консоль и команды</text>
-        <text class="group-origin origin-bvstk" x="129" y="181">BVSTK</text>
-
-        <g id="f-editor" class="group group-bvstk">
-          <rect x="17" y="186" width="55" height="35" rx="0.8" />
-          <text class="group-title" x="19.5" y="193">Редактор</text>
-          <rect class="module level-l4 bvstk" x="19" y="197" width="51" height="10" rx="0.6" />
-          <text class="module-small" x="44.5" y="203">строка · история · cursor</text>
-          <rect class="module level-l4 bvstk" x="19" y="209" width="51" height="10" rx="0.6" />
-          <text class="module-small" x="44.5" y="215">I²C completion</text>
+      <g
+         id="f-console"
+         class="group group-bvstk">
+        <rect
+           x="14"
+           y="173"
+           width="118"
+           height="104"
+           rx="1"
+           id="rect248840" />
+        <text
+           class="group-title"
+           x="18"
+           y="181"
+           id="text248842">Консоль и команды</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="129"
+           y="181"
+           id="text248844">BVSTK</text>
+        <g
+           id="f-editor"
+           class="group group-bvstk">
+          <rect
+             x="17"
+             y="186"
+             width="55"
+             height="35"
+             rx="0.8"
+             id="rect248846" />
+          <text
+             class="group-title"
+             x="19.5"
+             y="193"
+             id="text248848">Редактор</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="19"
+             y="197"
+             width="51"
+             height="10"
+             rx="0.6"
+             id="rect248850" />
+          <text
+             class="module-small"
+             x="44.5"
+             y="203"
+             id="text248852">Строка и история</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="19"
+             y="209"
+             width="51"
+             height="10"
+             rx="0.6"
+             id="rect248854" />
+          <text
+             class="module-small"
+             x="44.5"
+             y="215"
+             id="text248856">Дополнение команд</text>
         </g>
-
-        <g id="f-routing" class="group group-bvstk">
-          <rect x="74" y="186" width="55" height="35" rx="0.8" />
-          <text class="group-title" x="76.5" y="193">Сессия</text>
-          <rect class="module level-l4 bvstk" x="76" y="197" width="51" height="10" rx="0.6" />
-          <text class="module-small" x="101.5" y="203">cwd · volume · prompt</text>
-          <rect class="module level-l4 bvstk" x="76" y="209" width="51" height="10" rx="0.6" />
-          <text class="module-small" x="101.5" y="215">dispatch · help</text>
+        <g
+           id="f-routing"
+           class="group group-bvstk">
+          <rect
+             x="74"
+             y="186"
+             width="55"
+             height="35"
+             rx="0.8"
+             id="rect248859" />
+          <text
+             class="group-title"
+             x="76.5"
+             y="193"
+             id="text248861">Сессия</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="76"
+             y="197"
+             width="51"
+             height="10"
+             rx="0.6"
+             id="rect248863" />
+          <text
+             class="module-small"
+             x="101.5"
+             y="203"
+             id="text248865">Контекст</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="76"
+             y="209"
+             width="51"
+             height="10"
+             rx="0.6"
+             id="rect248867" />
+          <text
+             class="module-small"
+             x="101.5"
+             y="215"
+             id="text248869">Диспетчер</text>
         </g>
-
-        <g id="f-device-commands" class="group group-bvstk">
-          <rect x="17" y="225" width="112" height="24" rx="0.8" />
-          <text class="group-title" x="19.5" y="232">Команды устройств</text>
-          <rect class="module level-l4 bvstk" x="19" y="235" width="25" height="11" rx="0.6" />
-          <text class="tiny-title" x="31.5" y="242">I²C</text>
-          <rect class="module level-l4 bvstk" x="47" y="235" width="25" height="11" rx="0.6" />
-          <text class="tiny-title" x="59.5" y="242">SMI</text>
-          <rect class="module level-l4 bvstk" x="75" y="235" width="25" height="11" rx="0.6" />
-          <text class="tiny-title" x="87.5" y="242">SPI</text>
-          <rect class="module level-l4 bvstk" x="103" y="235" width="24" height="11" rx="0.6" />
-          <text class="tiny-title" x="115" y="242">UART</text>
+        <g
+           id="f-device-commands"
+           class="group group-bvstk">
+          <rect
+             x="17"
+             y="225"
+             width="112"
+             height="24"
+             rx="0.8"
+             id="rect248872" />
+          <text
+             class="group-title"
+             x="19.5"
+             y="232"
+             id="text248874">Команды устройств</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="19"
+             y="235"
+             width="25"
+             height="11"
+             rx="0.6"
+             id="rect248876" />
+          <text
+             class="tiny-title"
+             x="31.5"
+             y="242"
+             id="text248878">I²C</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="47"
+             y="235"
+             width="25"
+             height="11"
+             rx="0.6"
+             id="rect248880" />
+          <text
+             class="tiny-title"
+             x="59.5"
+             y="242"
+             id="text248882">SMI</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="75"
+             y="235"
+             width="25"
+             height="11"
+             rx="0.6"
+             id="rect248884" />
+          <text
+             class="tiny-title"
+             x="87.5"
+             y="242"
+             id="text248886">SPI</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="103"
+             y="235"
+             width="24"
+             height="11"
+             rx="0.6"
+             id="rect248888" />
+          <text
+             class="tiny-title"
+             x="115"
+             y="242"
+             id="text248890">UART</text>
         </g>
-
-        <g id="f-system-commands" class="group group-bvstk">
-          <rect x="17" y="253" width="112" height="19" rx="0.8" />
-          <text class="group-title" x="19.5" y="260">Системные команды</text>
-          <rect class="module level-l4 bvstk" x="19" y="263" width="20" height="7" rx="0.5" />
-          <text class="tiny-title" x="29" y="268">FS</text>
-          <rect class="module level-l4 bvstk" x="41" y="263" width="20" height="7" rx="0.5" />
-          <text class="tiny-title" x="51" y="268">TAR</text>
-          <rect class="module level-l4 bvstk" x="63" y="263" width="20" height="7" rx="0.5" />
-          <text class="tiny-title" x="73" y="268">IP</text>
-          <rect class="module level-l4 bvstk" x="85" y="263" width="20" height="7" rx="0.5" />
-          <text class="tiny-title" x="95" y="268">MEM</text>
-          <rect class="module level-l4 bvstk" x="107" y="263" width="20" height="7" rx="0.5" />
-          <text class="tiny-title" x="117" y="268">SD-PL</text>
+        <g
+           id="f-system-commands"
+           class="group group-bvstk">
+          <rect
+             x="17"
+             y="253"
+             width="112"
+             height="19"
+             rx="0.8"
+             id="rect248893" />
+          <text
+             class="group-title"
+             x="19.5"
+             y="260"
+             id="text248895">Системные команды</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="19"
+             y="263"
+             width="20"
+             height="7"
+             rx="0.5"
+             id="rect248897" />
+          <text
+             class="tiny-title"
+             x="29"
+             y="268"
+             id="text248899">FS</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="41"
+             y="263"
+             width="20"
+             height="7"
+             rx="0.5"
+             id="rect248901" />
+          <text
+             class="tiny-title"
+             x="51"
+             y="268"
+             id="text248903">TAR</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="63"
+             y="263"
+             width="20"
+             height="7"
+             rx="0.5"
+             id="rect248905" />
+          <text
+             class="tiny-title"
+             x="73"
+             y="268"
+             id="text248907">IP</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="85"
+             y="263"
+             width="20"
+             height="7"
+             rx="0.5"
+             id="rect248909" />
+          <text
+             class="tiny-title"
+             x="95"
+             y="268"
+             id="text248911">MEM</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="107"
+             y="263"
+             width="20"
+             height="7"
+             rx="0.5"
+             id="rect248913" />
+          <text
+             class="tiny-title"
+             x="117"
+             y="268"
+             id="text248915">SD-PL</text>
         </g>
       </g>
-
       <!-- FreeRTOS · службы прикладного уровня -->
-      <g id="f-services" class="group group-bvstk">
-        <rect x="14" y="281" width="118" height="35" rx="1" />
-        <text class="group-title" x="18" y="289">Службы прикладного уровня</text>
-        <text class="group-origin origin-bvstk" x="129" y="289">BVSTK</text>
-        <rect class="module level-l4 bvstk" x="17" y="294" width="26" height="18" rx="0.6" />
-        <text class="tiny-title" x="30" y="301">DCP2 FS</text>
-        <text class="tiny-text" x="30" y="307">read · TAR</text>
-        <rect class="module level-l4 bvstk" x="46" y="294" width="26" height="18" rx="0.6" />
-        <text class="tiny-title" x="59" y="301">NOTIFY</text>
-        <text class="tiny-text" x="59" y="307">events</text>
-        <rect class="module level-l4 bvstk" x="75" y="294" width="26" height="18" rx="0.6" />
-        <text class="tiny-title" x="88" y="301">Потоки</text>
-        <text class="tiny-text" x="88" y="307">fake · tests</text>
-        <rect class="module level-l4 bvstk" x="104" y="294" width="25" height="18" rx="0.6" />
-        <text class="tiny-title" x="116.5" y="301">MQTT</text>
-        <text class="tiny-text" x="116.5" y="307">/ SNTP</text>
+      <g
+         id="f-services"
+         class="group group-bvstk">
+        <rect
+           x="14"
+           y="281"
+           width="118"
+           height="35"
+           rx="1"
+           id="rect248919" />
+        <text
+           class="group-title"
+           x="18"
+           y="289"
+           id="text248921">Службы</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="129"
+           y="289"
+           id="text248923">BVSTK</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="17"
+           y="294"
+           width="26"
+           height="18"
+           rx="0.6"
+           id="rect248925" />
+        <text
+           class="tiny-title"
+           x="30"
+           y="301"
+           id="text248927">Файлы</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="46"
+           y="294"
+           width="26"
+           height="18"
+           rx="0.6"
+           id="rect248929" />
+        <text
+           class="tiny-title"
+           x="59"
+           y="301"
+           id="text248931">События</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="75"
+           y="294"
+           width="26"
+           height="18"
+           rx="0.6"
+           id="rect248933" />
+        <text
+           class="tiny-title"
+           x="88"
+           y="301"
+           id="text248935">Потоковые данные</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="104"
+           y="294"
+           width="25"
+           height="18"
+           rx="0.6"
+           id="rect248937" />
+        <text
+           class="tiny-title"
+           x="116.5"
+           y="301"
+           id="text248939">Сетевые сценарии</text>
       </g>
-
       <!-- Общие части BVSTK · модели -->
-      <g id="c-models" class="group group-bvstk">
-        <rect x="151" y="38" width="118" height="73" rx="1" />
-        <text class="group-title" x="155" y="46">Модели состояния</text>
-        <text class="group-origin origin-bvstk" x="266" y="46">BVSTK</text>
-
-        <rect class="module level-l4 bvstk" x="154" y="50" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="181.5" y="57">Сеть</text>
-        <text class="module-text" x="181.5" y="63">IP · MAC · route</text>
-        <rect class="module level-l4 bvstk" x="213" y="50" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="240.5" y="57">I²C-устройства</text>
-        <text class="module-text" x="240.5" y="63">имя · адрес · регистры</text>
-
-        <rect class="module level-l4 bvstk" x="154" y="69" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="181.5" y="76">SMI PHY</text>
-        <text class="module-text" x="181.5" y="82">адрес · опрос · settings</text>
-        <rect class="module level-l4 bvstk" x="213" y="69" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="240.5" y="76">Политика</text>
-        <text class="module-text" x="240.5" y="82">allow · deny</text>
-
-        <rect class="module level-l4 bvstk" x="154" y="88" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="181.5" y="95">События</text>
-        <text class="module-text" x="181.5" y="101">source · bus · op</text>
-        <rect class="module level-l4 bvstk" x="213" y="88" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="240.5" y="95">Статусы</text>
-        <text class="module-text" x="240.5" y="101">OK · range · I/O</text>
+      <g
+         id="c-models"
+         class="group group-bvstk">
+        <rect
+           x="151"
+           y="38"
+           width="118"
+           height="73"
+           rx="1"
+           id="rect248942" />
+        <text
+           class="group-title"
+           x="155"
+           y="46"
+           id="text248944">Модели состояния</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="266"
+           y="46"
+           id="text248946">BVSTK</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="50"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248948" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="57"
+           id="text248950">Сеть</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="50"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248952" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="57"
+           id="text248954">Устройства</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="69"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248956" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="76"
+           id="text248958">Интерфейсы</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="69"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248960" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="76"
+           id="text248962">Политика</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="88"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248964" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="95"
+           id="text248966">События</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="88"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248968" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="95"
+           id="text248970">Статусы</text>
       </g>
-
-      <!-- Общие части BVSTK · протоколы и файловые контракты -->
-      <g id="c-contracts" class="group group-bvstk">
-        <rect x="151" y="115" width="118" height="95" rx="1" />
-        <text class="group-title" x="155" y="123">Контракты внешнего обмена</text>
-        <text class="group-origin origin-bvstk" x="266" y="123">BVSTK</text>
-
-        <rect class="module level-l4 bvstk" x="154" y="128" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="181.5" y="135">DCP2-кадр</text>
-        <text class="module-text" x="181.5" y="141">version · seq · body</text>
-        <rect class="module level-l4 bvstk" x="213" y="128" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="240.5" y="135">DCP2-управление</text>
-        <text class="module-text" x="240.5" y="141">PING · MEM · I²C · SMI</text>
-
-        <rect class="module level-l4 bvstk" x="154" y="147" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="181.5" y="154">DCP2 FS</text>
-        <text class="module-text" x="181.5" y="160">info · stat · read</text>
-        <rect class="module level-l4 bvstk" x="213" y="147" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="240.5" y="154">NOTIFY</text>
-        <text class="module-text" x="240.5" y="160">классы · фильтры</text>
-
-        <rect class="module level-l4 bvstk" x="154" y="166" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="181.5" y="173">HTTP</text>
-        <text class="module-text" x="181.5" y="179">request · body</text>
-        <rect class="module level-l4 bvstk" x="213" y="166" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="240.5" y="173">FS reader</text>
-        <text class="module-text" x="240.5" y="179">volume · file · dir</text>
-
-        <rect class="module level-l4 bvstk" x="154" y="185" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="181.5" y="192">Ответы и ошибки</text>
-        <text class="module-text" x="181.5" y="198">wire status</text>
-        <rect class="module level-l4 bvstk" x="213" y="185" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="240.5" y="192">Потоковые события</text>
-        <text class="module-text" x="240.5" y="198">timestamp · snapshot</text>
+      <!-- Общие части BVSTK · прикладные данные -->
+      <g
+         id="c-contracts"
+         class="group group-bvstk">
+        <rect
+           x="151"
+           y="115"
+           width="118"
+           height="95"
+           rx="1"
+           id="rect248973" />
+        <text
+           class="group-title"
+           x="155"
+           y="123"
+           id="text248975">Прикладные данные</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="266"
+           y="123"
+           id="text248977">BVSTK</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="128"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248979" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="135"
+           id="text248981">Команда</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="128"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248983" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="135"
+           id="text248985">Устройство</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="147"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248987" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="154"
+           id="text248989">Файл</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="147"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248991" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="154"
+           id="text248993">Событие</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="166"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248995" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="173"
+           id="text248997">Результат</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="166"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect248999" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="173"
+           id="text249001">Поток</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="185"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect249003" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="192"
+           id="text249005">Ошибка</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="185"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect249007" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="192"
+           id="text249009">Уведомление</text>
       </g>
-
       <!-- Общие части BVSTK · конфигурация -->
-      <g id="c-config" class="group group-bvstk">
-        <rect x="151" y="214" width="118" height="47" rx="1" />
-        <text class="group-title" x="155" y="222">Конфигурация</text>
-        <text class="group-origin origin-bvstk" x="266" y="222">BVSTK</text>
-        <rect class="module level-l4 bvstk" x="154" y="227" width="55" height="27" rx="0.8" />
-        <text class="module-title" x="181.5" y="237">JSON-кодек</text>
-        <text class="module-text" x="181.5" y="244">parse · validate</text>
-        <text class="module-text" x="181.5" y="250">serialize</text>
-        <rect class="module level-l4 bvstk" x="213" y="227" width="55" height="27" rx="0.8" />
-        <text class="module-title" x="240.5" y="237">Жизненный цикл</text>
-        <text class="module-text" x="240.5" y="244">defaults · load</text>
-        <text class="module-text" x="240.5" y="250">apply · save</text>
+      <g
+         id="c-config"
+         class="group group-bvstk">
+        <rect
+           x="151"
+           y="214"
+           width="118"
+           height="47"
+           rx="1"
+           id="rect249012" />
+        <text
+           class="group-title"
+           x="155"
+           y="222"
+           id="text249014">Конфигурация</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="266"
+           y="222"
+           id="text249016">BVSTK</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="227"
+           width="55"
+           height="27"
+           rx="0.8"
+           id="rect249018" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="237"
+           id="text249020">Модель конфигурации</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="227"
+           width="55"
+           height="27"
+           rx="0.8"
+           id="rect249022" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="237"
+           id="text249024">Жизненный цикл</text>
       </g>
-
       <!-- Общие части BVSTK · вложенные пользовательские примитивы -->
-      <g id="c-primitives" class="group group-bvstk">
-        <rect x="151" y="265" width="118" height="51" rx="1" />
-        <text class="group-title" x="155" y="273">Пользовательские примитивы</text>
-        <text class="group-origin origin-bvstk" x="266" y="273">BVSTK</text>
-        <rect class="module level-l4 bvstk" x="154" y="278" width="55" height="14" rx="0.8" />
-        <text class="module-title" x="181.5" y="286">Строковый редактор</text>
-        <text class="module-text" x="181.5" y="290">line · history</text>
-        <rect class="module level-l4 bvstk" x="213" y="278" width="55" height="14" rx="0.8" />
-        <text class="module-title" x="240.5" y="286">Дополнение</text>
-        <text class="module-text" x="240.5" y="290">I²C · path</text>
-        <rect class="module level-l4 bvstk" x="154" y="295" width="55" height="14" rx="0.8" />
-        <text class="module-title" x="181.5" y="303">Разбор значений</text>
-        <text class="module-text" x="181.5" y="307">числа · endian</text>
-        <rect class="module level-l4 bvstk" x="213" y="295" width="55" height="14" rx="0.8" />
-        <text class="module-title" x="240.5" y="303">Управляющий фасад</text>
-        <text class="module-text" x="240.5" y="307">I²C · SMI · SPI</text>
+      <g
+         id="c-primitives"
+         class="group group-bvstk">
+        <rect
+           x="151"
+           y="265"
+           width="118"
+           height="51"
+           rx="1"
+           id="rect249027" />
+        <text
+           class="group-title"
+           x="155"
+           y="273"
+           id="text249029">Примитивы</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="266"
+           y="273"
+           id="text249031">BVSTK</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="278"
+           width="55"
+           height="14"
+           rx="0.8"
+           id="rect249033" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="286"
+           id="text249035">Строковый редактор</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="278"
+           width="55"
+           height="14"
+           rx="0.8"
+           id="rect249037" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="286"
+           id="text249039">Дополнение</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="154"
+           y="295"
+           width="55"
+           height="14"
+           rx="0.8"
+           id="rect249041" />
+        <text
+           class="module-title"
+           x="181.5"
+           y="303"
+           id="text249043">Разбор значений</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="213"
+           y="295"
+           width="55"
+           height="14"
+           rx="0.8"
+           id="rect249045" />
+        <text
+           class="module-title"
+           x="240.5"
+           y="303"
+           id="text249047">Командный фасад</text>
       </g>
-
       <!-- Нейтрино · программы BVSTK с вложенными группами -->
-      <g id="n-processes" class="group group-bvstk">
-        <rect x="288" y="38" width="118" height="108" rx="1" />
-        <text class="group-title" x="292" y="46">Процессы BVSTK</text>
-        <text class="group-origin origin-bvstk" x="403" y="46">BVSTK</text>
-
-        <g id="n-daemon" class="group group-bvstk">
-          <rect x="291" y="51" width="112" height="34" rx="0.8" />
-          <text class="group-title" x="293.5" y="58">Сервисный процесс</text>
-          <rect class="module level-l4 bvstk" x="293" y="62" width="34" height="18" rx="0.6" />
-          <text class="tiny-title" x="310" y="69">bvstkd</text>
-          <text class="tiny-text" x="310" y="75">владелец</text>
-          <rect class="module level-l4 bvstk" x="330" y="62" width="34" height="18" rx="0.6" />
-          <text class="tiny-title" x="347" y="69">DCP2</text>
-          <text class="tiny-text" x="347" y="75">server</text>
-          <rect class="module level-l4 bvstk" x="367" y="62" width="34" height="18" rx="0.6" />
-          <text class="tiny-title" x="384" y="69">I²C runtime</text>
-          <text class="tiny-text" x="384" y="75">state</text>
+      <g
+         id="n-processes"
+         class="group group-bvstk">
+        <rect
+           x="288"
+           y="38"
+           width="118"
+           height="108"
+           rx="1"
+           id="rect249050" />
+        <text
+           class="group-title"
+           x="292"
+           y="46"
+           id="text249052">Процессы BVSTK</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="403"
+           y="46"
+           id="text249054">BVSTK</text>
+        <g
+           id="n-daemon"
+           class="group group-bvstk">
+          <rect
+             x="291"
+             y="51"
+             width="112"
+             height="34"
+             rx="0.8"
+             id="rect249056" />
+          <text
+             class="group-title"
+             x="293.5"
+             y="58"
+             id="text249058">Процесс bvstkd</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="293"
+             y="62"
+             width="34"
+             height="18"
+             rx="0.6"
+             id="rect249060" />
+          <text
+             class="tiny-title"
+             x="310"
+             y="69"
+             id="text249062">bvstkd</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="330"
+             y="62"
+             width="34"
+             height="18"
+             rx="0.6"
+             id="rect249064" />
+          <text
+             class="tiny-title"
+             x="347"
+             y="69"
+             id="text249066">Запросы</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="367"
+             y="62"
+             width="34"
+             height="18"
+             rx="0.6"
+             id="rect249068" />
+          <text
+             class="tiny-title"
+             x="384"
+             y="69"
+             id="text249070">Состояние устройств</text>
         </g>
-
-        <g id="n-clients" class="group group-bvstk">
-          <rect x="291" y="89" width="55" height="49" rx="0.8" />
-          <text class="group-title" x="293.5" y="96">Клиенты</text>
-          <rect class="module level-l4 bvstk" x="293" y="101" width="51" height="14" rx="0.6" />
-          <text class="module-title" x="318.5" y="109">i2c</text>
-          <text class="module-text" x="318.5" y="113">CLI</text>
-          <rect class="module level-l4 bvstk" x="293" y="119" width="51" height="14" rx="0.6" />
-          <text class="module-title" x="318.5" y="127">bvstkctl</text>
-          <text class="module-text" x="318.5" y="131">PL · I²C</text>
+        <g
+           id="n-clients"
+           class="group group-bvstk">
+          <rect
+             x="291"
+             y="89"
+             width="55"
+             height="49"
+             rx="0.8"
+             id="rect249073" />
+          <text
+             class="group-title"
+             x="293.5"
+             y="96"
+             id="text249075">Клиенты</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="293"
+             y="101"
+             width="51"
+             height="14"
+             rx="0.6"
+             id="rect249077" />
+          <text
+             class="module-title"
+             x="318.5"
+             y="109"
+             id="text249079">Командный клиент</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="293"
+             y="119"
+             width="51"
+             height="14"
+             rx="0.6"
+             id="rect249081" />
+          <text
+             class="module-title"
+             x="318.5"
+             y="127"
+             id="text249083">Диагностический клиент</text>
         </g>
-
-        <g id="n-shell" class="group group-bvstk">
-          <rect x="349" y="89" width="54" height="49" rx="0.8" />
-          <text class="group-title" x="351.5" y="96">Оболочка</text>
-          <rect class="module level-l4 bvstk" x="351" y="101" width="50" height="14" rx="0.6" />
-          <text class="module-title" x="376" y="109">bvstk-shell</text>
-          <text class="module-text" x="376" y="113">wrapper</text>
-          <rect class="module level-l4 bvstk" x="351" y="119" width="50" height="14" rx="0.6" />
-          <text class="module-title" x="376" y="127">Редактор</text>
-          <text class="module-text" x="376" y="131">+ completion</text>
+        <g
+           id="n-shell"
+           class="group group-bvstk">
+          <rect
+             x="349"
+             y="89"
+             width="54"
+             height="49"
+             rx="0.8"
+             id="rect249086" />
+          <text
+             class="group-title"
+             x="351.5"
+             y="96"
+             id="text249088">Оболочка</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="351"
+             y="101"
+             width="50"
+             height="14"
+             rx="0.6"
+             id="rect249090" />
+          <text
+             class="module-title"
+             x="376"
+             y="109"
+             id="text249092">bvstk-shell</text>
+          <rect
+             class="module level-l4 bvstk"
+             x="351"
+             y="119"
+             width="50"
+             height="14"
+             rx="0.6"
+             id="rect249094" />
+          <text
+             class="module-title"
+             x="376"
+             y="127"
+             id="text249096">Редактор</text>
         </g>
       </g>
-
-      <!-- Нейтрино · прикладные сценарии и OS-граница -->
-      <g id="n-control" class="group group-mixed">
-        <rect x="288" y="150" width="118" height="76" rx="1" />
-        <text class="group-title" x="292" y="158">Управление и IPC</text>
-        <text class="group-origin muted" x="403" y="158">BVSTK + адаптеры</text>
-
-        <rect class="module level-l4 bvstk" x="291" y="163" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="318.5" y="170">I²C CLI</text>
-        <text class="module-text" x="318.5" y="176">list · read/write · policy</text>
-        <rect class="module level-l4 bvstk" x="349" y="163" width="54" height="16" rx="0.8" />
-        <text class="module-title" x="376" y="170">PL-диагностика</text>
-        <text class="module-text" x="376" y="176">list · probe · r/w</text>
-
-        <rect class="module level-l4 bvstk" x="291" y="182" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="318.5" y="189">DCP2-управление</text>
-        <text class="module-text" x="318.5" y="195">PING · MEM · I²C</text>
-        <rect class="module level-l4 bvstk" x="349" y="182" width="54" height="16" rx="0.8" />
-        <text class="module-title" x="376" y="189">Конфигурация</text>
-        <text class="module-text" x="376" y="195">load · apply · save</text>
-
-        <rect class="module level-l4 adapter" x="291" y="201" width="55" height="16" rx="0.8" />
-        <text class="module-title" x="318.5" y="208">/dev/bvstk-i2c</text>
-        <text class="module-text" x="318.5" y="214">devctl · IPC</text>
-        <rect class="module level-l4 bvstk" x="349" y="201" width="54" height="16" rx="0.8" />
-        <text class="module-title" x="376" y="208">DCP2 socket</text>
-        <text class="module-text" x="376" y="214">8889/TCP</text>
+      <!-- Нейтрино · прикладные сценарии -->
+      <g
+         id="n-control"
+         class="group group-bvstk">
+        <rect
+           x="288"
+           y="150"
+           width="118"
+           height="76"
+           rx="1"
+           id="rect249100" />
+        <text
+           class="group-title"
+           x="292"
+           y="158"
+           id="text249102">Прикладные сценарии</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="403"
+           y="158"
+           id="text249104">BVSTK</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="291"
+           y="163"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect249106" />
+        <text
+           class="module-title"
+           x="318.5"
+           y="170"
+           id="text249108">Команды устройств</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="349"
+           y="163"
+           width="54"
+           height="16"
+           rx="0.8"
+           id="rect249110" />
+        <text
+           class="module-title"
+           x="376"
+           y="170"
+           id="text249112">PL-диагностика</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="291"
+           y="182"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect249114" />
+        <text
+           class="module-title"
+           x="318.5"
+           y="189"
+           id="text249116">Удалённое управление</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="349"
+           y="182"
+           width="54"
+           height="16"
+           rx="0.8"
+           id="rect249118" />
+        <text
+           class="module-title"
+           x="376"
+           y="189"
+           id="text249120">Конфигурация</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="291"
+           y="201"
+           width="55"
+           height="16"
+           rx="0.8"
+           id="rect249122" />
+        <text
+           class="module-title"
+           x="318.5"
+           y="208"
+           id="text249124">Клиент устройств</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="349"
+           y="201"
+           width="54"
+           height="16"
+           rx="0.8"
+           id="rect249126" />
+        <text
+           class="module-title"
+           x="376"
+           y="208"
+           id="text249128">Удалённые команды</text>
       </g>
-
-      <!-- Нейтрино · файловые адаптеры -->
-      <g id="n-storage" class="group group-mixed">
-        <rect x="288" y="230" width="118" height="43" rx="1" />
-        <text class="group-title" x="292" y="238">Файловая среда</text>
-        <text class="group-origin origin-adapter" x="403" y="238">адаптеры</text>
-        <rect class="module level-l4 adapter" x="291" y="243" width="55" height="23" rx="0.8" />
-        <text class="module-title" x="318.5" y="252">QSPI backend</text>
-        <text class="module-text" x="318.5" y="259">/flash</text>
-        <rect class="module level-l4 adapter" x="349" y="243" width="54" height="23" rx="0.8" />
-        <text class="module-title" x="376" y="252">PS SD backend</text>
-        <text class="module-text" x="376" y="259">/sd</text>
+      <!-- Нейтрино · файловые сценарии -->
+      <g
+         id="n-storage"
+         class="group group-bvstk">
+        <rect
+           x="288"
+           y="230"
+           width="118"
+           height="43"
+           rx="1"
+           id="rect249131" />
+        <text
+           class="group-title"
+           x="292"
+           y="238"
+           id="text249133">Файловые сценарии</text>
+        <text
+           class="group-origin origin-bvstk"
+           x="403"
+           y="238"
+           id="text249135">BVSTK</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="291"
+           y="243"
+           width="55"
+           height="23"
+           rx="0.8"
+           id="rect249137" />
+        <text
+           class="module-title"
+           x="318.5"
+           y="252"
+           id="text249139">Файлы QSPI</text>
+        <rect
+           class="module level-l4 bvstk"
+           x="349"
+           y="243"
+           width="54"
+           height="23"
+           rx="0.8"
+           id="rect249141" />
+        <text
+           class="module-title"
+           x="376"
+           y="252"
+           id="text249143">Файлы SD</text>
       </g>
-
       <!-- Нейтрино · нативная среда -->
-      <g id="n-native" class="group group-os">
-        <rect x="288" y="277" width="118" height="39" rx="1" />
-        <text class="group-title" x="292" y="285">Нативные приложения ОС</text>
-        <text class="group-origin origin-os" x="403" y="285">ОС</text>
-        <rect class="module level-l4 native" x="291" y="290" width="35" height="20" rx="0.8" />
-        <text class="tiny-title" x="308.5" y="299">ksh</text>
-        <text class="tiny-text" x="308.5" y="306">shell</text>
-        <rect class="module level-l4 native" x="329" y="290" width="35" height="20" rx="0.8" />
-        <text class="tiny-title" x="346.5" y="299">OpenSSH</text>
-        <text class="tiny-text" x="346.5" y="306">sshd</text>
-        <rect class="module level-l4 native" x="367" y="290" width="34" height="20" rx="0.8" />
-        <text class="tiny-title" x="384" y="299">POSIX tools</text>
-        <text class="tiny-text" x="384" y="306">ls · cp · mount</text>
+      <g
+         id="n-native"
+         class="group group-os">
+        <rect
+           x="288"
+           y="277"
+           width="118"
+           height="39"
+           rx="1"
+           id="rect249146" />
+        <text
+           class="group-title"
+           x="292"
+           y="285"
+           id="text249148">Нативные приложения</text>
+        <text
+           class="group-origin origin-os"
+           x="403"
+           y="285"
+           id="text249150">ОС</text>
+        <rect
+           class="module level-l4 native"
+           x="291"
+           y="290"
+           width="35"
+           height="20"
+           rx="0.8"
+           id="rect249152" />
+        <text
+           class="tiny-title"
+           x="308.5"
+           y="299"
+           id="text249154">ksh</text>
+        <rect
+           class="module level-l4 native"
+           x="329"
+           y="290"
+           width="35"
+           height="20"
+           rx="0.8"
+           id="rect249156" />
+        <text
+           class="tiny-title"
+           x="346.5"
+           y="299"
+           id="text249158">OpenSSH</text>
+        <rect
+           class="module level-l4 native"
+           x="367"
+           y="290"
+           width="34"
+           height="20"
+           rx="0.8"
+           id="rect249160" />
+        <text
+           class="tiny-title"
+           x="384"
+           y="299"
+           id="text249162">POSIX tools</text>
       </g>
+    </g>
+    <g
+       id="legend"
+       inkscape:label="Обозначения"
+       transform="translate(0,7)">
+      <line
+         class="legend-panel"
+         x1="14"
+         y1="329"
+         x2="23"
+         y2="329"
+         id="line249176" />
+      <text
+         class="legend-text"
+         x="26"
+         y="331"
+         id="text249178">граница панели</text>
+      <line
+         class="legend-os-panel"
+         x1="55"
+         y1="329"
+         x2="64"
+         y2="329"
+         id="line249180" />
+      <text
+         class="legend-text"
+         x="67"
+         y="331"
+         id="text249182">граница ОС</text>
+      <rect
+         class="legend-native"
+         x="100"
+         y="327"
+         width="14"
+         height="4"
+         rx="0.5"
+         id="rect249181" />
+      <text
+         class="legend-text legend-label legend-origin origin-os"
+         x="107"
+         y="330"
+         id="text249183">ОС</text>
+      <text
+         class="legend-text"
+         x="118"
+         y="331"
+         id="text249184">нативная часть</text>
+      <rect
+         class="legend-swatch common-panel"
+         x="171"
+         y="327"
+         width="14"
+         height="4"
+         rx="0.5"
+         id="rect249179" />
+      <text
+         class="legend-text legend-label legend-origin origin-bvstk"
+         x="178"
+         y="330"
+         id="text249186">BVSTK</text>
+      <text
+         class="legend-text"
+         x="189"
+         y="331"
+         id="text249187">общий код для обеих ОС</text>
     </g>
   </g>
 </svg>

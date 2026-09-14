@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="420mm"
-   height="330mm"
-   viewBox="0 0 420 330"
+   height="350mm"
+   viewBox="0 0 420 350"
    version="1.1"
    id="bvstk-l1-architecture"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
@@ -15,12 +15,12 @@
   <desc id="description">
     Детализация платформенного уровня L1 проекта BVSTK. В каждом столбце
     крупные блоки раскрыты вложенными группами и сущностями. Слева показаны
-    нативный порт FreeRTOS и Xilinx BSP вместе с адаптерами BVSTK,
+    порт FreeRTOS и Xilinx BSP вместе с адаптерами BVSTK,
     в центре — общие контракты платформы, MMIO, времени, синхронизации,
-    IRQ, вывода и таблица регионов PL, справа — POSIX/BSP Нейтрино и его
-    системные адаптеры. Все видимые функциональные блоки относятся к L1;
-    примитивы ядра ОС не выдаются за блоки L1 и упоминаются только как
-    API-зависимости адаптеров.
+    IRQ, вывода и доступ к регионам PL, справа — Zynq BSP Нейтрино и его
+    системные адаптеры. Ядро ОС и его примитивы не выдаются за блоки L1:
+    они остаются зависимостями портов, а здесь показаны только реализации
+    аппаратной и системной адаптации.
   </desc>
   <sodipodi:namedview
      id="namedview"
@@ -45,8 +45,8 @@
       .tiny-title { font-size: 1.9px; font-weight: 700; }
       .tiny-text { font-size: 1.55px; font-weight: 500; }
       .muted { fill: #536473; }
-      .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.55; stroke-linejoin: round; }
-      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.6; stroke-linejoin: round; }
+      .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.85; stroke-linejoin: round; }
+      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.5; stroke-linejoin: round; }
       .common-panel { fill: #fbfdfb; stroke: #36794c; stroke-width: 0.65; stroke-dasharray: 2.8 1.6; stroke-linejoin: round; }
       .group { stroke-width: 0.42; stroke-linejoin: round; }
       .group-bvstk { fill: #f9fdfc; stroke: #287f73; stroke-dasharray: 2 1.2; }
@@ -59,6 +59,17 @@
       .origin-bvstk { fill: #287f73; }
       .origin-adapter { fill: #b56b1d; }
       .origin-os { fill: #536473; }
+      .legend-title { font-size: 1.7px; font-weight: 700; text-anchor: start; }
+      .legend-text { font-size: 1.65px; font-weight: 500; text-anchor: start; }
+      .legend-label { text-anchor: middle; }
+      .legend-origin { font-size: 1.85px; font-weight: 700; letter-spacing: 0.04px; }
+      .legend-swatch { stroke-width: 0.45; }
+      .legend-line { fill: none; stroke-width: 0.55; }
+      .legend-panel { fill: none; stroke: #536473; stroke-width: 0.85; }
+      .legend-os-panel { fill: none; stroke: #536473; stroke-width: 0.5; }
+      .legend-native { fill: #fbfbfb; stroke: #536473; stroke-width: 0.42; }
+      .legend-adapter { fill: #ffffff; stroke: #536473; stroke-width: 0.42; stroke-dasharray: none; }
+      .legend-divider { stroke: #c4ccd3; stroke-width: 0.4; }
       /* Единая палитра уровней из levels.svg и interaction-схем. */
       .level-l0 { fill: #e9eef3; stroke: #607487; }
       .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
@@ -77,173 +88,170 @@
       <rect id="neutrino-panel" class="os-panel" x="284" y="14" width="126" height="306" rx="2" />
 
       <text id="freertos-title" class="panel-title" x="73" y="25">FreeRTOS · L1</text>
-      <text id="freertos-subtitle" class="panel-subtitle muted" x="73" y="31">BSP и OS-порт BVSTK</text>
       <text id="common-title" class="panel-title" x="210" y="25">Общие части BVSTK · L1</text>
-      <text id="common-subtitle" class="panel-subtitle muted" x="210" y="31">платформенные контракты и доступ к PL</text>
       <text id="neutrino-title" class="panel-title" x="347" y="25">ЗОСРВ «Нейтрино» · L1</text>
-      <text id="neutrino-subtitle" class="panel-subtitle muted" x="347" y="31">POSIX/BSP и системные адаптеры</text>
 
       <!-- FreeRTOS · нативная среда -->
       <g id="f-native" class="group group-os">
         <rect x="14" y="38" width="118" height="49" rx="1" />
-        <text class="group-title" x="18" y="46">Нативный порт и BSP</text>
+        <text class="group-title" x="18" y="46">Нативный порт</text>
         <text class="group-origin origin-os" x="129" y="46">ОС</text>
 
         <g id="f-rtos-port" class="group group-os" data-l0-ref="f-irq-api,f-timer-port">
           <rect x="17" y="50" width="55" height="33" rx="0.8" />
           <text class="group-title" x="19.5" y="57">Порт FreeRTOS</text>
           <rect class="module level-l1 native" x="19" y="61" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="67">Таймерный порт</text>
+          <text class="tiny-title" x="44.5" y="67">Таймер</text>
           <rect class="module level-l1 native" x="19" y="71" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="77">Порт FreeRTOS</text>
+          <text class="tiny-title" x="44.5" y="77">Tick port</text>
         </g>
 
         <g id="f-xilinx-bsp" class="group group-os" data-l0-ref="f-mmio,f-gic-bsp">
           <rect x="74" y="50" width="55" height="33" rx="0.8" />
           <text class="group-title" x="76.5" y="57">Xilinx BSP</text>
           <rect class="module level-l1 native" x="76" y="61" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="67">Xilinx BSP: MMIO</text>
+          <text class="tiny-title" x="101.5" y="67">MMIO</text>
           <rect class="module level-l1 native" x="76" y="71" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="77">Xilinx BSP: GIC</text>
+          <text class="tiny-title" x="101.5" y="77">GIC</text>
         </g>
       </g>
 
       <!-- FreeRTOS · OS-порт -->
       <g id="f-adapters" class="group group-mixed">
         <rect x="14" y="92" width="118" height="97" rx="1" />
-        <text class="group-title" x="18" y="100">OS-порт BVSTK</text>
+        <text class="group-title" x="18" y="100">Адаптеры</text>
         <text class="group-origin origin-adapter" x="129" y="100">адаптеры</text>
 
         <g id="f-platform-mmio" class="group group-mixed" data-l0-ref="f-region">
           <rect x="17" y="105" width="55" height="42" rx="0.8" />
-          <text class="group-title" x="19.5" y="112">Платформа и MMIO</text>
+          <text class="group-title" x="19.5" y="112">MMIO</text>
           <rect class="module level-l1 adapter" x="19" y="116" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="122">platform init</text>
+          <text class="tiny-title" x="44.5" y="122">init</text>
           <rect class="module level-l1 adapter" x="19" y="126" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="132">Адресный регион</text>
+          <text class="tiny-title" x="44.5" y="132">region</text>
           <rect class="module level-l1 adapter" x="19" y="136" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="142">Xil_In32 · Xil_Out32</text>
+          <text class="tiny-title" x="44.5" y="142">read и write</text>
         </g>
 
         <g id="f-time-sync" class="group group-mixed">
           <rect x="74" y="105" width="55" height="42" rx="0.8" />
           <text class="group-title" x="76.5" y="112">Время и sync</text>
           <rect class="module level-l1 adapter" x="76" y="116" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="122">now_ms ← tick API</text>
+          <text class="tiny-title" x="101.5" y="122">now_ms</text>
           <rect class="module level-l1 adapter" x="76" y="126" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="132">sleep_ms → tick API</text>
+          <text class="tiny-title" x="101.5" y="132">sleep_ms</text>
           <rect class="module level-l1 adapter" x="76" y="136" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="142">lock/unlock → sync API</text>
+          <text class="tiny-title" x="101.5" y="142">lock и unlock</text>
         </g>
 
         <g id="f-irq-output" class="group group-mixed" data-l0-ref="f-irq-attach">
           <rect x="17" y="151" width="55" height="32" rx="0.8" />
           <text class="group-title" x="19.5" y="158">IRQ</text>
           <rect class="module level-l1 adapter" x="19" y="162" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="168">Подключение IRQ</text>
+          <text class="tiny-title" x="44.5" y="168">attach</text>
           <rect class="module level-l1 adapter" x="19" y="172" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="178">ISR: захват состояния</text>
+          <text class="tiny-title" x="44.5" y="178">ISR</text>
         </g>
 
         <g id="f-output" class="group group-mixed" data-l0-ref="f-uart">
           <rect x="74" y="151" width="55" height="32" rx="0.8" />
           <text class="group-title" x="76.5" y="158">Вывод</text>
           <rect class="module level-l1 adapter" x="76" y="162" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="168">UART: аппаратный вывод</text>
+          <text class="tiny-title" x="101.5" y="168">UART</text>
           <rect class="module level-l1 adapter" x="76" y="172" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="178">output callback</text>
+          <text class="tiny-title" x="101.5" y="178">output</text>
         </g>
       </g>
 
       <!-- FreeRTOS · конкретные системные контексты -->
       <g id="f-contexts" class="group group-mixed">
         <rect x="14" y="194" width="118" height="122" rx="1" />
-        <text class="group-title" x="18" y="202">Портовые контексты</text>
+        <text class="group-title" x="18" y="202">Контексты</text>
         <text class="group-origin origin-adapter" x="129" y="202">адаптеры</text>
 
         <g id="f-i2c-context" class="group group-mixed" data-l0-ref="f-irq-entry,f-irq-handler">
           <rect x="17" y="207" width="55" height="98" rx="0.8" />
-          <text class="group-title" x="19.5" y="214">PL Slave</text>
+          <text class="group-title" x="19.5" y="214">PL Slave port</text>
           <rect class="module level-l1 adapter" x="19" y="218" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="44.5" y="226">PL Slave</text>
+          <text class="module-small" x="44.5" y="226">IRQ</text>
           <rect class="module level-l1 adapter" x="19" y="234" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="44.5" y="242">event handoff</text>
+          <text class="module-small" x="44.5" y="242">events</text>
           <rect class="module level-l1 adapter" x="19" y="250" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="44.5" y="258">deferred handler</text>
+          <text class="module-small" x="44.5" y="258">deferred</text>
           <rect class="module level-l1 adapter" x="19" y="266" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="44.5" y="274">state handoff</text>
+          <text class="module-small" x="44.5" y="274">state</text>
           <rect class="module level-l1 adapter" x="19" y="282" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="44.5" y="290">frame · read window</text>
+          <text class="module-small" x="44.5" y="290">read window</text>
         </g>
 
         <g id="f-media-context" class="group group-mixed" data-l0-ref="f-qspi,f-sd-map,f-sd-control,f-dma-addresses,f-dma-cache,f-ethernet-rings,f-ethernet-control">
           <rect x="74" y="207" width="55" height="98" rx="0.8" />
-          <text class="group-title" x="76.5" y="214">Носители, DMA и Ethernet</text>
+          <text class="group-title" x="76.5" y="214">Носители и обмен</text>
           <rect class="module level-l1 adapter" x="76" y="218" width="51" height="10" rx="0.5" />
-          <text class="module-small" x="101.5" y="225">QSPI: доступ через BSP</text>
+          <text class="module-small" x="101.5" y="225">QSPI</text>
           <rect class="module level-l1 adapter" x="76" y="230" width="51" height="10" rx="0.5" />
-          <text class="module-small" x="101.5" y="237">Дисковый адаптер</text>
+          <text class="module-small" x="101.5" y="237">SD</text>
           <rect class="module level-l1 adapter" x="76" y="242" width="51" height="10" rx="0.5" />
-          <text class="module-small" x="101.5" y="249">Запуск ADMA</text>
+          <text class="module-small" x="101.5" y="249">передача данных</text>
           <rect class="module level-l1 adapter" x="76" y="254" width="51" height="10" rx="0.5" />
-          <text class="module-small" x="101.5" y="261">Буферы DMA</text>
+          <text class="module-small" x="101.5" y="261">buffers</text>
           <rect class="module level-l1 adapter" x="76" y="266" width="51" height="10" rx="0.5" />
-          <text class="module-small" x="101.5" y="273">Кэш CPU</text>
+          <text class="module-small" x="101.5" y="273">cache</text>
           <rect class="module level-l1 adapter" x="76" y="278" width="51" height="10" rx="0.5" />
-          <text class="module-small" x="101.5" y="285">Кольца TX и RX</text>
+          <text class="module-small" x="101.5" y="285">сетевой обмен</text>
           <rect class="module level-l1 adapter" x="76" y="290" width="51" height="10" rx="0.5" />
-          <text class="module-small" x="101.5" y="297">Управление MAC</text>
+          <text class="module-small" x="101.5" y="297">буферы сети</text>
         </g>
       </g>
 
       <!-- Общие части BVSTK · контракты -->
       <g id="c-contracts" class="group group-bvstk">
         <rect x="151" y="38" width="118" height="110" rx="1" />
-        <text class="group-title" x="155" y="46">Общие платформенные контракты</text>
+        <text class="group-title" x="155" y="46">Контракты</text>
         <text class="group-origin origin-bvstk" x="266" y="46">BVSTK</text>
 
         <g id="c-platform-contract" class="group group-bvstk">
           <rect x="154" y="50" width="55" height="43" rx="0.8" />
           <text class="group-title" x="156.5" y="57">Платформа</text>
           <rect class="module level-l1 bvstk" x="156" y="61" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="181.5" y="67">name · init</text>
+          <text class="tiny-title" x="181.5" y="67">name и init</text>
           <rect class="module level-l1 bvstk" x="156" y="71" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="181.5" y="77">shutdown · ready</text>
+          <text class="tiny-title" x="181.5" y="77">shutdown и ready</text>
           <rect class="module level-l1 bvstk" x="156" y="81" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="181.5" y="87">портовый context</text>
+          <text class="tiny-title" x="181.5" y="87">context</text>
         </g>
 
         <g id="c-clock-contract" class="group group-bvstk">
           <rect x="154" y="98" width="55" height="43" rx="0.8" />
-          <text class="group-title" x="156.5" y="105">Часы и ожидание</text>
+          <text class="group-title" x="156.5" y="105">Время</text>
           <rect class="module level-l1 bvstk" x="156" y="109" width="51" height="8" rx="0.5" />
           <text class="tiny-title" x="181.5" y="115">now_ms</text>
           <rect class="module level-l1 bvstk" x="156" y="119" width="51" height="8" rx="0.5" />
           <text class="tiny-title" x="181.5" y="125">sleep_ms</text>
           <rect class="module level-l1 bvstk" x="156" y="129" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="181.5" y="135">миллисекунды · context</text>
+          <text class="tiny-title" x="181.5" y="135">ms и context</text>
         </g>
 
         <g id="c-mmio-contract" class="group group-bvstk">
           <rect x="213" y="50" width="55" height="91" rx="0.8" />
           <text class="group-title" x="215.5" y="57">MMIO</text>
           <rect class="module level-l1 bvstk" x="215" y="61" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="240.5" y="69">region open · close</text>
+          <text class="module-small" x="240.5" y="69">map и unmap</text>
           <rect class="module level-l1 bvstk" x="215" y="77" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="240.5" y="85">base · size · mapped</text>
+          <text class="module-small" x="240.5" y="85">base и size</text>
           <rect class="module level-l1 bvstk" x="215" y="93" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="240.5" y="101">read32 · write32</text>
+          <text class="module-small" x="240.5" y="101">read и write</text>
           <rect class="module level-l1 bvstk" x="215" y="109" width="51" height="13" rx="0.6" />
-          <text class="module-small" x="240.5" y="117">alignment · bounds</text>
+          <text class="module-small" x="240.5" y="117">bounds</text>
           <rect class="module level-l1 bvstk" x="215" y="125" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="240.5" y="132">32-bit access</text>
+          <text class="tiny-title" x="240.5" y="132">32-bit</text>
         </g>
       </g>
 
       <!-- Общие части BVSTK · sync, IRQ и вывод -->
       <g id="c-interaction-contracts" class="group group-bvstk">
         <rect x="151" y="154" width="118" height="80" rx="1" />
-        <text class="group-title" x="155" y="162">Синхронизация, события и вывод</text>
+        <text class="group-title" x="155" y="162">Синхронизация и IRQ</text>
         <text class="group-origin origin-bvstk" x="266" y="162">BVSTK</text>
 
         <g id="c-sync-contract" class="group group-bvstk">
@@ -252,38 +260,38 @@
           <rect class="module level-l1 bvstk" x="156" y="177" width="51" height="11" rx="0.6" />
           <text class="tiny-title" x="181.5" y="184">context</text>
           <rect class="module level-l1 bvstk" x="156" y="191" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="181.5" y="198">lock(timeout_ms)</text>
+          <text class="tiny-title" x="181.5" y="198">lock</text>
           <rect class="module level-l1 bvstk" x="156" y="205" width="51" height="11" rx="0.6" />
           <text class="tiny-title" x="181.5" y="212">unlock</text>
         </g>
 
         <g id="c-irq-output-contract" class="group group-bvstk">
           <rect x="213" y="166" width="55" height="59" rx="0.8" />
-          <text class="group-title" x="215.5" y="173">Подключение IRQ</text>
+          <text class="group-title" x="215.5" y="173">IRQ</text>
           <rect class="module level-l1 bvstk" x="215" y="177" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="240.5" y="184">attach · detach</text>
+          <text class="tiny-title" x="240.5" y="184">attach</text>
           <rect class="module level-l1 bvstk" x="215" y="191" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="240.5" y="198">enable · disable</text>
+          <text class="tiny-title" x="240.5" y="198">enable</text>
           <rect class="module level-l1 bvstk" x="215" y="205" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="240.5" y="212">write(context)</text>
+          <text class="tiny-title" x="240.5" y="212">handler</text>
         </g>
       </g>
 
       <!-- Общие части BVSTK · таблица регионов -->
       <g id="c-pl-access" class="group group-bvstk">
         <rect x="151" y="240" width="118" height="76" rx="1" />
-        <text class="group-title" x="155" y="248">PL-доступ и жизненный цикл</text>
+        <text class="group-title" x="155" y="248">PL-доступ</text>
         <text class="group-origin origin-bvstk" x="266" y="248">BVSTK</text>
 
         <g id="c-region-catalog" class="group group-bvstk" data-l0-ref="f-catalog,n-catalog">
           <rect x="154" y="252" width="55" height="52" rx="0.8" />
-          <text class="group-title" x="156.5" y="259">Каталог PL</text>
+          <text class="group-title" x="156.5" y="259">Карта PL · L0</text>
           <rect class="module level-l1 bvstk" x="156" y="263" width="51" height="10" rx="0.6" />
-          <text class="tiny-title" x="181.5" y="270">id · name · kind</text>
+          <text class="tiny-title" x="181.5" y="270">id и name</text>
           <rect class="module level-l1 bvstk" x="156" y="276" width="51" height="10" rx="0.6" />
-          <text class="tiny-title" x="181.5" y="283">physical base · size</text>
+          <text class="tiny-title" x="181.5" y="283">base и size</text>
           <rect class="module level-l1 bvstk" x="156" y="289" width="51" height="10" rx="0.6" />
-          <text class="tiny-title" x="181.5" y="296">control · BRAM</text>
+          <text class="tiny-title" x="181.5" y="296">control и BRAM</text>
         </g>
 
         <g id="c-region-service" class="group group-bvstk" data-l0-ref="f-pl-access,n-pl-access">
@@ -292,126 +300,130 @@
           <rect class="module level-l1 bvstk" x="215" y="263" width="51" height="10" rx="0.6" />
           <text class="tiny-title" x="240.5" y="270">lazy map</text>
           <rect class="module level-l1 bvstk" x="215" y="276" width="51" height="10" rx="0.6" />
-          <text class="tiny-title" x="240.5" y="283">read/write → status</text>
+          <text class="tiny-title" x="240.5" y="283">read и write</text>
           <rect class="module level-l1 bvstk" x="215" y="289" width="51" height="10" rx="0.6" />
-          <text class="tiny-title" x="240.5" y="296">close all · zero</text>
+          <text class="tiny-title" x="240.5" y="296">close</text>
         </g>
       </g>
 
-      <!-- Нейтрино · нативная среда -->
+      <!-- Нейтрино · нативный BSP -->
       <g id="n-native" class="group group-os">
         <rect x="288" y="38" width="118" height="58" rx="1" />
-        <text class="group-title" x="292" y="46">Нативная ОС и BSP</text>
+        <text class="group-title" x="292" y="46">Нативный BSP</text>
         <text class="group-origin origin-os" x="403" y="46">ОС</text>
 
-        <g id="n-posix-api" class="group group-os">
-          <rect x="291" y="50" width="55" height="41" rx="0.8" />
-          <text class="group-title" x="293.5" y="57">Системная API</text>
-          <rect class="module level-l1 native" x="293" y="61" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="67">time · sleep API</text>
-          <rect class="module level-l1 native" x="293" y="71" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="77">sync · thread API</text>
-          <rect class="module level-l1 native" x="293" y="81" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="87">stdio · device API</text>
-        </g>
-
         <g id="n-zynq-bsp" class="group group-os" data-l0-ref="n-uart,n-gic-bsp,n-timer-port">
-          <rect x="348" y="50" width="55" height="41" rx="0.8" />
-          <text class="group-title" x="350.5" y="57">Zynq BSP</text>
-          <rect class="module level-l1 native" x="350" y="61" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="67">Zynq BSP: GIC</text>
-          <rect class="module level-l1 native" x="350" y="71" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="77">Таймерный порт</text>
-          <rect class="module level-l1 native" x="350" y="81" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="87">UART: аппаратный вывод</text>
+          <rect x="291" y="50" width="112" height="41" rx="0.8" />
+          <text class="group-title" x="293.5" y="57">Zynq BSP</text>
+          <rect class="module level-l1 native" x="293" y="61" width="34" height="20" rx="0.6" />
+          <text class="tiny-title" x="310" y="72">GIC и timer</text>
+          <rect class="module level-l1 native" x="331" y="61" width="34" height="20" rx="0.6" />
+          <text class="tiny-title" x="348" y="72">UART и GPIO</text>
+          <rect class="module level-l1 native" x="369" y="61" width="32" height="20" rx="0.6" />
+          <text class="tiny-title" x="385" y="72">PS I/O</text>
         </g>
       </g>
 
       <!-- Нейтрино · OS-порт -->
       <g id="n-adapters" class="group group-mixed">
         <rect x="288" y="101" width="118" height="103" rx="1" />
-        <text class="group-title" x="292" y="109">OS-порт BVSTK</text>
+        <text class="group-title" x="292" y="109">Адаптеры</text>
         <text class="group-origin origin-adapter" x="403" y="109">адаптеры</text>
 
         <g id="n-platform-mmio" class="group group-mixed" data-l0-ref="n-region,n-mmio">
           <rect x="291" y="114" width="55" height="47" rx="0.8" />
-          <text class="group-title" x="293.5" y="121">Платформа и MMIO</text>
+          <text class="group-title" x="293.5" y="121">MMIO</text>
           <rect class="module level-l1 adapter" x="293" y="125" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="132">Прямой MMIO-доступ</text>
+          <text class="tiny-title" x="318.5" y="132">access</text>
           <rect class="module level-l1 adapter" x="293" y="136" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="143">Отображение региона</text>
+          <text class="tiny-title" x="318.5" y="143">region map</text>
           <rect class="module level-l1 adapter" x="293" y="147" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="154">Без кэша и освобождение</text>
+          <text class="tiny-title" x="318.5" y="154">uncached</text>
         </g>
 
         <g id="n-time-sync" class="group group-mixed">
           <rect x="348" y="114" width="55" height="47" rx="0.8" />
           <text class="group-title" x="350.5" y="121">Время и sync</text>
           <rect class="module level-l1 adapter" x="350" y="125" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="132">CLOCK_MONOTONIC</text>
+          <text class="tiny-title" x="375.5" y="132">now</text>
           <rect class="module level-l1 adapter" x="350" y="136" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="143">nanosleep</text>
+          <text class="tiny-title" x="375.5" y="143">sleep</text>
           <rect class="module level-l1 adapter" x="350" y="147" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="154">lock/unlock → POSIX</text>
+          <text class="tiny-title" x="375.5" y="154">lock и unlock</text>
         </g>
 
         <g id="n-irq-output" class="group group-mixed" data-l0-ref="n-irq-attach,n-irq-api">
           <rect x="291" y="165" width="55" height="32" rx="0.8" />
           <text class="group-title" x="293.5" y="172">IRQ</text>
           <rect class="module level-l1 adapter" x="293" y="176" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="182">Подключение IRQ</text>
+          <text class="tiny-title" x="318.5" y="182">attach</text>
           <rect class="module level-l1 adapter" x="293" y="186" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="318.5" y="192">Системный IRQ-интерфейс</text>
+          <text class="tiny-title" x="318.5" y="192">IRQ API</text>
         </g>
 
         <g id="n-output" class="group group-mixed" data-l0-ref="n-uart">
           <rect x="348" y="165" width="55" height="32" rx="0.8" />
           <text class="group-title" x="350.5" y="172">Вывод</text>
           <rect class="module level-l1 adapter" x="350" y="176" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="182">stdout · stderr</text>
+          <text class="tiny-title" x="375.5" y="182">stdout и stderr</text>
           <rect class="module level-l1 adapter" x="350" y="186" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="375.5" y="192">output callback</text>
+          <text class="tiny-title" x="375.5" y="192">output</text>
         </g>
       </g>
 
       <!-- Нейтрино · конкретные системные контексты -->
       <g id="n-contexts" class="group group-mixed">
         <rect x="288" y="209" width="118" height="107" rx="1" />
-        <text class="group-title" x="292" y="217">Портовые контексты</text>
+        <text class="group-title" x="292" y="217">Контексты</text>
         <text class="group-origin origin-adapter" x="403" y="217">адаптеры</text>
 
         <g id="n-i2c-context" class="group group-mixed" data-l0-ref="n-irq-entry,n-irq-handler">
           <rect x="291" y="222" width="55" height="81" rx="0.8" />
-          <text class="group-title" x="293.5" y="229">PL Slave IRQ-поток</text>
+          <text class="group-title" x="293.5" y="229">PL Slave port</text>
           <rect class="module level-l1 adapter" x="293" y="233" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="241">Ожидание IRQ-события</text>
+          <text class="module-small" x="318.5" y="241">IRQ wait</text>
           <rect class="module level-l1 adapter" x="293" y="248" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="256">PL Slave IRQ-поток</text>
+          <text class="module-small" x="318.5" y="256">thread</text>
           <rect class="module level-l1 adapter" x="293" y="263" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="271">state protection</text>
+          <text class="module-small" x="318.5" y="271">state</text>
           <rect class="module level-l1 adapter" x="293" y="278" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="286">InterruptWait · Unmask</text>
+          <text class="module-small" x="318.5" y="286">unmask</text>
         </g>
 
         <g id="n-media-context" class="group group-mixed" data-l0-ref="n-qspi,n-sd-map,n-sd-control,n-dma-addresses,n-dma-cache,n-ethernet-rings,n-ethernet-control">
           <rect x="348" y="222" width="55" height="81" rx="0.8" />
-          <text class="group-title" x="350.5" y="229">Носители, DMA и Ethernet</text>
+          <text class="group-title" x="350.5" y="229">Носители и обмен</text>
           <rect class="module level-l1 adapter" x="350" y="233" width="51" height="8" rx="0.5" />
-          <text class="module-small" x="375.5" y="239">Носители: QSPI raw map</text>
+          <text class="module-small" x="375.5" y="239">QSPI</text>
           <rect class="module level-l1 adapter" x="350" y="243" width="51" height="8" rx="0.5" />
-          <text class="module-small" x="375.5" y="249">SD raw map</text>
+          <text class="module-small" x="375.5" y="249">SD</text>
           <rect class="module level-l1 adapter" x="350" y="253" width="51" height="8" rx="0.5" />
-          <text class="module-small" x="375.5" y="259">Доступ к FIFO: PIO</text>
+          <text class="module-small" x="375.5" y="259">PIO</text>
           <rect class="module level-l1 adapter" x="350" y="263" width="51" height="8" rx="0.5" />
-          <text class="module-small" x="375.5" y="269">Буферы DMA</text>
+          <text class="module-small" x="375.5" y="269">buffers</text>
           <rect class="module level-l1 adapter" x="350" y="273" width="51" height="8" rx="0.5" />
-          <text class="module-small" x="375.5" y="279">Кэш CPU</text>
+          <text class="module-small" x="375.5" y="279">cache</text>
           <rect class="module level-l1 adapter" x="350" y="283" width="51" height="8" rx="0.5" />
-          <text class="module-small" x="375.5" y="289">Кольца TX и RX</text>
+          <text class="module-small" x="375.5" y="289">сетевой обмен</text>
           <rect class="module level-l1 adapter" x="350" y="293" width="51" height="8" rx="0.5" />
-          <text class="module-small" x="375.5" y="299">Управление MAC</text>
+          <text class="module-small" x="375.5" y="299">буферы сети</text>
         </g>
       </g>
+    </g>
+    <g id="legend" inkscape:label="Обозначения" transform="translate(0,7)">
+      <line class="legend-panel" x1="14" y1="329" x2="23" y2="329" />
+      <text class="legend-text" x="26" y="331">граница панели</text>
+      <line class="legend-os-panel" x1="55" y1="329" x2="64" y2="329" />
+      <text class="legend-text" x="67" y="331">граница ОС</text>
+      <rect class="legend-native" x="100" y="327" width="14" height="4" rx="0.5" />
+      <text class="legend-text legend-label legend-origin origin-os" x="107" y="330">ОС</text>
+      <text class="legend-text" x="118" y="331">нативная часть</text>
+      <rect class="legend-swatch common-panel" x="171" y="327" width="14" height="4" rx="0.5" />
+      <text class="legend-text legend-label legend-origin origin-bvstk" x="178" y="330">BVSTK</text>
+      <text class="legend-text" x="189" y="331">общий код для обеих ОС</text>
+      <rect class="legend-adapter" x="230" y="327" width="18" height="4" rx="0.5" />
+      <text class="legend-text legend-label legend-origin origin-adapter" x="239" y="330">адаптеры</text>
+      <text class="legend-text" x="252" y="331">адаптация к API ОС</text>
     </g>
   </g>
 </svg>

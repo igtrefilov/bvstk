@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="420mm"
-   height="330mm"
-   viewBox="0 0 420 330"
+   height="350mm"
+   viewBox="0 0 420 350"
    version="1.1"
    id="bvstk-l3-architecture"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
@@ -15,11 +15,12 @@
   <desc id="description">
     Детализация системного уровня L3 проекта BVSTK. В каждом столбце
     крупные блоки раскрыты вложенными группами и функциональными сущностями.
-    Слева показаны стеки и OS-порты FreeRTOS, в центре — общие протоколы,
-    сервисы и PL-драйверы, справа — нативные стеки Нейтрино, его resource
-    manager и платформенные адаптеры. Цвет всех блоков соответствует L3.
-    Сплошная рамка означает ОС, штриховая — BVSTK, точечная — адаптер.
-    SMI, SPI и файловый PL SD включаются только соответствующим профилем.
+    Слева показаны нативные стеки и системные интерфейсы FreeRTOS, в центре —
+    общие протоколы, сервисы и PL-драйверы, справа — нативные стеки Нейтрино,
+    его менеджер ресурсов и сервисные адаптеры. BSP, raw-носители, IRQ и
+    примитивы ядра показаны только на уровнях L1 и L2. Цвет всех блоков
+    соответствует L3. Дополнительные периферийные и файловые функции
+    включаются только соответствующим профилем.
   </desc>
   <sodipodi:namedview
      id="namedview"
@@ -44,8 +45,8 @@
       .tiny-title { font-size: 1.9px; font-weight: 700; }
       .tiny-text { font-size: 1.55px; font-weight: 500; }
       .muted { fill: #536473; }
-      .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.55; stroke-linejoin: round; }
-      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.6; stroke-linejoin: round; }
+      .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.85; stroke-linejoin: round; }
+      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.5; stroke-linejoin: round; }
       .common-panel { fill: #fbfdfb; stroke: #36794c; stroke-width: 0.65; stroke-dasharray: 2.8 1.6; stroke-linejoin: round; }
       .group { stroke-width: 0.42; stroke-linejoin: round; }
       .group-bvstk { fill: #f9fdfc; stroke: #287f73; stroke-dasharray: 2 1.2; }
@@ -58,6 +59,17 @@
       .origin-bvstk { fill: #287f73; }
       .origin-adapter { fill: #b56b1d; }
       .origin-os { fill: #536473; }
+      .legend-title { font-size: 1.7px; font-weight: 700; text-anchor: start; }
+      .legend-text { font-size: 1.65px; font-weight: 500; text-anchor: start; }
+      .legend-label { text-anchor: middle; }
+      .legend-origin { font-size: 1.85px; font-weight: 700; letter-spacing: 0.04px; }
+      .legend-swatch { stroke-width: 0.45; }
+      .legend-line { fill: none; stroke-width: 0.55; }
+      .legend-panel { fill: none; stroke: #536473; stroke-width: 0.85; }
+      .legend-os-panel { fill: none; stroke: #536473; stroke-width: 0.5; }
+      .legend-native { fill: #fbfbfb; stroke: #536473; stroke-width: 0.42; }
+      .legend-adapter { fill: #ffffff; stroke: #536473; stroke-width: 0.42; stroke-dasharray: none; }
+      .legend-divider { stroke: #c4ccd3; stroke-width: 0.4; }
       /* Единая палитра уровней из levels.svg и interaction-схем. */
       .level-l0 { fill: #e9eef3; stroke: #607487; }
       .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
@@ -76,59 +88,48 @@
       <rect id="neutrino-panel" class="os-panel" x="284" y="14" width="126" height="306" rx="2" />
 
       <text id="freertos-title" class="panel-title" x="73" y="25">FreeRTOS · L3</text>
-      <text id="freertos-subtitle" class="panel-subtitle muted" x="73" y="31">стеки, OS-порты и службы BVSTK</text>
       <text id="common-title" class="panel-title" x="210" y="25">Общие части BVSTK · L3</text>
-      <text id="common-subtitle" class="panel-subtitle muted" x="210" y="31">протоколы, сервисы и PL-драйверы</text>
       <text id="neutrino-title" class="panel-title" x="347" y="25">ЗОСРВ «Нейтрино» · L3</text>
-      <text id="neutrino-subtitle" class="panel-subtitle muted" x="347" y="31">нативные стеки и порт BVSTK</text>
 
       <!-- FreeRTOS · нативные стеки -->
       <g id="f-native" class="group group-os">
         <rect x="14" y="38" width="118" height="53" rx="1" />
-        <text class="group-title" x="18" y="46">Нативные стеки и BSP</text>
+        <text class="group-title" x="18" y="46">Нативные стеки</text>
         <text class="group-origin origin-os" x="129" y="46">ОС</text>
-        <rect class="module level-l3 native" x="17" y="51" width="35" height="32" rx="0.8" />
-        <text class="module-title" x="34.5" y="62">lwIP</text>
-        <text class="module-text" x="34.5" y="70">TCP/IP</text>
-        <text class="module-text" x="34.5" y="77">sockets</text>
-        <rect class="module level-l3 native" x="55" y="51" width="35" height="32" rx="0.8" />
-        <text class="module-title" x="72.5" y="62">FatFs</text>
-        <text class="module-text" x="72.5" y="70">тома</text>
-        <text class="module-text" x="72.5" y="77">файлы</text>
-        <rect class="module level-l3 native" x="93" y="51" width="36" height="32" rx="0.8" />
-        <text class="module-title" x="111" y="62">Xilinx BSP</text>
-        <text class="module-text" x="111" y="70">PS I/O</text>
-        <text class="module-text" x="111" y="77">Ethernet · SD</text>
+        <rect class="module level-l3 native" x="17" y="51" width="54" height="32" rx="0.8" />
+        <text class="module-title" x="44.5" y="62">lwIP</text>
+        <rect class="module level-l3 native" x="75" y="51" width="54" height="32" rx="0.8" />
+        <text class="module-title" x="102" y="62">FatFs</text>
       </g>
 
-      <!-- FreeRTOS · OS-порты и носители -->
+      <!-- FreeRTOS · системные интерфейсы -->
       <g id="f-adapters" class="group group-mixed">
         <rect x="14" y="95" width="118" height="82" rx="1" />
-        <text class="group-title" x="18" y="103">OS-порты и носители</text>
+        <text class="group-title" x="18" y="103">Адаптеры</text>
         <text class="group-origin origin-adapter" x="129" y="103">адаптеры</text>
 
         <g id="f-os-boundary" class="group group-mixed">
           <rect x="17" y="108" width="55" height="66" rx="0.8" />
-          <text class="group-title" x="19.5" y="115">Системная граница</text>
+          <text class="group-title" x="19.5" y="115">Сеть</text>
           <rect class="module level-l3 adapter" x="19" y="119" width="51" height="14" rx="0.6" />
-          <text class="module-small" x="44.5" y="125">PL Slave · IRQ worker</text>
+          <text class="module-small" x="44.5" y="125">netif</text>
           <rect class="module level-l3 adapter" x="19" y="136" width="51" height="14" rx="0.6" />
-          <text class="module-small" x="44.5" y="142">FreeRTOS mutex / queue</text>
+          <text class="module-small" x="44.5" y="142">sockets</text>
           <rect class="module level-l3 adapter" x="19" y="153" width="51" height="14" rx="0.6" />
-          <text class="module-small" x="44.5" y="159">netif / sockets</text>
+          <text class="module-small" x="44.5" y="159">TCP и UDP</text>
         </g>
 
         <g id="f-media-binding" class="group group-mixed">
           <rect x="74" y="108" width="55" height="66" rx="0.8" />
-          <text class="group-title" x="76.5" y="115">Привязка носителей</text>
+          <text class="group-title" x="76.5" y="115">Файловая граница</text>
           <rect class="module level-l3 adapter" x="76" y="119" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="101.5" y="126">diskio</text>
+          <text class="tiny-title" x="101.5" y="126">FatFs API</text>
           <rect class="module level-l3 adapter" x="76" y="133" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="101.5" y="140">QSPI flash</text>
+          <text class="tiny-title" x="101.5" y="140">логические тома</text>
           <rect class="module level-l3 adapter" x="76" y="147" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="101.5" y="154">PS SD</text>
+          <text class="tiny-title" x="101.5" y="154">file I/O</text>
           <rect class="module level-l3 adapter" x="76" y="161" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="101.5" y="168">PL SD init</text>
+          <text class="tiny-title" x="101.5" y="168">mount API</text>
         </g>
       </g>
 
@@ -160,9 +161,9 @@
           <rect x="17" y="228" width="55" height="30" rx="0.8" />
           <text class="group-title" x="19.5" y="235">Сеть</text>
           <rect class="module level-l3 bvstk" x="19" y="239" width="51" height="8" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="245">SSH / SCP</text>
+          <text class="tiny-title" x="44.5" y="245">SSH и SCP</text>
           <rect class="module level-l3 bvstk" x="19" y="249" width="51" height="7" rx="0.5" />
-          <text class="tiny-title" x="44.5" y="254">MQTT / SNTP</text>
+          <text class="tiny-title" x="44.5" y="254">MQTT и SNTP</text>
         </g>
 
         <g id="f-file-services" class="group group-bvstk">
@@ -171,43 +172,36 @@
           <rect class="module level-l3 bvstk" x="76" y="239" width="51" height="8" rx="0.5" />
           <text class="tiny-title" x="101.5" y="245">DCP2 FS</text>
           <rect class="module level-l3 bvstk" x="76" y="249" width="51" height="7" rx="0.5" />
-          <text class="tiny-title" x="101.5" y="254">TAR / backend</text>
+          <text class="tiny-title" x="101.5" y="254">TAR и backend</text>
         </g>
       </g>
 
-      <!-- FreeRTOS · профильные обвязки -->
-      <g id="f-profile-wrappers" class="group group-mixed">
+      <!-- FreeRTOS · профильные службы -->
+      <g id="f-profile-wrappers" class="group group-bvstk">
         <rect x="14" y="269" width="118" height="47" rx="1" />
-        <text class="group-title" x="18" y="277">Профильные обвязки</text>
-        <text class="group-origin origin-adapter" x="129" y="277">адаптеры</text>
-        <rect class="module level-l3 adapter" x="17" y="284" width="35" height="24" rx="0.8" />
-        <text class="module-title" x="34.5" y="294">SMI runtime</text>
-        <text class="module-text" x="34.5" y="302">task · policy</text>
-        <rect class="module level-l3 adapter" x="55" y="284" width="35" height="24" rx="0.8" />
-        <text class="module-title" x="72.5" y="294">SPI runtime</text>
-        <text class="module-text" x="72.5" y="302">config · transfer</text>
-        <rect class="module level-l3 adapter" x="93" y="284" width="36" height="24" rx="0.8" />
-        <text class="module-title" x="111" y="294">NOTIFY / streams</text>
-        <text class="module-text" x="111" y="302">events · tests</text>
+        <text class="group-title" x="18" y="277">Профильные службы</text>
+        <text class="group-origin origin-bvstk" x="129" y="277">BVSTK</text>
+        <rect class="module level-l3 bvstk" x="17" y="284" width="35" height="24" rx="0.8" />
+        <text class="module-title" x="34.5" y="294">Управление</text>
+        <rect class="module level-l3 bvstk" x="55" y="284" width="35" height="24" rx="0.8" />
+        <text class="module-title" x="72.5" y="294">Обмен</text>
+        <rect class="module level-l3 bvstk" x="93" y="284" width="36" height="24" rx="0.8" />
+        <text class="module-title" x="111" y="294">События</text>
       </g>
 
       <!-- Общие части BVSTK · протоколы -->
       <g id="c-protocols" class="group group-bvstk">
         <rect x="151" y="38" width="118" height="61" rx="1" />
-        <text class="group-title" x="155" y="46">Протоколы и форматы</text>
+        <text class="group-title" x="155" y="46">Протоколы</text>
         <text class="group-origin origin-bvstk" x="266" y="46">BVSTK</text>
         <rect class="module level-l3 bvstk" x="154" y="51" width="55" height="17" rx="0.8" />
         <text class="module-title" x="181.5" y="58">DCP2 codec</text>
-        <text class="module-text" x="181.5" y="65">кадр · endian</text>
         <rect class="module level-l3 bvstk" x="213" y="51" width="55" height="17" rx="0.8" />
         <text class="module-title" x="240.5" y="58">DCP2 control</text>
-        <text class="module-text" x="240.5" y="65">MEM · I²C · SMI · SPI</text>
         <rect class="module level-l3 bvstk" x="154" y="71" width="55" height="17" rx="0.8" />
         <text class="module-title" x="181.5" y="78">DCP2 FS</text>
-        <text class="module-text" x="181.5" y="85">handles · blocks · EOF</text>
         <rect class="module level-l3 bvstk" x="213" y="71" width="55" height="17" rx="0.8" />
-        <text class="module-title" x="240.5" y="78">HTTP / FS contract</text>
-        <text class="module-text" x="240.5" y="85">request · volume · file</text>
+        <text class="module-title" x="240.5" y="78">HTTP и FS</text>
       </g>
 
       <!-- Общие части BVSTK · сервисы устройств -->
@@ -218,7 +212,7 @@
 
         <g id="c-i2c-services" class="group group-bvstk">
           <rect x="154" y="115" width="55" height="59" rx="0.8" />
-          <text class="group-title" x="156.5" y="122">I²C</text>
+          <text class="group-title" x="156.5" y="122">Устройства</text>
           <rect class="module level-l3 bvstk" x="156" y="126" width="25" height="13" rx="0.6" />
           <text class="tiny-title" x="168.5" y="134">устройства</text>
           <rect class="module level-l3 bvstk" x="184" y="126" width="23" height="13" rx="0.6" />
@@ -228,20 +222,20 @@
           <rect class="module level-l3 bvstk" x="184" y="142" width="23" height="13" rx="0.6" />
           <text class="tiny-title" x="195.5" y="150">cache</text>
           <rect class="module level-l3 bvstk" x="156" y="158" width="51" height="12" rx="0.6" />
-          <text class="tiny-title" x="181.5" y="166">policy · rules</text>
+          <text class="tiny-title" x="181.5" y="166">policy и rules</text>
         </g>
 
         <g id="c-other-services" class="group group-bvstk">
           <rect x="213" y="115" width="55" height="59" rx="0.8" />
-          <text class="group-title" x="215.5" y="122">SMI · SPI · фасады</text>
+          <text class="group-title" x="215.5" y="122">Интерфейсы периферии</text>
           <rect class="module level-l3 bvstk" x="215" y="126" width="25" height="13" rx="0.6" />
-          <text class="tiny-title" x="227.5" y="134">SMI</text>
+          <text class="tiny-title" x="227.5" y="134">Управление</text>
           <rect class="module level-l3 bvstk" x="243" y="126" width="23" height="13" rx="0.6" />
-          <text class="tiny-title" x="254.5" y="134">SPI</text>
+          <text class="tiny-title" x="254.5" y="134">Обмен</text>
           <rect class="module level-l3 bvstk" x="215" y="142" width="51" height="13" rx="0.6" />
-          <text class="tiny-title" x="240.5" y="150">control API</text>
+          <text class="tiny-title" x="240.5" y="150">API</text>
           <rect class="module level-l3 bvstk" x="215" y="158" width="51" height="12" rx="0.6" />
-          <text class="tiny-title" x="240.5" y="166">event sink</text>
+          <text class="tiny-title" x="240.5" y="166">события</text>
         </g>
       </g>
 
@@ -257,9 +251,9 @@
           <rect class="module level-l3 bvstk" x="156" y="211" width="51" height="9" rx="0.5" />
           <text class="tiny-title" x="181.5" y="217">PL Master и PL Slave</text>
           <rect class="module level-l3 bvstk" x="156" y="222" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="181.5" y="228">SMI core</text>
+          <text class="tiny-title" x="181.5" y="228">драйвер управления</text>
           <rect class="module level-l3 bvstk" x="156" y="233" width="51" height="9" rx="0.5" />
-          <text class="tiny-title" x="181.5" y="239">SPI core</text>
+          <text class="tiny-title" x="181.5" y="239">драйвер обмена</text>
         </g>
 
         <g id="c-sd-drivers" class="group group-bvstk">
@@ -272,35 +266,35 @@
         </g>
       </g>
 
-      <!-- Общие части BVSTK · PL-доступ и результаты -->
+      <!-- Общие части BVSTK · состояния и результаты -->
       <g id="c-pl-access" class="group group-bvstk">
         <rect x="151" y="258" width="118" height="58" rx="1" />
-        <text class="group-title" x="155" y="266">PL-доступ и результаты</text>
+        <text class="group-title" x="155" y="266">Состояния драйверов</text>
         <text class="group-origin origin-bvstk" x="266" y="266">BVSTK</text>
 
         <g id="c-mmio" class="group group-bvstk">
           <rect x="154" y="270" width="55" height="42" rx="0.8" />
-          <text class="group-title" x="156.5" y="277">Доступ к PL</text>
+          <text class="group-title" x="156.5" y="277">Состояние</text>
           <rect class="module level-l3 bvstk" x="156" y="282" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="181.5" y="289">region table</text>
+          <text class="tiny-title" x="181.5" y="289">operation state</text>
           <rect class="module level-l3 bvstk" x="156" y="296" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="181.5" y="303">MMIO map · r/w</text>
+          <text class="tiny-title" x="181.5" y="303">device status</text>
         </g>
 
         <g id="c-results" class="group group-bvstk">
           <rect x="213" y="270" width="55" height="42" rx="0.8" />
-          <text class="group-title" x="215.5" y="277">Общие результаты</text>
+          <text class="group-title" x="215.5" y="277">Результаты</text>
           <rect class="module level-l3 bvstk" x="215" y="282" width="51" height="11" rx="0.6" />
           <text class="tiny-title" x="240.5" y="289">status mapping</text>
           <rect class="module level-l3 bvstk" x="215" y="296" width="51" height="11" rx="0.6" />
-          <text class="tiny-title" x="240.5" y="303">events · errors</text>
+          <text class="tiny-title" x="240.5" y="303">events и errors</text>
         </g>
       </g>
 
       <!-- Нейтрино · нативные стеки и драйверы -->
       <g id="n-native" class="group group-os">
         <rect x="288" y="38" width="118" height="86" rx="1" />
-        <text class="group-title" x="292" y="46">Нативные стеки и драйверы</text>
+        <text class="group-title" x="292" y="46">Нативные стеки</text>
         <text class="group-origin origin-os" x="403" y="46">ОС</text>
 
         <g id="n-network" class="group group-os">
@@ -318,53 +312,47 @@
           <rect class="module level-l3 native" x="351" y="61" width="50" height="8" rx="0.5" />
           <text class="tiny-title" x="376" y="67">devb-loopback</text>
           <rect class="module level-l3 native" x="351" y="71" width="50" height="8" rx="0.5" />
-          <text class="tiny-title" x="376" y="77">fs-dos · mount</text>
+          <text class="tiny-title" x="376" y="77">fs-dos и mount</text>
         </g>
 
         <g id="n-peripherals" class="group group-os">
           <rect x="291" y="85" width="112" height="32" rx="0.8" />
-          <text class="group-title" x="293.5" y="92">PS-периферия</text>
-          <rect class="module level-l3 native" x="293" y="96" width="25" height="15" rx="0.6" />
-          <text class="tiny-title" x="305.5" y="103">serxzynq</text>
-          <text class="tiny-text" x="305.5" y="108">UART</text>
-          <rect class="module level-l3 native" x="321" y="96" width="25" height="15" rx="0.6" />
-          <text class="tiny-title" x="333.5" y="103">GPIO / FPGA</text>
-          <text class="tiny-text" x="333.5" y="108">PL</text>
-          <rect class="module level-l3 native" x="349" y="96" width="25" height="15" rx="0.6" />
-          <text class="tiny-title" x="361.5" y="103">XADC / OCM</text>
-          <text class="tiny-text" x="361.5" y="108">system</text>
-          <rect class="module level-l3 native" x="377" y="96" width="24" height="15" rx="0.6" />
-          <text class="tiny-title" x="389" y="103">wdt</text>
-          <text class="tiny-text" x="389" y="108">timer</text>
+          <text class="group-title" x="293.5" y="92">Системные службы</text>
+          <rect class="module level-l3 native" x="293" y="96" width="35" height="15" rx="0.6" />
+          <text class="tiny-title" x="310.5" y="103">POSIX I/O</text>
+          <rect class="module level-l3 native" x="331" y="96" width="35" height="15" rx="0.6" />
+          <text class="tiny-title" x="348.5" y="103">namespace</text>
+          <rect class="module level-l3 native" x="369" y="96" width="32" height="15" rx="0.6" />
+          <text class="tiny-title" x="385" y="103">mount</text>
         </g>
       </g>
 
-      <!-- Нейтрино · системные адаптеры -->
+      <!-- Нейтрино · системные границы -->
       <g id="n-adapters" class="group group-mixed">
         <rect x="288" y="128" width="118" height="87" rx="1" />
-        <text class="group-title" x="292" y="136">Порт и системные адаптеры</text>
+        <text class="group-title" x="292" y="136">Системные границы</text>
         <text class="group-origin origin-adapter" x="403" y="136">адаптеры</text>
 
         <g id="n-ipc" class="group group-mixed">
           <rect x="291" y="141" width="55" height="68" rx="0.8" />
-          <text class="group-title" x="293.5" y="148">IPC и IRQ</text>
+          <text class="group-title" x="293.5" y="148">IPC</text>
           <rect class="module level-l3 adapter" x="293" y="153" width="51" height="12" rx="0.6" />
           <text class="module-small" x="318.5" y="160">resource manager</text>
           <rect class="module level-l3 adapter" x="293" y="168" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="175">devctl · /dev</text>
+          <text class="module-small" x="318.5" y="175">devctl и /dev</text>
           <rect class="module level-l3 adapter" x="293" y="183" width="51" height="12" rx="0.6" />
-          <text class="module-small" x="318.5" y="190">PL Slave IRQ thread</text>
+          <text class="module-small" x="318.5" y="190">message dispatch</text>
         </g>
 
         <g id="n-media" class="group group-mixed">
           <rect x="349" y="141" width="54" height="68" rx="0.8" />
-          <text class="group-title" x="351.5" y="148">Носители</text>
+          <text class="group-title" x="351.5" y="148">Файлы</text>
           <rect class="module level-l3 adapter" x="351" y="153" width="50" height="12" rx="0.6" />
-          <text class="module-small" x="376" y="160">QSPI raw</text>
+          <text class="module-small" x="376" y="160">block API</text>
           <rect class="module level-l3 adapter" x="351" y="168" width="50" height="12" rx="0.6" />
-          <text class="module-small" x="376" y="175">PS SD raw</text>
+          <text class="module-small" x="376" y="175">file API</text>
           <rect class="module level-l3 adapter" x="351" y="183" width="50" height="12" rx="0.6" />
-          <text class="module-small" x="376" y="190">block handoff</text>
+          <text class="module-small" x="376" y="190">mount path</text>
         </g>
       </g>
 
@@ -378,14 +366,11 @@
           <rect x="291" y="232" width="112" height="34" rx="0.8" />
           <text class="group-title" x="293.5" y="239">Сервис устройств</text>
           <rect class="module level-l3 bvstk" x="293" y="244" width="34" height="17" rx="0.6" />
-          <text class="tiny-title" x="310" y="251">bvstkd</text>
-          <text class="tiny-text" x="310" y="257">runtime</text>
+          <text class="tiny-title" x="310" y="251">Сервис устройств</text>
           <rect class="module level-l3 bvstk" x="330" y="244" width="34" height="17" rx="0.6" />
           <text class="tiny-title" x="347" y="251">PL Slave state</text>
-          <text class="tiny-text" x="347" y="257">cache · devices</text>
           <rect class="module level-l3 bvstk" x="367" y="244" width="34" height="17" rx="0.6" />
-          <text class="tiny-title" x="384" y="251">policy / events</text>
-          <text class="tiny-text" x="384" y="257">lock · sink</text>
+          <text class="tiny-title" x="384" y="251">policy и events</text>
         </g>
 
         <g id="n-dcp2-service" class="group group-bvstk">
@@ -393,15 +378,27 @@
           <text class="group-title" x="293.5" y="278">DCP2-сервис</text>
           <rect class="module level-l3 bvstk" x="293" y="283" width="34" height="17" rx="0.6" />
           <text class="tiny-title" x="310" y="290">socket</text>
-          <text class="tiny-text" x="310" y="296">8889/TCP</text>
           <rect class="module level-l3 bvstk" x="330" y="283" width="34" height="17" rx="0.6" />
           <text class="tiny-title" x="347" y="290">requests</text>
-          <text class="tiny-text" x="347" y="296">decode · reply</text>
           <rect class="module level-l3 bvstk" x="367" y="283" width="34" height="17" rx="0.6" />
           <text class="tiny-title" x="384" y="290">persistence</text>
-          <text class="tiny-text" x="384" y="296">config sync</text>
         </g>
       </g>
+    </g>
+    <g id="legend" inkscape:label="Обозначения" transform="translate(0,7)">
+      <line class="legend-panel" x1="14" y1="329" x2="23" y2="329" />
+      <text class="legend-text" x="26" y="331">граница панели</text>
+      <line class="legend-os-panel" x1="55" y1="329" x2="64" y2="329" />
+      <text class="legend-text" x="67" y="331">граница ОС</text>
+      <rect class="legend-native" x="100" y="327" width="14" height="4" rx="0.5" />
+      <text class="legend-text legend-label legend-origin origin-os" x="107" y="330">ОС</text>
+      <text class="legend-text" x="118" y="331">нативная часть</text>
+      <rect class="legend-swatch common-panel" x="171" y="327" width="14" height="4" rx="0.5" />
+      <text class="legend-text legend-label legend-origin origin-bvstk" x="178" y="330">BVSTK</text>
+      <text class="legend-text" x="189" y="331">общий код для обеих ОС</text>
+      <rect class="legend-adapter" x="230" y="327" width="18" height="4" rx="0.5" />
+      <text class="legend-text legend-label legend-origin origin-adapter" x="239" y="330">адаптеры</text>
+      <text class="legend-text" x="252" y="331">адаптация к API ОС</text>
     </g>
   </g>
 </svg>
