@@ -1,9 +1,3 @@
-#if defined(BVSTK_PL_SPI_DIAGNOSTIC) && BVSTK_PL_SPI_DIAGNOSTIC
-#include "apps/freertos/diagnostics/pl_spi_test/tests.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "xil_printf.h"
-#else
 #include "apps/freertos/main.h"
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
@@ -19,16 +13,9 @@
 #include "task.h"
 #include "xstatus.h"
 #include "xil_printf.h"
-#endif
 
 int main(void)
 {
-#if defined(BVSTK_PL_SPI_DIAGNOSTIC) && BVSTK_PL_SPI_DIAGNOSTIC
-    if (pl_spi_test_start() != 0) {
-        xil_printf("PL SPI: unable to create diagnostic task\r\n");
-        return 1;
-    }
-#else
 #if !BVSTK_PL_SD_AUTOSTART_FILESYSTEM
     if (bvstk_sd_master_freertos_schedule_start() != BVSTK_OK) {
         xil_printf("SD PL: unable to schedule service startup\r\n");
@@ -55,7 +42,6 @@ int main(void)
     if (start_uart_console() != 0) {
         xil_printf("UART: unable to create console task\r\n");
     }
-#endif
     vTaskStartScheduler();
     xil_printf("BVSTK: scheduler returned unexpectedly\r\n");
     for (;;) {

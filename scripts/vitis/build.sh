@@ -60,7 +60,6 @@ write_build_state() {
     printf 'format=1\n'
     printf 'xsa_sha256=%s\n' "$xsa_sha256"
     printf 'ssh_enable=%s\n' "${BVSTK_SSH_ENABLE:-0}"
-    printf 'pl_spi_diagnostic=%s\n' "${BVSTK_PL_SPI_DIAGNOSTIC:-0}"
     printf 'lwip_lib=%s\n' "${LWIP_LIB:-}"
     printf 'wolfssl_root=%s\n' "${BVSTK_WOLFSSL_ROOT:-}"
     printf 'wolfssh_root=%s\n' "${BVSTK_WOLFSSH_ROOT:-}"
@@ -91,10 +90,9 @@ check_build_state() {
     return 1
   fi
 
-  for key in ssh_enable pl_spi_diagnostic lwip_lib wolfssl_root wolfssh_root; do
+  for key in ssh_enable lwip_lib wolfssl_root wolfssh_root; do
     case "$key" in
       ssh_enable) expected="${BVSTK_SSH_ENABLE:-0}" ;;
-      pl_spi_diagnostic) expected="${BVSTK_PL_SPI_DIAGNOSTIC:-0}" ;;
       lwip_lib) expected="${LWIP_LIB:-}" ;;
       wolfssl_root) expected="${BVSTK_WOLFSSL_ROOT:-}" ;;
       wolfssh_root) expected="${BVSTK_WOLFSSH_ROOT:-}" ;;

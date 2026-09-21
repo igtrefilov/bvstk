@@ -302,13 +302,6 @@ app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
 set SRC_REAL [file normalize [file join $REPO_ROOT src]]
 app config -name $APP_NAME -add include-path $SRC_REAL
 
-# Keep the user's standalone SPI diagnostic available as an explicit mode.
-# Default entry point is the full BVSTK application with the integrated PL-SD
-# service and its shared console commands.
-if {[info exists ::env(BVSTK_PL_SPI_DIAGNOSTIC)] && $::env(BVSTK_PL_SPI_DIAGNOSTIC) == 1} {
-    app config -name $APP_NAME -add compiler-misc "-DBVSTK_PL_SPI_DIAGNOSTIC=1"
-}
-
 if {$ssh_enabled} {
     app config -name $APP_NAME -add include-path [file join $WOLFSSL_ROOT include]
     app config -name $APP_NAME -add include-path $WOLFSSH_ROOT
