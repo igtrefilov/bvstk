@@ -1,10 +1,12 @@
 #
-# One-stop XSCT build script.
-# Creates a fresh Vitis workspace, generates the platform (FreeRTOS + lwIP),
+# One-stop XSCT generation script.
+# It creates a fresh Vitis workspace, generates the platform (FreeRTOS + lwIP),
 # links the firmware sources from ./src, and builds the application ELF.
+# The public build.sh wrapper handles CLEAN=0 separately with GNU make so that
+# an existing Eclipse workspace is never reopened by this script.
 #
 # You can override XSA and CLEAN via environment variables:
-#   env XSA=/path/to/design.xsa CLEAN=0 xsct scripts/vitis/build.tcl
+#   env XSA=/path/to/design.xsa CLEAN=1 xsct scripts/vitis/build.tcl
 #
 
 # Helper to delete a path even if previous tools left odd permissions behind.
@@ -41,10 +43,14 @@ if {[info exists ::env(XSA)]} {
 set PROC      ps7_cortexa9_0
 set OS_RTOS   freertos10_xilinx
 
-# Clean previous workspace unless CLEAN=0
+# The wrapper handles reusable workspaces.  This script may receive CLEAN=0
+# only for an initial generation when no workspace exists.
 set do_clean 1
 if {[info exists ::env(CLEAN)] && $::env(CLEAN) == 0} {
     set do_clean 0
+}
+if {!$do_clean && [file exists $WS]} {
+    error "CLEAN=0 with an existing workspace must be run through scripts/vitis/build.sh; direct XSCT reuse is disabled"
 }
 if {$do_clean && [file exists $WS]} {
     puts "Removing previous workspace at $WS"

@@ -45,7 +45,7 @@ SSH-проверку. Неверная цель завершается кодо�
 | `XILINX_SETTINGS` | Необязательное окружение Vitis |
 | `XSA` | `artifacts/fpga/design.xsa` |
 | `CLEAN_DEFAULT` | `1`, исходный режим очистки |
-| `CLEAN` | Если не задан, берётся `CLEAN_DEFAULT`; ненулевое значение удаляет `vitis_ws` |
+| `CLEAN` | Если не задан, берётся `CLEAN_DEFAULT`; ненулевое значение удаляет `vitis_ws`, а `0` использует проверенный workspace и инкрементальную GNU make-сборку приложения без Eclipse |
 | `LWIP_LIB` | Если не задан, пробуются `lwip220`, затем `lwip211` |
 | `BVSTK_PL_SPI_DIAGNOSTIC` | `0`: обычное приложение BVSTK с PL-SD службой; `1`: сохранённая SPI-диагностика |
 

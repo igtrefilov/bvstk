@@ -9,5 +9,6 @@ XILINX_SETTINGS=""
 # You can replace with an absolute path if needed.
 XSA="$SCRIPT_DIR/../../artifacts/fpga/design.xsa"
 
-# 1 = delete vitis_ws before build, 0 = keep workspace.
+# 1 = delete vitis_ws before build, 0 = reuse a validated workspace and run
+# the generated application's incremental GNU make build without Eclipse.
 CLEAN_DEFAULT="1"
