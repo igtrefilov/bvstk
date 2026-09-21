@@ -24,7 +24,7 @@ void TaskConsole(void *pvParameters) {
 
     XUartPs_SetBaudRate(&Uart_Ps, 115200);
 
-    xil_printf("Zynq> ");
+    xil_printf("bvstk> ");
     while (1) {
         int byte_received = XUartPs_Recv(&Uart_Ps, (u8 *)&input_buffer[received_bytes], 1);
         if (byte_received > 0) {
@@ -35,13 +35,13 @@ void TaskConsole(void *pvParameters) {
                 input_buffer[received_bytes] = '\0';
                 command(input_buffer);
                 received_bytes = 0;
-                xil_printf("Zynq> ");
+                xil_printf("bvstk> ");
             } else if (received_bytes < sizeof(input_buffer) - 1) {
                 received_bytes++;
             } else {
                 xil_printf("\nБуфер переполнен\r\n");
                 received_bytes = 0;
-                xil_printf("Zynq> ");
+                xil_printf("bvstk> ");
             }
         }
     }

@@ -98,9 +98,9 @@ void console_print_prompt(int fd, const console_session_t *session)
     }
     const char *label = console_session_get_label(session);
     if (rel && *rel) {
-        snprintf(prompt, sizeof(prompt), "Zynq/%s:%s> ", label, rel);
+        snprintf(prompt, sizeof(prompt), "bvstk/%s:%s> ", label, rel);
     } else {
-        snprintf(prompt, sizeof(prompt), "Zynq/%s> ", label);
+        snprintf(prompt, sizeof(prompt), "bvstk/%s> ", label);
     }
     write_str(fd, prompt);
 }
