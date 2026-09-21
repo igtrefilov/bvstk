@@ -7,6 +7,7 @@
 #include "shared/config/bvstk_config_model.h"
 
 int start_config_store(void);
+int config_store_startup_done(void);
 int config_store_is_ready(void);
 int config_store_wait_ready(uint32_t timeout_ms);
 int config_store_get_network(network_config_t *out);

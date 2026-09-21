@@ -14,6 +14,7 @@
 static FATFS s_fatfs;
 static fs_shared_ctx_t s_ctx;
 static volatile int s_ready;
+static volatile int s_startup_done;
 static SemaphoreHandle_t s_mutex;
 static TaskHandle_t s_task;
 
@@ -29,6 +30,7 @@ static void sd_pl_card_task(void *argument)
     } else {
         xil_printf("SD-PL: sd-pl:/ unavailable; check card and restart; no formatting\r\n");
     }
+    s_startup_done = 1;
     vTaskDelete(NULL);
 }
 
@@ -39,8 +41,10 @@ int start_sd_pl_card(void)
     if (s_task != NULL) {
         return XST_SUCCESS;
     }
+    s_startup_done = 0;
     s_mutex = xSemaphoreCreateMutex();
     if (s_mutex == NULL) {
+        s_startup_done = 1;
         return XST_FAILURE;
     }
     s_ctx.fatfs = &s_fatfs;
@@ -59,9 +63,15 @@ int start_sd_pl_card(void)
     if (result != pdPASS) {
         vSemaphoreDelete(s_mutex);
         s_mutex = NULL;
+        s_startup_done = 1;
         return XST_FAILURE;
     }
     return XST_SUCCESS;
+}
+
+int sd_pl_card_startup_done(void)
+{
+    return s_startup_done != 0;
 }
 
 int sd_pl_card_is_ready(void)

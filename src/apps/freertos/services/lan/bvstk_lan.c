@@ -11,6 +11,7 @@
 
 struct netif *netif;
 struct netif server_netif;
+static volatile int s_startup_done;
 
 /* Kept as a global symbol: referenced by other modules (e.g. uart_console). */
 unsigned char mac_ethernet_address[] = { 0x00, 0x0a, 0x35, 0x00, 0x01, 0x02 };
@@ -29,10 +30,16 @@ static void lan_xemacif_irq_thread(void *arg)
 void start_lan(void){
     sys_thread_t th;
 
+	s_startup_done = 0;
 	th = sys_thread_new("lan_thrd", lan_thread, NULL,
 				THREAD_STACKSIZE,
 				tskIDLE_PRIORITY + 2);
-    (void)th;
+    if (th == NULL) s_startup_done = 1;
+}
+
+int lan_startup_done(void)
+{
+    return s_startup_done != 0;
 }
 
 void lan_thread(void *p)
@@ -95,6 +102,7 @@ void lan_thread(void *p)
 
     if (!xemac_add(netif, &ipaddr, &netmask, &gw, mac_ethernet_address, XPAR_XEMACPS_0_BASEADDR)) {
         xil_printf("LAN: ERROR xemac_add failed\r\n");
+		s_startup_done = 1;
 		return;
     }
     xil_printf("LAN: xemac_add ok\r\n");
@@ -109,6 +117,7 @@ void lan_thread(void *p)
 				tskIDLE_PRIORITY + 2);
     (void)in_th;
 
+	s_startup_done = 1;
     vTaskDelete(NULL);
 
     return;

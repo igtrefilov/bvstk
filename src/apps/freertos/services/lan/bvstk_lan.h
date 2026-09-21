@@ -9,6 +9,7 @@
 #define THREAD_STACKSIZE 2046
 
 void start_lan(void);
+int lan_startup_done(void);
 void lwip_init(void);
 void lan_thread(void *p);
 void tcp_server_thread(void *p);

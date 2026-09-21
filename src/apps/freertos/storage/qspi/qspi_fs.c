@@ -16,6 +16,7 @@
 static FATFS qspi_fatfs;
 static fs_shared_ctx_t qspi_ctx;
 static volatile int qspi_ready = 0;
+static volatile int qspi_startup_done = 0;
 static SemaphoreHandle_t qspi_mutex = NULL;
 static TaskHandle_t qspi_task_handle = NULL;
 static bool qspi_flash_initialized = false;
@@ -40,8 +41,9 @@ static void qspi_fs_task(void *arg)
     (void)arg;
     for (;;) {
         if (!qspi_ready) {
-            qspi_fs_try_mount();
+            (void)qspi_fs_try_mount();
         }
+        qspi_startup_done = 1;
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -49,8 +51,12 @@ static void qspi_fs_task(void *arg)
 int start_qspi_fs(void)
 {
     if (qspi_task_handle) return XST_SUCCESS;
+    qspi_startup_done = 0;
     qspi_mutex = xSemaphoreCreateMutex();
-    if (!qspi_mutex) return XST_FAILURE;
+    if (!qspi_mutex) {
+        qspi_startup_done = 1;
+        return XST_FAILURE;
+    }
     qspi_ctx.fatfs = &qspi_fatfs;
     qspi_ctx.root = QSPI_ROOT;
     qspi_ctx.ready = &qspi_ready;
@@ -59,7 +65,13 @@ int start_qspi_fs(void)
     qspi_flash_initialized = false;
     qspi_fs_try_mount();
     BaseType_t rc = xTaskCreate(qspi_fs_task, "qspi_fs", QSPI_TASK_STACK, NULL, QSPI_TASK_PRIO, &qspi_task_handle);
+    if (rc != pdPASS) qspi_startup_done = 1;
     return (rc == pdPASS) ? XST_SUCCESS : XST_FAILURE;
+}
+
+int qspi_fs_startup_done(void)
+{
+    return qspi_startup_done != 0;
 }
 
 fs_shared_ctx_t *qspi_fs_get_context(void)

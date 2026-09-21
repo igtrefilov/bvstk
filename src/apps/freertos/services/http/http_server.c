@@ -19,6 +19,12 @@ enum { HTTP_PORT_DEFAULT = 80 };
 enum { HTTP_THREAD_STACK = 2048 };
 
 static uint16_t s_port = HTTP_PORT_DEFAULT;
+static volatile int s_startup_done;
+
+int http_server_startup_done(void)
+{
+    return s_startup_done != 0;
+}
 
 uint16_t http_server_port(void)
 {
@@ -228,7 +234,7 @@ static void http_server_thread(void *p)
 {
     (void)p;
     int s = lwip_socket(AF_INET, SOCK_STREAM, 0);
-    if (s < 0) { vTaskDelete(NULL); return; }
+    if (s < 0) { s_startup_done = 1; vTaskDelete(NULL); return; }
     int opt = 1;
     (void)lwip_setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
@@ -239,11 +245,13 @@ static void http_server_thread(void *p)
     addr.sin_addr.s_addr = INADDR_ANY;
     if (lwip_bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         lwip_close(s);
+        s_startup_done = 1;
         vTaskDelete(NULL);
         return;
     }
     lwip_listen(s, 1);
     xil_printf("HTTP: listening on %u\r\n", (unsigned)s_port);
+    s_startup_done = 1;
 
     for (;;) {
         struct sockaddr_in remote;
@@ -257,5 +265,8 @@ static void http_server_thread(void *p)
 
 void start_http_server(void)
 {
-    sys_thread_new("http", http_server_thread, 0, HTTP_THREAD_STACK, tskIDLE_PRIORITY + 1);
+    sys_thread_t thread;
+    s_startup_done = 0;
+    thread = sys_thread_new("http", http_server_thread, 0, HTTP_THREAD_STACK, tskIDLE_PRIORITY + 1);
+    if (thread == NULL) s_startup_done = 1;
 }

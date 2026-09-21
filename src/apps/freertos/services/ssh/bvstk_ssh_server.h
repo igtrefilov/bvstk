@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 void start_ssh_server(void);
+int ssh_server_startup_done(void);
 
 #ifdef __cplusplus
 }

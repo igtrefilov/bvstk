@@ -64,6 +64,7 @@ static int read_file_first_available(const char *p1, const char *p2, char *buf, 
 
 static TaskHandle_t s_task = NULL;
 static volatile int s_ready = 0;
+static volatile int s_startup_done = 0;
 static network_config_t s_net_cfg;
 static i2c_device_config_t s_i2c_cfgs[I2C_CFG_MAX_DEVICES];
 static size_t s_i2c_cfg_count = 0;
@@ -969,6 +970,7 @@ static void config_task(void *arg)
 
 done:
     s_ready = 1;
+    s_startup_done = 1;
     vTaskDelete(NULL);
 }
 
@@ -976,13 +978,20 @@ int start_config_store(void)
 {
     if (s_task) return 1;
     s_ready = 0;
+    s_startup_done = 0;
     memset(&s_net_cfg, 0, sizeof(s_net_cfg));
     memset(s_i2c_cfgs, 0, sizeof(s_i2c_cfgs));
     s_i2c_cfg_count = 0;
     memset(s_smi_cfgs, 0, sizeof(s_smi_cfgs));
     s_smi_cfg_count = 0;
     BaseType_t rc = xTaskCreate(config_task, "cfg", CONFIG_TASK_STACK, NULL, CONFIG_TASK_PRIO, &s_task);
+    if (rc != pdPASS) s_startup_done = 1;
     return (rc == pdPASS) ? 1 : 0;
+}
+
+int config_store_startup_done(void)
+{
+    return s_startup_done != 0;
 }
 
 int config_store_is_ready(void)

@@ -33,6 +33,7 @@ static bvstk_sd_master_t s_driver;
 static bvstk_sd_service_t s_service;
 static bvstk_freertos_mutex_t s_mutex;
 static volatile uint32_t s_irq_count;
+static volatile int s_startup_done;
 static bool s_started;
 
 static void sd_master_start_task(void *argument)
@@ -46,6 +47,7 @@ static void sd_master_start_task(void *argument)
     } else {
         xil_printf("SD PL: service ready; card initialization is explicit\r\n");
     }
+    s_startup_done = 1;
     vTaskDelete(NULL);
 }
 
@@ -123,9 +125,15 @@ bvstk_status_t bvstk_sd_master_freertos_start(void)
         .read_descriptor_bytes = 8
     };
     const bvstk_clock_t clock = {NULL, now_ms, sleep_ms};
-    if (s_started) return BVSTK_OK;
+    if (s_started) {
+        s_startup_done = 1;
+        return BVSTK_OK;
+    }
     status = bvstk_freertos_mutex_init(&s_mutex);
-    if (status != BVSTK_OK) return status;
+    if (status != BVSTK_OK) {
+        s_startup_done = 1;
+        return status;
+    }
     /* Separate device-memory BRAM buffers eliminate DDR cache ownership and
      * cache-line overlap with mailboxes. The whole AXI master is exclusive. */
     Xil_SetTlbAttributes((INTPTR)config.core_base, DEVICE_MEMORY);
@@ -135,6 +143,7 @@ bvstk_status_t bvstk_sd_master_freertos_start(void)
     if (XScuGic_Connect(&xInterruptController,
             XPAR_FABRIC_SPI_SPI_MASTER_0_IRQ_INTR, core_isr, NULL) != XST_SUCCESS) {
         bvstk_freertos_mutex_destroy(&s_mutex);
+        s_startup_done = 1;
         return BVSTK_ERR_IO;
     }
     XScuGic_SetPriorityTriggerType(&xInterruptController,
@@ -146,18 +155,29 @@ bvstk_status_t bvstk_sd_master_freertos_start(void)
         bvstk_sd_master_close(&s_driver);
         XScuGic_Disconnect(&xInterruptController, XPAR_FABRIC_SPI_SPI_MASTER_0_IRQ_INTR);
         bvstk_freertos_mutex_destroy(&s_mutex);
+        s_startup_done = 1;
         return status;
     }
     s_started = true;
+    s_startup_done = 1;
     return BVSTK_OK;
 }
 
 bvstk_status_t bvstk_sd_master_freertos_schedule_start(void)
 {
     if (s_started) return BVSTK_OK;
-    return xTaskCreate(sd_master_start_task, "sd-pl-start", 1024, NULL,
-                       tskIDLE_PRIORITY + 4, NULL) == pdPASS
-               ? BVSTK_OK : BVSTK_ERR_INTERNAL;
+    s_startup_done = 0;
+    if (xTaskCreate(sd_master_start_task, "sd-pl-start", 1024, NULL,
+                    tskIDLE_PRIORITY + 4, NULL) == pdPASS) {
+        return BVSTK_OK;
+    }
+    s_startup_done = 1;
+    return BVSTK_ERR_INTERNAL;
+}
+
+int bvstk_sd_master_freertos_startup_done(void)
+{
+    return s_startup_done != 0;
 }
 
 bvstk_sd_service_t *bvstk_sd_master_freertos_service(void)

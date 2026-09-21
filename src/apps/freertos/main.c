@@ -28,7 +28,6 @@ int main(void)
         return 1;
     }
 #else
-    xil_printf("Hello from bvstk\r\n");
 #if !BVSTK_PL_SD_AUTOSTART_FILESYSTEM
     if (bvstk_sd_master_freertos_schedule_start() != BVSTK_OK) {
         xil_printf("SD PL: unable to schedule service startup\r\n");

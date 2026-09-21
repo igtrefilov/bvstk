@@ -19,6 +19,7 @@
 #define QSPI_ROOT QSPI_STR(XPAR_XSDPS_NUM_INSTANCES) ":/"
 
 int start_qspi_fs(void);
+int qspi_fs_startup_done(void);
 fs_shared_ctx_t *qspi_fs_get_context(void);
 int qspi_fs_is_ready(void);
 

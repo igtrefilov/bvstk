@@ -100,6 +100,12 @@ typedef struct {
 } mmio_range_t;
 
 static uint16_t s_port = DCP2_PORT_DEFAULT;
+static volatile int s_startup_done;
+
+int dcp2_server_startup_done(void)
+{
+    return s_startup_done != 0;
+}
 static uint8_t s_rx_buf[DCP2_MAX_PAYLOAD];
 static uint8_t s_tx_buf[DCP2_HDR_LEN + DCP2_MAX_PAYLOAD];
 static uint8_t s_mem_read_buf[DCP2_MAX_PAYLOAD];
@@ -998,6 +1004,7 @@ static void dcp2_server_thread(void *arg)
 
     s = lwip_socket(AF_INET, SOCK_STREAM, 0);
     if (s < 0) {
+		s_startup_done = 1;
         vTaskDelete(NULL);
         return;
     }
@@ -1014,16 +1021,19 @@ static void dcp2_server_thread(void *arg)
 
     if (lwip_bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         lwip_close(s);
+		s_startup_done = 1;
         vTaskDelete(NULL);
         return;
     }
 
     if (lwip_listen(s, 1) < 0) {
         lwip_close(s);
+		s_startup_done = 1;
         vTaskDelete(NULL);
         return;
     }
     xil_printf("DCP2: listening on %u\r\n", (unsigned)s_port);
+	s_startup_done = 1;
 
     for (;;) {
         struct sockaddr_in remote;
@@ -1048,8 +1058,12 @@ void start_dcp2_server(void)
     bool stream_ok = dcp2_stream_sim_init();
     sys_thread_t th;
 
+    s_startup_done = 0;
     th = sys_thread_new("dcp2", dcp2_server_thread, 0, DCP2_THREAD_STACK, tskIDLE_PRIORITY + 1);
-    if (!notify_ok || !stream_ok || !th) {
+    if (!notify_ok || !stream_ok) {
         xil_printf("DCP2: failed to start\r\n");
+    }
+    if (!th) {
+		s_startup_done = 1;
     }
 }

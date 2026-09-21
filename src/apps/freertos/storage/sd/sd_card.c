@@ -14,6 +14,7 @@
 static FATFS sd_fatfs;
 static fs_shared_ctx_t sd_ctx;
 static volatile int sd_ready = 0;
+static volatile int sd_startup_done = 0;
 static SemaphoreHandle_t sd_mutex = NULL;
 static TaskHandle_t sd_task_handle = NULL;
 
@@ -30,8 +31,9 @@ static void sd_card_task(void *arg)
     (void)arg;
     for (;;) {
         if (!sd_ready) {
-            sd_card_try_mount();
+            (void)sd_card_try_mount();
         }
+        sd_startup_done = 1;
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -39,15 +41,25 @@ static void sd_card_task(void *arg)
 int start_sd_card(void)
 {
     if (sd_task_handle) return XST_SUCCESS;
+    sd_startup_done = 0;
     sd_mutex = xSemaphoreCreateMutex();
-    if (!sd_mutex) return XST_FAILURE;
+    if (!sd_mutex) {
+        sd_startup_done = 1;
+        return XST_FAILURE;
+    }
     sd_ctx.fatfs = &sd_fatfs;
     sd_ctx.root = SD_ROOT;
     sd_ctx.ready = &sd_ready;
     sd_ctx.mutex = &sd_mutex;
     sd_ready = 0;
     BaseType_t rc = xTaskCreate(sd_card_task, "sd_card", SD_TASK_STACK, NULL, SD_TASK_PRIO, &sd_task_handle);
+    if (rc != pdPASS) sd_startup_done = 1;
     return (rc == pdPASS) ? XST_SUCCESS : XST_FAILURE;
+}
+
+int sd_card_startup_done(void)
+{
+    return sd_startup_done != 0;
 }
 
 fs_shared_ctx_t *sd_card_get_context(void)

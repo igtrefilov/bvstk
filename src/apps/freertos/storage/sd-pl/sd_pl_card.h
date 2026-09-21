@@ -6,6 +6,7 @@
 #define SD_PL_ROOT "2:/"
 
 int start_sd_pl_card(void);
+int sd_pl_card_startup_done(void);
 int sd_pl_card_is_ready(void);
 fs_shared_ctx_t *sd_pl_card_get_context(void);
 

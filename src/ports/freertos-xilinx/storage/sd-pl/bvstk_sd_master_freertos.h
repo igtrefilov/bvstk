@@ -12,6 +12,7 @@ bvstk_status_t bvstk_sd_master_freertos_start(void);
  * normal filesystem builds call start() from the sd_pl_card startup task.
  * Never call start() from main() before vTaskStartScheduler. */
 bvstk_status_t bvstk_sd_master_freertos_schedule_start(void);
+int bvstk_sd_master_freertos_startup_done(void);
 bvstk_sd_service_t *bvstk_sd_master_freertos_service(void);
 
 #endif

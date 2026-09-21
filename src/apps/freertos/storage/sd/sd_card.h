@@ -17,6 +17,7 @@ typedef struct {
 } sd_card_info_t;
 
 int start_sd_card(void);
+int sd_card_startup_done(void);
 int sd_card_get_info(sd_card_info_t *info);
 int sd_card_ls(int fd);
 int sd_card_cat(const char *path, int fd);

@@ -46,6 +46,8 @@
 #define SSH_MATCH_MAX 32
 #define SSH_TOKEN_MAX 8
 
+static volatile int s_startup_done;
+
 #ifdef WOLFSSH_SCP
 #define SCP_PATH_SIZE FS_PATH_MAX
 #define SCP_MAX_DEPTH 16
@@ -1977,6 +1979,7 @@ static void ssh_server_thread(void *arg)
     int listen_fd = lwip_socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd < 0) {
         xil_printf("SSH: socket failed\r\n");
+        s_startup_done = 1;
         vTaskDelete(NULL);
         return;
     }
@@ -1992,11 +1995,13 @@ static void ssh_server_thread(void *arg)
         lwip_listen(listen_fd, 1) < 0) {
         xil_printf("SSH: bind/listen failed\r\n");
         lwip_close(listen_fd);
+        s_startup_done = 1;
         vTaskDelete(NULL);
         return;
     }
 
     xil_printf("SSH: listening on port %u\r\n", (unsigned)BVSTK_SSH_PORT);
+    s_startup_done = 1;
     for (;;) {
         struct sockaddr_in remote;
         socklen_t remote_len = sizeof(remote);
@@ -2011,19 +2016,23 @@ static void ssh_server_thread(void *arg)
 
 void start_ssh_server(void)
 {
+    s_startup_done = 0;
     if (wolfSSH_Init() != WS_SUCCESS) {
         xil_printf("SSH: library init failed\r\n");
+        s_startup_done = 1;
         return;
     }
     /* wolfSSH_Init() installs wolfCrypt's default seed callback.  Override it
      * afterwards because this FreeRTOS image has no /dev/urandom. */
     if (wc_SetSeed_Cb(bvstk_ssh_seed) != 0) {
         xil_printf("SSH: RNG callback setup failed\r\n");
+        s_startup_done = 1;
         return;
     }
     s_ssh_ctx = wolfSSH_CTX_new(WOLFSSH_ENDPOINT_SERVER, NULL);
     if (!s_ssh_ctx) {
         xil_printf("SSH: context allocation failed\r\n");
+        s_startup_done = 1;
         return;
     }
     if (wolfSSH_CTX_UsePrivateKey_buffer(s_ssh_ctx, bvstk_ssh_host_key,
@@ -2032,6 +2041,7 @@ void start_ssh_server(void)
         xil_printf("SSH: host key rejected\r\n");
         wolfSSH_CTX_free(s_ssh_ctx);
         s_ssh_ctx = NULL;
+        s_startup_done = 1;
         return;
     }
     if (wolfSSH_CTX_SetAlgoListKex(s_ssh_ctx,
@@ -2039,6 +2049,7 @@ void start_ssh_server(void)
         xil_printf("SSH: KEX configuration failed\r\n");
         wolfSSH_CTX_free(s_ssh_ctx);
         s_ssh_ctx = NULL;
+        s_startup_done = 1;
         return;
     }
     wolfSSH_SetUserAuth(s_ssh_ctx, ssh_user_auth);
@@ -2048,14 +2059,26 @@ void start_ssh_server(void)
     wolfSSH_SetScpRecv(s_ssh_ctx, scp_recv_callback);
     wolfSSH_SetScpSend(s_ssh_ctx, scp_send_callback);
 #endif
-    sys_thread_new("ssh_server_thrd", ssh_server_thread, NULL,
-                   SSH_THREAD_STACKSIZE, tskIDLE_PRIORITY + 1);
+    if (sys_thread_new("ssh_server_thrd", ssh_server_thread, NULL,
+                       SSH_THREAD_STACKSIZE, tskIDLE_PRIORITY + 1) == NULL) {
+        s_startup_done = 1;
+    }
+}
+
+int ssh_server_startup_done(void)
+{
+    return s_startup_done != 0;
 }
 
 #else
 
 void start_ssh_server(void)
 {
+}
+
+int ssh_server_startup_done(void)
+{
+    return 1;
 }
 
 #endif
