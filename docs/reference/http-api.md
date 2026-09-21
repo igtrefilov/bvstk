@@ -47,7 +47,6 @@ JSON-ответы имеют `Content-Type: application/json; charset=utf-8`,
 | GET, PUT | `/api/i2c` | Список или изменение конфигурации I²C |
 | GET | `/api/i2c?name=<имя>` | Описание устройства; известное ограничение JSON ниже |
 | PUT | `/api/diag/i2c/read`, `/api/diag/i2c/write` | Регистровые операции I²C |
-| PUT | `/api/diag/smi/read`, `/api/diag/smi/write` | Сохранённые операции SMI; сейчас недоступны |
 | PUT | `/api/diag/mem/read`, `/api/diag/mem/write` | Диагностический MMIO |
 | PUT | `/api/reboot` | Запрос перезапуска |
 | GET, PUT | `/sd/<путь>`, `/flash/<путь>` | Бинарный файл |

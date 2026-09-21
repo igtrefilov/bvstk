@@ -52,14 +52,6 @@ export function apiDiagI2cWrite(payload) {
   return putJson("/api/diag/i2c/write", payload);
 }
 
-export function apiDiagSmiRead(payload) {
-  return putJson("/api/diag/smi/read", payload);
-}
-
-export function apiDiagSmiWrite(payload) {
-  return putJson("/api/diag/smi/write", payload);
-}
-
 export function apiDiagMemRead(payload) {
   return putJson("/api/diag/mem/read", payload);
 }

@@ -68,8 +68,8 @@ check_forbidden_docs \
     README.md docs scripts third_party
 
 check_forbidden_docs \
-    "removed FreeRTOS I2C source path" \
-    'src/apps/freertos/drivers/pl/i2c' \
+    "removed FreeRTOS app PL driver source path" \
+    'src/apps/freertos/drivers/pl' \
     README.md docs scripts third_party
 
 # I2C has no autopoll fields. SMI keeps its own autopoll configuration, so the

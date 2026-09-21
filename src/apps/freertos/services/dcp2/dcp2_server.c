@@ -17,8 +17,6 @@
 #include "xil_printf.h"
 
 #include "apps/freertos/config/config_store.h"
-#include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
-#include "apps/freertos/drivers/pl/spi/bvstk_spi.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
 #include "apps/freertos/services/dcp2/dcp2_stream_sim.h"
@@ -683,97 +681,63 @@ static int dcp2_handle_smi(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
     return dcp2_send_response(fd, srv, opcode, seq,
                               DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
 #else
-    smi_phy_config_t *cfg = NULL;
     bvstk_smi_service_t *common_service = bvstk_runtime_smi_service();
+    size_t device_id;
+    bvstk_status_t status;
 
-    if (common_service != NULL &&
-        (opcode == DCP2_OP_SMI_READ || opcode == DCP2_OP_SMI_WRITE)) {
-        size_t device_id;
-        bvstk_status_t status;
-        if ((opcode == DCP2_OP_SMI_READ && body_len != 2U) ||
-            (opcode == DCP2_OP_SMI_WRITE && body_len != 4U)) {
-            return dcp2_send_response(fd, srv, opcode, seq,
-                                      DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        if (bvstk_smi_service_find_by_phy(common_service,
-                                          body[0],
-                                          &device_id) != BVSTK_OK) {
-            return dcp2_send_response(fd, srv, opcode, seq,
-                                      DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        if (opcode == DCP2_OP_SMI_READ) {
-            uint16_t value = 0U;
-            uint8_t response[2];
-            status = bvstk_smi_service_read(common_service,
-                                            device_id,
-                                            body[1],
-                                            &value,
-                                            100U);
-            if (status == BVSTK_OK) {
-                be16_write(response, value);
-            }
-            return dcp2_send_response(fd, srv, opcode, seq,
-                                      status == BVSTK_OK ? DCP2_STATUS_OK :
-                                      status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
-                                      DCP2_STATUS_ERR_TIMEOUT,
-                                      status == BVSTK_OK ? response : NULL,
-                                      status == BVSTK_OK ? 2U : 0U);
-        }
-        status = bvstk_smi_service_write(common_service,
-                                         device_id,
-                                         body[1],
-                                         be16_read(body + 2U),
-                                         BVSTK_EVENT_SOURCE_DCP,
-                                         100U);
-        if (status == BVSTK_OK) {
-            (void)bvstk_runtime_smi_sync_device(device_id, 0);
-        }
+    if (opcode != DCP2_OP_SMI_READ && opcode != DCP2_OP_SMI_WRITE) {
         return dcp2_send_response(fd, srv, opcode, seq,
-                                  status == BVSTK_OK ? DCP2_STATUS_OK :
-                                  status == BVSTK_ERR_DENIED ? DCP2_STATUS_ERR_DENIED :
-                                  status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
-                                  DCP2_STATUS_ERR_TIMEOUT,
-                                  NULL, 0);
+                                  DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
     }
-
-    if (!config_store_is_ready()) {
+    if ((opcode == DCP2_OP_SMI_READ && body_len != 2U) ||
+        (opcode == DCP2_OP_SMI_WRITE && body_len != 4U)) {
+        return dcp2_send_response(fd, srv, opcode, seq,
+                                  DCP2_STATUS_ERR_MALFORMED, NULL, 0);
+    }
+    if (common_service == NULL) {
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_BUSY, NULL, 0);
+    }
+    if (bvstk_smi_service_find_by_phy(common_service,
+                                      body[0],
+                                      &device_id) != BVSTK_OK) {
+        return dcp2_send_response(fd, srv, opcode, seq,
+                                  DCP2_STATUS_ERR_RANGE, NULL, 0);
     }
 
     if (opcode == DCP2_OP_SMI_READ) {
-        uint16_t val = 0;
-        uint8_t out[2];
-        if (body_len != 2u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
+        uint16_t value = 0U;
+        uint8_t response[2];
+        status = bvstk_smi_service_read(common_service,
+                                        device_id,
+                                        body[1],
+                                        &value,
+                                        100U);
+        if (status == BVSTK_OK) {
+            be16_write(response, value);
         }
-        cfg = (smi_phy_config_t *)config_store_find_smi_device_by_phy(body[0] & 0x1Fu);
-        if (!cfg || body[1] >= cfg->reg_count) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        if (!smi_read_blocking(body[0], body[1], &val, pdMS_TO_TICKS(100))) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_TIMEOUT, NULL, 0);
-        }
-        be16_write(out, val);
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, out, 2);
+        return dcp2_send_response(fd, srv, opcode, seq,
+                                  status == BVSTK_OK ? DCP2_STATUS_OK :
+                                  status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
+                                  DCP2_STATUS_ERR_TIMEOUT,
+                                  status == BVSTK_OK ? response : NULL,
+                                  status == BVSTK_OK ? 2U : 0U);
     }
 
-    if (opcode == DCP2_OP_SMI_WRITE) {
-        uint16_t val16;
-        if (body_len != 4u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        cfg = (smi_phy_config_t *)config_store_find_smi_device_by_phy(body[0] & 0x1Fu);
-        if (!cfg || body[1] >= cfg->reg_count) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        val16 = be16_read(body + 2);
-        if (!smi_write_checked_source(body[0], body[1], val16, (uint8_t)DCP2_NOTIFY_SOURCE_DCP)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_DENIED, NULL, 0);
-        }
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
+    status = bvstk_smi_service_write(common_service,
+                                     device_id,
+                                     body[1],
+                                     be16_read(body + 2U),
+                                     BVSTK_EVENT_SOURCE_DCP,
+                                     100U);
+    if (status == BVSTK_OK) {
+        (void)bvstk_runtime_smi_sync_device(device_id, 0);
     }
-
-    return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+    return dcp2_send_response(fd, srv, opcode, seq,
+                              status == BVSTK_OK ? DCP2_STATUS_OK :
+                              status == BVSTK_ERR_DENIED ? DCP2_STATUS_ERR_DENIED :
+                              status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
+                              DCP2_STATUS_ERR_TIMEOUT,
+                              NULL, 0);
 #endif
 }
 

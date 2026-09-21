@@ -108,30 +108,6 @@
                 </form>
               </article>
 
-              <article class="card" role="listitem" aria-label="SMI регистры">
-                <h2 class="section-title">SMI</h2>
-                <p class="section-desc">Чтение/запись PHY регистров по MDIO (phy/reg 0..31).</p>
-                <form id="diag-smi" class="form" autocomplete="off">
-                  <label class="field">
-                    <span>PHY (0..31)</span>
-                    <input id="diag-smi-phy" inputmode="numeric" placeholder="1" />
-                  </label>
-                  <label class="field">
-                    <span>Reg (0..31)</span>
-                    <input id="diag-smi-reg" inputmode="numeric" placeholder="0" />
-                  </label>
-                  <label class="field">
-                    <span>Val (0..65535)</span>
-                    <input id="diag-smi-val" inputmode="numeric" placeholder="0" />
-                  </label>
-                  <div class="actions">
-                    <button id="diag-smi-read" type="button">Read</button>
-                    <button id="diag-smi-write" type="button">Write</button>
-                    <span id="diag-smi-out" class="status">—</span>
-                  </div>
-                </form>
-              </article>
-
               <article class="card" role="listitem" aria-label="MEM регистры">
                 <h2 class="section-title">MEM</h2>
                 <p class="section-desc">Опасно: чтение/запись MMIO памяти. Запись требует подтверждения.</p>

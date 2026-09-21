@@ -26,7 +26,6 @@
 
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
-#include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
 #include "apps/freertos/storage/fs/fs_devices.h"
 #include "apps/freertos/storage/fs/fs_shared.h"
 #include "apps/freertos/storage/qspi/qspi_fs.h"
@@ -990,72 +989,6 @@ static void api_diag_i2c_write(http_conn_t *conn)
     http_write_str(conn->fd, "{\"ok\":true}\n");
 }
 
-static void api_diag_smi_read(http_conn_t *conn)
-{
-    if (!conn) return;
-#if !BVSTK_PL_HAS_SMI_CORE
-    char ignored[256];
-    size_t ignored_len = 0;
-    (void)read_body_to_buf(conn, ignored, sizeof(ignored), &ignored_len);
-    http_reply_simple(conn->fd, 503, "Service Unavailable", "smi unavailable\r\n");
-    return;
-#else
-    char body[256];
-    size_t blen = 0;
-    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
-        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
-        return;
-    }
-    uint32_t phy = 0, reg = 0;
-    if (!json_get_u32_val(body, "phy", &phy) || phy > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad phy\r\n"); return; }
-    if (!json_get_u32_val(body, "reg", &reg) || reg > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad reg\r\n"); return; }
-    uint16_t val = 0;
-    if (!smi_read_blocking((uint8_t)phy, (uint8_t)reg, &val, pdMS_TO_TICKS(100))) {
-        http_reply_simple(conn->fd, 500, "ERR", "smi read failed\r\n");
-        return;
-    }
-    http_reply_json_hdr(conn->fd, 200, "OK");
-    http_write_str(conn->fd, "{");
-    json_write_kv_bool(conn->fd, "ok", true, true);
-    http_write_str(conn->fd, "\"val\":");
-    {
-        char b[16];
-        int n = snprintf(b, sizeof(b), "%u", (unsigned)val);
-        if (n > 0) http_write_str(conn->fd, b);
-    }
-    http_write_str(conn->fd, "}\n");
-#endif
-}
-
-static void api_diag_smi_write(http_conn_t *conn)
-{
-    if (!conn) return;
-#if !BVSTK_PL_HAS_SMI_CORE
-    char ignored[256];
-    size_t ignored_len = 0;
-    (void)read_body_to_buf(conn, ignored, sizeof(ignored), &ignored_len);
-    http_reply_simple(conn->fd, 503, "Service Unavailable", "smi unavailable\r\n");
-    return;
-#else
-    char body[256];
-    size_t blen = 0;
-    if (!read_body_to_buf(conn, body, sizeof(body), &blen) || blen == 0) {
-        http_reply_simple(conn->fd, 400, "Bad Request", "empty body\r\n");
-        return;
-    }
-    uint32_t phy = 0, reg = 0, val = 0;
-    if (!json_get_u32_val(body, "phy", &phy) || phy > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad phy\r\n"); return; }
-    if (!json_get_u32_val(body, "reg", &reg) || reg > 31u) { http_reply_simple(conn->fd, 400, "Bad Request", "bad reg\r\n"); return; }
-    if (!json_get_u32_val(body, "val", &val) || val > 0xFFFFu) { http_reply_simple(conn->fd, 400, "Bad Request", "bad val\r\n"); return; }
-    if (!smi_write_checked((uint8_t)phy, (uint8_t)reg, (uint16_t)val)) {
-        http_reply_simple(conn->fd, 403, "Forbidden", "DENIED\r\n");
-        return;
-    }
-    http_reply_json_hdr(conn->fd, 200, "OK");
-    http_write_str(conn->fd, "{\"ok\":true}\n");
-#endif
-}
-
 static void api_diag_mem_read(http_conn_t *conn)
 {
     if (!conn) return;
@@ -1496,8 +1429,6 @@ int http_handle_request(const http_request_t *req, http_conn_t *conn)
             if (strcmp(api_path, "/api/reboot") == 0) { api_handle_reboot_put(conn); return 1; }
             if (strcmp(api_path, "/api/diag/i2c/read") == 0) { api_diag_i2c_read(conn); return 1; }
             if (strcmp(api_path, "/api/diag/i2c/write") == 0) { api_diag_i2c_write(conn); return 1; }
-            if (strcmp(api_path, "/api/diag/smi/read") == 0) { api_diag_smi_read(conn); return 1; }
-            if (strcmp(api_path, "/api/diag/smi/write") == 0) { api_diag_smi_write(conn); return 1; }
             if (strcmp(api_path, "/api/diag/mem/read") == 0) { api_diag_mem_read(conn); return 1; }
             if (strcmp(api_path, "/api/diag/mem/write") == 0) { api_diag_mem_write(conn); return 1; }
             http_reply_simple(conn->fd, 404, "Not Found", "api not found\r\n");

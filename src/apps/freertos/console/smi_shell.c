@@ -11,9 +11,7 @@
 #include "task.h"
 
 #include "apps/freertos/config/config_store.h"
-#include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
-#include "apps/freertos/services/dcp2/dcp2_notify.h"
 #include "apps/freertos/services/dcp2/dcp2_stream_sim.h"
 #include "apps/freertos/console/stream_shell.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
@@ -128,21 +126,19 @@ static void cmd_r(int fd, uint8_t phy, const char *s_reg)
     bvstk_smi_service_t *service = bvstk_runtime_smi_service();
     size_t device_id = 0U;
     bvstk_status_t status;
-    if (service != NULL &&
-        bvstk_smi_service_find_by_phy(service, phy, &device_id) == BVSTK_OK) {
-        status = bvstk_smi_service_read(service,
-                                        device_id,
-                                        (uint8_t)reg,
-                                        &val,
-                                        100U);
-    } else {
-        status = smi_read_blocking((uint8_t)(phy & 0x1Fu),
-                                   (uint8_t)reg,
-                                   &val,
-                                   pdMS_TO_TICKS(100))
-                     ? BVSTK_OK
-                     : BVSTK_ERR_IO;
+    if (service == NULL) {
+        write_str(fd, "ERR not-ready\r\n");
+        return;
     }
+    if (bvstk_smi_service_find_by_phy(service, phy, &device_id) != BVSTK_OK) {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
+    status = bvstk_smi_service_read(service,
+                                    device_id,
+                                    (uint8_t)reg,
+                                    &val,
+                                    100U);
     if (status != BVSTK_OK) {
         write_str(fd, "ERR\r\n");
         return;
@@ -165,24 +161,22 @@ static void cmd_w(int fd, uint8_t phy, const char *s_reg, const char *s_val)
     bvstk_smi_service_t *service = bvstk_runtime_smi_service();
     size_t device_id = 0U;
     bvstk_status_t status;
-    if (service != NULL &&
-        bvstk_smi_service_find_by_phy(service, phy, &device_id) == BVSTK_OK) {
-        status = bvstk_smi_service_write(service,
-                                         device_id,
-                                         (uint8_t)reg,
-                                         (uint16_t)val,
-                                         BVSTK_EVENT_SOURCE_CONSOLE,
-                                         100U);
-        if (status == BVSTK_OK) {
-            (void)bvstk_runtime_smi_sync_device(device_id, 1);
-        }
-    } else {
-        status = smi_write_checked_source((uint8_t)(phy & 0x1Fu),
-                                          (uint8_t)reg,
-                                          (uint16_t)val,
-                                          (uint8_t)DCP2_NOTIFY_SOURCE_TELNET)
-                     ? BVSTK_OK
-                     : BVSTK_ERR_DENIED;
+    if (service == NULL) {
+        write_str(fd, "ERR not-ready\r\n");
+        return;
+    }
+    if (bvstk_smi_service_find_by_phy(service, phy, &device_id) != BVSTK_OK) {
+        write_str(fd, "ERR\r\n");
+        return;
+    }
+    status = bvstk_smi_service_write(service,
+                                     device_id,
+                                     (uint8_t)reg,
+                                     (uint16_t)val,
+                                     BVSTK_EVENT_SOURCE_CONSOLE,
+                                     100U);
+    if (status == BVSTK_OK) {
+        (void)bvstk_runtime_smi_sync_device(device_id, 1);
     }
     if (status != BVSTK_OK) {
         write_str(fd, "ERR DENIED\r\n");

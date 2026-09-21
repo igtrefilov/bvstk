@@ -1,8 +1,6 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include "apps/freertos/drivers/pl/smi/bvstk_smi.h"
-#include "apps/freertos/drivers/pl/spi/bvstk_spi.h"
 #include "apps/freertos/services/dcp2/dcp2_server.h"
 #include "apps/freertos/services/lan/bvstk_lan.h"
 #include "apps/freertos/services/tcp-console/bvstk_tcp_server.h"

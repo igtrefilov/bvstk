@@ -17,6 +17,7 @@
 #include "ports/freertos-xilinx/storage/sd-pl/bvstk_sd_master_freertos.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "xstatus.h"
 #include "xil_printf.h"
 #endif
 

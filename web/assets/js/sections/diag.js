@@ -3,8 +3,6 @@ import {
   apiDiagI2cWrite,
   apiDiagMemRead,
   apiDiagMemWrite,
-  apiDiagSmiRead,
-  apiDiagSmiWrite,
   apiGetI2c,
 } from "../api.js";
 import { byId, setText } from "../dom.js";
@@ -19,7 +17,6 @@ function toInt(s) {
 
 export async function initDiag() {
   await initDiagI2c();
-  initDiagSmi();
   initDiagMem();
 }
 
@@ -77,38 +74,6 @@ async function initDiagI2c() {
   });
 }
 
-function initDiagSmi() {
-  byId("diag-smi-read")?.addEventListener("click", async () => {
-    const phy = toInt(byId("diag-smi-phy")?.value);
-    const reg = toInt(byId("diag-smi-reg")?.value);
-    if (phy === null || phy < 0 || phy > 31) return void setText("diag-smi-out", "bad phy");
-    if (reg === null || reg < 0 || reg > 31) return void setText("diag-smi-out", "bad reg");
-    setText("diag-smi-out", "reading...");
-    try {
-      const r = await apiDiagSmiRead({ phy, reg });
-      setText("diag-smi-out", `OK 0x${Number(r.val).toString(16)} (${r.val})`);
-    } catch (e) {
-      setText("diag-smi-out", `ERR (${e?.message || "failed"})`);
-    }
-  });
-
-  byId("diag-smi-write")?.addEventListener("click", async () => {
-    const phy = toInt(byId("diag-smi-phy")?.value);
-    const reg = toInt(byId("diag-smi-reg")?.value);
-    const val = toInt(byId("diag-smi-val")?.value);
-    if (phy === null || phy < 0 || phy > 31) return void setText("diag-smi-out", "bad phy");
-    if (reg === null || reg < 0 || reg > 31) return void setText("diag-smi-out", "bad reg");
-    if (val === null || val < 0 || val > 0xffff) return void setText("diag-smi-out", "bad val");
-    setText("diag-smi-out", "writing...");
-    try {
-      await apiDiagSmiWrite({ phy, reg, val });
-      setText("diag-smi-out", "OK");
-    } catch (e) {
-      setText("diag-smi-out", `ERR (${e?.message || "failed"})`);
-    }
-  });
-}
-
 function initDiagMem() {
   byId("diag-mem-read")?.addEventListener("click", async () => {
     const addr = toInt(byId("diag-mem-addr")?.value);
@@ -140,4 +105,3 @@ function initDiagMem() {
     }
   });
 }
-
