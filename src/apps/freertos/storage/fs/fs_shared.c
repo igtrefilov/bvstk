@@ -27,7 +27,7 @@ static void fs_shared_unlock(const fs_shared_ctx_t *ctx)
 
 static int fs_shared_ensure_ready(const fs_shared_ctx_t *ctx, int fd)
 {
-    if (!ctx || !ctx->ready || !*(ctx->ready)) {
+    if (!fs_shared_is_ready(ctx)) {
         write_str(fd, "FS not ready\r\n");
         return 0;
     }
@@ -66,8 +66,25 @@ int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label)
 {
     if (!ctx || !ctx->fatfs || !ctx->ready || !ctx->root) return XST_FAILURE;
     if (!fs_shared_lock(ctx)) return XST_FAILURE;
+    if (ctx->preserve_media && ctx->mount_attempted) {
+        int status = fs_shared_is_ready(ctx) ? XST_SUCCESS : XST_FAILURE;
+        fs_shared_unlock(ctx);
+        return status;
+    }
+    ctx->mount_attempted = true;
     FRESULT res = f_mount(ctx->fatfs, ctx->root, 1);
+    /* FatFs may ignore a failed optional FAT32 FSInfo read during mount.
+     * The adapter latches any I/O failure: never publish a stopped disk. */
+    if (res == FR_OK && ctx->media_ready && !ctx->media_ready()) res = FR_DISK_ERR;
     if (res != FR_OK) {
+        if (ctx->preserve_media) {
+            *(ctx->ready) = 0;
+            (void)f_mount(NULL, ctx->root, 0);
+            xil_printf("%s: mount failed (FR=%d); formatting disabled\r\n",
+                label ? label : "FS", (int)res);
+            fs_shared_unlock(ctx);
+            return XST_FAILURE;
+        }
         if (res == FR_NO_FILESYSTEM) {
             BYTE work[FF_MAX_SS];
             BYTE mkfs_opt = (BYTE)(FM_ANY | FM_SFD);
@@ -100,6 +117,7 @@ FRESULT fs_shared_format(fs_shared_ctx_t *ctx)
     if (!ctx || !ctx->fatfs || !ctx->ready || !ctx->root) {
         return FR_INVALID_PARAMETER;
     }
+    if (ctx->preserve_media) return FR_DENIED;
     if (!fs_shared_lock(ctx)) {
         return FR_TIMEOUT;
     }
@@ -126,7 +144,8 @@ FRESULT fs_shared_format(fs_shared_ctx_t *ctx)
 
 int fs_shared_is_ready(const fs_shared_ctx_t *ctx)
 {
-    return ctx && ctx->ready && *(ctx->ready);
+    return ctx && ctx->ready && *(ctx->ready) &&
+        (!ctx->media_ready || ctx->media_ready());
 }
 
 int fs_shared_fs_ls(const fs_shared_ctx_t *ctx, const char *path, int fd)
@@ -175,9 +194,9 @@ int fs_shared_fs_ls(const fs_shared_ctx_t *ctx, const char *path, int fd)
         if (to_write >= sizeof(line)) to_write = sizeof(line) - 1;
         console_stream_write(fd, line, to_write);
     }
-    f_closedir(&dir);
+    FRESULT close_res = f_closedir(&dir);
     fs_shared_unlock(ctx);
-    return XST_SUCCESS;
+    return (res == FR_OK && close_res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
 }
 
 int fs_shared_fs_cat(const fs_shared_ctx_t *ctx, const char *path, int fd)
@@ -212,7 +231,30 @@ FRESULT fs_shared_fs_touch(const fs_shared_ctx_t *ctx, const char *path)
     FRESULT res = f_open(&file, path, FA_WRITE | FA_OPEN_ALWAYS);
     if (res == FR_OK) {
         res = f_truncate(&file);
-        f_close(&file);
+        FRESULT close_res = f_close(&file);
+        if (res == FR_OK) res = close_res;
+    }
+    fs_shared_unlock(ctx);
+    return res;
+}
+
+FRESULT fs_shared_fs_write_text(const fs_shared_ctx_t *ctx, const char *path,
+    const char *text, bool append)
+{
+    FIL file;
+    UINT written = 0;
+    FRESULT res, close_res;
+    if (!path || !text) return FR_INVALID_PARAMETER;
+    if (!fs_shared_is_ready(ctx)) return FR_NOT_READY;
+    if (!fs_shared_lock(ctx)) return FR_TIMEOUT;
+    /* One context lock covers open/write/close, including metadata sync. */
+    res = f_open(&file, path, FA_WRITE | FA_OPEN_ALWAYS);
+    if (res == FR_OK) {
+        res = append ? f_lseek(&file, f_size(&file)) : f_truncate(&file);
+        if (res == FR_OK) res = f_write(&file, text, (UINT)strlen(text), &written);
+        if (res == FR_OK && written != strlen(text)) res = FR_DENIED;
+        close_res = f_close(&file);
+        if (res == FR_OK) res = close_res;
     }
     fs_shared_unlock(ctx);
     return res;
@@ -354,11 +396,14 @@ static int fs_shared_copy_file_locked(const char *src, const char *dst)
         if (br == 0) break;
         UINT bw = 0;
         res = f_write(&dst_file, buf, br, &bw);
-        if (res != FR_OK || bw != br) break;
+        if (res == FR_OK && bw != br) res = FR_DENIED;
+        if (res != FR_OK) break;
     }
 
-    f_close(&src_file);
-    f_close(&dst_file);
+    FRESULT src_close = f_close(&src_file);
+    FRESULT dst_close = f_close(&dst_file);
+    if (res == FR_OK) res = src_close;
+    if (res == FR_OK) res = dst_close;
     return (res == FR_OK) ? XST_SUCCESS : XST_FAILURE;
 }
 

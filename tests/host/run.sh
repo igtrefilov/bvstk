@@ -34,6 +34,43 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
 
 cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_sd_master.c" \
+  "$REPO_ROOT/src/drivers/pl/sd/bvstk_sd_master.c" \
+  "$REPO_ROOT/src/services/sd/bvstk_sd_service.c" \
+  -o "$TEST_TMP/test_sd_master"
+
+"$TEST_TMP/test_sd_master"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic \
+  -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_sd_volume.c" \
+  "$REPO_ROOT/src/services/sd/bvstk_sd_volume.c" \
+  -o "$TEST_TMP/test_sd_volume"
+
+"$TEST_TMP/test_sd_volume"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections \
+  -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_fs_policy.c" \
+  "$REPO_ROOT/src/apps/freertos/storage/fs/fs_shared.c" \
+  -Wl,--gc-sections -o "$TEST_TMP/test_fs_policy"
+
+"$TEST_TMP/test_fs_policy"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic \
+  -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_sd_disk.c" \
+  "$REPO_ROOT/src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.c" \
+  "$REPO_ROOT/src/services/sd/bvstk_sd_volume.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_status.c" \
+  -o "$TEST_TMP/test_sd_disk"
+
+for disk_case in init-error no-filesystem read-error write-error; do
+  "$TEST_TMP/test_sd_disk" "$disk_case"
+done
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic \
+  -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_i2c_completion.c" \
   "$REPO_ROOT/src/shared/cli/bvstk_i2c_completion.c" \
   -o "$TEST_TMP/test_i2c_completion"

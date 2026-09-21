@@ -207,6 +207,8 @@ static void cmd_help_fs(int fd)
     write_str(fd, "  cd flash | cd sd | cd sd-pl  (switch filesystems)\r\n");
     write_str(fd, "  mkdir <dir>\r\n");
     write_str(fd, "  touch <file>\r\n");
+    write_str(fd, "  fs write <file> <text>   (create/replace; no implicit newline)\r\n");
+    write_str(fd, "  fs append <file> <text>  (append; no implicit newline)\r\n");
     write_str(fd, "  cat <file>\r\n");
     write_str(fd, "  rm <file|dir>\r\n");
     write_str(fd, "  rm -r <dir>   (recursive)\r\n");
@@ -323,6 +325,10 @@ static void cmd_fs_format(int fd, const char *device_arg, const char *confirm_ar
     }
 
     dev = fs_device_by_name("sd-pl");
+    if (dev && dev->ctx && dev->ctx->preserve_media) {
+        write_str(fd, "ERR: formatting sd-pl is disabled; use an existing FAT volume\r\n");
+        return;
+    }
     if (!dev || !dev->ctx || fs_device_prepare(dev) != XST_SUCCESS) {
         write_str(fd, "ERR: sd-pl is not ready\r\n");
         return;
@@ -336,6 +342,26 @@ static void cmd_fs_format(int fd, const char *device_arg, const char *confirm_ar
                          "ERR: format failed (FR=%d)\r\n", (int)res);
         if (n > 0 && n < (int)sizeof(line)) write_str(fd, line);
         else write_str(fd, "ERR: format failed\r\n");
+    }
+}
+
+static void cmd_fs_write(int fd, console_session_t *session, const char *path,
+    const char *text, bool append)
+{
+    char full[CONSOLE_PATH_MAX], reply[64];
+    const fs_shared_ctx_t *ctx;
+    FRESULT res;
+    if (!path || !text || !*text || !build_path(session, path, full, sizeof(full))) {
+        write_str(fd, "ERR: use fs write|append <file> <text>\r\n");
+        return;
+    }
+    ctx = resolve_fs_ctx_for_path(session, full);
+    if (!ctx) { write_str(fd, "ERR: filesystem not ready\r\n"); return; }
+    res = fs_shared_fs_write_text(ctx, full, text, append);
+    if (res == FR_OK) write_str(fd, "OK\r\n");
+    else {
+        snprintf(reply, sizeof(reply), "ERR: write/close failed (FR=%d)\r\n", (int)res);
+        write_str(fd, reply);
     }
 }
 
@@ -469,6 +495,11 @@ bool fs_handle(char *tok, char **save, int fd, console_session_t *session)
         char *sub = strtok_r(NULL, " \t", save);
         if (!sub || strcasecmp(sub, "-h") == 0 || strcasecmp(sub, "--help") == 0 || strcasecmp(sub, "-help") == 0) {
             cmd_help_fs(fd);
+        } else if (strcasecmp(sub, "write") == 0 || strcasecmp(sub, "append") == 0) {
+            char *path = strtok_r(NULL, " \t", save);
+            char *text = *save;
+            while (text && (*text == ' ' || *text == '\t')) ++text;
+            cmd_fs_write(fd, session, path, text, strcasecmp(sub, "append") == 0);
         } else if (strcasecmp(sub, "format") == 0) {
             char *device = strtok_r(NULL, " \t", save);
             char *confirm = strtok_r(NULL, " \t", save);
@@ -537,6 +568,7 @@ void fs_help(int fd)
     write_str(fd, "  cp <src> <dst>\r\n");
     write_str(fd, "  cp -r <src> <dst>\r\n");
     write_str(fd, "  mv <src> <dst>\r\n");
-    write_str(fd, "  format sd-pl confirm  (destructive FAT32 format)\r\n");
+    write_str(fd, "  fs write|append <file> <text>  (no implicit newline)\r\n");
+    write_str(fd, "  sd-pl formatting is disabled\r\n");
     write_str(fd, "  (use sd:/, flash:/ or sd-pl:/ prefixes to target another device)\r\n");
 }

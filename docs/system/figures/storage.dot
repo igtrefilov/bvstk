@@ -8,8 +8,8 @@ digraph storage {
   subgraph cluster_fr {
     label="FreeRTOS"; color="#607487"; margin=20;
     fc [label="Консоль · HTTP · SSH\nDCP2 FS"];
-    ff [label="fs_devices и FatFs\nflash:/ · sd:/"];
-    fd [label="Дисковый слой\nQSPI и PS SD"];
+    ff [label="fs_devices и FatFs\nflash:/ · sd:/ · sd-pl:/"];
+    fd [label="Дисковый слой\nQSPI · PS SD · PL SPI/DMA"];
     fc -> ff [label="файлы"];
     ff -> fd [label="секторы"];
   }
@@ -26,6 +26,8 @@ digraph storage {
   {rank=same; fc; nc;}
   media [label="Носители выбранной ОС\nокно QSPI 8–32 МиБ · PS SD", fillcolor="#e9eef3"];
   fd -> media; nd -> media;
-  note [shape=plaintext, style="", label="PL SD не предоставляет файловую систему в текущем профиле.", fontsize=12];
+  pl [label="Внешняя PL SD (FreeRTOS)\nсуществующая FAT12/16/32", fillcolor="#e9eef3"];
+  fd -> pl;
+  note [shape=plaintext, style="", label="PL SD: автоматическое монтирование sd-pl:/ без форматирования.", fontsize=12];
   media -> note [style=invis];
 }

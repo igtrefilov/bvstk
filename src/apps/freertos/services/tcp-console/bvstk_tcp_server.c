@@ -30,7 +30,7 @@ static char s_buffer[BUFFER_SIZE];
 enum { CONSOLE_PATH_MAX = 128 };
 
 static const char *const s_commands[] = {
-    "fs", "tar", "ip", "smi", "mem", "i2c",
+    "fs", "tar", "ip", "smi", "mem", "i2c", "sd-pl",
     "pwd", "ls", "cd", "mkdir", "touch", "cat", "rm", "cp", "mv",
     "help", "reboot", "quit", "exit"
 };

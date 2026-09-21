@@ -1350,7 +1350,9 @@ static void ssh_collect_argument_matches(const char *const *tokens,
         }
     } else if (strcasecmp(command, "sd-pl") == 0) {
         if (token_count == 1) {
-            static const char *const words[] = { "init", "-h", "--help", "help" };
+            static const char *const words[] = {
+                "init", "info", "status", "blocklen", "read", "write", "test", "-h", "--help", "help"
+            };
             ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
         }
     } else if (strcasecmp(command, "reboot") == 0) {

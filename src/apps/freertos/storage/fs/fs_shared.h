@@ -19,6 +19,11 @@ typedef struct {
     volatile int *ready;
     SemaphoreHandle_t *mutex;
     const char *root;
+    /* Existing-media policy: no mkfs, no remount of live/stale handles.
+     * Zero-initialized legacy contexts keep their previous behavior. */
+    bool preserve_media;
+    bool mount_attempted;
+    int (*media_ready)(void);
 } fs_shared_ctx_t;
 
 int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label);
@@ -28,6 +33,8 @@ int fs_shared_is_ready(const fs_shared_ctx_t *ctx);
 int fs_shared_fs_ls(const fs_shared_ctx_t *ctx, const char *path, int fd);
 int fs_shared_fs_cat(const fs_shared_ctx_t *ctx, const char *path, int fd);
 FRESULT fs_shared_fs_touch(const fs_shared_ctx_t *ctx, const char *path);
+FRESULT fs_shared_fs_write_text(const fs_shared_ctx_t *ctx, const char *path,
+    const char *text, bool append);
 FRESULT fs_shared_fs_mkdir(const fs_shared_ctx_t *ctx, const char *path);
 FRESULT fs_shared_fs_rm(const fs_shared_ctx_t *ctx, const char *path);
 FRESULT fs_shared_fs_rm_recursive(const fs_shared_ctx_t *ctx, const char *path);

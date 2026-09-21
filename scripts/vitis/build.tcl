@@ -151,7 +151,11 @@ if {$ssh_enabled} {
     # buffer; leave enough FreeRTOS heap for the existing services as well.
     catch {bsp config total_heap_size 1048576}
 } else {
-    catch {bsp config total_heap_size 131072}
+    # The normal application starts the network, filesystem, SSH-compatible
+    # console plumbing and the PL-SD/UART tasks together. 128 KiB is not
+    # enough for that task set; keep the heap in DDR with the SSH profile's
+    # 1 MiB setting as the upper-bound reference.
+    catch {bsp config total_heap_size 524288}
 }
 
 # Attach lwIP (prefer 2.2.0, but fall back to 2.1.1 if needed)
@@ -291,6 +295,13 @@ app create -name $APP_NAME -platform $PLAT_NAME -template "Empty Application(C)"
 
 set SRC_REAL [file normalize [file join $REPO_ROOT src]]
 app config -name $APP_NAME -add include-path $SRC_REAL
+
+# Keep the user's standalone SPI diagnostic available as an explicit mode.
+# Default entry point is the full BVSTK application with the integrated PL-SD
+# service and its shared console commands.
+if {[info exists ::env(BVSTK_PL_SPI_DIAGNOSTIC)] && $::env(BVSTK_PL_SPI_DIAGNOSTIC) == 1} {
+    app config -name $APP_NAME -add compiler-misc "-DBVSTK_PL_SPI_DIAGNOSTIC=1"
+}
 
 if {$ssh_enabled} {
     app config -name $APP_NAME -add include-path [file join $WOLFSSL_ROOT include]

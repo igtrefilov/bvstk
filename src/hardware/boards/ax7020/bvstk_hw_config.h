@@ -68,16 +68,15 @@
 #define BVSTK_PL_HAS_SPI_CORE      0
 
 /*
- * The installed SD-visible core currently exposes only its card
- * initialization sequencer.  Keep the block/FatFs services in the image so
- * they can be enabled with the next PL contract without reimplementing the
- * PS side, but do not start or reach them in this configuration.
+ * Legacy register-controller flags remain disabled. FreeRTOS block I/O and
+ * FatFs use the qualified SPI/DMA master service instead, with addresses
+ * supplied by the XSA (not BVSTK_SD_CONTROLLER_BASE). No PL changes required.
  */
 #define BVSTK_PL_SD_INIT_ONLY            1
 #define BVSTK_PL_SD_CAN_INIT             1
 #define BVSTK_PL_SD_CAN_BLOCK_IO         0
-#define BVSTK_PL_SD_CAN_FILESYSTEM       0
-#define BVSTK_PL_SD_AUTOSTART_FILESYSTEM 0
+#define BVSTK_PL_SD_CAN_FILESYSTEM       1
+#define BVSTK_PL_SD_AUTOSTART_FILESYSTEM 1
 
 #define BVSTK_PL_RUNTIME_ENABLED \
     (BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_SMI_CORE || BVSTK_PL_HAS_SPI_CORE)

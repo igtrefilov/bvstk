@@ -28,7 +28,7 @@ void console_print_banner(int fd)
         "| smi            | MDIO/SMI access             |\r\n",
         "| spi            | SPI PL master shell         |\r\n",
         "| uart           | UART stream shell           |\r\n",
-        "| sd-pl          | SD PL initialization shell  |\r\n",
+        "| sd-pl          | PL SD filesystem/status     |\r\n",
         "| mem            | Memory info/tools           |\r\n",
         "| i2c            | I2C device shell            |\r\n",
         "| help           | List available utilities    |\r\n",

@@ -368,6 +368,8 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE command, void *buffer)
 
     switch (command) {
     case CTRL_SYNC:
+        /* PL writes have already completed CMD24 and a full CRC-checked
+         * readback before returning; there is no deferred DMA/write cache. */
         return RES_OK;
 
     case GET_SECTOR_COUNT:
@@ -388,16 +390,18 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE command, void *buffer)
                    : RES_PARERR;
 
     case GET_SECTOR_SIZE:
-        *(DWORD *)buffer = DISKIO_SECTOR_SIZE;
+        *(WORD *)buffer = DISKIO_SECTOR_SIZE;
         return RES_OK;
 
     case GET_BLOCK_SIZE:
         *(DWORD *)buffer = pdrv == DISKIO_QSPI_PDRV
                                ? QSPI_FLASH_SECTOR_SIZE / DISKIO_SECTOR_SIZE
-                               : DISKIO_SD_ERASE_BLOCK_SECTORS;
+                               : (pdrv == DISKIO_PL_SD_PDRV ? 1U
+                                  : DISKIO_SD_ERASE_BLOCK_SECTORS);
         return RES_OK;
 
     case CTRL_TRIM:
+        if (pdrv == DISKIO_PL_SD_PDRV) return RES_PARERR;
         return RES_OK;
 
     default:

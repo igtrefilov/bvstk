@@ -29,11 +29,10 @@ void fs_devices_init(void)
 int fs_device_prepare(const fs_device_info_t *dev)
 {
     if (!dev || !dev->ctx) return XST_FAILURE;
-#if !BVSTK_PL_SD_CAN_FILESYSTEM
     if (strcasecmp(dev->name, "sd-pl") == 0) {
-        return XST_FAILURE;
+        /* Only the startup task mounts this volume, once per boot. */
+        return fs_shared_is_ready(dev->ctx) ? XST_SUCCESS : XST_FAILURE;
     }
-#endif
     if (fs_shared_is_ready(dev->ctx)) return XST_SUCCESS;
     for (int attempt = 0; attempt < 4; ++attempt) {
         if (fs_shared_mount(dev->ctx, dev->label) == XST_SUCCESS) return XST_SUCCESS;
