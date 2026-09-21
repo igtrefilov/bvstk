@@ -3,6 +3,7 @@
 #include <string.h>
 #include <strings.h>
 #include "apps/freertos/config/config_store.h"
+#include "apps/freertos/console/console_completion.h"
 #include "apps/freertos/storage/sd/sd_card.h"
 #include "shared/cli/bvstk_i2c_completion.h"
 #include "shared/cli/bvstk_line_editor.h"
@@ -23,16 +24,14 @@ __attribute__((weak)) void process_received_data(uint8_t *data_buffer, int data_
     (void)socket_fd;
 }
 
-static char s_dir_candidates[16][FS_NAME_MAX];
-
 static char s_buffer[BUFFER_SIZE];
 
 enum { CONSOLE_PATH_MAX = 128 };
 
 static const char *const s_commands[] = {
-    "fs", "tar", "ip", "smi", "mem", "i2c", "sd-pl",
+    "fs", "tar", "ip", "smi", "spi", "uart", "mem", "i2c", "sd-pl",
     "pwd", "ls", "cd", "mkdir", "touch", "cat", "rm", "cp", "mv",
-    "help", "reboot", "quit", "exit"
+    "help", "-h", "--help", "-help", "reboot", "quit", "exit"
 };
 
 typedef struct {
@@ -159,25 +158,22 @@ static size_t copy_completion_candidates(
     return stored_count;
 }
 
-static int tcp_editor_complete(void *context,
-                               const char *line,
-                               size_t line_length,
-                               size_t cursor,
-                               bvstk_line_editor_completion_t *result)
+int bvstk_console_complete(const console_session_t *session,
+                           const char *line,
+                           size_t line_length,
+                           size_t cursor,
+                           bvstk_line_editor_completion_t *result)
 {
-    tcp_editor_context_t *editor_context = (tcp_editor_context_t *)context;
-    const console_session_t *session;
+    char completion_candidates[16][FS_NAME_MAX];
     size_t start;
     size_t prefix_length;
     tok_view_t tokens_before[4];
     size_t token_count;
     char prefix[FS_NAME_MAX];
 
-    if (editor_context == NULL || line == NULL || result == NULL ||
-        editor_context->session == NULL) {
+    if (session == NULL || line == NULL || result == NULL) {
         return 0;
     }
-    session = editor_context->session;
     memset(result, 0, sizeof(*result));
     if (cursor > line_length) {
         cursor = line_length;
@@ -257,7 +253,7 @@ static int tcp_editor_complete(void *context,
             (void)complete_words(prefix_part_token,
                                   tar_words,
                                   sizeof(tar_words) / sizeof(tar_words[0]),
-                                  s_dir_candidates,
+                                  completion_candidates,
                                   16,
                                   &total);
         } else if (strcasecmp(cmd0, "ip") == 0) {
@@ -267,7 +263,7 @@ static int tcp_editor_complete(void *context,
                 (void)complete_words(prefix_part_token,
                                       ip_words,
                                       sizeof(ip_words) / sizeof(ip_words[0]),
-                                      s_dir_candidates,
+                                      completion_candidates,
                                       16,
                                       &total);
             } else if (token_index == 2U && strcasecmp(tok1, "addr") == 0) {
@@ -275,7 +271,7 @@ static int tcp_editor_complete(void *context,
                 (void)complete_words(prefix_part_token,
                                       ip_words,
                                       sizeof(ip_words) / sizeof(ip_words[0]),
-                                      s_dir_candidates,
+                                      completion_candidates,
                                       16,
                                       &total);
             } else {
@@ -287,7 +283,7 @@ static int tcp_editor_complete(void *context,
             (void)complete_words(prefix_part_token,
                                   mem_words,
                                   sizeof(mem_words) / sizeof(mem_words[0]),
-                                  s_dir_candidates,
+                                  completion_candidates,
                                   16,
                                   &total);
         } else if (strcasecmp(cmd0, "i2c") == 0) {
@@ -348,7 +344,7 @@ static int tcp_editor_complete(void *context,
             handled = 1;
             if (token_index == 1U) {
                 (void)complete_smi_selector(prefix_part_token,
-                                             s_dir_candidates,
+                                             completion_candidates,
                                              16,
                                              &total);
             } else if (token_index == 2U &&
@@ -363,7 +359,7 @@ static int tcp_editor_complete(void *context,
                 (void)complete_words(prefix_part_token,
                                       smi_words,
                                       sizeof(smi_words) / sizeof(smi_words[0]),
-                                      s_dir_candidates,
+                                      completion_candidates,
                                       16,
                                       &total);
             } else if (token_index == 3U &&
@@ -374,7 +370,7 @@ static int tcp_editor_complete(void *context,
                 (void)complete_words(prefix_part_token,
                                       policy_words,
                                       sizeof(policy_words) / sizeof(policy_words[0]),
-                                      s_dir_candidates,
+                                      completion_candidates,
                                       16,
                                       &total);
             } else if (token_index == 3U &&
@@ -386,7 +382,7 @@ static int tcp_editor_complete(void *context,
                                       autopoll_words,
                                       sizeof(autopoll_words) /
                                           sizeof(autopoll_words[0]),
-                                      s_dir_candidates,
+                                      completion_candidates,
                                       16,
                                       &total);
             } else if (token_index == 3U &&
@@ -396,7 +392,7 @@ static int tcp_editor_complete(void *context,
                                       settings_words,
                                       sizeof(settings_words) /
                                           sizeof(settings_words[0]),
-                                      s_dir_candidates,
+                                      completion_candidates,
                                       16,
                                       &total);
             } else {
@@ -405,7 +401,7 @@ static int tcp_editor_complete(void *context,
         }
         if (handled && total > 0) {
             (void)copy_completion_candidates(result,
-                                              s_dir_candidates,
+                                              completion_candidates,
                                               (size_t)total);
             return result->match_count != 0U;
         }
@@ -483,18 +479,37 @@ static int tcp_editor_complete(void *context,
             status = fs_shared_fs_complete(fs_context,
                                            full_directory,
                                            prefix_part,
-                                           s_dir_candidates,
+                                           completion_candidates,
                                            16,
                                            &total);
             if (status != XST_SUCCESS || total <= 0) {
                 return 0;
             }
             (void)copy_completion_candidates(result,
-                                              s_dir_candidates,
+                                              completion_candidates,
                                               (size_t)total);
             return result->match_count != 0U;
         }
     }
+}
+
+static int tcp_editor_complete(void *context,
+                               const char *line,
+                               size_t line_length,
+                               size_t cursor,
+                               bvstk_line_editor_completion_t *result)
+{
+    const tcp_editor_context_t *editor_context =
+        (const tcp_editor_context_t *)context;
+
+    if (editor_context == NULL) {
+        return 0;
+    }
+    return bvstk_console_complete(editor_context->session,
+                                  line,
+                                  line_length,
+                                  cursor,
+                                  result);
 }
 
 static int tcp_editor_write(void *context, const void *data, size_t length)

@@ -2,18 +2,18 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <string.h>
 
+#include "apps/freertos/console/console_completion.h"
 #include "apps/freertos/console/console_common.h"
 #include "apps/freertos/console/console_stream.h"
 #include "apps/freertos/console/utils.h"
+#include "shared/cli/bvstk_line_editor.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "xparameters.h"
 #include "xuartps_hw.h"
 
 #define UART_CONSOLE_FD CONSOLE_STREAM_FD_MIN
-#define UART_CONSOLE_LINE_MAX 256U
 #define UART_CONSOLE_STACK 4096U
 #define UART_CONSOLE_PRIORITY (tskIDLE_PRIORITY + 2)
 
@@ -29,11 +29,56 @@ static int uart_write(void *context, const void *data, size_t length)
     return (int)length;
 }
 
+static void uart_editor_prompt(void *context)
+{
+    console_session_t *session = (console_session_t *)context;
+
+    if (session != NULL) {
+        console_print_prompt(UART_CONSOLE_FD, session);
+    }
+}
+
+static int uart_editor_submit(void *context, const char *line, size_t length)
+{
+    console_session_t *session = (console_session_t *)context;
+
+    if (session == NULL || line == NULL) {
+        return BVSTK_LINE_EDITOR_SUBMIT_STOP;
+    }
+    if (length != 0U) {
+        process_console_line(line, UART_CONSOLE_FD, session);
+        /* The dispatcher uses one legacy process-wide close flag for socket
+         * sessions.  A physical UART cannot be closed, so consume that flag
+         * here after commands such as `quit` or `reboot`. */
+        if (utils_should_close()) {
+            utils_reset_close();
+        }
+    }
+    /* Unlike a socket session, the physical UART remains available after
+     * `quit`; keep the console task alive and print a fresh prompt. */
+    return BVSTK_LINE_EDITOR_SUBMIT_PROMPT;
+}
+
+static int uart_editor_complete(void *context,
+                                const char *line,
+                                size_t line_length,
+                                size_t cursor,
+                                bvstk_line_editor_completion_t *result)
+{
+    const console_session_t *session =
+        (const console_session_t *)context;
+
+    return bvstk_console_complete(session,
+                                  line,
+                                  line_length,
+                                  cursor,
+                                  result);
+}
+
 static void uart_console_task(void *argument)
 {
-    char line[UART_CONSOLE_LINE_MAX];
-    size_t length = 0U;
-    bool overflow = false;
+    static bvstk_line_editor_t editor;
+    bvstk_line_editor_config_t editor_config = {0};
     bool previous_cr = false;
     console_session_t session;
     (void)argument;
@@ -43,6 +88,14 @@ static void uart_console_task(void *argument)
         return;
     }
     console_session_init(&session);
+    editor_config.context = &session;
+    editor_config.write = uart_write;
+    editor_config.prompt = uart_editor_prompt;
+    editor_config.submit = uart_editor_submit;
+    editor_config.complete = uart_editor_complete;
+    editor_config.tab = NULL;
+    editor_config.eof_on_empty = 0;
+    bvstk_line_editor_init(&editor, &editor_config);
     console_print_banner(UART_CONSOLE_FD);
     console_print_prompt(UART_CONSOLE_FD, &session);
 
@@ -58,37 +111,17 @@ static void uart_console_task(void *argument)
             previous_cr = false;
             continue;
         }
-        previous_cr = character == '\r';
-        if (character == '\r' || character == '\n') {
-            line[length] = '\0';
-            write_str(UART_CONSOLE_FD, "\r\n");
-            if (overflow) {
-                write_str(UART_CONSOLE_FD,
-                          "ERR: line too long; command discarded\r\n");
-            } else if (length != 0U) {
-                process_console_line(line, UART_CONSOLE_FD, &session);
-            }
-            length = 0U;
-            overflow = false;
-            console_print_prompt(UART_CONSOLE_FD, &session);
-        } else if (character == 3U) {
-            length = 0U;
-            overflow = false;
-            write_str(UART_CONSOLE_FD, "^C\r\n");
-            console_print_prompt(UART_CONSOLE_FD, &session);
-        } else if ((character == 8U || character == 127U) &&
-                   length != 0U && !overflow) {
-            --length;
-            write_str(UART_CONSOLE_FD, "\b \b");
-        } else if (character >= 32U && character <= 126U) {
-            if (length >= sizeof(line) - 1U) {
-                overflow = true;
-            } else if (!overflow) {
-                line[length++] = (char)character;
-                (void)uart_write(NULL, &character, 1U);
-            }
+        if (character == '\r') {
+            previous_cr = true;
+            character = '\n';
+        } else {
+            previous_cr = false;
+        }
+        if (bvstk_line_editor_handle_byte(&editor, character) != 0) {
+            break;
         }
     }
+    vTaskDelete(NULL);
 }
 
 int start_uart_console(void)
