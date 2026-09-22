@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 /*
- * AX7020 Burevestnik PS contract for the I2C cores in fpga/develop.
+ * AX7020 Burevestnik PS contract checked against the supplied design.xsa.
  *
  * This file is the single source of truth shared by the FreeRTOS and
  * Neutrino builds. The FreeRTOS/Xilinx port validates these constants against
@@ -20,8 +20,8 @@
  * slave response header/data starting at 0x2000. */
 #define BVSTK_I2C_BRAM_SIZE       UINT32_C(0x00003000)
 
-#define BVSTK_SMI_BRAM_BASE       UINT32_C(0x42000000)
-#define BVSTK_SMI_BRAM_SIZE       UINT32_C(0x00002000)
+#define BVSTK_MDIO_BRAM_BASE       UINT32_C(0x42000000)
+#define BVSTK_MDIO_BRAM_SIZE       UINT32_C(0x00004000)
 
 #define BVSTK_SPI_BRAM_BASE       UINT32_C(0x44000000)
 #define BVSTK_SPI_BRAM_SIZE       UINT32_C(0x00002000)
@@ -29,16 +29,16 @@
 #define BVSTK_I2C_MASTER_BASE     UINT32_C(0x43C00000)
 #define BVSTK_I2C_MASTER_SIZE     UINT32_C(0x00010000)
 
-#define BVSTK_SMI_MASTER_BASE     UINT32_C(0x43C20000)
-#define BVSTK_SMI_MASTER_SIZE     UINT32_C(0x00010000)
+#define BVSTK_MDIO_MASTER_BASE     UINT32_C(0x43C10000)
+#define BVSTK_MDIO_MASTER_SIZE     UINT32_C(0x00010000)
 
-#define BVSTK_SMI_SLAVE_BASE      UINT32_C(0x43C30000)
-#define BVSTK_SMI_SLAVE_SIZE      UINT32_C(0x00010000)
+#define BVSTK_MDIO_SLAVE_BASE      UINT32_C(0x43C20000)
+#define BVSTK_MDIO_SLAVE_SIZE      UINT32_C(0x00010000)
 
-#define BVSTK_SPI_MASTER_BASE     UINT32_C(0x43C50000)
+#define BVSTK_SPI_MASTER_BASE     UINT32_C(0x43C40000)
 #define BVSTK_SPI_MASTER_SIZE     UINT32_C(0x00010000)
 
-#define BVSTK_I2C_SLAVE_BASE      UINT32_C(0x43C10000)
+#define BVSTK_I2C_SLAVE_BASE      UINT32_C(0x43C50000)
 #define BVSTK_I2C_SLAVE_SIZE      UINT32_C(0x00010000)
 
 /*
@@ -64,7 +64,7 @@
  */
 #define BVSTK_PL_HAS_SD_CONTROLLER 1
 #define BVSTK_PL_HAS_I2C_CORE      1
-#define BVSTK_PL_HAS_SMI_CORE      0
+#define BVSTK_PL_HAS_MDIO_CORE      1
 #define BVSTK_PL_HAS_SPI_CORE      0
 
 /*
@@ -79,17 +79,17 @@
 #define BVSTK_PL_SD_AUTOSTART_FILESYSTEM 1
 
 #define BVSTK_PL_RUNTIME_ENABLED \
-    (BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_SMI_CORE || BVSTK_PL_HAS_SPI_CORE)
+    (BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_MDIO_CORE || BVSTK_PL_HAS_SPI_CORE)
 
 /* ARM GIC interrupt IDs used by the fabric interrupt inputs. */
-#define BVSTK_IRQ_SMI_MASTER      UINT32_C(61)
-#define BVSTK_IRQ_SMI_SLAVE       UINT32_C(62)
+#define BVSTK_IRQ_MDIO_MASTER      UINT32_C(61)
+#define BVSTK_IRQ_MDIO_SLAVE       UINT32_C(62)
 #define BVSTK_IRQ_I2C_MASTER      UINT32_C(63)
 #define BVSTK_IRQ_I2C_SLAVE       UINT32_C(84)
 #define BVSTK_IRQ_SPI_MASTER      UINT32_C(64)
 #define BVSTK_IRQ_SD_CONTROLLER   UINT32_C(64)
 
-#define BVSTK_PL_CONTRACT_VERSION UINT32_C(2)
+#define BVSTK_PL_CONTRACT_VERSION UINT32_C(3)
 
 /*
  * DCP2 MEM is a raw diagnostic MMIO path for the current FreeRTOS image.

@@ -164,7 +164,7 @@ static bvstk_status_t process_i2c(bvstk_control_api_t *control,
     return BVSTK_ERR_UNSUPPORTED;
 }
 
-static bvstk_status_t process_smi(bvstk_control_api_t *control,
+static bvstk_status_t process_mdio(bvstk_control_api_t *control,
                                   const bvstk_dcp2_request_t *request,
                                   uint8_t *body,
                                   uint16_t *body_size)
@@ -173,23 +173,23 @@ static bvstk_status_t process_smi(bvstk_control_api_t *control,
     bvstk_status_t status;
     uint16_t value = 0U;
 
-    if (control == NULL || control->smi == NULL) {
+    if (control == NULL || control->mdio == NULL) {
         return BVSTK_ERR_NOT_READY;
     }
     if (request->body_size < 2U) {
         return BVSTK_ERR_MALFORMED;
     }
-    status = bvstk_smi_service_find_by_phy(control->smi,
+    status = bvstk_mdio_service_find_by_phy(control->mdio,
                                            request->body[0],
                                            &device_id);
     if (status != BVSTK_OK) {
         return status;
     }
-    if (request->opcode == BVSTK_DCP2_OP_SMI_READ) {
+    if (request->opcode == BVSTK_DCP2_OP_MDIO_READ) {
         if (request->body_size != 2U) {
             return BVSTK_ERR_MALFORMED;
         }
-        status = bvstk_control_smi_read(control,
+        status = bvstk_control_mdio_read(control,
                                         device_id,
                                         request->body[1],
                                         &value,
@@ -200,12 +200,12 @@ static bvstk_status_t process_smi(bvstk_control_api_t *control,
         }
         return status;
     }
-    if (request->opcode == BVSTK_DCP2_OP_SMI_WRITE) {
+    if (request->opcode == BVSTK_DCP2_OP_MDIO_WRITE) {
         if (request->body_size != 4U) {
             return BVSTK_ERR_MALFORMED;
         }
         value = bvstk_dcp2_read_be16(request->body + 2U);
-        return bvstk_control_smi_write(control,
+        return bvstk_control_mdio_write(control,
                                        device_id,
                                        request->body[1],
                                        value,
@@ -278,8 +278,8 @@ int bvstk_dcp2_process_request(bvstk_control_api_t *control,
         status = process_mem(control, request, body, &body_size);
     } else if (request->service == BVSTK_DCP2_SERVICE_I2C) {
         status = process_i2c(control, request, body, &body_size);
-    } else if (request->service == BVSTK_DCP2_SERVICE_SMI) {
-        status = process_smi(control, request, body, &body_size);
+    } else if (request->service == BVSTK_DCP2_SERVICE_MDIO) {
+        status = process_mdio(control, request, body, &body_size);
     } else if (request->service == BVSTK_DCP2_SERVICE_SPI) {
         status = process_spi(control, request, body, &body_size);
     } else {

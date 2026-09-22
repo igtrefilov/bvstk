@@ -17,7 +17,7 @@ src/
 ├── hardware/                  контракт аппаратуры
 │   ├── boards/ax7020/         адреса, IRQ, признаки узлов, QSPI
 │   └── pl/                    регистровые карты IP
-├── drivers/pl/                драйверы I²C, SMI, SPI, SD без ОС
+├── drivers/pl/                драйверы I²C, MDIO, SPI, SD без ОС
 ├── services/                  устройства, кэш, политика, FS, управление
 ├── protocols/dcp2/            кодирование и обработка DCP2
 ├── ports/                     реализации системной границы
@@ -67,7 +67,7 @@ Vitis создаёт представление исходников в `vitis_w
 |---|---|
 | Новый адрес, IRQ, признак IP | `src/hardware/boards/ax7020/`, проверки `ports/.../board/` |
 | Формат регистра или транзакции | `src/hardware/pl/` и `src/drivers/pl/` |
-| Правила записи, кэш, модель устройства | `src/services/i2c/`, `src/services/smi/` |
+| Правила записи, кэш, модель устройства | `src/services/i2c/`, `src/services/mdio/` |
 | Перенос файлового чтения DCP2 | `src/services/fs/`, адаптер файловой системы целевого приложения |
 | Формат или обработка DCP2 | `src/protocols/dcp2/`, модель в `src/shared/protocols/dcp2/` |
 | FreeRTOS HTTP/TCP/SSH | `src/apps/freertos/services/` |

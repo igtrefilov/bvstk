@@ -12,7 +12,7 @@ typedef enum {
 
 typedef enum {
     BVSTK_EVENT_BUS_I2C = 0,
-    BVSTK_EVENT_BUS_SMI = 1,
+    BVSTK_EVENT_BUS_MDIO = 1,
     BVSTK_EVENT_BUS_SPI = 2,
     BVSTK_EVENT_BUS_UART = 3,
     BVSTK_EVENT_BUS_SYSTEM = 4

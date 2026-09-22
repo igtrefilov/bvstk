@@ -3,8 +3,11 @@
 
 #include <stdbool.h>
 #include "apps/freertos/console/console_common.h"
+#include "shared/cli/bvstk_i2c_completion.h"
 
 bool i2c_handle(char *tok, char **save, int fd);
 void i2c_help(int fd);
+int i2c_complete_line(const char *line, size_t length, size_t cursor,
+                      bvstk_i2c_completion_result_t *result);
 
 #endif

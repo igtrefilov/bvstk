@@ -26,7 +26,7 @@ python3 "$REPO_ROOT/tools/codegen/gen_default_configs.py" \
 COMMON_SOURCES=(
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c"
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_slave.c"
-  "$REPO_ROOT/src/drivers/pl/smi/bvstk_smi_core.c"
+  "$REPO_ROOT/src/drivers/pl/mdio/bvstk_mdio_core.c"
   "$REPO_ROOT/src/drivers/pl/spi/bvstk_spi_core.c"
   "$REPO_ROOT/src/hardware/boards/ax7020/bvstk_pl_regions.c"
   "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c"
@@ -35,6 +35,7 @@ COMMON_SOURCES=(
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c"
   "$REPO_ROOT/src/shared/base/bvstk_status.c"
   "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c"
+  "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c"
   "$REPO_ROOT/src/shared/pl/access/bvstk_pl_service.c"
   "$REPO_ROOT/src/services/control/bvstk_control_api.c"
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_cache.c"
@@ -42,7 +43,7 @@ COMMON_SOURCES=(
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c"
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c"
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_slave_service.c"
-  "$REPO_ROOT/src/services/smi/bvstk_smi_service.c"
+  "$REPO_ROOT/src/services/mdio/bvstk_mdio_service.c"
 )
 
 NEUTRINO_I2C_RUNTIME_SOURCES=(

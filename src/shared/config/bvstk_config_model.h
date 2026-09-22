@@ -48,40 +48,47 @@ typedef struct {
     size_t settings_len;
 } i2c_device_config_t;
 
-#define SMI_CFG_MAX_DEVICES 8u
-#define SMI_CFG_NAME_MAX 32u
-#define SMI_CFG_FILE_NAME_MAX 48u
-#define SMI_CFG_AUTOPOLL_REGS_MAX 32u
-#define SMI_CFG_WRITE_REGS_MAX 32u
-#define SMI_CFG_SETTINGS_MAX 32u
+#define MDIO_CFG_MAX_DEVICES 8u
+#define MDIO_CFG_NAME_MAX 32u
+#define MDIO_CFG_FILE_NAME_MAX 48u
+#define MDIO_CFG_AUTOPOLL_REGS_MAX 32u
+#define MDIO_CFG_RULES_MAX 64u
+#define MDIO_CFG_SETTINGS_MAX 32u
 
 typedef enum {
-    SMI_POLICY_WHITELIST = 0,
-    SMI_POLICY_BLACKLIST = 1
-} smi_policy_t;
+    MDIO_POLICY_WHITELIST = 0,
+    MDIO_POLICY_BLACKLIST = 1
+} mdio_policy_t;
 
 typedef struct {
     uint8_t reg;
     uint16_t val;
-} smi_setting_entry_t;
+} mdio_setting_entry_t;
+
+/* mask=0xffff matches an exact value; mask=0 matches any value of reg. */
+typedef struct {
+    uint8_t reg;
+    uint16_t val;
+    uint16_t mask;
+} mdio_rule_entry_t;
 
 typedef struct {
-    char name[SMI_CFG_NAME_MAX];
-    char file_name[SMI_CFG_FILE_NAME_MAX];
+    char name[MDIO_CFG_NAME_MAX];
+    char file_name[MDIO_CFG_FILE_NAME_MAX];
     uint8_t phy_addr;
     uint8_t reg_count;
-    smi_policy_t policy;
+    mdio_policy_t policy;
     bool autopoll_enabled;
-    uint8_t autopoll_regs[SMI_CFG_AUTOPOLL_REGS_MAX];
+    uint8_t autopoll_regs[MDIO_CFG_AUTOPOLL_REGS_MAX];
     size_t autopoll_regs_len;
     uint32_t autopoll_reg_delay_ms;
     uint32_t autopoll_cycle_delay_ms;
-    uint8_t write_allow_regs[SMI_CFG_WRITE_REGS_MAX];
-    size_t write_allow_regs_len;
-    uint8_t write_deny_regs[SMI_CFG_WRITE_REGS_MAX];
-    size_t write_deny_regs_len;
-    smi_setting_entry_t settings[SMI_CFG_SETTINGS_MAX];
+    mdio_rule_entry_t whitelist[MDIO_CFG_RULES_MAX];
+    size_t whitelist_len;
+    mdio_rule_entry_t blacklist[MDIO_CFG_RULES_MAX];
+    size_t blacklist_len;
+    mdio_setting_entry_t settings[MDIO_CFG_SETTINGS_MAX];
     size_t settings_len;
-} smi_phy_config_t;
+} mdio_phy_config_t;
 
 #endif /* BVSTK_SHARED_CONFIG_MODEL_H */

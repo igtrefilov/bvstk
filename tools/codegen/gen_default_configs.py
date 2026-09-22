@@ -50,7 +50,7 @@ def main() -> int:
     src_dir = repo_root / "configs"
     network_src = src_dir / "network.json"
     i2c_dir = src_dir / "i2c"
-    smi_dir = src_dir / "smi"
+    mdio_dir = src_dir / "mdio"
     out = Path(args.out).resolve()
 
     net_data = network_src.read_bytes()
@@ -62,11 +62,11 @@ def main() -> int:
             data = p.read_bytes()
             i2c_files.append((p.name, data, c_escape_bytes(data)))
 
-    smi_files: list[tuple[str, bytes, str]] = []
-    if smi_dir.exists():
-        for p in sorted(smi_dir.glob("*.json")):
+    mdio_files: list[tuple[str, bytes, str]] = []
+    if mdio_dir.exists():
+        for p in sorted(mdio_dir.glob("*.json")):
             data = p.read_bytes()
-            smi_files.append((p.name, data, c_escape_bytes(data)))
+            mdio_files.append((p.name, data, c_escape_bytes(data)))
 
     out.parent.mkdir(parents=True, exist_ok=True)
     parts: list[str] = []
@@ -105,21 +105,21 @@ def main() -> int:
         parts.append(f"static const unsigned int DEFAULT_I2C_CONFIG_FILES_COUNT = {len(default_entries)}u;\n\n")
 
     if not args.i2c_only:
-        smi_default_entries: list[str] = []
-        for fname, data, escaped in smi_files:
+        mdio_default_entries: list[str] = []
+        for fname, data, escaped in mdio_files:
             ident = c_ident_from_filename(fname)
-            parts.append(f"static const char DEFAULT_SMI_{ident}_JSON[] = \"{escaped}\";\n")
-            parts.append(f"static const unsigned int DEFAULT_SMI_{ident}_JSON_LEN = {len(data)}u;\n\n")
-            smi_default_entries.append(f"    {{ \"{fname}\", DEFAULT_SMI_{ident}_JSON, DEFAULT_SMI_{ident}_JSON_LEN }},\n")
+            parts.append(f"static const char DEFAULT_MDIO_{ident}_JSON[] = \"{escaped}\";\n")
+            parts.append(f"static const unsigned int DEFAULT_MDIO_{ident}_JSON_LEN = {len(data)}u;\n\n")
+            mdio_default_entries.append(f"    {{ \"{fname}\", DEFAULT_MDIO_{ident}_JSON, DEFAULT_MDIO_{ident}_JSON_LEN }},\n")
 
-        if not smi_default_entries:
-            parts.append("static const default_json_file_t DEFAULT_SMI_CONFIG_FILES[] = { };\n")
-            parts.append("static const unsigned int DEFAULT_SMI_CONFIG_FILES_COUNT = 0u;\n\n")
+        if not mdio_default_entries:
+            parts.append("static const default_json_file_t DEFAULT_MDIO_CONFIG_FILES[] = { };\n")
+            parts.append("static const unsigned int DEFAULT_MDIO_CONFIG_FILES_COUNT = 0u;\n\n")
         else:
-            parts.append("static const default_json_file_t DEFAULT_SMI_CONFIG_FILES[] = {\n")
-            parts.extend(smi_default_entries)
+            parts.append("static const default_json_file_t DEFAULT_MDIO_CONFIG_FILES[] = {\n")
+            parts.extend(mdio_default_entries)
             parts.append("};\n")
-            parts.append(f"static const unsigned int DEFAULT_SMI_CONFIG_FILES_COUNT = {len(smi_default_entries)}u;\n\n")
+            parts.append(f"static const unsigned int DEFAULT_MDIO_CONFIG_FILES_COUNT = {len(mdio_default_entries)}u;\n\n")
 
     parts.append(f"#endif /* {include_guard} */\n")
 

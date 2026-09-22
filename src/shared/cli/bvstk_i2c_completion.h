@@ -8,6 +8,7 @@
 
 #define BVSTK_I2C_COMPLETION_MAX_MATCHES 16U
 #define BVSTK_I2C_COMPLETION_WORD_MAX 64U
+#define BVSTK_I2C_COMPLETION_EXPLICIT_SAVE 1U
 
 typedef struct {
     char name[I2C_CFG_NAME_MAX];
@@ -36,6 +37,16 @@ int bvstk_i2c_complete_line(
     size_t cursor,
     const bvstk_i2c_completion_device_t *devices,
     size_t device_count,
+    bvstk_i2c_completion_result_t *result);
+
+/* Optional commands are enabled by the caller, not by an OS-specific branch. */
+int bvstk_i2c_complete_line_ex(
+    const char *line,
+    size_t line_length,
+    size_t cursor,
+    const bvstk_i2c_completion_device_t *devices,
+    size_t device_count,
+    unsigned features,
     bvstk_i2c_completion_result_t *result);
 
 size_t bvstk_i2c_completion_common_prefix_len(

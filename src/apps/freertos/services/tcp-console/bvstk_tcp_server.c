@@ -1,3 +1,5 @@
+#include "apps/freertos/console/mdio_shell.h"
+#include "apps/freertos/console/i2c_shell.h"
 #include "apps/freertos/services/tcp-console/bvstk_tcp_server.h"
 #include <ctype.h>
 #include <string.h>
@@ -29,7 +31,7 @@ static char s_buffer[BUFFER_SIZE];
 enum { CONSOLE_PATH_MAX = 128 };
 
 static const char *const s_commands[] = {
-    "fs", "tar", "ip", "smi", "spi", "uart", "mem", "i2c", "sd-pl",
+    "fs", "tar", "ip", "mdio", "spi", "uart", "mem", "i2c", "sd-pl",
     "pwd", "ls", "cd", "mkdir", "touch", "cat", "rm", "cp", "mv",
     "help", "-h", "--help", "-help", "reboot", "quit", "exit"
 };
@@ -98,37 +100,6 @@ static int complete_words(const char *prefix, const char *const *words, size_t w
     for (size_t i = 0; i < words_n; ++i) {
         (void)add_match_ci(prefix, words[i], out, out_max, &total);
     }
-    *out_total = total;
-    return total;
-}
-
-static int complete_smi_selector(const char *prefix, char out[][FS_NAME_MAX], int out_max, int *out_total)
-{
-    if (out_total) *out_total = 0;
-    if (!out_total) return 0;
-
-    int total = 0;
-    static const char *const head_words[] = { "list", "r", "w", "-h", "--help" };
-    (void)complete_words(prefix, head_words, sizeof(head_words) / sizeof(head_words[0]), out, out_max, &total);
-
-    if (!config_store_is_ready()) { *out_total = total; return total; }
-    const smi_phy_config_t *cfgs = config_store_get_smi_devices();
-    size_t n = config_store_get_smi_device_count();
-    if (!cfgs || n == 0) { *out_total = total; return total; }
-
-    if (prefix && prefix[0] == '@') {
-        for (size_t i = 0; i < n; ++i) {
-            char tmp[FS_NAME_MAX];
-            snprintf(tmp, sizeof(tmp), "@%u", (unsigned)(cfgs[i].phy_addr & 0x1Fu));
-            (void)add_match_ci(prefix, tmp, out, out_max, &total);
-        }
-    } else {
-        for (size_t i = 0; i < n; ++i) {
-            if (!cfgs[i].name[0]) continue;
-            (void)add_match_ci(prefix, cfgs[i].name, out, out_max, &total);
-        }
-    }
-
     *out_total = total;
     return total;
 }
@@ -287,41 +258,10 @@ int bvstk_console_complete(const console_session_t *session,
                                   16,
                                   &total);
         } else if (strcasecmp(cmd0, "i2c") == 0) {
-            bvstk_i2c_completion_device_t devices[I2C_CFG_MAX_DEVICES];
             bvstk_i2c_completion_result_t i2c_result;
-            const i2c_device_config_t *configs = NULL;
-            size_t device_count = 0U;
-            size_t device_index;
             size_t candidate_index;
 
-            memset(devices, 0, sizeof(devices));
-            if (config_store_is_ready()) {
-                configs = config_store_get_i2c_devices();
-                device_count = config_store_get_i2c_device_count();
-                if (configs == NULL) {
-                    device_count = 0U;
-                }
-                if (device_count > I2C_CFG_MAX_DEVICES) {
-                    device_count = I2C_CFG_MAX_DEVICES;
-                }
-                for (device_index = 0U;
-                     device_index < device_count;
-                     ++device_index) {
-                    strncpy(devices[device_index].name,
-                            configs[device_index].name,
-                            sizeof(devices[device_index].name) - 1U);
-                    devices[device_index].name
-                            [sizeof(devices[device_index].name) - 1U] = '\0';
-                    devices[device_index].addr_7b =
-                        configs[device_index].addr_7b;
-                }
-            }
-            if (!bvstk_i2c_complete_line(line,
-                                         line_length,
-                                         cursor,
-                                         devices,
-                                         device_count,
-                                         &i2c_result)) {
+            if (!i2c_complete_line(line, line_length, cursor, &i2c_result)) {
                 return 0;
             }
             result->token_start = i2c_result.token_start;
@@ -340,64 +280,15 @@ int bvstk_console_complete(const console_session_t *session,
                         [BVSTK_LINE_EDITOR_COMPLETION_WORD_MAX - 1U] = '\0';
             }
             return result->match_count != 0U;
-        } else if (strcasecmp(cmd0, "smi") == 0) {
-            handled = 1;
-            if (token_index == 1U) {
-                (void)complete_smi_selector(prefix_part_token,
-                                             completion_candidates,
-                                             16,
-                                             &total);
-            } else if (token_index == 2U &&
-                       strcasecmp(tok1, "list") != 0 &&
-                       strcasecmp(tok1, "r") != 0 &&
-                       strcasecmp(tok1, "w") != 0) {
-                static const char *const smi_words[] = {
-                    "info", "r", "w", "phy", "addr", "address",
-                    "rules", "policy", "allow", "deny", "clear",
-                    "autopoll", "settings", "save"
-                };
-                (void)complete_words(prefix_part_token,
-                                      smi_words,
-                                      sizeof(smi_words) / sizeof(smi_words[0]),
-                                      completion_candidates,
-                                      16,
-                                      &total);
-            } else if (token_index == 3U &&
-                       strcasecmp(tok2, "policy") == 0) {
-                static const char *const policy_words[] = {
-                    "whitelist", "blacklist"
-                };
-                (void)complete_words(prefix_part_token,
-                                      policy_words,
-                                      sizeof(policy_words) / sizeof(policy_words[0]),
-                                      completion_candidates,
-                                      16,
-                                      &total);
-            } else if (token_index == 3U &&
-                       strcasecmp(tok2, "autopoll") == 0) {
-                static const char *const autopoll_words[] = {
-                    "on", "off", "reg_delay", "cycle_delay", "regs"
-                };
-                (void)complete_words(prefix_part_token,
-                                      autopoll_words,
-                                      sizeof(autopoll_words) /
-                                          sizeof(autopoll_words[0]),
-                                      completion_candidates,
-                                      16,
-                                      &total);
-            } else if (token_index == 3U &&
-                       strcasecmp(tok2, "settings") == 0) {
-                static const char *const settings_words[] = {"clear"};
-                (void)complete_words(prefix_part_token,
-                                      settings_words,
-                                      sizeof(settings_words) /
-                                          sizeof(settings_words[0]),
-                                      completion_candidates,
-                                      16,
-                                      &total);
-            } else {
-                handled = 0;
-            }
+        } else if (strcasecmp(cmd0, "mdio") == 0) {
+            bvstk_mdio_completion_result_t mdio_result;
+            if (!mdio_complete_line(line, line_length, cursor, &mdio_result)) return 0;
+            result->token_start = mdio_result.token_start;
+            result->token_prefix_length = mdio_result.token_prefix_length;
+            result->match_count = mdio_result.match_count;
+            for (size_t i = 0; i < result->match_count; ++i)
+                snprintf(result->candidates[i], sizeof(result->candidates[i]), "%s", mdio_result.candidates[i]);
+            return result->match_count != 0;
         }
         if (handled && total > 0) {
             (void)copy_completion_candidates(result,

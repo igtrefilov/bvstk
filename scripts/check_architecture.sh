@@ -53,6 +53,11 @@ check_forbidden \
   src/apps/freertos src/ports/freertos-xilinx
 
 check_forbidden \
+  "implicit I2C persistence outside the explicit shell save" \
+  'config_store_save_i2c_device[[:space:]]*\(' \
+  src/apps/freertos/runtime src/apps/freertos/services
+
+check_forbidden \
   "Neutrino target (FreeRTOS source dependency)" \
   '#[[:space:]]*include[[:space:]]*"(apps/freertos|ports/freertos-xilinx)/' \
   src/apps/neutrino src/ports/neutrino-zynq7000

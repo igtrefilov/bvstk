@@ -1,3 +1,5 @@
+#include "apps/freertos/console/mdio_shell.h"
+#include "apps/freertos/console/i2c_shell.h"
 #include "apps/freertos/services/ssh/bvstk_ssh_server.h"
 
 #ifdef BVSTK_SSH_ENABLE
@@ -102,7 +104,7 @@ typedef struct {
 static WOLFSSH_CTX *s_ssh_ctx;
 
 static const char *const s_ssh_commands[] = {
-    "fs", "tar", "ip", "smi", "spi", "uart", "sd-pl", "mem", "i2c",
+    "fs", "tar", "ip", "mdio", "spi", "uart", "sd-pl", "mem", "i2c",
     "pwd", "ls", "cd", "mkdir", "touch", "cat", "rm", "cp", "mv",
     "help", "-h", "--help", "-help", "reboot", "quit", "exit"
 };
@@ -911,53 +913,7 @@ static void ssh_match_add_words(ssh_match_set_t *set, const char *prefix,
     }
 }
 
-static void ssh_collect_i2c_selector(const char *prefix, ssh_match_set_t *set)
-{
-    static const char *const head_words[] = { "list", "-h", "--help" };
-    ssh_match_add_words(set, prefix, head_words,
-                        sizeof(head_words) / sizeof(head_words[0]));
-    if (!config_store_is_ready()) return;
 
-    const i2c_device_config_t *devices = config_store_get_i2c_devices();
-    size_t count = config_store_get_i2c_device_count();
-    if (!devices || count == 0) return;
-    if (prefix && prefix[0] == '@') {
-        for (size_t i = 0; i < count; ++i) {
-            char address[I2C_CFG_NAME_MAX * 2];
-            snprintf(address, sizeof(address), "@0x%02X",
-                     (unsigned)(devices[i].addr_7b & 0x7Fu));
-            ssh_match_add(set, prefix, address);
-        }
-    } else {
-        for (size_t i = 0; i < count; ++i) {
-            if (devices[i].name[0]) ssh_match_add(set, prefix, devices[i].name);
-        }
-    }
-}
-
-static void ssh_collect_smi_selector(const char *prefix, ssh_match_set_t *set)
-{
-    static const char *const head_words[] = { "list", "r", "w", "-h", "--help" };
-    ssh_match_add_words(set, prefix, head_words,
-                        sizeof(head_words) / sizeof(head_words[0]));
-    if (!config_store_is_ready()) return;
-
-    const smi_phy_config_t *devices = config_store_get_smi_devices();
-    size_t count = config_store_get_smi_device_count();
-    if (!devices || count == 0) return;
-    if (prefix && prefix[0] == '@') {
-        for (size_t i = 0; i < count; ++i) {
-            char address[I2C_CFG_NAME_MAX * 2];
-            snprintf(address, sizeof(address), "@%u",
-                     (unsigned)(devices[i].phy_addr & 0x1Fu));
-            ssh_match_add(set, prefix, address);
-        }
-    } else {
-        for (size_t i = 0; i < count; ++i) {
-            if (devices[i].name[0]) ssh_match_add(set, prefix, devices[i].name);
-        }
-    }
-}
 
 static size_t ssh_split_tokens_before(const char *line, size_t upto,
                                       char tokens[][FS_NAME_MAX],
@@ -1234,55 +1190,27 @@ static void ssh_collect_argument_matches(const char *const *tokens,
         !replacement_prefix_len) return;
     *replacement_prefix_len = strlen(prefix);
     const char *command = tokens[0];
-    if (strcasecmp(command, "i2c") == 0) {
-        if (token_count == 1) {
-            ssh_collect_i2c_selector(prefix, set);
-        } else if (token_count == 2 && strcasecmp(tokens[1], "list") != 0) {
-            static const char *const words[] = {
-                "info", "r", "w", "addr", "address", "policy"
-            };
-            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
-        } else if (token_count >= 3 && strcasecmp(tokens[2], "policy") == 0 &&
-                   strcasecmp(tokens[1], "list") != 0) {
-            if (token_count == 3) {
-                static const char *const words[] = {
-                    "show", "set", "whitelist", "blacklist"
-                };
-                ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
-            } else if (token_count == 4 && strcasecmp(tokens[3], "show") == 0) {
-                static const char *const words[] = { "rules", "whitelist", "blacklist" };
-                ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
-            } else if (token_count == 4 && strcasecmp(tokens[3], "set") == 0) {
-                static const char *const words[] = { "whitelist", "blacklist" };
-                ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
-            } else if (token_count == 4 &&
-                       (strcasecmp(tokens[3], "whitelist") == 0 ||
-                        strcasecmp(tokens[3], "blacklist") == 0)) {
-                static const char *const words[] = { "add", "del", "delete", "clear" };
-                ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
-            }
+    if (strcasecmp(command, "i2c") == 0 || strcasecmp(command, "mdio") == 0) {
+        char line[512];
+        size_t used = 0;
+        for (size_t i = 0; i < token_count; ++i) {
+            int n = snprintf(line + used, sizeof(line) - used, "%s ", tokens[i]);
+            if (n < 0 || (size_t)n >= sizeof(line) - used) return;
+            used += (size_t)n;
         }
-    } else if (strcasecmp(command, "smi") == 0) {
-        if (token_count == 1) {
-            ssh_collect_smi_selector(prefix, set);
-        } else if (token_count == 2 && strcasecmp(tokens[1], "list") != 0 &&
-                   strcasecmp(tokens[1], "r") != 0 && strcasecmp(tokens[1], "w") != 0) {
-            static const char *const words[] = {
-                "info", "r", "w", "phy", "addr", "address", "rules", "policy",
-                "allow", "deny", "clear", "autopoll", "settings", "save"
-            };
-            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
-        } else if (token_count == 3 && strcasecmp(tokens[2], "policy") == 0) {
-            static const char *const words[] = { "whitelist", "blacklist" };
-            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
-        } else if (token_count == 3 && strcasecmp(tokens[2], "autopoll") == 0) {
-            static const char *const words[] = {
-                "on", "off", "reg_delay", "cycle_delay", "regs"
-            };
-            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
-        } else if (token_count == 3 && strcasecmp(tokens[2], "settings") == 0) {
-            static const char *const words[] = { "clear" };
-            ssh_match_add_words(set, prefix, words, sizeof(words) / sizeof(words[0]));
+        if (strlen(prefix) >= sizeof(line) - used) return;
+        strcpy(line + used, prefix);
+        used += strlen(prefix);
+        if (strcasecmp(command, "i2c") == 0) {
+            bvstk_i2c_completion_result_t result;
+            if (i2c_complete_line(line, used, used, &result))
+                for (size_t i = 0; i < result.match_count; ++i)
+                    ssh_match_add(set, prefix, result.candidates[i]);
+        } else {
+            bvstk_mdio_completion_result_t result;
+            if (mdio_complete_line(line, used, used, &result))
+                for (size_t i = 0; i < result.match_count; ++i)
+                    ssh_match_add(set, prefix, result.candidates[i]);
         }
     } else if (strcasecmp(command, "fs") == 0) {
         if (token_count == 1) {

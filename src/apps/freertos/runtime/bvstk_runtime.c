@@ -9,11 +9,12 @@
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
 #include "drivers/pl/i2c/bvstk_i2c_master.h"
 #include "drivers/pl/i2c/bvstk_i2c_slave.h"
-#include "drivers/pl/smi/bvstk_smi_core.h"
+#include "drivers/pl/mdio/bvstk_mdio_core.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 #include "hardware/pl/spi/bvstk_spi_regs.h"
 #include "ports/freertos-xilinx/os/bvstk_sync_freertos.h"
 #include "ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.h"
+#include "ports/freertos-xilinx/os/mdio/bvstk_mdio_freertos.h"
 
 static bvstk_i2c_master_hw_t s_i2c_master_hw;
 static bvstk_i2c_slave_hw_t s_i2c_slave_hw;
@@ -24,14 +25,15 @@ static bvstk_i2c_master_service_t s_i2c_master_service;
 static bvstk_i2c_slave_service_t s_i2c_slave_service;
 static bvstk_i2c_slave_freertos_t s_i2c_slave_adapter;
 static bvstk_freertos_mutex_t s_i2c_mutex;
-static bvstk_smi_core_t s_smi_core;
-static bvstk_smi_service_t s_smi_service;
-static bvstk_freertos_mutex_t s_smi_mutex;
+static bvstk_mdio_core_t s_mdio_core;
+static bvstk_mdio_service_t s_mdio_service;
+static bvstk_freertos_mutex_t s_mdio_mutex;
+static bvstk_freertos_mutex_t s_mdio_service_mutex;
 static bvstk_spi_core_t s_spi_core;
 static bvstk_freertos_mutex_t s_spi_mutex;
 static volatile int s_i2c_ready;
 static volatile int s_i2c_slave_ready;
-static volatile int s_smi_ready;
+static volatile int s_mdio_ready;
 static volatile int s_spi_ready;
 #if BVSTK_PL_RUNTIME_ENABLED
 static TaskHandle_t s_runtime_task;
@@ -143,7 +145,7 @@ static int initialize_i2c(const i2c_device_config_t *configs,
 
 static void runtime_task(void *argument)
 {
-#if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_SMI_CORE
+#if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_MDIO_CORE
     bvstk_event_sink_t events;
 #endif
 #if BVSTK_PL_HAS_SPI_CORE
@@ -153,9 +155,9 @@ static void runtime_task(void *argument)
     const i2c_device_config_t *devices;
     size_t device_count;
 #endif
-#if BVSTK_PL_HAS_SMI_CORE
-    const smi_phy_config_t *smi_devices;
-    size_t smi_device_count;
+#if BVSTK_PL_HAS_MDIO_CORE
+    const mdio_phy_config_t *mdio_devices;
+    size_t mdio_device_count;
 #endif
 
     (void)argument;
@@ -176,36 +178,47 @@ static void runtime_task(void *argument)
     }
 #endif
 
-#if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_SMI_CORE
-    if (config_store_wait_ready(10000U) != 0) {
+#if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_MDIO_CORE
+    if (config_store_wait_ready(35000U) != 0) {
+        memset(&events, 0, sizeof(events));
+        events.publish = publish_event;
 #if BVSTK_PL_HAS_I2C_CORE
         devices = config_store_get_i2c_devices();
         device_count = config_store_get_i2c_device_count();
-        memset(&events, 0, sizeof(events));
-        events.publish = publish_event;
         (void)initialize_i2c(devices, device_count, &events);
 #endif
 
-#if BVSTK_PL_HAS_SMI_CORE
-        smi_devices = config_store_get_smi_devices();
-        smi_device_count = config_store_get_smi_device_count();
-        if (bvstk_freertos_mutex_init(&s_smi_mutex) == BVSTK_OK &&
-            bvstk_smi_core_init(&s_smi_core,
-                                NULL,
-                                &s_smi_mutex.public_mutex) == BVSTK_OK) {
-            if (bvstk_smi_service_init(&s_smi_service,
-                                       &s_smi_core,
+#if BVSTK_PL_HAS_MDIO_CORE
+        mdio_devices = config_store_get_mdio_devices();
+        mdio_device_count = config_store_get_mdio_device_count();
+        if (bvstk_freertos_mutex_init(&s_mdio_service_mutex) == BVSTK_OK &&
+            bvstk_freertos_mutex_init(&s_mdio_mutex) == BVSTK_OK &&
+            bvstk_mdio_core_init(&s_mdio_core,
+                                bvstk_mdio_freertos_clock(),
+                                &s_mdio_mutex.public_mutex) == BVSTK_OK) {
+            if (bvstk_mdio_service_init(&s_mdio_service,
+                                       &s_mdio_core,
                                        NULL,
-                                       smi_devices,
-                                       smi_device_count,
+                                       mdio_devices,
+                                       mdio_device_count,
                                        &events) == BVSTK_OK) {
-                s_smi_ready = 1;
+                s_mdio_service.mutex = s_mdio_service_mutex.public_mutex;
+                if (bvstk_mdio_freertos_start(&s_mdio_service) == BVSTK_OK) {
+                    s_mdio_ready = 1;
+                } else {
+                    bvstk_mdio_service_shutdown(&s_mdio_service);
+                    bvstk_mdio_core_shutdown(&s_mdio_core);
+                    bvstk_freertos_mutex_destroy(&s_mdio_mutex);
+                    bvstk_freertos_mutex_destroy(&s_mdio_service_mutex);
+                }
             } else {
-                bvstk_smi_core_shutdown(&s_smi_core);
-                bvstk_freertos_mutex_destroy(&s_smi_mutex);
+                bvstk_mdio_core_shutdown(&s_mdio_core);
+                bvstk_freertos_mutex_destroy(&s_mdio_mutex);
+                bvstk_freertos_mutex_destroy(&s_mdio_service_mutex);
             }
         } else {
-            bvstk_freertos_mutex_destroy(&s_smi_mutex);
+            bvstk_freertos_mutex_destroy(&s_mdio_mutex);
+            bvstk_freertos_mutex_destroy(&s_mdio_service_mutex);
         }
 #endif
     }
@@ -220,7 +233,7 @@ void bvstk_runtime_start(void)
 #if !BVSTK_PL_RUNTIME_ENABLED
     return;
 #else
-    if (s_runtime_task != NULL || s_i2c_ready != 0) {
+    if (s_runtime_task != NULL || s_i2c_ready != 0 || s_mdio_ready != 0 || s_spi_ready != 0) {
         return;
     }
     (void)xTaskCreate(runtime_task,
@@ -247,7 +260,7 @@ int bvstk_runtime_i2c_ready(void)
     return s_i2c_ready;
 }
 
-int bvstk_runtime_i2c_sync_device(size_t device_id, int save_to_storage)
+int bvstk_runtime_i2c_sync_device(size_t device_id)
 {
     bvstk_i2c_device_t device;
     bvstk_i2c_policy_entry_t policy;
@@ -294,7 +307,7 @@ int bvstk_runtime_i2c_sync_device(size_t device_id, int save_to_storage)
     if (config_store_set_i2c_device(&config) == 0) {
         return 0;
     }
-    return save_to_storage == 0 || config_store_save_i2c_device(&config) != 0;
+    return 1;
 }
 
 int bvstk_runtime_i2c_apply_config(const i2c_device_config_t *config)
@@ -317,47 +330,16 @@ int bvstk_runtime_i2c_apply_config(const i2c_device_config_t *config)
                                                config) == BVSTK_OK;
 }
 
-bvstk_smi_service_t *bvstk_runtime_smi_service(void)
+bvstk_mdio_service_t *bvstk_runtime_mdio_service(void)
 {
-    return s_smi_ready != 0 ? &s_smi_service : NULL;
+    return s_mdio_ready != 0 ? &s_mdio_service : NULL;
 }
 
-int bvstk_runtime_smi_ready(void)
+int bvstk_runtime_mdio_ready(void)
 {
-    return s_smi_ready;
+    return s_mdio_ready;
 }
 
-int bvstk_runtime_smi_sync_device(size_t device_id, int save_to_storage)
-{
-    smi_phy_config_t config;
-
-    if (s_smi_ready == 0 ||
-        bvstk_smi_service_get_config(&s_smi_service, device_id, &config) != BVSTK_OK ||
-        config_store_set_smi_device(&config) == 0) {
-        return 0;
-    }
-    return save_to_storage == 0 || config_store_save_smi_device(&config) != 0;
-}
-
-int bvstk_runtime_smi_apply_config(const smi_phy_config_t *config)
-{
-    size_t device_id;
-
-    if (config == NULL || s_smi_ready == 0) {
-        return 0;
-    }
-    if (bvstk_smi_service_find_by_name(&s_smi_service,
-                                       config->name,
-                                       &device_id) != BVSTK_OK &&
-        bvstk_smi_service_find_by_phy(&s_smi_service,
-                                      config->phy_addr,
-                                      &device_id) != BVSTK_OK) {
-        return 0;
-    }
-    return bvstk_smi_service_set_config(&s_smi_service,
-                                        device_id,
-                                        config) == BVSTK_OK;
-}
 
 bvstk_spi_core_t *bvstk_runtime_spi_core(void)
 {

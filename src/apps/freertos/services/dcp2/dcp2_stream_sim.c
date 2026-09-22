@@ -43,7 +43,7 @@ static uint32_t endpoint_for_service(uint8_t service)
     switch (service) {
     case DCP2_STREAM_SERVICE_I2C:
         return 0x13u;
-    case DCP2_STREAM_SERVICE_SMI:
+    case DCP2_STREAM_SERVICE_MDIO:
         return 0x01u;
     case DCP2_STREAM_SERVICE_SPI:
     case DCP2_STREAM_SERVICE_UART:
@@ -254,8 +254,8 @@ const char *dcp2_stream_sim_service_name(uint8_t service)
     switch (service) {
     case DCP2_STREAM_SERVICE_I2C:
         return "I2C";
-    case DCP2_STREAM_SERVICE_SMI:
-        return "SMI";
+    case DCP2_STREAM_SERVICE_MDIO:
+        return "MDIO";
     case DCP2_STREAM_SERVICE_SPI:
         return "SPI";
     case DCP2_STREAM_SERVICE_UART:

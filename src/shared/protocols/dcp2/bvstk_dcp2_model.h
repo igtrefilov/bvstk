@@ -25,7 +25,7 @@ typedef enum {
 
 typedef enum {
     DCP2_NOTIFY_BUS_I2C = 0,
-    DCP2_NOTIFY_BUS_SMI = 1,
+    DCP2_NOTIFY_BUS_MDIO = 1,
     DCP2_NOTIFY_BUS_SPI = 2,
     DCP2_NOTIFY_BUS_UART = 3,
     DCP2_NOTIFY_BUS_SYS = 4,

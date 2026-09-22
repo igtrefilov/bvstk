@@ -6,7 +6,7 @@
 
 #include "drivers/pl/spi/bvstk_spi_core.h"
 #include "services/i2c/bvstk_i2c_master_service.h"
-#include "services/smi/bvstk_smi_service.h"
+#include "services/mdio/bvstk_mdio_service.h"
 #include "shared/pl/access/bvstk_pl_service.h"
 
 /*
@@ -17,7 +17,7 @@
 typedef struct {
     bvstk_pl_service_t *pl;
     bvstk_i2c_master_service_t *i2c;
-    bvstk_smi_service_t *smi;
+    bvstk_mdio_service_t *mdio;
     bvstk_spi_core_t *spi;
 } bvstk_control_api_t;
 
@@ -40,12 +40,12 @@ bvstk_status_t bvstk_control_i2c_write(bvstk_control_api_t *api,
                                        uint8_t value,
                                        bvstk_event_source_t source,
                                        uint32_t timeout_ms);
-bvstk_status_t bvstk_control_smi_read(bvstk_control_api_t *api,
+bvstk_status_t bvstk_control_mdio_read(bvstk_control_api_t *api,
                                       size_t device_id,
                                       uint8_t reg,
                                       uint16_t *value,
                                       uint32_t timeout_ms);
-bvstk_status_t bvstk_control_smi_write(bvstk_control_api_t *api,
+bvstk_status_t bvstk_control_mdio_write(bvstk_control_api_t *api,
                                        size_t device_id,
                                        uint8_t reg,
                                        uint16_t value,

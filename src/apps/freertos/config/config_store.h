@@ -21,11 +21,8 @@ const i2c_device_config_t *config_store_find_i2c_device_by_addr(uint8_t addr_7b)
 int config_store_set_i2c_device(const i2c_device_config_t *cfg);
 int config_store_save_i2c_device(const i2c_device_config_t *cfg);
 
-size_t config_store_get_smi_device_count(void);
-const smi_phy_config_t *config_store_get_smi_devices(void);
-const smi_phy_config_t *config_store_find_smi_device_by_name(const char *name);
-const smi_phy_config_t *config_store_find_smi_device_by_phy(uint8_t phy_addr);
-int config_store_set_smi_device(const smi_phy_config_t *cfg);
-int config_store_save_smi_device(const smi_phy_config_t *cfg);
+size_t config_store_get_mdio_device_count(void);
+const mdio_phy_config_t *config_store_get_mdio_devices(void);
+int config_store_save_mdio_device(const mdio_phy_config_t *cfg);
 
 #endif /* BVSTK_FREERTOS_CONFIG_STORE_H */

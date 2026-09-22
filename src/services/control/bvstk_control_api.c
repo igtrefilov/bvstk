@@ -56,33 +56,33 @@ bvstk_status_t bvstk_control_i2c_write(bvstk_control_api_t *api,
                                           timeout_ms);
 }
 
-bvstk_status_t bvstk_control_smi_read(bvstk_control_api_t *api,
+bvstk_status_t bvstk_control_mdio_read(bvstk_control_api_t *api,
                                       size_t device_id,
                                       uint8_t reg,
                                       uint16_t *value,
                                       uint32_t timeout_ms)
 {
-    if (api == NULL || api->smi == NULL) {
+    if (api == NULL || api->mdio == NULL) {
         return BVSTK_ERR_NOT_READY;
     }
-    return bvstk_smi_service_read(api->smi,
+    return bvstk_mdio_service_read(api->mdio,
                                   device_id,
                                   reg,
                                   value,
                                   timeout_ms);
 }
 
-bvstk_status_t bvstk_control_smi_write(bvstk_control_api_t *api,
+bvstk_status_t bvstk_control_mdio_write(bvstk_control_api_t *api,
                                        size_t device_id,
                                        uint8_t reg,
                                        uint16_t value,
                                        bvstk_event_source_t source,
                                        uint32_t timeout_ms)
 {
-    if (api == NULL || api->smi == NULL) {
+    if (api == NULL || api->mdio == NULL) {
         return BVSTK_ERR_NOT_READY;
     }
-    return bvstk_smi_service_write(api->smi,
+    return bvstk_mdio_service_write(api->mdio,
                                    device_id,
                                    reg,
                                    value,

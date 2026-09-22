@@ -10,6 +10,8 @@
 #include "xil_printf.h"
 
 #include "task.h"
+#include "semphr.h"
+#include "shared/config/bvstk_mdio_config_codec.h"
 
 #include "apps/freertos/storage/qspi/qspi_fs.h"
 
@@ -20,7 +22,7 @@
 #define CONFIG_DIR_FALLBACK "configs"
 #define NETWORK_CFG_NAME "network.json"
 #define I2C_CFG_SUBDIR_NAME "i2c"
-#define SMI_CFG_SUBDIR_NAME "smi"
+#define MDIO_CFG_SUBDIR_NAME "mdio"
 
 static void build_flash_path(char *out, size_t out_sz, const char *suffix_no_slash);
 static int file_exists(const char *path);
@@ -68,11 +70,13 @@ static volatile int s_startup_done = 0;
 static network_config_t s_net_cfg;
 static i2c_device_config_t s_i2c_cfgs[I2C_CFG_MAX_DEVICES];
 static size_t s_i2c_cfg_count = 0;
-static smi_phy_config_t s_smi_cfgs[SMI_CFG_MAX_DEVICES];
-static size_t s_smi_cfg_count = 0;
+static mdio_phy_config_t s_mdio_cfgs[MDIO_CFG_MAX_DEVICES];
+static size_t s_mdio_cfg_count = 0;
 static char s_cfg_buf[16384];
 static char s_i2c_save_buf[16384];
-static char s_smi_save_buf[8192];
+static SemaphoreHandle_t s_i2c_save_mutex;
+static char s_mdio_save_buf[8192];
+static SemaphoreHandle_t s_mdio_save_mutex;
 
 static void config_apply_defaults(network_config_t *cfg)
 {
@@ -135,9 +139,9 @@ static int write_file_atomic(const char *final_path, const void *data, size_t le
     if (r != FR_OK) return 0;
     UINT bw = 0;
     r = f_write(&f, data, (UINT)len, &bw);
-    (void)f_sync(&f);
-    (void)f_close(&f);
-    if (r != FR_OK || bw != (UINT)len) {
+    FRESULT sync_result = f_sync(&f);
+    FRESULT close_result = f_close(&f);
+    if (r != FR_OK || bw != (UINT)len || sync_result != FR_OK || close_result != FR_OK) {
         (void)f_unlink(tmp);
         return 0;
     }
@@ -165,10 +169,11 @@ static int read_file_to_buf(const char *path, char *buf, size_t buf_sz, size_t *
     FIL f;
     FRESULT r = f_open(&f, path, FA_READ);
     if (r != FR_OK) return 0;
+    if (f_size(&f) >= buf_sz) { (void)f_close(&f); return 0; }
     UINT br = 0;
     r = f_read(&f, buf, (UINT)(buf_sz - 1), &br);
     (void)f_close(&f);
-    if (r != FR_OK) return 0;
+    if (r != FR_OK || memchr(buf, '\0', br) != NULL) return 0;
     buf[br] = '\0';
     if (out_len) *out_len = (size_t)br;
     return 1;
@@ -216,16 +221,6 @@ static int json_get_string(const char *json, const char *key, char *out, size_t 
     }
     out[i] = '\0';
     return (*p == '"') ? 1 : 0;
-}
-
-static int json_get_bool(const char *json, const char *key, int *out)
-{
-    if (out) *out = 0;
-    const char *p = find_key(json, key);
-    if (!p) return 0;
-    if (strncmp(p, "true", 4) == 0) { if (out) *out = 1; return 1; }
-    if (strncmp(p, "false", 5) == 0) { if (out) *out = 0; return 1; }
-    return 0;
 }
 
 static const char *parse_json_string_inplace(const char *p, char *out, size_t out_sz, int *ok)
@@ -297,33 +292,6 @@ static const char *skip_json_value_simple(const char *p, int *ok)
     return e;
 }
 
-static int json_parse_num_array_u8(const char *p, uint8_t *out, size_t out_max, size_t *out_len)
-{
-    if (out_len) *out_len = 0;
-    if (!p || !out || out_max == 0) return 0;
-    p = skip_ws(p);
-    if (*p != '[') return 0;
-    p++;
-    size_t n = 0;
-    for (;;) {
-        p = skip_ws(p);
-        if (!*p) return 0;
-        if (*p == ']') { p++; break; }
-        uint32_t v = 0;
-        int ok = 0;
-        p = parse_json_u32_inplace(p, &v, &ok);
-        if (!ok) return 0;
-        if (v > 0xFFu) return 0;
-        if (n < out_max) out[n++] = (uint8_t)(v & 0xFFu);
-        p = skip_ws(p);
-        if (*p == ',') { p++; continue; }
-        if (*p == ']') { p++; break; }
-        return 0;
-    }
-    if (out_len) *out_len = n;
-    return 1;
-}
-
 static int json_parse_rules_array(const char *p, i2c_rule_entry_t *out, size_t out_max, size_t *out_len)
 {
     if (out_len) *out_len = 0;
@@ -374,67 +342,6 @@ static int json_parse_rules_array(const char *p, i2c_rule_entry_t *out, size_t o
             if (reg > 0xFFu || val > 0xFFu) return 0;
             out[n].reg = (uint8_t)(reg & 0xFFu);
             out[n].val = (uint8_t)(val & 0xFFu);
-            n++;
-        }
-        p = skip_ws(p);
-        if (*p == ',') { p++; continue; }
-        if (*p == ']') { p++; break; }
-        return 0;
-    }
-    if (out_len) *out_len = n;
-    return 1;
-}
-
-static int json_parse_smi_settings_array(const char *p, smi_setting_entry_t *out, size_t out_max, size_t *out_len)
-{
-    if (out_len) *out_len = 0;
-    if (!p || !out || out_max == 0) return 0;
-    p = skip_ws(p);
-    if (*p != '[') return 0;
-    p++;
-    size_t n = 0;
-    for (;;) {
-        p = skip_ws(p);
-        if (!*p) return 0;
-        if (*p == ']') { p++; break; }
-        if (*p != '{') return 0;
-        p++;
-        int have_reg = 0, have_val = 0;
-        uint32_t reg = 0, val = 0;
-        for (;;) {
-            p = skip_ws(p);
-            if (!*p) return 0;
-            if (*p == '}') { p++; break; }
-            char key[24];
-            int okk = 0;
-            p = parse_json_string_inplace(p, key, sizeof(key), &okk);
-            if (!okk) return 0;
-            p = skip_ws(p);
-            if (*p != ':') return 0;
-            p++;
-            if (strcmp(key, "reg") == 0) {
-                int okn = 0;
-                p = parse_json_u32_inplace(p, &reg, &okn);
-                have_reg = okn;
-            } else if (strcmp(key, "val") == 0) {
-                int okn = 0;
-                p = parse_json_u32_inplace(p, &val, &okn);
-                have_val = okn;
-            } else {
-                int okv = 0;
-                p = skip_json_value_simple(p, &okv);
-                if (!okv) return 0;
-            }
-
-            p = skip_ws(p);
-            if (*p == ',') { p++; continue; }
-            if (*p == '}') { p++; break; }
-            return 0;
-        }
-        if (have_reg && have_val && n < out_max) {
-            if (reg > 31u || val > 0xFFFFu) return 0;
-            out[n].reg = (uint8_t)(reg & 0xFFu);
-            out[n].val = (uint16_t)(val & 0xFFFFu);
             n++;
         }
         p = skip_ws(p);
@@ -597,129 +504,102 @@ static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
     return 1;
 }
 
-static void smi_cfg_clear(smi_phy_config_t *cfg)
+/* Preserve the previous policy while replacing a file. FatFs has no atomic
+ * replace: a completed backup is recovered before defaults/migration on boot. */
+static int write_mdio_file(const char *path, const void *data, size_t len)
 {
-    if (!cfg) return;
-    memset(cfg, 0, sizeof(*cfg));
-    cfg->policy = SMI_POLICY_WHITELIST;
-    cfg->autopoll_enabled = false;
-    cfg->autopoll_cycle_delay_ms = 1000u;
-    cfg->reg_count = 32u;
-}
-
-static int parse_smi_phy_json(const char *json, smi_phy_config_t *cfg)
-{
-    if (!json || !cfg) return 0;
-    smi_cfg_clear(cfg);
-
-    const char *p = find_key(json, "name");
-    if (!p) return 0;
-    {
-        int ok = 0;
-        (void)parse_json_string_inplace(p, cfg->name, sizeof(cfg->name), &ok);
-        if (!ok || !cfg->name[0]) return 0;
+    char tmp[200], backup[200];
+    FIL file;
+    UINT written = 0;
+    FRESULT result, close_result;
+    int had_file = file_exists(path);
+    if (snprintf(tmp, sizeof(tmp), "%s.tmp", path) >= (int)sizeof(tmp) ||
+        snprintf(backup, sizeof(backup), "%s.bak", path) >= (int)sizeof(backup)) return 0;
+    result = f_open(&file, tmp, FA_WRITE | FA_CREATE_ALWAYS);
+    if (result != FR_OK) return 0;
+    result = f_write(&file, data, (UINT)len, &written);
+    if (result == FR_OK && written == len) result = f_sync(&file);
+    close_result = f_close(&file);
+    if (result != FR_OK || close_result != FR_OK || written != len) return 0;
+    if (had_file) {
+        result = f_unlink(backup);
+        if (result != FR_OK && result != FR_NO_FILE) return 0;
+        if (f_rename(path, backup) != FR_OK) return 0;
     }
-
-    p = find_key(json, "phy_addr");
-    if (!p) return 0;
-    {
-        uint32_t v = 0;
-        int ok = 0;
-        (void)parse_json_u32_inplace(p, &v, &ok);
-        if (!ok || v > 31u) return 0;
-        cfg->phy_addr = (uint8_t)v;
+    if (f_rename(tmp, path) != FR_OK) {
+        if (had_file) (void)f_rename(backup, path);
+        return 0;
     }
-
-    p = find_key(json, "reg_count");
-    if (!p) return 0;
-    {
-        uint32_t v = 0;
-        int ok = 0;
-        (void)parse_json_u32_inplace(p, &v, &ok);
-        if (!ok || v == 0u || v > 32u) return 0;
-        cfg->reg_count = (uint8_t)v;
-    }
-
-    p = find_key(json, "policy");
-    if (!p) return 0;
-    {
-        char pol[16];
-        int ok = 0;
-        (void)parse_json_string_inplace(p, pol, sizeof(pol), &ok);
-        if (!ok) return 0;
-        if (strcasecmp(pol, "whitelist") == 0) cfg->policy = SMI_POLICY_WHITELIST;
-        else if (strcasecmp(pol, "blacklist") == 0) cfg->policy = SMI_POLICY_BLACKLIST;
-        else return 0;
-    }
-
-    int b = 0;
-    if (find_key(json, "autopoll_enabled")) {
-        if (!json_get_bool(json, "autopoll_enabled", &b)) return 0;
-        cfg->autopoll_enabled = (b != 0);
-    }
-
-    p = find_key(json, "autopoll_reg_delay_ms");
-    if (p) {
-        uint32_t v = 0;
-        int ok = 0;
-        (void)parse_json_u32_inplace(p, &v, &ok);
-        if (!ok) return 0;
-        cfg->autopoll_reg_delay_ms = v;
-    }
-    p = find_key(json, "autopoll_cycle_delay_ms");
-    if (p) {
-        uint32_t v = 0;
-        int ok = 0;
-        (void)parse_json_u32_inplace(p, &v, &ok);
-        if (!ok) return 0;
-        cfg->autopoll_cycle_delay_ms = v;
-    }
-
-    p = find_key(json, "autopoll_regs");
-    if (p) {
-        size_t n = 0;
-        if (!json_parse_num_array_u8(p, cfg->autopoll_regs, SMI_CFG_AUTOPOLL_REGS_MAX, &n)) return 0;
-        cfg->autopoll_regs_len = n;
-    }
-
-    p = find_key(json, "write_allow_regs");
-    if (p) {
-        size_t n = 0;
-        if (!json_parse_num_array_u8(p, cfg->write_allow_regs, SMI_CFG_WRITE_REGS_MAX, &n)) return 0;
-        cfg->write_allow_regs_len = n;
-    }
-    p = find_key(json, "write_deny_regs");
-    if (p) {
-        size_t n = 0;
-        if (!json_parse_num_array_u8(p, cfg->write_deny_regs, SMI_CFG_WRITE_REGS_MAX, &n)) return 0;
-        cfg->write_deny_regs_len = n;
-    }
-
-    p = find_key(json, "settings");
-    if (p) {
-        size_t n = 0;
-        if (!json_parse_smi_settings_array(p, cfg->settings, SMI_CFG_SETTINGS_MAX, &n)) return 0;
-        cfg->settings_len = n;
-    }
-
-    for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
-        if (cfg->autopoll_regs[i] >= cfg->reg_count) return 0;
-    }
-    for (size_t i = 0; i < cfg->write_allow_regs_len; ++i) {
-        if (cfg->write_allow_regs[i] >= cfg->reg_count) return 0;
-    }
-    for (size_t i = 0; i < cfg->write_deny_regs_len; ++i) {
-        if (cfg->write_deny_regs[i] >= cfg->reg_count) return 0;
-    }
-    for (size_t i = 0; i < cfg->settings_len; ++i) {
-        if (cfg->settings[i].reg >= cfg->reg_count) return 0;
-    }
-
     return 1;
 }
+static int recover_mdio_configs(const char *path)
+{
+    DIR dir;
+    FILINFO entry;
+    FRESULT result = f_opendir(&dir, path);
+    if (result == FR_NO_PATH || result == FR_NO_FILE) return 1;
+    if (result != FR_OK) return 0;
+    for (;;) {
+        char backup[200], canonical[200];
+        size_t len;
+        result = f_readdir(&dir, &entry);
+        if (result != FR_OK || !entry.fname[0]) break;
+        len = strlen(entry.fname);
+        if ((entry.fattrib & AM_DIR) || len < 10U || strcasecmp(entry.fname + len - 9U, ".json.bak")) continue;
+        if (snprintf(backup, sizeof(backup), "%s/%s", path, entry.fname) >= (int)sizeof(backup)) {
+            result = FR_INVALID_NAME; break;
+        }
+        strcpy(canonical, backup);
+        canonical[strlen(canonical) - 4U] = '\0';
+        if (!file_exists(canonical) && !copy_file_atomic(backup, canonical, s_cfg_buf, sizeof(s_cfg_buf))) {
+            result = FR_DISK_ERR; break;
+        }
+    }
+    (void)f_closedir(&dir);
+    return result == FR_OK;
+}
 
+/* Read-only compatibility with old on-device paths. Never remove or overwrite
+ * existing user policies; errors disable MDIO rather than install permissive defaults. */
+static int migrate_mdio_configs(const char *destination)
+{
+    static const char *const legacy[] = {"configs/mdio", "config/smi", "configs/smi"};
+    size_t i;
+    if (!ensure_dir_exists(destination)) return 0;
+    for (i = 0; i < sizeof(legacy) / sizeof(legacy[0]); ++i) {
+        char path[128];
+        DIR dir;
+        FILINFO entry;
+        FRESULT result;
+        build_flash_path(path, sizeof(path), legacy[i]);
+        result = f_opendir(&dir, path);
+        if (result == FR_NO_PATH || result == FR_NO_FILE) continue;
+        if (result != FR_OK) return 0;
+        for (;;) {
+            char src[200], dst[200];
+            size_t len;
+            result = f_readdir(&dir, &entry);
+            if (result != FR_OK || !entry.fname[0]) break;
+            len = strlen(entry.fname);
+            if ((entry.fattrib & AM_DIR) || len < 6 || strcasecmp(entry.fname + len - 5, ".json")) continue;
+            if (snprintf(src, sizeof(src), "%s/%s", path, entry.fname) >= (int)sizeof(src) ||
+                snprintf(dst, sizeof(dst), "%s/%s", destination, entry.fname) >= (int)sizeof(dst)) {
+                result = FR_INVALID_NAME; break;
+            }
+            if (!file_exists(dst) && !copy_file_atomic(src, dst, s_cfg_buf, sizeof(s_cfg_buf))) {
+                result = FR_DISK_ERR; break;
+            }
+        }
+        (void)f_closedir(&dir);
+        if (result != FR_OK) return 0;
+    }
+    return 1;
+}
 static void config_task(void *arg)
 {
+    int mdio_load_failed = 0;
+    int mdio_files_seen = 0;
+    int mdio_first_start = 0;
     (void)arg;
 
     /* Give QSPI FatFs enough time to mount before we decide to fall back to embedded defaults. */
@@ -731,16 +611,18 @@ static void config_task(void *arg)
     char dir_path[96], dir_path_fb[96];
     char net_cfg_path[128], net_cfg_path_fb[128];
     char i2c_dir_path[128], i2c_dir_path_fb[128];
-    char smi_dir_path[128], smi_dir_path_fb[128];
+    char mdio_dir_path[128], mdio_dir_path_fb[128];
+    char mdio_marker[160];
     build_cfg_path(dir_path, sizeof(dir_path), dir_path_fb, sizeof(dir_path_fb), "");
     build_cfg_path(net_cfg_path, sizeof(net_cfg_path), net_cfg_path_fb, sizeof(net_cfg_path_fb), NETWORK_CFG_NAME);
     build_cfg_path(i2c_dir_path, sizeof(i2c_dir_path), i2c_dir_path_fb, sizeof(i2c_dir_path_fb), I2C_CFG_SUBDIR_NAME);
-    build_cfg_path(smi_dir_path, sizeof(smi_dir_path), smi_dir_path_fb, sizeof(smi_dir_path_fb), SMI_CFG_SUBDIR_NAME);
+    build_cfg_path(mdio_dir_path, sizeof(mdio_dir_path), mdio_dir_path_fb, sizeof(mdio_dir_path_fb), MDIO_CFG_SUBDIR_NAME);
+    snprintf(mdio_marker, sizeof(mdio_marker), "%s/.initialized", mdio_dir_path);
 
     if (!dir_path[0] || !dir_path_fb[0] ||
         !net_cfg_path[0] || !net_cfg_path_fb[0] ||
         !i2c_dir_path[0] || !i2c_dir_path_fb[0] ||
-        !smi_dir_path[0] || !smi_dir_path_fb[0]) {
+        !mdio_dir_path[0] || !mdio_dir_path_fb[0]) {
         xil_printf("CFG: path build failed\r\n");
         goto done;
     }
@@ -771,22 +653,28 @@ static void config_task(void *arg)
             }
         }
 
-        (void)ensure_dir_exists(smi_dir_path);
-        for (unsigned i = 0; i < DEFAULT_SMI_CONFIG_FILES_COUNT; ++i) {
-            const default_json_file_t *d = &DEFAULT_SMI_CONFIG_FILES[i];
+        mdio_first_start = !file_exists(mdio_marker);
+        if (!recover_mdio_configs(mdio_dir_path) || !recover_mdio_configs(mdio_dir_path_fb) ||
+            (mdio_first_start && !migrate_mdio_configs(mdio_dir_path))) mdio_load_failed = 1;
+        for (unsigned i = 0; mdio_first_start && !mdio_load_failed && i < DEFAULT_MDIO_CONFIG_FILES_COUNT; ++i) {
+            const default_json_file_t *d = &DEFAULT_MDIO_CONFIG_FILES[i];
             char cfg_path[160], cfg_path_fb[160];
             char suf[96];
-            snprintf(suf, sizeof(suf), "%s/%s", SMI_CFG_SUBDIR_NAME, d->file_name);
+            snprintf(suf, sizeof(suf), "%s/%s", MDIO_CFG_SUBDIR_NAME, d->file_name);
             build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
             if (!cfg_path[0] || !cfg_path_fb[0]) continue;
             if (!file_exists(cfg_path) && !file_exists(cfg_path_fb)) {
                 if (!write_file_atomic(cfg_path, d->json, d->json_len)) {
                     xil_printf("CFG: failed to write default %s\r\n", cfg_path);
+                    mdio_load_failed = 1;
                 } else {
                     xil_printf("CFG: wrote default %s\r\n", cfg_path);
                 }
             }
         }
+
+        if (mdio_first_start && !mdio_load_failed && !write_file_atomic(mdio_marker, "mdio-v1\n", 8U))
+            mdio_load_failed = 1;
 
         /* One-time migration: if legacy configs exist but primary is empty/missing, copy into flash:/config/. */
         if (!file_exists(net_cfg_path) && file_exists(net_cfg_path_fb)) {
@@ -824,13 +712,13 @@ static void config_task(void *arg)
             }
         }
 
-        if (!dir_exists(smi_dir_path) && dir_exists(smi_dir_path_fb)) {
-            (void)ensure_dir_exists(smi_dir_path);
+        if (!dir_exists(mdio_dir_path) && dir_exists(mdio_dir_path_fb)) {
+            (void)ensure_dir_exists(mdio_dir_path);
         }
-        if (dir_exists(smi_dir_path_fb)) {
+        if (dir_exists(mdio_dir_path_fb)) {
             DIR d;
             FILINFO fno;
-            if (f_opendir(&d, smi_dir_path_fb) == FR_OK) {
+            if (f_opendir(&d, mdio_dir_path_fb) == FR_OK) {
                 for (;;) {
                     if (f_readdir(&d, &fno) != FR_OK) break;
                     if (!fno.fname[0]) break;
@@ -841,8 +729,8 @@ static void config_task(void *arg)
                     if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
 
                     char src_p[200], dst_p[200];
-                    int sn = snprintf(src_p, sizeof(src_p), "%s/%s", smi_dir_path_fb, fn);
-                    int dn = snprintf(dst_p, sizeof(dst_p), "%s/%s", smi_dir_path, fn);
+                    int sn = snprintf(src_p, sizeof(src_p), "%s/%s", mdio_dir_path_fb, fn);
+                    int dn = snprintf(dst_p, sizeof(dst_p), "%s/%s", mdio_dir_path, fn);
                     if (sn <= 0 || dn <= 0) continue;
                     if ((size_t)sn >= sizeof(src_p) || (size_t)dn >= sizeof(dst_p)) continue;
                     if (file_exists(dst_p)) continue;
@@ -855,6 +743,7 @@ static void config_task(void *arg)
         }
     } else {
         xil_printf("CFG: QSPI not ready; using embedded defaults\r\n");
+        mdio_load_failed = 1; /* Stored security policy cannot be established. */
     }
 
     size_t blen = 0;
@@ -918,54 +807,59 @@ static void config_task(void *arg)
         }
     }
 
-    s_smi_cfg_count = 0;
-    if (qspi_fs_is_ready()) {
+    s_mdio_cfg_count = 0;
+    if (qspi_fs_is_ready() && !mdio_load_failed) {
         for (int pass = 0; pass < 2; ++pass) {
-            const char *scan_dir = (pass == 0) ? smi_dir_path : smi_dir_path_fb;
-            if (!scan_dir || !scan_dir[0] || !dir_exists(scan_dir)) continue;
+            const char *scan_dir = pass ? mdio_dir_path_fb : mdio_dir_path;
             DIR d;
             FILINFO fno;
-            if (f_opendir(&d, scan_dir) != FR_OK) continue;
+            FRESULT result = f_opendir(&d, scan_dir);
+            if (result == FR_NO_PATH || result == FR_NO_FILE) continue;
+            if (result != FR_OK) { mdio_load_failed = 1; break; }
             for (;;) {
-                if (f_readdir(&d, &fno) != FR_OK) break;
-                if (!fno.fname[0]) break;
-                if (fno.fattrib & AM_DIR) continue;
-                const char *fn = fno.fname;
-                size_t fl = strlen(fn);
-                if (fl < 6) continue;
-                if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
-                if (s_smi_cfg_count >= SMI_CFG_MAX_DEVICES) break;
-
                 char pth[200];
-                int pn = snprintf(pth, sizeof(pth), "%s/%s", scan_dir, fn);
-                if (pn <= 0 || (size_t)pn >= sizeof(pth)) continue;
-                if (!read_file_to_buf(pth, s_cfg_buf, sizeof(s_cfg_buf), &blen)) continue;
-                smi_phy_config_t tmp;
-                if (!parse_smi_phy_json(s_cfg_buf, &tmp)) continue;
-
-                /* Avoid duplicates by device name (primary dir wins). */
-                bool dup = false;
-                for (size_t j = 0; j < s_smi_cfg_count; ++j) {
-                    if (strcasecmp(s_smi_cfgs[j].name, tmp.name) == 0) { dup = true; break; }
+                mdio_phy_config_t tmp;
+                size_t fl;
+                bool duplicate = false;
+                result = f_readdir(&d, &fno);
+                if (result != FR_OK) { mdio_load_failed = 1; break; }
+                if (!fno.fname[0]) break;
+                fl = strlen(fno.fname);
+                if ((fno.fattrib & AM_DIR) || fl < 6 || strcasecmp(fno.fname + fl - 5, ".json")) continue;
+                mdio_files_seen = 1;
+                /* Same filename in fallback must not override a primary policy. */
+                for (size_t j = 0; j < s_mdio_cfg_count; ++j)
+                    if (!strcasecmp(s_mdio_cfgs[j].file_name, fno.fname)) duplicate = true;
+                if (duplicate) continue;
+                if (s_mdio_cfg_count >= MDIO_CFG_MAX_DEVICES || fl >= MDIO_CFG_FILE_NAME_MAX ||
+                    snprintf(pth, sizeof(pth), "%s/%s", scan_dir, fno.fname) >= (int)sizeof(pth) ||
+                    !read_file_to_buf(pth, s_cfg_buf, sizeof(s_cfg_buf), &blen) ||
+                    bvstk_mdio_config_parse(s_cfg_buf, &tmp) != BVSTK_OK) {
+                    mdio_load_failed = 1; break;
                 }
-                if (dup) continue;
-
-                strncpy(tmp.file_name, fn, sizeof(tmp.file_name) - 1);
-                tmp.file_name[sizeof(tmp.file_name) - 1] = '\0';
-                s_smi_cfgs[s_smi_cfg_count++] = tmp;
+                for (size_t j = 0; j < s_mdio_cfg_count; ++j)
+                    if (!strcasecmp(s_mdio_cfgs[j].name, tmp.name) || s_mdio_cfgs[j].phy_addr == tmp.phy_addr)
+                        duplicate = true;
+                if (duplicate) { mdio_load_failed = 1; break; }
+                memcpy(tmp.file_name, fno.fname, fl + 1U);
+                if (bvstk_mdio_config_validate(&tmp) != BVSTK_OK) { mdio_load_failed = 1; break; }
+                s_mdio_cfgs[s_mdio_cfg_count++] = tmp;
             }
             (void)f_closedir(&d);
         }
     }
-    if (s_smi_cfg_count == 0) {
-        for (unsigned i = 0; i < DEFAULT_SMI_CONFIG_FILES_COUNT && s_smi_cfg_count < SMI_CFG_MAX_DEVICES; ++i) {
-            const default_json_file_t *d = &DEFAULT_SMI_CONFIG_FILES[i];
-            smi_phy_config_t tmp;
-            if (!parse_smi_phy_json(d->json, &tmp)) continue;
+    if (!mdio_files_seen && !mdio_load_failed && mdio_first_start) {
+        for (unsigned i = 0; i < DEFAULT_MDIO_CONFIG_FILES_COUNT && s_mdio_cfg_count < MDIO_CFG_MAX_DEVICES; ++i) {
+            const default_json_file_t *d = &DEFAULT_MDIO_CONFIG_FILES[i];
+            mdio_phy_config_t tmp;
+            if (bvstk_mdio_config_parse(d->json, &tmp) != BVSTK_OK) { mdio_load_failed = 1; break; }
             strncpy(tmp.file_name, d->file_name, sizeof(tmp.file_name) - 1);
-            tmp.file_name[sizeof(tmp.file_name) - 1] = '\0';
-            s_smi_cfgs[s_smi_cfg_count++] = tmp;
+            s_mdio_cfgs[s_mdio_cfg_count++] = tmp;
         }
+    }
+    if (mdio_load_failed) {
+        s_mdio_cfg_count = 0;
+        xil_printf("CFG: invalid/unreadable MDIO configuration; all forwarding disabled\r\n");
     }
 
 done:
@@ -977,13 +871,16 @@ done:
 int start_config_store(void)
 {
     if (s_task) return 1;
+    if (!s_i2c_save_mutex) s_i2c_save_mutex = xSemaphoreCreateMutex();
+    if (!s_mdio_save_mutex) s_mdio_save_mutex = xSemaphoreCreateMutex();
+    if (!s_i2c_save_mutex || !s_mdio_save_mutex) return 0;
     s_ready = 0;
     s_startup_done = 0;
     memset(&s_net_cfg, 0, sizeof(s_net_cfg));
     memset(s_i2c_cfgs, 0, sizeof(s_i2c_cfgs));
     s_i2c_cfg_count = 0;
-    memset(s_smi_cfgs, 0, sizeof(s_smi_cfgs));
-    s_smi_cfg_count = 0;
+    memset(s_mdio_cfgs, 0, sizeof(s_mdio_cfgs));
+    s_mdio_cfg_count = 0;
     BaseType_t rc = xTaskCreate(config_task, "cfg", CONFIG_TASK_STACK, NULL, CONFIG_TASK_PRIO, &s_task);
     if (rc != pdPASS) s_startup_done = 1;
     return (rc == pdPASS) ? 1 : 0;
@@ -1073,55 +970,16 @@ int config_store_set_i2c_device(const i2c_device_config_t *cfg)
     return 0;
 }
 
-size_t config_store_get_smi_device_count(void)
+size_t config_store_get_mdio_device_count(void)
 {
-    return config_store_is_ready() ? s_smi_cfg_count : 0u;
+    return config_store_is_ready() ? s_mdio_cfg_count : 0u;
 }
 
-const smi_phy_config_t *config_store_get_smi_devices(void)
+const mdio_phy_config_t *config_store_get_mdio_devices(void)
 {
-    return config_store_is_ready() ? s_smi_cfgs : NULL;
+    return config_store_is_ready() ? s_mdio_cfgs : NULL;
 }
 
-const smi_phy_config_t *config_store_find_smi_device_by_name(const char *name)
-{
-    if (!config_store_is_ready() || !name || !name[0]) return NULL;
-    for (size_t i = 0; i < s_smi_cfg_count; ++i) {
-        if (strcasecmp(s_smi_cfgs[i].name, name) == 0) return &s_smi_cfgs[i];
-    }
-    return NULL;
-}
-
-const smi_phy_config_t *config_store_find_smi_device_by_phy(uint8_t phy_addr)
-{
-    if (!config_store_is_ready()) return NULL;
-    uint8_t phy = (uint8_t)(phy_addr & 0x1Fu);
-    for (size_t i = 0; i < s_smi_cfg_count; ++i) {
-        if ((s_smi_cfgs[i].phy_addr & 0x1Fu) == phy) return &s_smi_cfgs[i];
-    }
-    return NULL;
-}
-
-int config_store_set_smi_device(const smi_phy_config_t *cfg)
-{
-    if (!config_store_is_ready() || !cfg || !cfg->name[0]) return 0;
-    for (size_t i = 0; i < s_smi_cfg_count; ++i) {
-        if (strcasecmp(s_smi_cfgs[i].name, cfg->name) == 0) {
-            char fn[SMI_CFG_FILE_NAME_MAX];
-            strncpy(fn, s_smi_cfgs[i].file_name, sizeof(fn) - 1);
-            fn[sizeof(fn) - 1] = '\0';
-            s_smi_cfgs[i] = *cfg;
-            strncpy(s_smi_cfgs[i].file_name, fn, sizeof(s_smi_cfgs[i].file_name) - 1);
-            s_smi_cfgs[i].file_name[sizeof(s_smi_cfgs[i].file_name) - 1] = '\0';
-            return 1;
-        }
-    }
-    if (s_smi_cfg_count < SMI_CFG_MAX_DEVICES) {
-        s_smi_cfgs[s_smi_cfg_count++] = *cfg;
-        return 1;
-    }
-    return 0;
-}
 
 static void ipv4_to_str(uint32_t be, char out[16])
 {
@@ -1180,7 +1038,7 @@ int config_store_save_network(void)
     return ok;
 }
 
-int config_store_save_i2c_device(const i2c_device_config_t *cfg)
+static int save_i2c_device_locked(const i2c_device_config_t *cfg)
 {
     if (!config_store_is_ready() || !cfg || !cfg->name[0]) return 0;
 
@@ -1282,120 +1140,54 @@ int config_store_save_i2c_device(const i2c_device_config_t *cfg)
     return ok;
 }
 
-int config_store_save_smi_device(const smi_phy_config_t *cfg)
+int config_store_save_i2c_device(const i2c_device_config_t *cfg)
+{
+    int result;
+    if (!s_i2c_save_mutex || xSemaphoreTake(s_i2c_save_mutex, pdMS_TO_TICKS(5000U)) != pdTRUE) return 0;
+    result = save_i2c_device_locked(cfg);
+    xSemaphoreGive(s_i2c_save_mutex);
+    return result;
+}
+
+static int save_mdio_device_locked(const mdio_phy_config_t *cfg)
 {
     if (!config_store_is_ready() || !cfg || !cfg->name[0]) return 0;
 
     if (!qspi_fs_is_ready()) return 0;
 
     char root_dir_path[96], root_dir_path_fb[96];
-    char smi_dir_path[128], smi_dir_path_fb[128];
+    char mdio_dir_path[128], mdio_dir_path_fb[128];
     build_cfg_path(root_dir_path, sizeof(root_dir_path), root_dir_path_fb, sizeof(root_dir_path_fb), "");
-    build_cfg_path(smi_dir_path, sizeof(smi_dir_path), smi_dir_path_fb, sizeof(smi_dir_path_fb), SMI_CFG_SUBDIR_NAME);
-    if (!root_dir_path[0] || !root_dir_path_fb[0] || !smi_dir_path[0] || !smi_dir_path_fb[0]) return 0;
+    build_cfg_path(mdio_dir_path, sizeof(mdio_dir_path), mdio_dir_path_fb, sizeof(mdio_dir_path_fb), MDIO_CFG_SUBDIR_NAME);
+    if (!root_dir_path[0] || !root_dir_path_fb[0] || !mdio_dir_path[0] || !mdio_dir_path_fb[0]) return 0;
     if (!ensure_dir_exists(root_dir_path)) return 0;
-    if (!ensure_dir_exists(smi_dir_path)) return 0;
+    if (!ensure_dir_exists(mdio_dir_path)) return 0;
 
-    char *json = s_smi_save_buf;
-    const size_t json_cap = sizeof(s_smi_save_buf);
+    char *json = s_mdio_save_buf;
+    const size_t json_cap = sizeof(s_mdio_save_buf);
     size_t pos = 0;
-    const char *pol = (cfg->policy == SMI_POLICY_BLACKLIST) ? "blacklist" : "whitelist";
-    int n = snprintf(json + pos, json_cap - pos,
-        "{\n"
-        "  \"name\": \"%s\",\n"
-        "  \"phy_addr\": %u,\n"
-        "  \"reg_count\": %u,\n"
-        "  \"policy\": \"%s\",\n"
-        "  \"autopoll_enabled\": %s,\n"
-        "  \"autopoll_reg_delay_ms\": %u,\n"
-        "  \"autopoll_cycle_delay_ms\": %u,\n"
-        "  \"autopoll_regs\": [",
-        cfg->name,
-        (unsigned)(cfg->phy_addr & 0x1Fu),
-        (unsigned)cfg->reg_count,
-        pol,
-        cfg->autopoll_enabled ? "true" : "false",
-        (unsigned)cfg->autopoll_reg_delay_ms,
-        (unsigned)cfg->autopoll_cycle_delay_ms);
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
-
-    for (size_t i = 0; i < cfg->autopoll_regs_len; ++i) {
-        n = snprintf(json + pos, json_cap - pos, "%s%u",
-                     (i == 0) ? "" : ", ",
-                     (unsigned)cfg->autopoll_regs[i]);
-        if (n <= 0) return 0;
-        pos += (size_t)n;
-        if (pos >= json_cap) return 0;
-    }
-
-    n = snprintf(json + pos, json_cap - pos, "],\n  \"write_allow_regs\": [");
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
-
-    for (size_t i = 0; i < cfg->write_allow_regs_len; ++i) {
-        n = snprintf(json + pos, json_cap - pos, "%s%u",
-                     (i == 0) ? "" : ", ",
-                     (unsigned)cfg->write_allow_regs[i]);
-        if (n <= 0) return 0;
-        pos += (size_t)n;
-        if (pos >= json_cap) return 0;
-    }
-
-    n = snprintf(json + pos, json_cap - pos, "],\n  \"write_deny_regs\": [");
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
-
-    for (size_t i = 0; i < cfg->write_deny_regs_len; ++i) {
-        n = snprintf(json + pos, json_cap - pos, "%s%u",
-                     (i == 0) ? "" : ", ",
-                     (unsigned)cfg->write_deny_regs[i]);
-        if (n <= 0) return 0;
-        pos += (size_t)n;
-        if (pos >= json_cap) return 0;
-    }
-
-    n = snprintf(json + pos, json_cap - pos, "],\n  \"settings\": [\n");
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
-
-    for (size_t i = 0; i < cfg->settings_len; ++i) {
-        n = snprintf(json + pos, json_cap - pos,
-                     "    { \"reg\": %u, \"val\": %u }%s\n",
-                     (unsigned)cfg->settings[i].reg,
-                     (unsigned)cfg->settings[i].val,
-                     (i + 1 == cfg->settings_len) ? "" : ",");
-        if (n <= 0) return 0;
-        pos += (size_t)n;
-        if (pos >= json_cap) return 0;
-    }
-
-    n = snprintf(json + pos, json_cap - pos, "  ]\n}\n");
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
+    if (bvstk_mdio_config_format(cfg, json, json_cap, &pos) != BVSTK_OK) return 0;
 
     char cfg_path[160], cfg_path_fb[160];
     char suf[96];
     const char *fn = (cfg->file_name[0] ? cfg->file_name : NULL);
-    char tmp_fn[SMI_CFG_FILE_NAME_MAX];
+    char tmp_fn[MDIO_CFG_FILE_NAME_MAX];
     if (!fn) {
         snprintf(tmp_fn, sizeof(tmp_fn), "%s.json", cfg->name);
         fn = tmp_fn;
     }
-    snprintf(suf, sizeof(suf), "%s/%s", SMI_CFG_SUBDIR_NAME, fn);
+    snprintf(suf, sizeof(suf), "%s/%s", MDIO_CFG_SUBDIR_NAME, fn);
     build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
     if (!cfg_path[0] || !cfg_path_fb[0]) return 0;
 
-    int ok = write_file_atomic(cfg_path, json, pos) ? 1 : 0;
-    if (ok && dir_exists(root_dir_path_fb)) {
-        (void)ensure_dir_exists(root_dir_path_fb);
-        (void)ensure_dir_exists(smi_dir_path_fb);
-        (void)write_file_atomic(cfg_path_fb, json, pos);
-    }
-    return ok;
+    return write_mdio_file(cfg_path, json, pos);
+}
+
+int config_store_save_mdio_device(const mdio_phy_config_t *cfg)
+{
+    int result;
+    if (!s_mdio_save_mutex || xSemaphoreTake(s_mdio_save_mutex, pdMS_TO_TICKS(5000U)) != pdTRUE) return 0;
+    result = save_mdio_device_locked(cfg);
+    xSemaphoreGive(s_mdio_save_mutex);
+    return result;
 }

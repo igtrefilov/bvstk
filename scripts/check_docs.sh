@@ -72,7 +72,7 @@ check_forbidden_docs \
     'src/apps/freertos/drivers/pl' \
     README.md docs scripts third_party
 
-# I2C has no autopoll fields. SMI keeps its own autopoll configuration, so the
+# I2C has no autopoll fields. MDIO keeps its own autopoll configuration, so the
 # check is scoped to the old I2C HTTP example rather than the whole documentation.
 check_forbidden_docs \
     "I2C HTTP autopoll fields" \

@@ -37,7 +37,7 @@ static size_t split_tokens_upto(const char *line,
             ++position;
         }
         if (count >= token_capacity) {
-            return count;
+            return count + 1U;
         }
         tokens[count].text = line + start;
         tokens[count].length = position - start;
@@ -133,6 +133,7 @@ static void complete_selector(
 }
 
 static void complete_operation(const char *prefix,
+                               unsigned features,
                                bvstk_i2c_completion_result_t *result)
 {
     static const char *const operations[] = {
@@ -143,6 +144,9 @@ static void complete_operation(const char *prefix,
                    operations,
                    sizeof(operations) / sizeof(operations[0]),
                    result);
+    if ((features & BVSTK_I2C_COMPLETION_EXPLICIT_SAVE) != 0U) {
+        (void)add_match(prefix, "save", result);
+    }
 }
 
 static void complete_policy(const char *prefix,
@@ -193,12 +197,13 @@ static void complete_policy(const char *prefix,
     }
 }
 
-int bvstk_i2c_complete_line(
+int bvstk_i2c_complete_line_ex(
     const char *line,
     size_t line_length,
     size_t cursor,
     const bvstk_i2c_completion_device_t *devices,
     size_t device_count,
+    unsigned features,
     bvstk_i2c_completion_result_t *result)
 {
     token_view_t tokens[4];
@@ -252,11 +257,23 @@ int bvstk_i2c_complete_line(
         complete_selector(prefix, devices, device_count, result);
     } else if (token_count == 2U &&
                !token_equals(line, tokens[1], "list")) {
-        complete_operation(prefix, result);
+        complete_operation(prefix, features, result);
     } else {
         complete_policy(prefix, tokens, token_count, line, result);
     }
     return result->match_count != 0U;
+}
+
+int bvstk_i2c_complete_line(
+    const char *line,
+    size_t line_length,
+    size_t cursor,
+    const bvstk_i2c_completion_device_t *devices,
+    size_t device_count,
+    bvstk_i2c_completion_result_t *result)
+{
+    return bvstk_i2c_complete_line_ex(line, line_length, cursor, devices,
+                                     device_count, 0U, result);
 }
 
 static size_t common_prefix_len(const char *first, const char *second)

@@ -22,7 +22,7 @@ DEFAULT_PORT = 8889
 SRV_PING = 0x00
 SRV_MEM = 0x01
 SRV_I2C = 0x02
-SRV_SMI = 0x03
+SRV_MDIO = 0x03
 SRV_SPI = 0x04
 SRV_UART = 0x05
 SRV_NOTIFY = 0x06
@@ -55,7 +55,7 @@ MEM_WIDTHS = (8, 16, 32, 64)
 
 STREAM_SERVICES: Dict[str, int] = {
     "i2c": SRV_I2C,
-    "smi": SRV_SMI,
+    "mdio": SRV_MDIO,
     "spi": SRV_SPI,
     "uart": SRV_UART,
 }
@@ -110,7 +110,7 @@ SOURCE_BITS: Dict[str, int] = {
 
 BUS_BITS: Dict[str, int] = {
     "i2c": 1 << 0,
-    "smi": 1 << 1,
+    "mdio": 1 << 1,
     "spi": 1 << 2,
     "uart": 1 << 3,
     "sys": 1 << 4,
@@ -148,7 +148,7 @@ SOURCE_NAMES: Dict[int, str] = {
 
 BUS_NAMES: Dict[int, str] = {
     0x00: "I2C",
-    0x01: "SMI",
+    0x01: "MDIO",
     0x02: "SPI",
     0x03: "UART",
     0x04: "SYS",
@@ -402,6 +402,51 @@ def ping(sock: socket.socket, seq: int) -> None:
     status = parse_status_from_response(frame)
     if status != 0:
         raise RuntimeError(f"PING failed: {status_name(status)}")
+
+
+def mdio_read(sock: socket.socket, seq: int, phy: int, reg: int) -> int:
+    if not 0 <= phy <= 31 or not 0 <= reg <= 31 or not 1 <= seq <= 65535:
+        raise ValueError("MDIO phy/reg must be 0..31 and seq 1..65535")
+    sock.sendall(build_frame(SRV_MDIO, 0, seq, bytes([phy, reg])))
+    response = wait_for_response(sock, SRV_MDIO, 0, seq)
+    status = parse_status_from_response(response)
+    if status:
+        raise RuntimeError(f"MDIO_READ failed: {status_name(status)}")
+    if len(response.body) != 4:
+        raise ValueError("invalid MDIO_READ response length")
+    return int.from_bytes(response.body[2:], "big")
+
+
+def mdio_write(sock: socket.socket, seq: int, phy: int, reg: int, value: int) -> None:
+    if not 0 <= phy <= 31 or not 0 <= reg <= 31 or not 0 <= value <= 65535 or not 1 <= seq <= 65535:
+        raise ValueError("MDIO phy/reg must be 0..31, value 0..65535, seq 1..65535")
+    # Never retry writes automatically: RESET and other commands have side effects.
+    sock.sendall(build_frame(SRV_MDIO, 1, seq, struct.pack(">BBH", phy, reg, value)))
+    response = wait_for_response(sock, SRV_MDIO, 1, seq)
+    status = parse_status_from_response(response)
+    if status:
+        raise RuntimeError(f"MDIO_WRITE failed: {status_name(status)}")
+    if len(response.body) != 2:
+        raise ValueError("invalid MDIO_WRITE response length")
+
+
+def run_mdio_operation(args: argparse.Namespace) -> int:
+    try:
+        fields = args.mdio_read if args.mdio_read is not None else args.mdio_write
+        phy = parse_uint(fields[0], "PHY", 31)
+        reg = parse_uint(fields[1], "register", 31)
+        value = parse_uint(fields[2], "value", 65535) if args.mdio_write else None
+        with socket.create_connection((args.host, args.port), timeout=args.timeout) as sock:
+            if value is None:
+                value = mdio_read(sock, 1, phy, reg)
+                print(f"MDIO_READ phy={phy} reg={reg} -> 0x{value:04X} ({value})")
+            else:
+                mdio_write(sock, 1, phy, reg, value)
+                print(f"MDIO_WRITE phy={phy} reg={reg} -> OK (frame sent; no PHY write acknowledgement)")
+        return 0
+    except (ConnectionError, OSError, RuntimeError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
 
 
 def subscribe_notify(sock: socket.socket, seq: int, class_mask: int, source_mask: int, bus_mask: int, flags: int) -> None:
@@ -926,12 +971,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "DCP2 client: monitor NOTIFY or PL streams, or execute one-shot "
-            "MEM read/write or FS read/tree/TAR operations."
+            "MEM/MDIO read/write or FS read/tree/TAR operations."
         )
     )
     parser.add_argument("host", help="device IP or hostname")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"DCP2 TCP port (default: {DEFAULT_PORT})")
     operation = parser.add_mutually_exclusive_group()
+    operation.add_argument("--mdio-read", nargs=2, metavar=("PHY", "REG"), help="read a PHY register through the MDIO service")
+    operation.add_argument("--mdio-write", nargs=3, metavar=("PHY", "REG", "VALUE"), help="write through MDIO security policy (no automatic retry)")
     operation.add_argument(
         "--ping",
         "--ping-only",
@@ -955,7 +1002,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="streams",
         action="append",
         choices=tuple(STREAM_SERVICES),
-        help="subscribe to a PL stream; repeat for i2c, smi, spi or uart",
+        help="subscribe to a PL stream; repeat for i2c, mdio, spi or uart",
     )
     operation.add_argument("--fs-info", action="store_true", help="show FS limits and volumes as JSON")
     operation.add_argument("--fs-stat", metavar="PATH", help="show file/directory metadata as JSON")
@@ -1003,7 +1050,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--buses",
         default="i2c",
-        help="bus mask: comma list of i2c,smi,spi,uart,sys or hex mask",
+        help="bus mask: comma list of i2c,mdio,spi,uart,sys or hex mask",
     )
     parser.add_argument("--no-timestamp", action="store_true", help="do not request time_us in NOTIFY_EVENT")
     parser.add_argument(
@@ -1045,6 +1092,11 @@ def main() -> int:
         if args.count is not None or args.autoinc or args.width != 32:
             parser.error("--ping cannot be combined with MEM options")
         return run_ping(args)
+
+    if args.mdio_read is not None or args.mdio_write is not None:
+        if args.count is not None or args.autoinc or args.width != 32:
+            parser.error("MDIO operations cannot be combined with MEM options")
+        return run_mdio_operation(args)
 
     if args.streams:
         if args.count is not None or args.autoinc or args.width != 32:

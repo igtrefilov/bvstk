@@ -54,10 +54,10 @@ static bool http_mmio_allowed(uintptr_t address, uintptr_t size)
         { BVSTK_I2C_SLAVE_BASE, BVSTK_I2C_SLAVE_SIZE },
         { BVSTK_I2C_BRAM_BASE, BVSTK_I2C_BRAM_SIZE },
 #endif
-#if BVSTK_PL_HAS_SMI_CORE
-        { BVSTK_SMI_MASTER_BASE, BVSTK_SMI_MASTER_SIZE },
-        { BVSTK_SMI_SLAVE_BASE, BVSTK_SMI_SLAVE_SIZE },
-        { BVSTK_SMI_BRAM_BASE, BVSTK_SMI_BRAM_SIZE },
+#if BVSTK_PL_HAS_MDIO_CORE
+        { BVSTK_MDIO_MASTER_BASE, BVSTK_MDIO_MASTER_SIZE },
+        { BVSTK_MDIO_SLAVE_BASE, BVSTK_MDIO_SLAVE_SIZE },
+        { BVSTK_MDIO_BRAM_BASE, BVSTK_MDIO_BRAM_SIZE },
 #endif
 #if BVSTK_PL_HAS_SPI_CORE
         { BVSTK_SPI_MASTER_BASE, BVSTK_SPI_MASTER_SIZE },
@@ -839,7 +839,8 @@ static void api_handle_i2c_put(http_conn_t *conn)
 
     int ok = bvstk_runtime_i2c_apply_config(&next) &&
              config_store_set_i2c_device(&next);
-    int saved = ok ? config_store_save_i2c_device(&next) : 0;
+    /* Configuration changes are volatile until an explicit i2c <sel> save. */
+    int saved = 0;
     if (!ok) {
         http_reply_simple(conn->fd, 500, "ERR", "set failed\r\n");
         return;
@@ -984,7 +985,7 @@ static void api_diag_i2c_write(http_conn_t *conn)
         http_reply_simple(conn->fd, 403, "Forbidden", "DENIED\r\n");
         return;
     }
-    (void)bvstk_runtime_i2c_sync_device(idx, 0);
+    (void)bvstk_runtime_i2c_sync_device(idx);
     http_reply_json_hdr(conn->fd, 200, "OK");
     http_write_str(conn->fd, "{\"ok\":true}\n");
 }

@@ -8,7 +8,7 @@
 #include "drivers/pl/i2c/bvstk_i2c_master.h"
 #include "drivers/pl/i2c/bvstk_i2c_slave.h"
 #include "drivers/pl/sd/bvstk_sd_controller.h"
-#include "drivers/pl/smi/bvstk_smi_core.h"
+#include "drivers/pl/mdio/bvstk_mdio_core.h"
 #include "drivers/pl/spi/bvstk_spi_core.h"
 #include "hardware/pl/i2c/bvstk_i2c_regs.h"
 #include "protocols/dcp2/bvstk_dcp2_codec.h"
@@ -22,7 +22,7 @@
 #include "shared/pl/access/bvstk_pl_service.h"
 #include "services/i2c/bvstk_i2c_master_service.h"
 #include "services/i2c/bvstk_i2c_slave_service.h"
-#include "services/smi/bvstk_smi_service.h"
+#include "services/mdio/bvstk_mdio_service.h"
 #include "services/control/bvstk_control_api.h"
 
 #define CHECK(condition)                                                     \
@@ -46,7 +46,7 @@ void bvstk_platform_sleep_ms(uint32_t milliseconds)
 
 typedef struct {
     uint8_t i2c_value;
-    uint16_t smi_value;
+    uint16_t mdio_value;
     unsigned reads;
     unsigned writes;
 } fake_bus_t;
@@ -81,7 +81,7 @@ static bvstk_status_t fake_i2c_write(void *context,
     return BVSTK_OK;
 }
 
-static bvstk_status_t fake_smi_read(void *context,
+static bvstk_status_t fake_mdio_read(void *context,
                                     uint8_t phy_addr,
                                     uint8_t reg,
                                     uint16_t *value,
@@ -92,11 +92,11 @@ static bvstk_status_t fake_smi_read(void *context,
     (void)reg;
     (void)timeout_ms;
     bus->reads++;
-    *value = bus->smi_value;
+    *value = bus->mdio_value;
     return BVSTK_OK;
 }
 
-static bvstk_status_t fake_smi_write(void *context,
+static bvstk_status_t fake_mdio_write(void *context,
                                      uint8_t phy_addr,
                                      uint8_t reg,
                                      uint16_t value,
@@ -109,7 +109,7 @@ static bvstk_status_t fake_smi_write(void *context,
     (void)source;
     (void)timeout_ms;
     bus->writes++;
-    bus->smi_value = value;
+    bus->mdio_value = value;
     return BVSTK_OK;
 }
 
@@ -241,7 +241,7 @@ int main(void)
     bvstk_status_t status;
     uint32_t value = 0U;
     bool ok = false;
-    fake_bus_t bus = {.i2c_value = 0x55U, .smi_value = 0x1234U};
+    fake_bus_t bus = {.i2c_value = 0x55U, .mdio_value = 0x1234U};
     event_log_t events = {0};
     bvstk_i2c_devices_t i2c_devices;
     bvstk_i2c_cache_t i2c_cache;
@@ -252,16 +252,16 @@ int main(void)
     bvstk_i2c_slave_service_t i2c_slave_service;
     bvstk_sd_controller_t sd_controller;
     bvstk_sd_controller_status_t sd_status;
-    bvstk_smi_service_t smi_service;
+    bvstk_mdio_service_t mdio_service;
     bvstk_i2c_master_io_t i2c_ops = {
         .context = &bus,
         .read_reg = fake_i2c_read,
         .write_reg = fake_i2c_write
     };
-    bvstk_smi_bus_ops_t smi_ops = {
+    bvstk_mdio_bus_ops_t mdio_ops = {
         .context = &bus,
-        .read = fake_smi_read,
-        .write = fake_smi_write
+        .read = fake_mdio_read,
+        .write = fake_mdio_write
     };
     bvstk_event_sink_t event_sink = {
         .context = &events,
@@ -277,14 +277,14 @@ int main(void)
         .blacklist = {{.reg = 3, .val = 7}},
         .blacklist_len = 1
     };
-    smi_phy_config_t smi_config = {
+    mdio_phy_config_t mdio_config = {
         .name = "phy",
         .file_name = "phy.json",
         .phy_addr = 1,
         .reg_count = 32,
-        .policy = SMI_POLICY_BLACKLIST,
-        .write_deny_regs = {4},
-        .write_deny_regs_len = 1
+        .policy = MDIO_POLICY_BLACKLIST,
+        .blacklist = {{.reg = 4, .val = 0, .mask = 0}},
+        .blacklist_len = 1
     };
     uint8_t value8 = 0U;
     uint16_t value16 = 0U;
@@ -499,28 +499,28 @@ int main(void)
         CHECK(word == BVSTK_I2C_SLV_CSR_RD_VALID_BIT);
     }
     bvstk_i2c_slave_hw_shutdown(&i2c_slave_hw);
-    CHECK(bvstk_smi_service_init(&smi_service,
+    CHECK(bvstk_mdio_service_init(&mdio_service,
                                  NULL,
-                                 &smi_ops,
-                                 &smi_config,
+                                 &mdio_ops,
+                                 &mdio_config,
                                  1U,
                                  NULL) == BVSTK_OK);
-    CHECK(bvstk_smi_service_read(&smi_service, 0U, 1U, &value16, 10U) == BVSTK_OK);
+    CHECK(bvstk_mdio_service_read(&mdio_service, 0U, 1U, &value16, 10U) == BVSTK_OK);
     CHECK(value16 == 0x1234U);
-    CHECK(bvstk_smi_service_write(&smi_service,
+    CHECK(bvstk_mdio_service_write(&mdio_service,
                                   0U,
                                   4U,
                                   0x22U,
                                   BVSTK_EVENT_SOURCE_CONSOLE,
                                   10U) == BVSTK_ERR_DENIED);
-    CHECK(bvstk_smi_service_write(&smi_service,
+    CHECK(bvstk_mdio_service_write(&mdio_service,
                                   0U,
                                   2U,
                                   0x4321U,
                                   BVSTK_EVENT_SOURCE_CONSOLE,
                                   10U) == BVSTK_OK);
-    CHECK(bus.smi_value == 0x4321U);
-    bvstk_smi_service_shutdown(&smi_service);
+    CHECK(bus.mdio_value == 0x4321U);
+    bvstk_mdio_service_shutdown(&mdio_service);
 
     frame[0] = 'D'; frame[1] = 'C'; frame[2] = 'P'; frame[3] = '2';
     bvstk_dcp2_write_be16(frame + 4, BVSTK_DCP2_VERSION);

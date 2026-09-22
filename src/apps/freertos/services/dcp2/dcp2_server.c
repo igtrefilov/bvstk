@@ -38,7 +38,7 @@ enum {
     DCP2_SRV_PING = 0x00,
     DCP2_SRV_MEM = 0x01,
     DCP2_SRV_I2C = 0x02,
-    DCP2_SRV_SMI = 0x03,
+    DCP2_SRV_MDIO = 0x03,
     DCP2_SRV_SPI = 0x04,
     DCP2_SRV_UART = 0x05,
     DCP2_SRV_NOTIFY = 0x06,
@@ -53,8 +53,8 @@ enum {
     DCP2_OP_I2C_READ_REG = 0x00,
     DCP2_OP_I2C_WRITE_REG = 0x01,
     DCP2_OP_I2C_POLICY_SET = 0x02,
-    DCP2_OP_SMI_READ = 0x00,
-    DCP2_OP_SMI_WRITE = 0x01,
+    DCP2_OP_MDIO_READ = 0x00,
+    DCP2_OP_MDIO_WRITE = 0x01,
     DCP2_OP_NOTIFY_SUBSCRIBE = 0x10,
     DCP2_OP_NOTIFY_UNSUBSCRIBE = 0x11,
     DCP2_OP_PL_SUBSCRIBE_STREAM = 0x10,
@@ -415,7 +415,7 @@ static bool dcp2_mem_access_allowed(uint64_t address, uint32_t size_bytes)
         { (uint32_t)BVSTK_I2C_SLAVE_BASE,  0x1000u },
         { (uint32_t)BVSTK_I2C_BRAM_BASE,   0x3000u },
 #endif
-#if BVSTK_PL_HAS_SMI_CORE
+#if BVSTK_PL_HAS_MDIO_CORE
         { (uint32_t)MASTER_BASEADDR, 0x1000u },
         { (uint32_t)SLAVE_BASEADDR,  0x1000u },
         { (uint32_t)BRAM_BASEADDR,   (uint32_t)(BRAM_HIGHADDR - BRAM_BASEADDR + 1u) },
@@ -640,7 +640,7 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
                                                 BVSTK_EVENT_SOURCE_DCP,
                                                 100U);
         if (status == BVSTK_OK) {
-            (void)bvstk_runtime_i2c_sync_device(dev_idx, 1);
+            (void)bvstk_runtime_i2c_sync_device(dev_idx);
         }
         return dcp2_send_response(fd,
                                   srv,
@@ -662,7 +662,7 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
         dev_idx,
         body[1] == 0U ? I2C_POLICY_WHITELIST : I2C_POLICY_BLACKLIST);
     if (status == BVSTK_OK) {
-        (void)bvstk_runtime_i2c_sync_device(dev_idx, 1);
+        (void)bvstk_runtime_i2c_sync_device(dev_idx);
     }
     return dcp2_send_response(fd,
                               srv,
@@ -675,39 +675,39 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
 #endif
 }
 
-static int dcp2_handle_smi(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
+static int dcp2_handle_mdio(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
 {
-#if !BVSTK_PL_HAS_SMI_CORE
+#if !BVSTK_PL_HAS_MDIO_CORE
     return dcp2_send_response(fd, srv, opcode, seq,
                               DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
 #else
-    bvstk_smi_service_t *common_service = bvstk_runtime_smi_service();
+    bvstk_mdio_service_t *common_service = bvstk_runtime_mdio_service();
     size_t device_id;
     bvstk_status_t status;
 
-    if (opcode != DCP2_OP_SMI_READ && opcode != DCP2_OP_SMI_WRITE) {
+    if (opcode != DCP2_OP_MDIO_READ && opcode != DCP2_OP_MDIO_WRITE) {
         return dcp2_send_response(fd, srv, opcode, seq,
                                   DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
     }
-    if ((opcode == DCP2_OP_SMI_READ && body_len != 2U) ||
-        (opcode == DCP2_OP_SMI_WRITE && body_len != 4U)) {
+    if ((opcode == DCP2_OP_MDIO_READ && body_len != 2U) ||
+        (opcode == DCP2_OP_MDIO_WRITE && body_len != 4U)) {
         return dcp2_send_response(fd, srv, opcode, seq,
                                   DCP2_STATUS_ERR_MALFORMED, NULL, 0);
     }
     if (common_service == NULL) {
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_BUSY, NULL, 0);
     }
-    if (bvstk_smi_service_find_by_phy(common_service,
+    if (bvstk_mdio_service_find_by_phy(common_service,
                                       body[0],
                                       &device_id) != BVSTK_OK) {
         return dcp2_send_response(fd, srv, opcode, seq,
                                   DCP2_STATUS_ERR_RANGE, NULL, 0);
     }
 
-    if (opcode == DCP2_OP_SMI_READ) {
+    if (opcode == DCP2_OP_MDIO_READ) {
         uint16_t value = 0U;
         uint8_t response[2];
-        status = bvstk_smi_service_read(common_service,
+        status = bvstk_mdio_service_read(common_service,
                                         device_id,
                                         body[1],
                                         &value,
@@ -723,15 +723,12 @@ static int dcp2_handle_smi(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
                                   status == BVSTK_OK ? 2U : 0U);
     }
 
-    status = bvstk_smi_service_write(common_service,
+    status = bvstk_mdio_service_write(common_service,
                                      device_id,
                                      body[1],
                                      be16_read(body + 2U),
                                      BVSTK_EVENT_SOURCE_DCP,
                                      100U);
-    if (status == BVSTK_OK) {
-        (void)bvstk_runtime_smi_sync_device(device_id, 0);
-    }
     return dcp2_send_response(fd, srv, opcode, seq,
                               status == BVSTK_OK ? DCP2_STATUS_OK :
                               status == BVSTK_ERR_DENIED ? DCP2_STATUS_ERR_DENIED :
@@ -873,12 +870,12 @@ static int dcp2_dispatch_request(int fd,
 #else
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
 #endif
-    case DCP2_SRV_SMI:
+    case DCP2_SRV_MDIO:
         if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
             return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
         }
-#if BVSTK_PL_HAS_SMI_CORE
-        return dcp2_handle_smi(fd, srv, opcode, seq, body, body_len);
+#if BVSTK_PL_HAS_MDIO_CORE
+        return dcp2_handle_mdio(fd, srv, opcode, seq, body, body_len);
 #else
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
 #endif

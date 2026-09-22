@@ -58,7 +58,11 @@ int main(void)
     CHECK(bvstk_i2c_complete_line("i2c axp15060 ", 13U, 13U,
                                   devices, 2U, &result));
     CHECK(result.match_count == 6U && has_candidate(&result, "policy") &&
-          has_candidate(&result, "address"));
+          has_candidate(&result, "address") && !has_candidate(&result, "save"));
+
+    CHECK(bvstk_i2c_complete_line_ex("i2c axp15060 ", 13U, 13U,
+                                     devices, 2U, BVSTK_I2C_COMPLETION_EXPLICIT_SAVE, &result));
+    CHECK(result.match_count == 7U && has_candidate(&result, "save"));
 
     CHECK(bvstk_i2c_complete_line("i2c axp15060 policy ", 20U, 20U,
                                   devices, 2U, &result));

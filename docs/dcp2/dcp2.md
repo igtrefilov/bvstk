@@ -48,8 +48,8 @@
       - [2.2.3.5. Структура `I2C_WRITE_REG_REQUEST`](#toc-042)
       - [2.2.3.6. Структура `I2C_POLICY_SET_REQUEST`](#toc-043)
         - [2.2.3.6.1. Поле `policy`](#toc-044)
-      - [2.2.3.7. Структура `SMI_READ_REQUEST`](#toc-045)
-      - [2.2.3.8. Структура `SMI_WRITE_REQUEST`](#toc-046)
+      - [2.2.3.7. Структура `MDIO_READ_REQUEST`](#toc-045)
+      - [2.2.3.8. Структура `MDIO_WRITE_REQUEST`](#toc-046)
       - [2.2.3.9. Структура `NOTIFY_SUBSCRIBE_REQUEST`](#toc-046a)
         - [2.2.3.9.1. Поле `class_mask`](#toc-046b)
         - [2.2.3.9.2. Поле `source_mask`](#toc-046c)
@@ -73,8 +73,8 @@
       - [2.2.4.5. Структура `I2C_READ_REG_RESPONSE`](#toc-056)
       - [2.2.4.6. Структура `I2C_WRITE_REG_RESPONSE`](#toc-057)
       - [2.2.4.7. Структура `I2C_POLICY_SET_RESPONSE`](#toc-058)
-      - [2.2.4.8. Структура `SMI_READ_RESPONSE`](#toc-059)
-      - [2.2.4.9. Структура `SMI_WRITE_RESPONSE`](#toc-060)
+      - [2.2.4.8. Структура `MDIO_READ_RESPONSE`](#toc-059)
+      - [2.2.4.9. Структура `MDIO_WRITE_RESPONSE`](#toc-060)
       - [2.2.4.10. Структура `NOTIFY_SUBSCRIBE_RESPONSE`](#toc-060a)
       - [2.2.4.11. Структура `NOTIFY_UNSUBSCRIBE_RESPONSE`](#toc-060b)
       - [2.2.4.12. Структура `PL_SUBSCRIBE_STREAM_RESPONSE`](#toc-061)
@@ -166,7 +166,7 @@ TCP_APP_DATA (byte stream)
         │   ├── 0x00 -> PING
         │   ├── 0x01 -> MEM
         │   ├── 0x02 -> I2C
-        │   ├── 0x03 -> SMI
+        │   ├── 0x03 -> MDIO
         │   ├── 0x04 -> SPI
         │   ├── 0x05 -> UART
         │   ├── 0x06 -> NOTIFY
@@ -195,13 +195,13 @@ TCP_APP_DATA (byte stream)
             │       │   └── 0x02 I2C_POLICY_SET
             │       │       ├── request  -> I2C_POLICY_SET_REQUEST
             │       │       └── response -> I2C_POLICY_SET_RESPONSE
-            │       ├── srv=SMI (0x03)
-            │       │   ├── 0x00 SMI_READ
-            │       │   │   ├── request  -> SMI_READ_REQUEST
-            │       │   │   └── response -> SMI_READ_RESPONSE
-            │       │   └── 0x01 SMI_WRITE
-            │       │       ├── request  -> SMI_WRITE_REQUEST
-            │       │       └── response -> SMI_WRITE_RESPONSE
+            │       ├── srv=MDIO (0x03)
+            │       │   ├── 0x00 MDIO_READ
+            │       │   │   ├── request  -> MDIO_READ_REQUEST
+            │       │   │   └── response -> MDIO_READ_RESPONSE
+            │       │   └── 0x01 MDIO_WRITE
+            │       │       ├── request  -> MDIO_WRITE_REQUEST
+            │       │       └── response -> MDIO_WRITE_RESPONSE
             │       ├── srv=NOTIFY (0x06)
             │       │   ├── 0x10 SUBSCRIBE
             │       │   │   ├── request  -> NOTIFY_SUBSCRIBE_REQUEST
@@ -226,7 +226,7 @@ TCP_APP_DATA (byte stream)
             │       │   └── 0x04 FS_CLOSE
             │       │       ├── request  -> FS_CLOSE_REQUEST
             │       │       └── response -> FS_CLOSE_RESPONSE
-            │       └── srv=PL (I2C/SMI/SPI/UART)
+            │       └── srv=PL (I2C/MDIO/SPI/UART)
             │           ├── 0x10 SUBSCRIBE_STREAM
             │           │   ├── request  -> PL_SUBSCRIBE_STREAM_REQUEST
             │           │   ├── response -> PL_SUBSCRIBE_STREAM_RESPONSE
@@ -289,7 +289,7 @@ TCP_APP_DATA (byte stream)
 
 Пример корреляции при параллельных запросах:
 
-Клиент отправляет три запроса: `MEM_READ(seq=0x0101)`, `I2C_READ_REG(seq=0x0102)`, `SMI_READ(seq=0x0103)`. Сервер может вернуть ответы в другом порядке, например: `response(seq=0x0103)`, затем `response(seq=0x0101)`, затем `response(seq=0x0102)`. Клиент сопоставляет каждый ответ по `seq` с таблицей активных запросов, а не по порядку получения, после чего соответствующий запрос помечается завершённым независимо от позиции ответа в потоке.
+Клиент отправляет три запроса: `MEM_READ(seq=0x0101)`, `I2C_READ_REG(seq=0x0102)`, `MDIO_READ(seq=0x0103)`. Сервер может вернуть ответы в другом порядке, например: `response(seq=0x0103)`, затем `response(seq=0x0101)`, затем `response(seq=0x0102)`. Клиент сопоставляет каждый ответ по `seq` с таблицей активных запросов, а не по порядку получения, после чего соответствующий запрос помечается завершённым независимо от позиции ответа в потоке.
 
 <a id="toc-011"></a>
 #### 3.4. Модель ошибок
@@ -570,7 +570,7 @@ evf| lost_delta  | data_len | data
 
 | `ver` | Статус | Содержание |
 |---|---|---|
-| `0x0001` | legacy baseline | Базовый каркас DCP2: `PING`, `MEM`, `I2C`, `SMI`, `SPI`, `UART` |
+| `0x0001` | legacy baseline | Базовый каркас DCP2: `PING`, `MEM`, `I2C`, `MDIO`, `SPI`, `UART` |
 | `0x0002` | current | Добавлена формальная политика версионирования и сервис `NOTIFY` для асинхронных control/state уведомлений |
 
 Нормативные правила:
@@ -658,7 +658,7 @@ typedef struct {
 |0x00|PING|
 |0x01|MEM|
 |0x02|I2C|
-|0x03|SMI|
+|0x03|MDIO|
 |0x04|SPI|
 |0x05|UART|
 |0x06|NOTIFY|
@@ -729,8 +729,8 @@ typedef struct {
         I2C_WRITE_REG_REQUEST   i2c_write_reg;
         I2C_POLICY_SET_REQUEST  i2c_policy_set;
 
-        SMI_READ_REQUEST  smi_read;
-        SMI_WRITE_REQUEST smi_write;
+        MDIO_READ_REQUEST  mdio_read;
+        MDIO_WRITE_REQUEST mdio_write;
 
         NOTIFY_SUBSCRIBE_REQUEST   notify_subscribe;
         NOTIFY_UNSUBSCRIBE_REQUEST notify_unsubscribe;
@@ -894,33 +894,33 @@ typedef struct {
 **Примечание**: Любое другое значение поля `policy` должно приводить к `ERR_UNSUPPORTED`.
 
 <a id="toc-045"></a>
-##### 2.2.3.7. Структура `SMI_READ_REQUEST`
+##### 2.2.3.7. Структура `MDIO_READ_REQUEST`
 
 ```c
 typedef struct {
     u8 phy;
     u8 reg;
-} SMI_READ_REQUEST;
+} MDIO_READ_REQUEST;
 ```
 
 **Размер**: 2 байта
 **Назначение**: Определяет параметры операции чтения MDIO-регистра PHY.
-**Примечание**: Контекст использования — `srv = 0x03` (`SMI`), `RESP = 0`, `EVENT = 0`, `OPCODE = 0x00`.
+**Примечание**: Контекст использования — `srv = 0x03` (`MDIO`), `RESP = 0`, `EVENT = 0`, `OPCODE = 0x00`.
 
 <a id="toc-046"></a>
-##### 2.2.3.8. Структура `SMI_WRITE_REQUEST`
+##### 2.2.3.8. Структура `MDIO_WRITE_REQUEST`
 
 ```c
 typedef struct {
     u8  phy;
     u8  reg;
     u16 val16;
-} SMI_WRITE_REQUEST;
+} MDIO_WRITE_REQUEST;
 ```
 
 **Размер**: 4 байта
 **Назначение**: Определяет параметры операции записи MDIO-регистра PHY.
-**Примечание**: Контекст использования — `srv = 0x03` (`SMI`), `RESP = 0`, `EVENT = 0`, `OPCODE = 0x01`.
+**Примечание**: Контекст использования — `srv = 0x03` (`MDIO`), `RESP = 0`, `EVENT = 0`, `OPCODE = 0x01`.
 
 <a id="toc-046a"></a>
 ##### 2.2.3.9. Структура `NOTIFY_SUBSCRIBE_REQUEST`
@@ -977,7 +977,7 @@ typedef struct {
 
 Битовое представление:
 - `bit0` — `I2C`
-- `bit1` — `SMI`
+- `bit1` — `MDIO`
 - `bit2` — `SPI`
 - `bit3` — `UART`
 - `bit4` — `SYS`
@@ -1021,7 +1021,7 @@ typedef struct {
 ```
 
 **Размер**: 1 байт
-**Назначение**: Включает асинхронную передачу событий стрима для выбранного PL-сервиса (`I2C`, `SMI`, `SPI`, `UART`).
+**Назначение**: Включает асинхронную передачу событий стрима для выбранного PL-сервиса (`I2C`, `MDIO`, `SPI`, `UART`).
 **Примечание**: Контекст использования — `srv = 0x02, 0x03, 0x04, 0x05`, `RESP = 0`, `EVENT = 0`, `OPCODE = 0x10`.
 
 <a id="toc-048"></a>
@@ -1174,8 +1174,8 @@ typedef struct {
         I2C_WRITE_REG_RESPONSE  i2c_write_reg;
         I2C_POLICY_SET_RESPONSE i2c_policy_set;
 
-        SMI_READ_RESPONSE  smi_read;
-        SMI_WRITE_RESPONSE smi_write;
+        MDIO_READ_RESPONSE  mdio_read;
+        MDIO_WRITE_RESPONSE mdio_write;
 
         NOTIFY_SUBSCRIBE_RESPONSE   notify_subscribe;
         NOTIFY_UNSUBSCRIBE_RESPONSE notify_unsubscribe;
@@ -1295,24 +1295,24 @@ typedef struct {
 **Назначение**: Подтверждает изменение политики доступа для I2C-устройства.
 
 <a id="toc-059"></a>
-##### 2.2.4.8. Структура `SMI_READ_RESPONSE`
+##### 2.2.4.8. Структура `MDIO_READ_RESPONSE`
 
 ```c
 typedef struct {
     u16 val16;
-} SMI_READ_RESPONSE;
+} MDIO_READ_RESPONSE;
 ```
 
 **Размер**: 2 байта
 **Назначение**: Возвращает значение MDIO-регистра PHY.
 
 <a id="toc-060"></a>
-##### 2.2.4.9. Структура `SMI_WRITE_RESPONSE`
+##### 2.2.4.9. Структура `MDIO_WRITE_RESPONSE`
 
 ```c
 typedef struct {
     /* пусто */
-} SMI_WRITE_RESPONSE;
+} MDIO_WRITE_RESPONSE;
 ```
 
 **Размер**: 0 байт
@@ -1601,7 +1601,7 @@ typedef struct {
 
 Допустимые значения:
 - `0x00` — `I2C`
-- `0x01` — `SMI`
+- `0x01` — `MDIO`
 - `0x02` — `SPI`
 - `0x03` — `UART`
 - `0x04` — `SYS`
@@ -1627,7 +1627,7 @@ typedef struct {
 
 Рекомендуемая интерпретация:
 - для `I2C WRITE`: `arg0 = addr7`, `arg1 = reg`, `arg2 = val`
-- для `SMI WRITE`: `arg0 = phy`, `arg1 = reg`, `arg2 = val16`
+- для `MDIO WRITE`: `arg0 = phy`, `arg1 = reg`, `arg2 = val16`
 - для системных событий: значения определяются реализацией
 **Примечание**: Все поля передаются в big-endian.
 
@@ -1645,7 +1645,7 @@ typedef struct {
 ```
 
 **Размер**: `1 + 4 + 2 + data_len` байт без `time_us`; `8 + 1 + 4 + 2 + data_len` байт с `time_us`
-**Назначение**: Передаёт порцию данных стрима выбранного PL-сервиса (`I2C`, `SMI`, `SPI`, `UART`) и диагностику потерь.
+**Назначение**: Передаёт порцию данных стрима выбранного PL-сервиса (`I2C`, `MDIO`, `SPI`, `UART`) и диагностику потерь.
 
 <a id="toc-066"></a>
 ###### 2.2.5.2.1. Поле `ev_flags`

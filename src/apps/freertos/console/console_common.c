@@ -25,7 +25,7 @@ void console_print_banner(int fd)
         "| fs             | Filesystem commands         |\r\n",
         "| tar            | Tar archive utility         |\r\n",
         "| ip             | Network configuration       |\r\n",
-        "| smi            | MDIO/SMI access             |\r\n",
+        "| mdio           | MDIO PHY bridge / policies  |\r\n",
         "| spi            | SPI PL master shell         |\r\n",
         "| uart           | UART stream shell           |\r\n",
         "| sd-pl          | PL SD filesystem/status     |\r\n",
