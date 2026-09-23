@@ -10,9 +10,18 @@
 typedef struct {
     uint8_t values[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
     uint8_t valid[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
+    uint8_t seeded[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
+    uint64_t updated_ms[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
     size_t device_count;
     uint8_t initialized;
 } bvstk_i2c_cache_t;
+
+typedef struct {
+    uint8_t value;
+    uint8_t valid;
+    uint8_t seeded;
+    uint64_t updated_ms;
+} bvstk_i2c_cache_entry_t;
 
 bvstk_status_t bvstk_i2c_cache_init(bvstk_i2c_cache_t *cache,
                                     size_t device_count);
@@ -25,6 +34,17 @@ bvstk_status_t bvstk_i2c_cache_write(bvstk_i2c_cache_t *cache,
                                      size_t device_id,
                                      uint8_t reg,
                                      uint8_t value);
+bvstk_status_t bvstk_i2c_cache_seed(bvstk_i2c_cache_t *cache,
+                                    size_t device_id,
+                                    uint8_t reg,
+                                    uint8_t value);
+bvstk_status_t bvstk_i2c_cache_invalidate(bvstk_i2c_cache_t *cache,
+                                          size_t device_id,
+                                          uint8_t reg);
+bvstk_status_t bvstk_i2c_cache_entry(const bvstk_i2c_cache_t *cache,
+                                     size_t device_id,
+                                     uint8_t reg,
+                                     bvstk_i2c_cache_entry_t *entry);
 int bvstk_i2c_cache_is_valid(const bvstk_i2c_cache_t *cache,
                              size_t device_id,
                              uint8_t reg);

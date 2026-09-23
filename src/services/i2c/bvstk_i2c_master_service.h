@@ -90,6 +90,11 @@ bvstk_status_t bvstk_i2c_master_service_read_cached(
     size_t device_id,
     uint8_t reg,
     uint8_t *value);
+bvstk_status_t bvstk_i2c_master_service_cache_entry(
+    const bvstk_i2c_master_service_t *service,
+    size_t device_id,
+    uint8_t reg,
+    bvstk_i2c_cache_entry_t *entry);
 bvstk_status_t bvstk_i2c_master_service_write(
     bvstk_i2c_master_service_t *service,
     size_t device_id,

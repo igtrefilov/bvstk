@@ -78,7 +78,7 @@ static int initialize_i2c(const i2c_device_config_t *configs,
 
     for (size_t device_id = 0U; device_id < config_count; ++device_id) {
         for (size_t i = 0U; i < configs[device_id].settings_len; ++i) {
-            (void)bvstk_i2c_cache_write(&s_i2c_cache,
+            (void)bvstk_i2c_cache_seed(&s_i2c_cache,
                                         device_id,
                                         configs[device_id].settings[i].reg,
                                         configs[device_id].settings[i].val);

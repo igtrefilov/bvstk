@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "shared/interfaces/bvstk_clock.h"
+
 static bvstk_status_t cache_status(const bvstk_i2c_cache_t *cache,
                                    size_t device_id,
                                    uint8_t reg)
@@ -62,6 +64,57 @@ bvstk_status_t bvstk_i2c_cache_write(bvstk_i2c_cache_t *cache,
     }
     cache->values[device_id][reg] = value;
     cache->valid[device_id][reg] = 1U;
+    cache->seeded[device_id][reg] = 0U;
+    cache->updated_ms[device_id][reg] = bvstk_platform_now_ms();
+    return BVSTK_OK;
+}
+
+bvstk_status_t bvstk_i2c_cache_seed(bvstk_i2c_cache_t *cache,
+                                    size_t device_id,
+                                    uint8_t reg,
+                                    uint8_t value)
+{
+    bvstk_status_t status = cache_status(cache, device_id, reg);
+    if (status != BVSTK_OK) {
+        return status;
+    }
+    cache->values[device_id][reg] = value;
+    cache->valid[device_id][reg] = 1U;
+    cache->seeded[device_id][reg] = 1U;
+    cache->updated_ms[device_id][reg] = bvstk_platform_now_ms();
+    return BVSTK_OK;
+}
+
+bvstk_status_t bvstk_i2c_cache_invalidate(bvstk_i2c_cache_t *cache,
+                                          size_t device_id,
+                                          uint8_t reg)
+{
+    bvstk_status_t status = cache_status(cache, device_id, reg);
+    if (status != BVSTK_OK) {
+        return status;
+    }
+    cache->valid[device_id][reg] = 0U;
+    cache->seeded[device_id][reg] = 0U;
+    cache->updated_ms[device_id][reg] = 0U;
+    return BVSTK_OK;
+}
+
+bvstk_status_t bvstk_i2c_cache_entry(const bvstk_i2c_cache_t *cache,
+                                     size_t device_id,
+                                     uint8_t reg,
+                                     bvstk_i2c_cache_entry_t *entry)
+{
+    bvstk_status_t status = cache_status(cache, device_id, reg);
+    if (status != BVSTK_OK) {
+        return status;
+    }
+    if (entry == NULL) {
+        return BVSTK_ERR_MALFORMED;
+    }
+    entry->value = cache->values[device_id][reg];
+    entry->valid = cache->valid[device_id][reg];
+    entry->seeded = cache->seeded[device_id][reg];
+    entry->updated_ms = cache->updated_ms[device_id][reg];
     return BVSTK_OK;
 }
 

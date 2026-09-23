@@ -299,7 +299,7 @@ int bvstk_neutrino_i2c_runtime_init(
         for (setting = 0U;
              setting < configs[device_id].settings_len;
              ++setting) {
-            (void)bvstk_i2c_cache_write(
+            (void)bvstk_i2c_cache_seed(
                 &runtime->cache,
                 device_id,
                 configs[device_id].settings[setting].reg,

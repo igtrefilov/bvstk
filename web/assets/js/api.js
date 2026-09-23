@@ -53,6 +53,7 @@ export const busList = async (bus, signal) => {
   return data;
 };
 export const busGet = (bus, name, signal) => get(url("/api/ui/bus", {bus, name}), signal);
+export const busCache = (bus, name, signal) => get(url("/api/ui/bus", {bus, name, action:"cache"}), signal);
 export const busAction = (bus, name, action, params = {}, body) =>
   // Query-only actions have no JSON body. An ignored body left in lwIP's
   // receive queue can reset the connection before its reply is delivered.

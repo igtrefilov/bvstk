@@ -137,6 +137,12 @@ int main(int argc,char **argv) {
     assert(bvstk_i2c_cache_write(&cache,0,2,3)==BVSTK_OK);
     http_run("GET","/api/ui/bus?bus=i2c","",200);
     assert(strstr(output,"\"available\":false,\"presence\":\"unknown\""));
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);
+    assert(strstr(output,"\"cache\":") && strstr(output,"\"reg\":2,\"val\":3,\"valid\":true") &&
+        strstr(output,"\"updated_ms\":"));
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev&action=cache","",200);
+    assert(strstr(output,"\"cache\":") && strstr(output,"\"source\":\"I2C\"") &&
+        strstr(output,"\"updated_ms\":"));
     snprintf(path,sizeof(path),"/api/ui/bus?bus=i2c&name=dev&action=apply&revision=%s",rev);
     http_run("PUT",path,"{\"name\":\"dev\",\"name\":\"other\"}",400);
     assert(bvstk_i2c_config_serialize_json(&i2c_config,json,sizeof(json),&n)==BVSTK_OK);
@@ -151,6 +157,8 @@ int main(int argc,char **argv) {
     assert(strstr(output,"\"available\":true,\"presence\":\"responding\""));
     io_status=BVSTK_ERR_IO;
     http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&reg=2","{}",500);
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev&action=cache","",200);
+    assert(strstr(output,"\"reg\":2,\"val\":3,\"valid\":false"));
     http_run("GET","/api/ui/bus?bus=i2c","",200);
     assert(strstr(output,"\"available\":false,\"presence\":\"unavailable\""));
     io_status=BVSTK_OK;

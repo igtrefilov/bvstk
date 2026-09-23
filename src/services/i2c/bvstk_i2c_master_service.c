@@ -270,6 +270,8 @@ bvstk_status_t bvstk_i2c_master_service_read_from(
             BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
     if (status == BVSTK_OK) {
         (void)bvstk_i2c_cache_write(service->cache, device_id, reg, *value);
+    } else {
+        (void)bvstk_i2c_cache_invalidate(service->cache, device_id, reg);
     }
     return status;
 }
@@ -293,6 +295,28 @@ bvstk_status_t bvstk_i2c_master_service_read_cached(
         return BVSTK_ERR_RANGE;
     }
     return bvstk_i2c_cache_read(service->cache, device_id, reg, value);
+}
+
+bvstk_status_t bvstk_i2c_master_service_cache_entry(
+    const bvstk_i2c_master_service_t *service,
+    size_t device_id,
+    uint8_t reg,
+    bvstk_i2c_cache_entry_t *entry)
+{
+    bvstk_i2c_device_t device;
+    bvstk_status_t status = service_status(service, device_id);
+
+    if (status != BVSTK_OK) {
+        return status;
+    }
+    if (entry == NULL) {
+        return BVSTK_ERR_MALFORMED;
+    }
+    if (bvstk_i2c_devices_get(service->devices, device_id, &device) != BVSTK_OK ||
+        reg >= device.reg_count) {
+        return BVSTK_ERR_RANGE;
+    }
+    return bvstk_i2c_cache_entry(service->cache, device_id, reg, entry);
 }
 
 bvstk_status_t bvstk_i2c_master_service_write(
@@ -357,6 +381,7 @@ bvstk_status_t bvstk_i2c_master_service_write(
              &device,
              reg,
              value);
+        (void)bvstk_i2c_cache_invalidate(service->cache, device_id, reg);
         return status;
     }
     (void)bvstk_i2c_cache_write(service->cache, device_id, reg, value);

@@ -11,9 +11,9 @@ export async function busPage(root, params, ctx, bus) {
   let devices, selected = params.get("name"), tab = params.get("tab") || "overview";
   let detail, draft, invalid = false, busy = 0, fresh = "", currentDevice;
   let ruleIds, regState = {}, ruleState = {list:"whitelist",index:0};
-  const reads = new Map();
   const observations = new Map();
   let stopObservation = () => {};
+  let stopRegisters = () => {};
   function resetDraft() {
     draft = clone(detail.config); invalid = false;
     ruleIds = Object.fromEntries(["whitelist","blacklist"].map(key => [key,draft[key].map((_,i) => i)]));
@@ -34,13 +34,14 @@ export async function busPage(root, params, ctx, bus) {
     await locked(async () => {
     devices = await api.busList(bus, ctx.signal);
     if (!devices.devices.length) {
+      stopObservation(); stopRegisters();
       root.innerHTML = `${head(label,"Подсистема") }<article class="card"><h2>${devices.ready ? "Нет настроенных устройств" : "Сервис недоступен"}</h2><p>Проверьте конфигурацию и диагностический вывод системы.</p></article>`;
       return;
     }
     if (!devices.devices.some(d => d.name === selected)) selected = devices.devices[0].name;
     const next = await api.busGet(bus, selected, ctx.signal);
     if (ctx.signal.aborted) return;
-    if (currentDevice !== selected) { reads.clear(); regState = {}; ruleState = {list:"whitelist",index:0}; currentDevice = selected; }
+    if (currentDevice !== selected) { regState = {}; ruleState = {list:"whitelist",index:0}; currentDevice = selected; }
     detail = next; resetDraft(); fresh = footer(); root.classList.remove("is-stale"); render();
     });
   }
@@ -78,11 +79,32 @@ export async function busPage(root, params, ctx, bus) {
     return "";
   }
   function render() {
-    stopObservation();
+    stopObservation(); stopRegisters();
     ctx.setContext({name:selected,tab});
     const state = deviceState(bus,detail);
     root.innerHTML = `<div class="page-head"><div class="device-heading"><h1>${label}</h1><span class="device-name">${esc(selected)}</span></div></div><div class="device-meta"><span>Адрес <strong class="mono">${hex(mdio ? detail.config.phy_addr : detail.config.addr_7b)}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${tab !== "registers" || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
-    if (tab === "registers") registerWorkspace(root.querySelector("#register-workspace"), {bus,detail,reads,state:regState,canOperate:!changed(),onRead:reg => registerOp(reg,false),onWrite:(reg,val) => registerOp(reg,true,val)});
+    if (tab === "registers") {
+      const view = registerWorkspace(root.querySelector("#register-workspace"), {bus,detail,state:regState,canOperate:!changed(),onRead:reg => registerOp(reg,false),onWrite:(reg,val) => registerOp(reg,true,val)});
+      let stopped = false, timer = 0;
+      stopRegisters = () => { stopped = true; if (timer) clearTimeout(timer); };
+      const pollCache = async () => {
+        if (stopped || ctx.signal.aborted) return;
+        if (!document.hidden && !busy && !api.pending && Date.now() >= api.downloadPauseUntil) {
+          try {
+            const next = await api.busCache(bus, selected, ctx.signal);
+            if (!stopped && !ctx.signal.aborted && next.cache) {
+              detail.cache = next.cache;
+              if (next.stats) detail.stats = next.stats;
+              view.refresh();
+            }
+          } catch (error) {
+            if (error.name !== "AbortError" && !stopped) { /* transient cache polls stay unobtrusive */ }
+          }
+        }
+        if (!stopped && !ctx.signal.aborted) timer = setTimeout(pollCache, 500);
+      };
+      timer = setTimeout(pollCache, 500);
+    }
     if (tab === "telemetry" || tab === "events") {
       const address = mdio ? detail.config.phy_addr : detail.config.addr_7b, key = `${selected}:${address}:${tab}`;
       if (!observations.has(key)) observations.set(key, {});
@@ -110,8 +132,8 @@ export async function busPage(root, params, ctx, bus) {
     if (write && !await ask({title:"Записать регистр?",body:`<p>${esc(selected)}: регистр <code>${hex(reg)}</code>, значение <code>${hex(val,mdio ? 4 : 2)}</code>.</p><p>Операция проверяется активной политикой. Запись не повторяется автоматически.</p>`,submit:"Записать"})) return;
     await locked(async () => {
       const result = await api.busAction(bus,selected,write ? "write" : "read",{reg,val,confirm:write ? true : undefined});
-      if (!write) { reads.set(reg,{reg,val:result.val,valid:true,source:"Чтение",at:Date.now()}); regState.value = hex(result.val,mdio ? 4 : 2); }
-      else reads.delete(reg);
+      if (!write) regState.value = hex(result.val,mdio ? 4 : 2);
+      regState.valueDirty = false;
       regState.result = write ? (mdio ? "Кадр передан" : "Запись выполнена") : `${hex(result.val,mdio ? 4 : 2)} (${result.val})`;
       await load(true);
     });

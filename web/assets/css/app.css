@@ -159,7 +159,7 @@ tr.changed td:first-child { border-left:3px solid #d89a24; }
 .device-meta { display:flex; gap:24px; flex-wrap:wrap; align-items:center; margin:12px 0 16px; }
 .device-meta>span { display:inline-flex; align-items:center; gap:8px; }
 .register-table { max-height:clamp(240px,calc(100vh - 450px),520px); }
-.register-table table { min-width:535px; }
+.register-table table { min-width:420px; }
 .register-workbench .inspector h2 { margin-bottom:12px; }
 .register-workbench .inspector .value { margin:6px 0 12px; }
 .register-workbench .inspector .kv { gap:6px 14px; }
@@ -176,7 +176,6 @@ tr.changed td:first-child { border-left:3px solid #d89a24; }
 .bit span.set { background:#bed7ec; }
 .counter-strip { display:flex; flex-wrap:wrap; gap:22px; border-top:1px solid var(--line); margin-top:13px; padding-top:10px; font-size:12px; }
 .counter-strip strong { display:block; font-size:15px; font-variant-numeric:tabular-nums; }
-.rule-summary { margin:0 0 12px; }
 .policy-rule-column { min-width:0; }
 .tabs.policy-list-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:-14px -14px 14px; overflow:visible; background:var(--soft); }
 .tabs.policy-list-tabs button { min-width:0; min-height:44px; padding:10px 16px; margin:0; border:0; }

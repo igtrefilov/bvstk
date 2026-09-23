@@ -48,10 +48,26 @@ GET /api/ui/bus?bus=mdio&name=lan8720
 | `file_name` | Имя файла в `flash:/config/i2c/` либо `flash:/config/mdio/` |
 | `available` | `true` только при `presence=responding`; не просто наличие профиля |
 | `presence` | `unknown`, `responding` или `unavailable`; то же поле есть в списке устройств |
-| `cache` | Только MDIO: массив `reg`, `val`, `valid`, `source`, `age_ms` |
+| `cache` | Кэш I²C или MDIO: массив `reg`, `val`, `valid`, `source`, `updated_ms` |
 | `stats` | Только MDIO: общие счётчики `reads`, `writes`, `denied`, `errors`, `observed` |
 
-Источники кэша — `settings` и `PHY`; возраст фиксируется на момент чтения.
+Источники кэша — `settings` для начальных значений, `I2C` для успешного
+физического обмена I²C и `PHY` для обмена с PHY по MDIO. `valid=false`
+означает, что достоверного значения для регистра нет; при этом `val` —
+только незначащее заполнение. `updated_ms` — монотонная метка в миллисекундах
+с момента запуска PS, зафиксированная при последнем обновлении записи; для
+недостоверной записи передаётся ноль.
+
+Для фонового обновления без чтения конфигурации используется лёгкий запрос:
+
+```text
+GET /api/ui/bus?bus=i2c&name=axp15060&action=cache
+GET /api/ui/bus?bus=mdio&name=lan8720&action=cache
+```
+
+Он возвращает `cache` и, для MDIO, `stats`. Запрос только снимает текущий
+кэш PS и не выполняет физические операции на шине. Web-интерфейс вызывает
+его примерно раз в 500 мс на открытой вкладке **Регистры**.
 
 Файлы устройств используют v2, но этот API сохраняет поля `name`,
 `reg_count`, `policy`, `whitelist`, `blacklist`, `settings` и параметры

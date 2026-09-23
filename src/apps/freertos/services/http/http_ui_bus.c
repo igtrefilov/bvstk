@@ -106,6 +106,75 @@ static int device_presence(int mdio, size_t id)
         return -1;
     return presence == BVSTK_I2C_PRESENCE_RESPONDING;
 }
+static void write_cache_array(int fd, int mdio, size_t id,
+                              unsigned reg_count)
+{
+    for (unsigned reg = 0U; reg < reg_count; ++reg) {
+        uint16_t value = 0U;
+        uint8_t valid = 0U;
+        uint8_t seeded = 0U;
+        uint64_t updated_ms = 0U;
+        if (mdio) {
+            bvstk_mdio_cache_entry_t entry;
+            memset(&entry, 0, sizeof(entry));
+            (void)bvstk_mdio_service_cache_entry(
+                bvstk_runtime_mdio_service(), id, (uint8_t)reg, &entry);
+            value = entry.value;
+            valid = entry.valid;
+            seeded = entry.seeded;
+            updated_ms = entry.updated_ms;
+        } else {
+            bvstk_i2c_cache_entry_t entry;
+            memset(&entry, 0, sizeof(entry));
+            (void)bvstk_i2c_master_service_cache_entry(
+                bvstk_runtime_i2c_master_service(), id, (uint8_t)reg, &entry);
+            value = entry.value;
+            valid = entry.valid;
+            seeded = entry.seeded;
+            updated_ms = entry.updated_ms;
+        }
+        http_ui_printf(fd,
+            "%s{\"reg\":%u,\"val\":%u,\"valid\":%s,\"source\":\"%s\",\"updated_ms\":%llu}",
+            reg ? "," : "", reg, (unsigned)value, valid ? "true" : "false",
+            seeded ? "settings" : (mdio ? "PHY" : "I2C"),
+            (unsigned long long)(valid ? updated_ms : 0U));
+    }
+}
+static void cache_detail(int fd, int mdio, size_t id)
+{
+    unsigned reg_count = 0U;
+    bvstk_status_t status;
+
+    if (mdio) {
+        bvstk_mdio_device_info_t device;
+        status = bvstk_mdio_service_device_info(
+            bvstk_runtime_mdio_service(), id, &device);
+        if (status == BVSTK_OK) reg_count = device.reg_count;
+    } else {
+        bvstk_i2c_device_t device;
+        status = bvstk_i2c_master_service_device_info(
+            bvstk_runtime_i2c_master_service(), id, &device);
+        if (status == BVSTK_OK) reg_count = device.reg_count;
+    }
+    if (status != BVSTK_OK) {
+        http_ui_status(fd, status);
+        return;
+    }
+    http_ui_header(fd, "application/json", -1);
+    http_ui_text(fd, "{\"cache\":[");
+    write_cache_array(fd, mdio, id, reg_count);
+    http_ui_text(fd, "]");
+    if (mdio) {
+        bvstk_mdio_stats_t stats;
+        if (bvstk_mdio_service_stats(bvstk_runtime_mdio_service(), &stats) == BVSTK_OK)
+            http_ui_printf(fd,
+                ",\"stats\":{\"reads\":%lu,\"writes\":%lu,\"denied\":%lu,\"errors\":%lu,\"observed\":%lu}",
+                (unsigned long)stats.reads, (unsigned long)stats.writes,
+                (unsigned long)stats.denied, (unsigned long)stats.errors,
+                (unsigned long)stats.observed);
+    }
+    http_ui_text(fd, "}\n");
+}
 static const char *presence_name(int presence)
 {
     return presence < 0 ? "unknown" : presence ? "responding" : "unavailable";
@@ -151,18 +220,16 @@ static void detail(int fd, int mdio, size_t id, bus_workspace_t *w)
     if (mdio) {
         bvstk_mdio_stats_t stats;
         http_ui_text(fd, ",\"cache\":[");
-        for (unsigned r = 0; r < w->current.mdio.reg_count; ++r) {
-            bvstk_mdio_cache_entry_t e; memset(&e, 0, sizeof(e));
-            (void)bvstk_mdio_service_cache_entry(bvstk_runtime_mdio_service(), id, (uint8_t)r, &e);
-            http_ui_printf(fd, "%s{\"reg\":%u,\"val\":%u,\"valid\":%s,\"source\":\"%s\",\"age_ms\":%llu}",
-                r ? "," : "", r, (unsigned)e.value, e.valid ? "true" : "false", e.seeded ? "settings" : "PHY",
-                (unsigned long long)(e.valid ? bvstk_platform_now_ms() - e.updated_ms : 0U));
-        }
+        write_cache_array(fd, mdio, id, w->current.mdio.reg_count);
         http_ui_text(fd, "]");
         if (bvstk_mdio_service_stats(bvstk_runtime_mdio_service(), &stats) == BVSTK_OK)
             http_ui_printf(fd, ",\"stats\":{\"reads\":%lu,\"writes\":%lu,\"denied\":%lu,\"errors\":%lu,\"observed\":%lu}",
                 (unsigned long)stats.reads, (unsigned long)stats.writes, (unsigned long)stats.denied,
                 (unsigned long)stats.errors, (unsigned long)stats.observed);
+    } else {
+        http_ui_text(fd, ",\"cache\":[");
+        write_cache_array(fd, mdio, id, w->current.i2c.reg_count);
+        http_ui_text(fd, "]");
     }
     http_ui_text(fd, "}\n");
 }
@@ -202,7 +269,7 @@ static void operate(const http_request_t *r, http_conn_t *c, int mdio, size_t id
 int http_ui_bus(const http_request_t *r, http_conn_t *c)
 {
     char bus[8], name[32], action[20], revision[16], current_revision[16];
-    size_t id; bvstk_status_t st; bus_workspace_t *w; int mdio, q;
+    size_t id; bvstk_status_t st; bus_workspace_t *w; int mdio, q, action_q;
     if (strncmp(r->path, "/api/ui/bus", 11) || (r->path[11] && r->path[11] != '?')) return 0;
     if (!http_ui_param(r, c, "bus", bus, sizeof(bus))) return 1;
     mdio = !strcmp(bus, "mdio");
@@ -213,6 +280,14 @@ int http_ui_bus(const http_request_t *r, http_conn_t *c)
     st = mdio ? bvstk_mdio_service_find_by_name(bvstk_runtime_mdio_service(), name, &id) :
         bvstk_i2c_master_service_find_by_name(bvstk_runtime_i2c_master_service(), name, &id);
     if (st != BVSTK_OK) { http_ui_status(c->fd, st); return 1; }
+    if (!strcmp(r->method, "GET")) {
+        action_q = bvstk_http_query(r->path, "action", action, sizeof(action));
+        if (action_q == 1) {
+            if (strcmp(action, "cache")) { http_ui_error(c->fd, 400, "unknown action"); return 1; }
+            cache_detail(c->fd, mdio, id);
+            return 1;
+        }
+    }
     if (!strcmp(r->method, "PUT")) {
         if (!http_ui_param(r, c, "action", action, sizeof(action))) return 1;
         if (strcmp(action, "apply") && strcmp(action, "save")) { operate(r, c, mdio, id, action); return 1; }

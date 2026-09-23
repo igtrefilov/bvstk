@@ -1,28 +1,39 @@
-import {esc, hex, badge, bits, kv, number, notice, action, wireRows} from "./ui.js";
+import {esc, hex, bits, kv, number, notice, action, wireRows} from "./ui.js";
+
+function uptimeLabel(value) {
+  const milliseconds = Number(value);
+  if (!Number.isFinite(milliseconds) || milliseconds < 0) return "—";
+  const whole = Math.floor(milliseconds);
+  const seconds = Math.floor(whole / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return `T+${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(remainder).padStart(2,"0")}.${String(whole % 1000).padStart(3,"0")}`;
+}
 
 // Presentation only: selecting a row never reads PHY.
-export function registerWorkspace(root, {bus, detail, reads, state, canOperate, onRead, onWrite}) {
+export function registerWorkspace(root, {bus, detail, state, canOperate, onRead, onWrite}) {
   const mdio = bus === "mdio", config = detail.config;
   const maxValue = mdio ? 65535 : config.max_value_code, width = mdio ? 4 : 2;
   if (!Number.isInteger(state.reg) || state.reg >= config.reg_count) state.reg = mdio ? Math.min(2,config.reg_count-1) : 0;
-  const entry = reg => mdio ? detail.cache?.find(e => e.reg === reg) : reads.get(reg);
+  const entry = reg => detail.cache?.find(e => e.reg === reg);
   const allowed = (reg,val) => {
     const matches = rules => rules.some(rule => rule.reg === reg && (mdio ? (val & rule.mask) === (rule.val & rule.mask) : val === rule.val));
     return config.policy === "whitelist" ? matches(config.whitelist) : !matches(config.blacklist);
   };
   function select(reg) {
-    state.reg = reg; const item = entry(reg);
+    state.reg = reg; state.valueDirty = false; const item = entry(reg);
     state.value = hex(item?.valid ? item.val : 0,width); state.result = "";
     draw();
   }
   function draw() {
     const item = entry(state.reg), value = item?.valid ? item.val : null;
-    if (state.value == null) state.value = hex(value ?? 0,width);
+    if (state.value == null || !state.valueDirty) state.value = hex(value ?? 0,width);
     const rows = Array.from({length:config.reg_count},(_,reg) => ({reg,...entry(reg)})).filter(e => state.filter !== "valid" || e.valid);
-    root.innerHTML = `<div class="workbench register-workbench"><article class="card"><div class="toolbar"><strong>${mdio ? "Снимок кэша" : "Снимок чтений"}</strong><select class="device-select" aria-label="Фильтр регистров"><option value="all">Все регистры</option><option value="valid" ${state.filter === "valid" ? "selected" : ""}>С данными</option></select></div>
-      <div class="table-scroll register-table"><table aria-label="Регистры устройства"><thead><tr><th>Регистр</th><th>Значение</th><th>Достоверность</th><th>Источник</th><th>Возраст</th></tr></thead><tbody>${rows.map(e => `<tr class="selectable ${e.reg === state.reg ? "selected" : ""}" tabindex="0" data-register="${e.reg}"><td class="mono">${hex(e.reg)}</td><td class="mono">${e.valid ? hex(e.val,width) : "—"}</td><td>${badge(e.valid ? "Достоверно" : "Нет данных",e.valid ? "ok" : "")}</td><td>${e.valid ? esc(e.source || "Чтение") : "—"}</td><td>${e.valid ? esc(e.at ? Math.max(0,Date.now()-e.at) : e.age_ms) + " мс" : "—"}</td></tr>`).join("") || '<tr><td colspan="5" class="empty">Нет данных</td></tr>'}</tbody></table></div>
-      ${mdio && detail.stats ? `<div class="counter-strip">${[["Чтения",detail.stats.reads],["Записи",detail.stats.writes],["Отказы политики",detail.stats.denied],["Ошибки",detail.stats.errors]].map(([label,n]) => `<div>${label}<strong>${esc(n)}</strong></div>`).join("")}</div>` : ""}<p class="muted">${mdio ? "Кэш обновляется автоматически вместе с состоянием PHY. Возраст указан на момент получения данных." : "Показаны результаты явного чтения в этом сеансе. Новые данные появятся после операции чтения."}</p></article>
-      <aside class="card inspector"><h2>Регистр ${hex(state.reg)}</h2><small>Значение HEX</small><div class="value mono">${value == null ? "—" : hex(value,width)}</div>${kv([["Десятичное",value ?? "—"],["Источник",value == null ? "—" : item.source || "Чтение"],["Достоверность",value == null ? "Нет данных" : "Достоверно"]])}<div class="subsection"><small>Битовое представление</small>${bits(value,mdio ? 16 : 8)}</div>
+    root.innerHTML = `<div class="workbench register-workbench"><article class="card"><div class="toolbar"><strong>Снимок кэша</strong><select class="device-select" aria-label="Фильтр регистров"><option value="all">Все регистры</option><option value="valid" ${state.filter === "valid" ? "selected" : ""}>С данными</option></select></div>
+      <div class="table-scroll register-table"><table aria-label="Регистры устройства"><thead><tr><th>Регистр</th><th>Значение в кэше</th><th>Последнее обновление</th></tr></thead><tbody>${rows.map(e => `<tr class="selectable ${e.reg === state.reg ? "selected" : ""}" tabindex="0" data-register="${e.reg}"><td class="mono">${hex(e.reg)}</td><td class="mono">${e.valid ? hex(e.val,width) : "—"}</td><td>${e.valid ? esc(uptimeLabel(e.updated_ms)) : "—"}</td></tr>`).join("") || '<tr><td colspan="3" class="empty">Нет данных</td></tr>'}</tbody></table></div>
+      ${mdio && detail.stats ? `<div class="counter-strip">${[["Чтения",detail.stats.reads],["Записи",detail.stats.writes],["Отказы политики",detail.stats.denied],["Ошибки",detail.stats.errors]].map(([label,n]) => `<div>${label}<strong>${esc(n)}</strong></div>`).join("")}</div>` : ""}<p class="muted">Кэш обновляется автоматически после физического обмена с устройством. Новые значения появляются без повторного чтения из браузера.</p></article>
+      <aside class="card inspector"><h2>Регистр ${hex(state.reg)}</h2><small>Значение HEX</small><div class="value mono">${value == null ? "—" : hex(value,width)}</div>${kv([["Десятичное",value ?? "—"],["Последнее обновление",value == null ? "—" : uptimeLabel(item.updated_ms)]])}<div class="subsection"><small>Битовое представление</small>${bits(value,mdio ? 16 : 8)}</div>
       <div class="subsection"><h3>Операция с регистром</h3><div class="form-grid"><label>Регистр<input id="reg" class="mono" value="${hex(state.reg)}" autocomplete="off"></label><label>Значение<input id="val" class="mono" value="${esc(state.value)}" autocomplete="off"></label></div><div class="actions"><button data-read>Прочитать</button><button data-write>Записать</button></div><p class="warning-text" id="write-policy" role="status"></p><p id="reg-result" class="mono" role="status">${esc(state.result || "")}</p><p class="muted">${mdio ? "Таблица показывает кэш. Команда чтения обращается к PHY." : "Команда чтения обращается к устройству."} Чтение некоторых регистров меняет их состояние.</p>${mdio ? '<small>Успех записи означает передачу кадра, не подтверждение PHY.</small>' : ""}</div></aside></div>`;
     wireRows(root,"[data-register]",row => select(Number(row.dataset.register)));
     root.querySelector("select").onchange = event => { state.filter = event.target.value; draw(); };
@@ -31,7 +42,7 @@ export function registerWorkspace(root, {bus, detail, reads, state, canOperate, 
       catch(e) { event.target.setCustomValidity(e.message); updateWrite(); notice(e.message,true); }
     };
     root.querySelector("#reg").oninput = () => updateWrite();
-    root.querySelector("#val").oninput = event => { state.value = event.target.value; updateWrite(); };
+    root.querySelector("#val").oninput = event => { state.value = event.target.value; state.valueDirty = true; updateWrite(); };
     root.querySelector("[data-read]").onclick = event => action(event.currentTarget,async () => {
       const reg = number(root.querySelector("#reg").value,config.reg_count-1,"Регистр");
       state.reg = reg; await onRead(reg);
@@ -60,4 +71,5 @@ export function registerWorkspace(root, {bus, detail, reads, state, canOperate, 
     root.querySelector("#write-policy").textContent = reason;
   }
   draw();
+  return {refresh: draw};
 }

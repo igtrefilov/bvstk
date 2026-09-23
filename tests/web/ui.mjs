@@ -80,7 +80,9 @@ const server=http.createServer(async(req,res)=>{
     if(req.method==="GET"){
       if(!q.name&&b==="mdio"&&mdioListState!=="devices")return reply({ready:mdioListState==="empty",devices:[]});
       if(!q.name)return reply({ready:true,devices:profiles.map(p=>({name:p.name,address:b==="mdio"?p.phy_addr:p.addr_7b,policy:p.policy,available:state(p)==='responding',presence:state(p)}))});
-      return reply({config:c,revision:String(revision[b]),saved:saved[b],available:state(c)==='responding',presence:state(c),file_name:c.name+".json",cache:Array.from({length:32},(_,reg)=>({reg,val:reg===2?7:reg===3?49393:0,valid:reg<8&&state(c)==='responding',source:"PHY",age_ms:100})),stats:{reads:128,writes:3,denied:0,errors:0,observed:3}});
+      const cache=Array.from({length:c.reg_count},(_,reg)=>({reg,val:reg===2?7:reg===3?49393:0,valid:reg<8&&state(c)==='responding',source:b==='mdio'?"PHY":"I2C",updated_ms:100}));
+      if(q.action==="cache")return reply({cache,stats:{reads:128,writes:3,denied:0,errors:0,observed:3}});
+      return reply({config:c,revision:String(revision[b]),saved:saved[b],available:state(c)==='responding',presence:state(c),file_name:c.name+".json",cache,stats:{reads:128,writes:3,denied:0,errors:0,observed:3}});
     }
     if(q.action==="apply"||q.action==="save"){
       if(conflict||q.revision!==String(revision[b]))return error("configuration changed",409);
@@ -429,6 +431,11 @@ try{
   assert.equal(configurations.mdio.whitelist.length,5);conflict=false;
   await page.locator("[data-discard]").click();
   await page.locator('[data-tab="registers"]').click();await page.getByRole("heading",{name:"Регистр 0x02"}).waitFor();
+  assert.equal(await page.getByRole('columnheader',{name:'Значение в кэше',exact:true}).count(),1);
+  assert.equal(await page.getByRole('columnheader',{name:'Последнее обновление',exact:true}).count(),1);
+  assert.equal(await page.getByRole('columnheader',{name:'Достоверность',exact:true}).count(),0);
+  assert.equal(await page.getByRole('columnheader',{name:'Источник',exact:true}).count(),0);
+  assert.equal(await page.getByRole('columnheader',{name:'Возраст',exact:true}).count(),0);
   const busReads = () => calls.filter(([method,path,q])=>method==='PUT'&&path==='/api/ui/bus'&&q.action==='read').length;
   const beforeRead=busReads();
   assert.equal(await page.locator('[data-save]').count(),0);
@@ -456,16 +463,19 @@ try{
   await page.locator('[data-regs]').fill("0,1,2,3,4,5,17,31");
   await page.locator('[data-nav="i2c"]').click();await page.locator('.device-name').filter({hasText:"axp15060"}).waitFor();
   await page.locator('[data-tab="policy"]').click();assert.equal(await page.getByRole("columnheader",{name:"Маска",exact:true}).count(),0);
+  assert.equal(await page.getByText("Правила совпадают с рабочим снимком RAM",{exact:true}).count(),0);
+  assert.equal(await page.getByText("Проверка правила",{exact:true}).count(),0);
+  assert.equal(await page.getByText("Разрешать только совпавшие правила",{exact:true}).count(),0);
   await checkPolicyListLayout();
   await page.setViewportSize({width:390,height:844});await checkPolicyListLayout();
   await page.setViewportSize({width:1586,height:992});
   await page.locator('[data-tab="registers"]').click();
-  assert.equal(await page.locator('.register-table .badge.ok').count(),0);
+  assert.equal(await page.locator('.register-table .badge').count(),0);
   await page.locator('[data-register="19"]').click();await page.locator('#val').fill('16');
   assert(await page.locator('[data-write]').isEnabled());
   await page.locator('#val').fill('17');assert(await page.locator('[data-write]').isDisabled());
   await page.locator('[data-read]').click();await page.locator('#reg-result').filter({hasText:'0x07 (7)'}).waitFor();
-  assert.equal(await page.locator('.register-table .badge.ok').count(),1);
+  assert.match(await page.locator('[data-register="19"] td').nth(2).textContent(),/^T\+\d{2}:\d{2}:\d{2}\.\d{3}$/);
   await page.locator('[data-volume-nav="sd-pl"]').click();await page.getByRole("button",{name:"roundtrip.json",exact:true}).waitFor();
   await checkNavigationGroup('Файлы');
   await page.getByRole("button",{name:"roundtrip.json",exact:true}).click();await page.locator('pre.file-preview').waitFor();await screenshot("03-files");

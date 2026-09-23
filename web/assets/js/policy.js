@@ -21,10 +21,6 @@ export function policyWorkspace(root, {bus, base, draft, ids, state, onChange, o
     return "По маске";
   };
   const changes = () => ruleChanges(base,draft,ids);
-  function summary() {
-    const count = changes().length, mode = draft.policy !== base.policy;
-    return count || mode ? `${count ? "Изменений правил: " + count + ". " : ""}${mode ? "Изменён режим политики. " : ""}Черновик ещё не применён.` : "Правила совпадают с рабочим снимком RAM";
-  }
   function table() {
     const diffs = changes();
     return `<div class="table-scroll"><table aria-label="Правила политики"><thead><tr><th>Регистр</th><th>Значение</th>${mdio ? "<th>Маска</th>" : ""}<th>Условие</th><th>Изменение</th><th></th></tr></thead><tbody>${draft[state.list].map((row,i) => {
@@ -56,8 +52,6 @@ export function policyWorkspace(root, {bus, base, draft, ids, state, onChange, o
     state.index = Math.min(state.index,draft[state.list].length-1); draw(); onChange(false);
   }
   function update() {
-    const notice = root.querySelector("#rule-summary"); notice.textContent = summary();
-    notice.className = (changes().length || draft.policy !== base.policy ? "warning-strip" : "info-strip") + " rule-summary";
     root.querySelector("#rules-table").innerHTML = table(); wireTable();
     root.querySelector("#deleted-rules").innerHTML = changes().filter(c => c.kind === "Удалено").map(c => `<li>Удалено ${c.key}: регистр ${hex(c.previous.reg)}, значение ${hex(c.previous.val,width)}</li>`).join("");
     const compare = root.querySelector("#rule-compare"); if (compare) compare.innerHTML = comparison();
@@ -67,15 +61,13 @@ export function policyWorkspace(root, {bus, base, draft, ids, state, onChange, o
   function draw() {
     if (!["whitelist","blacklist"].includes(state.list)) state.list = "whitelist";
     state.index = Math.max(0,Math.min(state.index || 0,draft[state.list].length-1));
-    root.innerHTML = `<div id="rule-summary" class="info-strip rule-summary"></div>
-      <article class="card" style="margin-bottom:12px"><div class="radio-row"><strong>Политика записи</strong>${["whitelist","blacklist"].map(mode => `<label class="check"><input type="radio" name="policy" value="${mode}" ${draft.policy === mode ? "checked" : ""}>${mode}</label>`).join("")}<span class="muted" id="policy-mode-help"></span></div></article>
+    root.innerHTML = `<article class="card" style="margin-bottom:12px"><div class="radio-row"><strong>Политика записи</strong>${["whitelist","blacklist"].map(mode => `<label class="check"><input type="radio" name="policy" value="${mode}" ${draft.policy === mode ? "checked" : ""}>${mode}</label>`).join("")}</div></article>
       <div class="workbench"><div class="stack policy-rule-column"><article class="card">
         <div class="tabs policy-list-tabs" role="group" aria-label="Списки правил">${["whitelist","blacklist"].map(key => `<button type="button" data-list="${key}" class="${state.list === key ? "active" : ""}" aria-pressed="${state.list === key}">${key === "whitelist" ? "Whitelist" : "Blacklist"} <span class="policy-list-count">${draft[key].length}</span></button>`).join("")}</div>
         <div class="toolbar rule-toolbar"><h2>${state.list === "whitelist" ? "Разрешающие правила" : "Запрещающие правила"}</h2><button data-add-rule>+ Добавить правило</button></div>
         <div id="rules-table">${table()}</div><ul class="change-list" id="deleted-rules"></ul>
-      </article><article class="card"><h3>Проверка правила</h3>${mdio ? '<code>(value &amp; mask) == (rule &amp; mask)</code><p class="muted">Маска 0x0000 допускает любое значение.<br>Маска 0xFFFF требует точного совпадения.</p>' : '<p>Правило проверяет точное совпадение регистра и значения.</p>'}<p class="muted">Пустой whitelist запрещает все записи.</p></article></div><aside class="card inspector">${inspector()}</aside></div>`;
-    const modeHelp = () => { root.querySelector("#policy-mode-help").textContent = draft.policy === "whitelist" ? "Разрешать только совпавшие правила" : "Запрещать совпавшие правила"; };
-    root.querySelectorAll("[name=policy]").forEach(input => input.onchange = () => { draft.policy = input.value; modeHelp(); update(); onChange(!!root.querySelector("input:invalid")); });
+      </article></div><aside class="card inspector">${inspector()}</aside></div>`;
+    root.querySelectorAll("[name=policy]").forEach(input => input.onchange = () => { draft.policy = input.value; update(); onChange(!!root.querySelector("input:invalid")); });
     root.querySelectorAll("[data-list]").forEach(button => button.onclick = () => { if (root.querySelector("input:invalid")) { root.querySelector("input:invalid").reportValidity(); return; } state.list = button.dataset.list; state.index = 0; draw(); });
     root.querySelector("[data-add-rule]").onclick = () => onAdd(state.list);
     root.querySelector("[data-remove-rule]")?.addEventListener("click",() => remove(state.index));
@@ -87,7 +79,7 @@ export function policyWorkspace(root, {bus, base, draft, ids, state, onChange, o
       } catch(e) { input.setCustomValidity(e.message); }
       onChange(!!root.querySelector("input:invalid"));
     });
-    modeHelp(); update();
+    update();
   }
   draw();
 }
