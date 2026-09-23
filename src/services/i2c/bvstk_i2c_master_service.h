@@ -25,6 +25,12 @@ typedef struct {
                                 uint32_t timeout_ms);
 } bvstk_i2c_master_io_t;
 
+typedef enum {
+    BVSTK_I2C_PRESENCE_UNKNOWN = 0,
+    BVSTK_I2C_PRESENCE_RESPONDING,
+    BVSTK_I2C_PRESENCE_UNAVAILABLE
+} bvstk_i2c_presence_t;
+
 typedef struct {
     bvstk_i2c_master_hw_t *hardware;
     bvstk_i2c_master_io_t io;
@@ -32,6 +38,8 @@ typedef struct {
     bvstk_i2c_cache_t *cache;
     bvstk_i2c_policy_t *policy;
     bvstk_event_sink_t events;
+    /* Last physical-read result; configured/cached values are not evidence. */
+    uint8_t presence[I2C_CFG_MAX_DEVICES];
     uint8_t initialized;
 } bvstk_i2c_master_service_t;
 
@@ -51,6 +59,10 @@ bvstk_status_t bvstk_i2c_master_service_device_info(
     const bvstk_i2c_master_service_t *service,
     size_t device_id,
     bvstk_i2c_device_t *out);
+bvstk_status_t bvstk_i2c_master_service_device_presence(
+    const bvstk_i2c_master_service_t *service,
+    size_t device_id,
+    bvstk_i2c_presence_t *out);
 bvstk_status_t bvstk_i2c_master_service_find_by_name(
     const bvstk_i2c_master_service_t *service,
     const char *name,

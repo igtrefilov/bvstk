@@ -16,6 +16,20 @@ static bvstk_status_t service_status(const bvstk_i2c_master_service_t *service,
     return BVSTK_OK;
 }
 
+static void record_response(bvstk_i2c_master_service_t *service,
+                             size_t device_id, uint8_t address,
+                             bvstk_status_t status, int read)
+{
+    bvstk_i2c_device_t current;
+    if (bvstk_i2c_devices_get(service->devices, device_id, &current) != BVSTK_OK ||
+        current.addr_7b != address) return;
+    if (status == BVSTK_OK && read)
+        service->presence[device_id] = BVSTK_I2C_PRESENCE_RESPONDING;
+    else if (status == BVSTK_ERR_IO || status == BVSTK_ERR_TIMEOUT ||
+             status == BVSTK_ERR_NOT_FOUND)
+        service->presence[device_id] = BVSTK_I2C_PRESENCE_UNAVAILABLE;
+}
+
 static void emit(bvstk_i2c_master_service_t *service,
                  uint16_t type,
                  uint16_t status,
@@ -160,6 +174,18 @@ bvstk_status_t bvstk_i2c_master_service_find_by_name(
     return bvstk_i2c_devices_find_by_name(service->devices, name, device_id);
 }
 
+bvstk_status_t bvstk_i2c_master_service_device_presence(
+    const bvstk_i2c_master_service_t *service,
+    size_t device_id,
+    bvstk_i2c_presence_t *out)
+{
+    bvstk_status_t status = service_status(service, device_id);
+    if (status != BVSTK_OK) return status;
+    if (out == NULL) return BVSTK_ERR_MALFORMED;
+    *out = (bvstk_i2c_presence_t)service->presence[device_id];
+    return BVSTK_OK;
+}
+
 bvstk_status_t bvstk_i2c_master_service_find_by_addr(
     const bvstk_i2c_master_service_t *service,
     uint8_t addr_7b,
@@ -191,6 +217,7 @@ bvstk_status_t bvstk_i2c_master_service_read(
         return BVSTK_ERR_RANGE;
     }
     status = backend_read(service, &device, reg, value, timeout_ms);
+    record_response(service, device_id, device.addr_7b, status, 1);
     if (status == BVSTK_OK) {
         (void)bvstk_i2c_cache_write(service->cache, device_id, reg, *value);
     }
@@ -262,6 +289,7 @@ bvstk_status_t bvstk_i2c_master_service_write(
         return BVSTK_ERR_DENIED;
     }
     status = backend_write(service, &device, reg, value, timeout_ms);
+    record_response(service, device_id, device.addr_7b, status, 0);
     if (status != BVSTK_OK) {
         emit(service,
              BVSTK_EVENT_FAULT,
@@ -313,7 +341,7 @@ bvstk_status_t bvstk_i2c_master_service_set_config(
     size_t device_id,
     const i2c_device_config_t *config)
 {
-    bvstk_i2c_device_t device;
+    bvstk_i2c_device_t device, previous;
     bvstk_status_t status = service_status(service, device_id);
 
     if (status != BVSTK_OK) {
@@ -324,6 +352,8 @@ bvstk_status_t bvstk_i2c_master_service_set_config(
         config->addr_7b > UINT8_C(0x7F)) {
         return BVSTK_ERR_MALFORMED;
     }
+    status = bvstk_i2c_devices_get(service->devices, device_id, &previous);
+    if (status != BVSTK_OK) return status;
     memset(&device, 0, sizeof(device));
     memcpy(device.name, config->name, sizeof(device.name));
     device.name[sizeof(device.name) - 1U] = '\0';
@@ -334,6 +364,8 @@ bvstk_status_t bvstk_i2c_master_service_set_config(
     if (status != BVSTK_OK) {
         return status;
     }
+    if (previous.addr_7b != device.addr_7b)
+        service->presence[device_id] = BVSTK_I2C_PRESENCE_UNKNOWN;
     return bvstk_i2c_policy_set_config(service->policy, device_id, config);
 }
 

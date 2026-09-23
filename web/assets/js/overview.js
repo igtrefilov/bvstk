@@ -1,5 +1,5 @@
 import * as api from "./api.js";
-import {esc, hex, bytes, icon, kv, head, badge, footer, stale, wireRows} from "./ui.js";
+import {esc, hex, bytes, icon, kv, head, badge, footer, stale, wireRows, deviceState} from "./ui.js";
 
 export const volumePurpose = name => ({flash:"Конфигурация и веб-ресурсы",sd:"SD в PS","sd-pl":"SD в PL"}[name] || name);
 export async function overview(root, params, ctx) {
@@ -14,7 +14,7 @@ export async function overview(root, params, ctx) {
     }
     if (item.empty) return `<h2>Выбранная подсистема</h2><div class="object-title">${item.label}</div>${kv([["Сервис",item.ready ? "Готов" : "Не готов"],["Устройства",item.ready ? "Нет настроенных устройств" : "Список недоступен"]])}<p><a href="#${item.bus}">Открыть подсистему</a></p>`;
     const config = detail?.config;
-    return `<h2>Выбранная подсистема</h2><div class="object-title">${item.label}<small>${esc(item.name)}</small></div>${kv([[item.bus === "mdio" ? "Адрес PHY" : "Адрес",hex(item.address)],["Политика",config?.policy || item.policy],...(item.bus === "mdio" ? [["Автоопрос",config ? config.autopoll_enabled ? "Включён" : "Выключен" : "Загрузка…"]] : []),["Конфигурация",detail ? detail.saved === true ? "Сохранена" : detail.saved === false ? "Не сохранена во Flash" : "Сохранение не проверено" : "Загрузка…"]])}${detailAt ? `<p><small>Снимок конфигурации ${esc(detailAt)}</small></p>` : ""}${detailError ? `<p class="error-text">${esc(detailError)}</p>` : ""}<div class="actions"><a class="button-link primary" href="${link}&tab=registers">Открыть регистры</a><a class="button-link" href="${link}&tab=policy">Политика</a></div>`;
+    return `<h2>Выбранная подсистема</h2><div class="object-title">${item.label}<small>${esc(item.name)}</small></div>${kv([["Адрес",hex(item.address)],["Политика",config?.policy || item.policy],...(item.bus === "mdio" ? [["Автоопрос",config ? config.autopoll_enabled ? "Включён" : "Выключен" : "Загрузка…"]] : []),["Конфигурация",detail ? detail.saved === true ? "Сохранена" : detail.saved === false ? "Не сохранена во Flash" : "Сохранение не проверено" : "Загрузка…"]])}${detailAt ? `<p><small>Снимок конфигурации ${esc(detailAt)}</small></p>` : ""}${detailError ? `<p class="error-text">${esc(detailError)}</p>` : ""}<div class="actions"><a class="button-link primary" href="${link}&tab=registers">Открыть регистры</a><a class="button-link" href="${link}&tab=policy">Политика</a></div>`;
   }
   async function inspect(key) {
     selected = key; detail = null; detailError = ""; detailAt = "";
@@ -29,7 +29,7 @@ export async function overview(root, params, ctx) {
     root.querySelector("#overview-inspector").innerHTML = inspector();
   }
   function render() {
-    root.innerHTML = `<div class="workbench overview-workbench"><div class="stack"><article class="card"><div class="card-head"><h1>Состояние подсистем</h1><button data-refresh>${icon("refresh")}Обновить</button></div><div class="table-scroll"><table aria-label="Состояние подсистем"><thead><tr><th>Подсистема</th><th>Устройство</th><th>Адрес</th><th>Состояние</th><th>Политика</th></tr></thead><tbody>${objects.map(item => `<tr class="selectable ${item.key === selected ? "selected" : ""}" tabindex="0" data-subsystem="${esc(item.key)}"><td><button class="text-button" data-inspect="${esc(item.key)}">${item.label}</button></td><td>${esc(item.name)}</td><td class="mono">${esc(item.bus === "sd-pl" ? "sd-pl:/" : (item.bus === "mdio" ? "PHY " : "") + hex(item.address))}</td><td>${badge(item.state,item.available ? "ok" : "warn")}</td><td>${esc(item.policy || "—")}</td></tr>`).join("")}</tbody></table></div></article>
+    root.innerHTML = `<div class="workbench overview-workbench"><div class="stack"><article class="card"><div class="card-head"><h1>Состояние подсистем</h1><button data-refresh>${icon("refresh")}Обновить</button></div><div class="table-scroll"><table aria-label="Состояние подсистем"><thead><tr><th>Подсистема</th><th>Устройство</th><th>Адрес</th><th>Состояние</th><th>Политика</th></tr></thead><tbody>${objects.map(item => `<tr class="selectable ${item.key === selected ? "selected" : ""}" tabindex="0" data-subsystem="${esc(item.key)}"><td><button class="text-button" data-inspect="${esc(item.key)}">${item.label}</button></td><td>${esc(item.name)}</td><td class="mono">${esc(item.bus === "sd-pl" ? "sd-pl:/" : hex(item.address))}</td><td>${badge(item.state,item.available ? "ok" : "warn")}</td><td>${esc(item.policy || "—")}</td></tr>`).join("")}</tbody></table></div></article>
       <article class="card"><h2>Хранилища</h2><div class="table-scroll"><table><thead><tr><th>Том</th><th>Назначение</th><th>Состояние</th><th>Размер</th><th>Свободно</th></tr></thead><tbody>${volumes.map(v => `<tr><td><a class="mono" href="#files?volume=${encodeURIComponent(v.name)}">${esc(v.name)}:/</a></td><td class="wrap-text">${esc(volumePurpose(v.name))}</td><td>${badge(v.ready ? "Смонтирован" : "Недоступен",v.ready ? "ok" : "bad")}</td><td>${bytes(v.total_bytes)}</td><td>${v.free_bytes == null ? "Не определено" : bytes(v.free_bytes)}</td></tr>`).join("")}</tbody></table></div></article></div>
       <aside class="card inspector" id="overview-inspector">${inspector()}</aside></div>
       <div class="grid two" style="margin-top:12px"><article class="card"><h2>Сеть</h2>${kv([[net.mode === "dhcp" ? "DHCP" : "Статический IP",net.ip || "Нет адреса"],["Шлюз",net.gateway || "—"],["Линия",net.up && net.link_up ? "Поднята" : "Нет связи"]])}</article><article class="card"><h2>Среда исполнения</h2>${kv([["Система","FreeRTOS"],["Сборка",version.build_date+" "+version.build_time],["Частота тиков",rtos.tick_rate_hz+" Гц"]])}</article></div>${fresh}`;
@@ -45,7 +45,10 @@ export async function overview(root, params, ctx) {
       objects = data.slice(3,5).flatMap((list,i) => {
         const bus = i ? "mdio" : "i2c", label = i ? "MDIO" : "I²C";
         if (!list.devices.length) return [{bus,label,key:bus+":",name:"—",empty:true,ready:list.ready,available:false,state:list.ready ? "Устройства не настроены" : "Сервис не готов"}];
-        return list.devices.map(d => ({...d,bus,label,key:bus+":"+d.name,state:d.available ? i ? "PHY доступен" : "Сервис готов" : i ? "Нет ответа PHY" : "Сервис недоступен"}));
+        return list.devices.map(d => {
+          const state = deviceState(bus,d);
+          return {...d,bus,label,key:bus+":"+d.name,available:state.ready,state:state.label};
+        });
       });
       const sd = volumes.find(v => v.name === "sd-pl");
       objects.push({bus:"sd-pl",key:"sd-pl",label:"SD-PL",name:"Внешняя SD-карта",available:sd?.ready,state:sd?.ready ? "Том смонтирован" : "Недоступен",policy:sd?.fat_bits ? "FAT"+sd.fat_bits : "—"});

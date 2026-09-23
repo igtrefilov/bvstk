@@ -95,6 +95,17 @@ int main(int argc,char **argv) {
     for(int i=0;i<3;i++){char p[300];snprintf(p,sizeof(p),"%s/%d",storage,i);assert(!mkdir(p,0700));}
     reset_fixture();char rev[9],path[256],json[32768];size_t n;
     http_run("GET","/api/ui/bus?bus=mdio","",200);assert(strstr(output,"\"devices\""));
+    mdio.cache[0][2]=(bvstk_mdio_cache_entry_t){.value=7,.valid=1,.updated_ms=bvstk_platform_now_ms()};
+    mdio.cache[0][3]=(bvstk_mdio_cache_entry_t){.value=0xc0f1,.valid=1,.updated_ms=bvstk_platform_now_ms()};
+    http_run("GET","/api/ui/bus?bus=mdio","",200);
+    assert(strstr(output,"\"available\":true,\"presence\":\"responding\""));
+    mdio.cache[0][3].updated_ms=bvstk_platform_now_ms()-UINT64_C(3000);
+    http_run("GET","/api/ui/bus?bus=mdio","",200);
+    assert(strstr(output,"\"available\":false,\"presence\":\"unavailable\""));
+    mdio.cache[0][3].updated_ms=bvstk_platform_now_ms();mdio.cache[0][3].seeded=1;
+    http_run("GET","/api/ui/bus?bus=mdio","",200);
+    assert(strstr(output,"\"available\":false,\"presence\":\"unavailable\""));
+    mdio.cache[0][3].seeded=0;
     http_run("GET","/api/ui/bus?bus=mdio&name=dev","",200);revision(rev);assert(strstr(output,"\"saved\":false"));
     snprintf(path,sizeof(path),"/api/ui/bus?bus=mdio&name=dev&action=save&revision=%s",rev);
     http_run("PUT",path,"{}",200);assert(mdio_saves==1);
@@ -106,11 +117,30 @@ int main(int argc,char **argv) {
     http_run("PUT",path,json,200);assert(mdio_saves==2); /* explicit failed save above counted, apply did not save */
     http_run("PUT",path,json,409);
     http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);revision(rev);
+    assert(strstr(output,"\"available\":false,\"presence\":\"unknown\""));
+    assert(bvstk_i2c_cache_write(&cache,0,2,3)==BVSTK_OK);
+    http_run("GET","/api/ui/bus?bus=i2c","",200);
+    assert(strstr(output,"\"available\":false,\"presence\":\"unknown\""));
     snprintf(path,sizeof(path),"/api/ui/bus?bus=i2c&name=dev&action=apply&revision=%s",rev);
     http_run("PUT",path,"{\"name\":\"dev\",\"name\":\"other\"}",400);
     http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&reg=2&val=4&confirm=true","{}",403);assert(!writes);
     http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&reg=2&val=3&confirm=true","{}",200);assert(writes==1);
+    http_run("GET","/api/ui/bus?bus=i2c","",200);
+    assert(strstr(output,"\"presence\":\"unknown\""));
     http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&reg=2","{}",200);assert(strstr(output,"\"val\":3"));
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);
+    assert(strstr(output,"\"available\":true,\"presence\":\"responding\""));
+    io_status=BVSTK_ERR_IO;
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&reg=2","{}",500);
+    http_run("GET","/api/ui/bus?bus=i2c","",200);
+    assert(strstr(output,"\"available\":false,\"presence\":\"unavailable\""));
+    io_status=BVSTK_OK;
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&reg=2","{}",200);
+    i2c_device_config_t moved=i2c_config;moved.addr_7b++;
+    assert(bvstk_i2c_master_service_set_config(&i2c,0,&moved)==BVSTK_OK);
+    http_run("GET","/api/ui/bus?bus=i2c","",200);
+    assert(strstr(output,"\"presence\":\"unknown\""));
+    assert(bvstk_i2c_master_service_set_config(&i2c,0,&i2c_config)==BVSTK_OK);
     http_run("GET","/api/ui/volumes","",200);assert(strstr(output,"sd-pl"));
     http_run("GET","/api/ui/files?volume=sd-pl&path=%2F","",200);
     http_run("PUT","/api/ui/files?volume=sd-pl&path=%2Fdemo&action=mkdir&confirm=true","{}",200);

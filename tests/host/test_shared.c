@@ -183,6 +183,15 @@ int bvstk_mmio_write32(const bvstk_mmio_region_t *region,
         errno = EINVAL;
         return -1;
     }
+    if (region->physical_base == BVSTK_I2C_MASTER_BASE) {
+        if (offset == BVSTK_I2C_MSTR_IRQ_OFFSET && (value & BVSTK_I2C_MSTR_IRQ_RESET_BIT))
+            value = 0;
+        if (offset == BVSTK_I2C_MSTR_CSR_OFFSET && (value & BVSTK_I2C_MSTR_START_BIT)) {
+            uint32_t irq = BVSTK_I2C_MSTR_IRQ_DATA_VALID;
+            memcpy((void *)(region->mapped_base + BVSTK_I2C_MSTR_IRQ_OFFSET), &irq, sizeof(irq));
+            value = 0;
+        }
+    }
     memcpy((void *)(region->mapped_base + offset), &value, sizeof(value));
     return 0;
 }

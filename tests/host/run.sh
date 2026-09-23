@@ -8,6 +8,17 @@ trap 'rm -rf "$TEST_TMP"' EXIT
 
 bash "$SCRIPT_DIR/run_http.sh" "$TEST_TMP"
 
+cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_i2c_master.c" \
+  "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c" -o "$TEST_TMP/test_i2c_master"
+"$TEST_TMP/test_i2c_master"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_device_profiles.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" -o "$TEST_TMP/test_device_profiles"
+"$TEST_TMP/test_device_profiles" "$REPO_ROOT/configs"
+
 cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_shared.c" \

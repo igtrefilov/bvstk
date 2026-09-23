@@ -13,6 +13,11 @@ const configurations = {
   mdio:{name:"lan8720",phy_addr:1,reg_count:32,policy:"whitelist",whitelist:[0,4,18,30].map(reg=>({reg,val:0,mask:0})),blacklist:[],settings:[],autopoll_enabled:true,autopoll_regs:[0,1,2,3,4,5,17,31],autopoll_reg_delay_ms:0,autopoll_cycle_delay_ms:50},
   i2c:{name:"axp15060",addr_7b:54,reg_count:74,max_value_code:64,policy:"whitelist",whitelist:[{reg:19,val:16}],blacklist:[],settings:[]}
 };
+const additional = {i2c:[],mdio:[]};
+for (const [bus,name] of [['i2c','pca9536'],['mdio','dp83848c'],['mdio','ksz8081rna']]) {
+  additional[bus].push(JSON.parse(await readFile(new URL(`../../configs/${bus}/${name}.json`,import.meta.url),'utf8')));
+}
+const presence = {i2c:'responding',mdio:'responding'};
 const revision={mdio:1,i2c:1},saved={mdio:true,i2c:true};
 const calls=[]; let conflict=false, failRtos=false, mdioListState="devices", versionMode="normal";
 const files = new Map([["sd-pl:/test1",null],["sd-pl:/roundtrip.json",Buffer.from('{"example":true}\n')],["sd-pl:/Firmware.tif",Buffer.alloc(223423)]]);
@@ -22,7 +27,10 @@ const server=http.createServer(async(req,res)=>{
   const body=Buffer.concat(chunks);
   const reply=(value,status=200)=>{res.writeHead(status,{"Content-Type":"application/json"});res.end(JSON.stringify(value));};
   const error=(message,status)=>reply({ok:false,error:message},status);
-  calls.push([req.method,u.pathname,q]);
+  calls.push([req.method,u.pathname,q,body.length]);
+  if(req.method==='PUT' && (u.pathname==='/api/ui/files' || (u.pathname==='/api/ui/bus' && q.action!=='apply'))) {
+    assert.equal(body.length,0,'Query-only commands must not leave an ignored body in the board receive queue');
+  }
   if(u.pathname==="/api/net")return reply({ip:"192.168.0.10",netmask:"255.255.255.0",gateway:"192.168.0.1",mac:"00:0a:35:00:01:02",mode:"static",up:true,link_up:true});
   if(u.pathname==="/api/rtos")return failRtos ? error("RTOS unavailable",503) : reply({uptime_ms:759000,heap_free:396697,heap_min_ever:367718,tick_rate_hz:100});
   if(u.pathname==="/api/version"){
@@ -34,11 +42,13 @@ const server=http.createServer(async(req,res)=>{
   if(u.pathname==="/api/ui/volumes")return reply({volumes:[{name:"flash",ready:true,total_bytes:25165824,free_bytes:22858956},{name:"sd",ready:true,total_bytes:134217728000,free_bytes:134217728000},{name:"sd-pl",ready:true,total_bytes:378535936,free_bytes:null,fat_bits:32}]});
   if(u.pathname==="/api/ui/sd-pl")return reply({ready:true,mounted:true,filesystem_owned:true,ocr:3237978240,block_addressed:true,last_lba:1,last_error:"ok",fat_bits:32,volume_lba:0,volume_sectors:739328});
   if(u.pathname==="/api/ui/bus"){
-    const b=q.bus,c=configurations[b];
+    const b=q.bus,profiles=[configurations[b],...additional[b]],c=q.name?profiles.find(p=>p.name===q.name):configurations[b];
+    if(!c)return error('unknown profile',404);
+    const state=profile=>profile===configurations[b]?presence[b]:b==='i2c'?'unknown':'unavailable';
     if(req.method==="GET"){
       if(!q.name&&b==="mdio"&&mdioListState!=="devices")return reply({ready:mdioListState==="empty",devices:[]});
-      if(!q.name)return reply({ready:true,devices:[{name:c.name,address:b==="mdio"?c.phy_addr:c.addr_7b,policy:c.policy,available:true}]});
-      return reply({config:c,revision:String(revision[b]),saved:saved[b],available:true,file_name:c.name+".json",cache:Array.from({length:32},(_,reg)=>({reg,val:reg===2?7:reg===3?49393:0,valid:reg<8,source:"PHY",age_ms:100})),stats:{reads:128,writes:3,denied:0,errors:0,observed:3}});
+      if(!q.name)return reply({ready:true,devices:profiles.map(p=>({name:p.name,address:b==="mdio"?p.phy_addr:p.addr_7b,policy:p.policy,available:state(p)==='responding',presence:state(p)}))});
+      return reply({config:c,revision:String(revision[b]),saved:saved[b],available:state(c)==='responding',presence:state(c),file_name:c.name+".json",cache:Array.from({length:32},(_,reg)=>({reg,val:reg===2?7:reg===3?49393:0,valid:reg<8&&state(c)==='responding',source:"PHY",age_ms:100})),stats:{reads:128,writes:3,denied:0,errors:0,observed:3}});
     }
     if(q.action==="apply"||q.action==="save"){
       if(conflict||q.revision!==String(revision[b]))return error("configuration changed",409);
@@ -103,6 +113,57 @@ async function checkConnection(online, timeout=6000) {
   assert.equal(await indicator.locator('.host').count(),0);
   assert.equal(await indicator.locator('.dot').evaluate(el=>getComputedStyle(el).backgroundColor),online?'rgb(55, 173, 97)':'rgb(160, 171, 181)');
 }
+async function checkNavigationGroup(name) {
+  const summary=page.locator('.nav-branch > summary').filter({hasText:name});
+  const branch=summary.locator('..'), url=page.url();
+  const active=await page.locator('#sidebar [aria-current="page"]').getAttribute('href');
+  assert(await branch.evaluate(el=>el.open));
+  await summary.click();
+  assert.equal(await branch.evaluate(el=>el.open),false,name+' must collapse when its label is clicked');
+  assert.equal(page.url(),url);
+  assert.equal(await page.locator('#modal[open]').count(),0);
+  // A navigation metadata refresh must not reopen an explicitly collapsed branch.
+  await page.evaluate(async()=>{await (await import('/js/api.js')).busList('mdio');});
+  assert.equal(await branch.evaluate(el=>el.open),false,name+' must stay collapsed after a refresh');
+  assert.equal(await page.locator('#sidebar [aria-current="page"]').getAttribute('href'),active);
+  await summary.press('Enter');
+  assert(await branch.evaluate(el=>el.open));
+  await summary.press('Space');
+  assert.equal(await branch.evaluate(el=>el.open),false);
+  await summary.click();
+  assert(await branch.evaluate(el=>el.open));
+  assert.equal(page.url(),url);
+}
+async function checkPolicyListLayout() {
+  const layout=await page.locator('#policy-workspace').evaluate(root=>{
+    const buttons=[...root.querySelectorAll('[data-list]')];
+    const box=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+    return {buttons:buttons.map(el=>({...box(el),clientWidth:el.clientWidth,scrollWidth:el.scrollWidth})),
+      card:box(buttons[0].closest('article')),add:box(root.querySelector('[data-add-rule]'))};
+  });
+  const [white,black]=layout.buttons;
+  assert.equal(layout.buttons.length,2);
+  assert(Math.abs(white.width-black.width)<=1,'Policy list tabs must have equal widths');
+  assert(white.width>=layout.card.width*.45,'Policy list tabs must fill the rule panel');
+  assert(Math.abs(white.left-layout.card.left)<=2&&Math.abs(black.right-layout.card.right)<=2);
+  assert(white.height>=40&&Math.abs(white.top-black.top)<=1);
+  assert(layout.add.top>=white.bottom+8,'Add rule belongs on a separate toolbar');
+  for(const tab of layout.buttons)assert(tab.scrollWidth<=tab.clientWidth+1,'Policy list label must not be clipped');
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Policy page must fit the viewport');
+}
+async function checkDeviceIcon(name,ready) {
+  const link=page.locator(`[data-device-name="${name}"]`), dot=link.locator('.device-status');
+  assert.equal(await link.getAttribute('data-device-ready'),String(ready));
+  assert.equal(await dot.evaluate(el=>el.classList.contains('ready')),ready);
+  assert.equal(await dot.evaluate(el=>getComputedStyle(el).fill),ready?'rgb(98, 245, 157)':'rgb(154, 171, 186)');
+  assert.equal(await link.locator('svg').evaluate(el=>el.getBoundingClientRect().width),25);
+  assert.equal(await dot.getAttribute('r'),'2');
+  assert(await dot.evaluate(el=>{
+    const point=el.getBBox(), chip=el.ownerSVGElement.querySelector('rect').getBBox();
+    return point.x>chip.x+chip.width/2 && point.y+point.height<chip.y+chip.height/2 &&
+      point.x+point.width<chip.x+chip.width && point.y>chip.y;
+  }),'Readiness point belongs inside the upper-right corner of the chip');
+}
 const versionCalls=()=>calls.filter(([method,path])=>method==='GET'&&path==='/api/version').length;
 const idle=()=>page.waitForFunction(async()=>!(await import('/js/api.js')).pending);
 try{
@@ -113,7 +174,7 @@ try{
   assert.equal(await page.locator('#content > div > :first-child').getAttribute('class'),'workbench overview-workbench');
   assert.equal(await page.locator('.overview-workbench .card-head h1').textContent(),'Состояние подсистем');
   assert.equal(await page.locator('.overview-workbench .card-head [data-refresh]').count(),1);
-  assert.equal(await page.locator(".nav-group").textContent(),"Подсистемы");
+  assert.deepEqual(await page.locator('.nav-branch > summary').allTextContents(),['Подсистемы','Файлы','Система']);
   await page.locator('[data-device-name="lan8720"]').waitFor();
   await checkConnection(true);
   const glyph = selector => page.locator(selector+' svg').innerHTML();
@@ -121,6 +182,23 @@ try{
   assert.equal(await glyph('[data-device-name="axp15060"]'),await glyph('[data-device-name="lan8720"]'));
   assert.notEqual(await glyph('[data-nav="i2c"]'),await glyph('[data-device-name="lan8720"]'));
   assert.equal(await page.locator('#sidebar a.active').count(),1);
+  assert.equal(await page.locator('[data-device-tree="i2c"] a').count(),2);
+  assert.equal(await page.locator('[data-device-tree="mdio"] a').count(),3);
+  for(const name of ['axp15060','lan8720'])await checkDeviceIcon(name,true);
+  for(const name of ['pca9536','dp83848c','ksz8081rna'])await checkDeviceIcon(name,false);
+  assert.equal(await page.locator('[data-subsystem="mdio:lan8720"] td').nth(2).textContent(),'0x01');
+  assert(await page.locator('[data-icon-name="settings"] path').evaluate(el=>{
+    const values=el.getAttribute('d').match(/-?\d+(?:\.\d+)?/g).map(Number),points=[];
+    for(let i=0;i<values.length;i+=2)points.push([values[i]-12,values[i+1]-12]);
+    return points.length===32 && points.every(([x,y])=>points.some(([px,py])=>
+      Math.abs(px-(x-y)/Math.sqrt(2))<.002 && Math.abs(py-(x+y)/Math.sqrt(2))<.002));
+  }),'Gear teeth must be symmetric under a 45 degree rotation');
+  assert.equal(await page.evaluate(async()=>(await import('/js/ui.js')).deviceState('i2c',{available:true}).ready),false);
+  presence.i2c='unknown';await page.evaluate(async()=>{await (await import('/js/api.js')).busList('i2c');});
+  await checkDeviceIcon('axp15060',false);
+  presence.i2c='responding';await page.evaluate(async()=>{await (await import('/js/api.js')).busList('i2c');});
+  await checkDeviceIcon('axp15060',true);
+  for(const group of ['Подсистемы','Файлы','Система'])await checkNavigationGroup(group);
   assert.equal(await page.locator('#sidebar').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(48, 57, 65)');
   await checkSidebarArtwork();
   assert.equal(await page.getByText('Тракт управления',{exact:false}).count(),0);
@@ -129,6 +207,14 @@ try{
   await page.locator('[data-subsystem="mdio:lan8720"]').click();
   await page.locator('#overview-inspector').getByText('Сохранена',{exact:true}).waitFor();
   await screenshot("01-overview");
+  for(const [name,address] of [['pca9536','0x41'],['dp83848c','0x02'],['ksz8081rna','0x03']]) {
+    await page.locator(`[data-device-name="${name}"]`).click();
+    await page.locator('.device-name').filter({hasText:name}).waitFor();
+    assert.equal(await page.locator('.device-meta>span').first().textContent(),'Адрес '+address);
+    assert.equal(await page.locator('.device-meta .badge.ok').count(),0);
+  }
+  await page.locator('[data-nav="overview"]').click();
+  await page.locator('#overview-inspector').getByText('Сохранена',{exact:true}).waitFor();
   await page.setViewportSize({width:1280,height:600});
   assert(await page.locator('#sidebar nav').evaluate(el=>el.scrollHeight>el.clientHeight));
   await page.locator('[data-system-nav="maintenance"]').scrollIntoViewIfNeeded();
@@ -153,7 +239,21 @@ try{
   await page.locator('#overview-inspector').getByText('Сохранена',{exact:true}).waitFor();
   await page.locator('[data-nav="mdio"]').click();
   await page.locator('.device-name').filter({hasText:"lan8720"}).waitFor();
+  assert.equal(await page.locator('.device-meta>span').first().textContent(),'Адрес 0x01');
   await page.locator('[data-tab="policy"]').click();
+  for(const width of [1920,1586,1280,1024,768,390]) {
+    await page.setViewportSize({width,height:992});
+    await checkPolicyListLayout();
+  }
+  await screenshot('08-policy-mobile');
+  await page.setViewportSize({width:1586,height:992});
+  await page.locator('[data-list="blacklist"]').click();
+  assert.equal(await page.locator('[data-list="blacklist"]').getAttribute('aria-pressed'),'true');
+  await page.locator('#rules-table').getByText('Список пуст',{exact:true}).waitFor();
+  assert(await page.locator('[name="policy"][value="whitelist"]').isChecked());
+  assert(await page.locator('[data-apply]').isDisabled());
+  await checkPolicyListLayout();
+  await page.locator('[data-list="whitelist"]').click();
   await screenshot("02-mdio-policy");
   await page.getByRole("button",{name:"Добавить правило"}).click();
   await page.locator('#modal [name="reg"]').fill("0x1F");
@@ -174,6 +274,8 @@ try{
   assert.equal(await page.locator('[data-rule].changed').count(),1);
   assert((await page.locator('#rule-compare').textContent()).includes('0x0002'));
   assert.equal(configurations.mdio.whitelist[4].mask,0);
+  for(const group of ['Файлы','Система'])await checkNavigationGroup(group);
+  assert.equal(await page.locator('[data-rule-field="mask"]').inputValue(),'0x0002');
   await screenshot('07-policy-draft');
   // A silent board must be detected even while a configuration draft is open.
   await idle();versionMode='silent';
@@ -226,6 +328,9 @@ try{
   await page.locator('[data-regs]').fill("0,1,2,3,4,5,17,31");
   await page.locator('[data-nav="i2c"]').click();await page.locator('.device-name').filter({hasText:"axp15060"}).waitFor();
   await page.locator('[data-tab="policy"]').click();assert.equal(await page.getByRole("columnheader",{name:"Маска",exact:true}).count(),0);
+  await checkPolicyListLayout();
+  await page.setViewportSize({width:390,height:844});await checkPolicyListLayout();
+  await page.setViewportSize({width:1586,height:992});
   await page.locator('[data-tab="registers"]').click();
   assert.equal(await page.locator('.register-table .badge.ok').count(),0);
   await page.locator('[data-register="19"]').click();await page.locator('#val').fill('16');
@@ -233,7 +338,8 @@ try{
   await page.locator('#val').fill('17');assert(await page.locator('[data-write]').isDisabled());
   await page.locator('[data-read]').click();await page.locator('#reg-result').filter({hasText:'0x07 (7)'}).waitFor();
   assert.equal(await page.locator('.register-table .badge.ok').count(),1);
-  await page.locator('[data-nav="files"]').click();await page.getByRole("button",{name:"roundtrip.json",exact:true}).waitFor();
+  await page.locator('[data-volume-nav="sd-pl"]').click();await page.getByRole("button",{name:"roundtrip.json",exact:true}).waitFor();
+  await checkNavigationGroup('Файлы');
   await page.getByRole("button",{name:"roundtrip.json",exact:true}).click();await page.locator('pre.file-preview').waitFor();await screenshot("03-files");
   assert.equal(await page.locator('[data-volume]').count(),0);
   assert.equal(await page.locator('[data-volume-nav="sd-pl"][aria-current="page"]').count(),1);
@@ -265,11 +371,12 @@ try{
   assert.equal(await page.locator('#content img').count(),0);
   await page.locator('[data-volume-nav="flash"]').click();await page.getByRole('button',{name:'hello-copy.txt',exact:true}).waitFor();
   assert.equal(await page.locator('#sidebar a.active').count(),1);
-  await page.locator('[data-nav="files"]').click();await page.getByRole('button',{name:'test1',exact:true}).waitFor();
+  await page.locator('[data-volume-nav="sd-pl"]').click();await page.getByRole('button',{name:'test1',exact:true}).waitFor();
   await page.locator('.path-form input').fill('sd-pl:/test1');await page.locator('.path-form input').press('Enter');
   await page.waitForURL(/path=%2Ftest1/);await page.locator('[data-up]').click();
   await page.getByRole('button',{name:'roundtrip.json',exact:true}).waitFor();
-  await page.locator('[data-nav="system"]').click();await page.getByRole("heading",{name:"Система",exact:true}).waitFor();await screenshot("04-system");
+  await page.locator('[data-system-nav="network"]').click();await page.getByRole("heading",{name:"Система",exact:true}).waitFor();await screenshot("04-system");
+  await checkNavigationGroup('Система');
   await page.locator('[data-system-nav="runtime"]').click();await page.locator('[data-section="runtime"]:not(.hidden)').waitFor();
   assert.equal(await page.locator('#sidebar a.active').count(),1);
   // A previous dialog's queued close event must not clear the next submit handler.
@@ -289,6 +396,7 @@ try{
   });
   await page.locator('#modal [name="connection-draft"]').fill('Сохранить текст');
   await page.context().setOffline(true);await checkConnection(false,1000);
+  assert.equal(await page.locator('.device-status.ready').count(),0);
   await page.context().setOffline(false);await checkConnection(true);
   assert.equal(await page.locator('#modal [name="connection-draft"]').inputValue(),'Сохранить текст');
   await page.locator('#modal [data-dismiss]').first().click();
@@ -313,12 +421,16 @@ try{
   await page.locator('#menu-toggle').click();
   await page.waitForFunction(()=>document.getElementById('sidebar').getBoundingClientRect().left>=-1);
   await checkSidebarArtwork();
+  for(const group of ['Файлы','Система']) {
+    await checkNavigationGroup(group);
+    assert.equal(await page.locator('#menu-toggle').getAttribute('aria-expanded'),'true');
+  }
   await page.locator('[data-nav="overview"]').click();await page.getByRole("heading",{name:"Состояние подсистем",exact:true}).waitFor();
   await page.waitForFunction(()=>document.getElementById("sidebar").getBoundingClientRect().right<=1);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));await screenshot("05-mobile");
   assert.deepEqual(errors,[]);
   assert(calls.some(([method,path,q])=>method==="PUT"&&path==="/api/ui/bus"&&q.action==="save"));
-  console.log("Browser UI tests passed: live online/offline status, timeout and recovery, no overlapping probes, object tree, icon classes, edge-to-edge waves, short-screen navigation, stale snapshots, rule diff, explicit save, conflict, passive register selection, confirmed writes, file preview, cross-volume copy, toolbar selection, escaping, mobile layout");
+  console.log("Browser UI tests passed: real device profiles, readiness dots and legacy-I2C fallback, symmetric gear, consistent addresses, live online/offline status, timeout and recovery, no overlapping probes, collapsible object tree and keyboard navigation, full-width policy list tabs, icon classes, edge-to-edge waves, short-screen navigation, stale snapshots, rule diff, explicit save, conflict, passive register selection, confirmed writes, file preview, cross-volume copy, toolbar selection, escaping, mobile layout");
 }catch(error){
   console.error("Browser errors:",errors,"Recent requests:",calls.slice(-8));
   console.error("Modal:",await page.locator('#modal').textContent());

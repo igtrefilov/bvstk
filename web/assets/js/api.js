@@ -54,7 +54,9 @@ export const busList = async (bus, signal) => {
 };
 export const busGet = (bus, name, signal) => get(url("/api/ui/bus", {bus, name}), signal);
 export const busAction = (bus, name, action, params = {}, body) =>
-  request(url("/api/ui/bus", {bus, name, action, ...params}), {method: "PUT", body: body ?? {}});
+  // Query-only actions have no JSON body. An ignored body left in lwIP's
+  // receive queue can reset the connection before its reply is delivered.
+  request(url("/api/ui/bus", {bus, name, action, ...params}), {method: "PUT", body});
 export const volumes = async signal => {
   const data = await get("/api/ui/volumes", signal);
   window.dispatchEvent(new CustomEvent("bvstk-volumes", {detail:data}));
@@ -62,7 +64,7 @@ export const volumes = async signal => {
 };
 export const fsList = (volume, path, offset, signal) => get(url("/api/ui/files", {volume, path, offset, limit: 64}), signal);
 export const fsStat = (volume, path) => get(url("/api/ui/files", {volume, path, action: "stat"}));
-export const fsAction = (volume, path, action, extra = {}) => request(url("/api/ui/files", {volume, path, action, confirm: true, ...extra}), {method: "PUT", body: {}, timeout: action === "copy" ? 1800000 : 60000});
+export const fsAction = (volume, path, action, extra = {}) => request(url("/api/ui/files", {volume, path, action, confirm: true, ...extra}), {method: "PUT", timeout: action === "copy" ? 1800000 : 60000});
 export const fileUrl = (volume, path, max_bytes) => url("/api/ui/file", {volume, path, max_bytes});
 export function upload(volume, path, file, overwrite, onProgress) {
   return queue(() => new Promise((resolve, reject) => {

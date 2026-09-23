@@ -74,6 +74,9 @@ small { font-size:12px; }
 .device-tree a { padding-left:78px; }
 .device-tree a::before { content:""; position:absolute; left:60px; top:0; height:18px; width:10px; border-left:1px solid #7c8c97; border-bottom:1px solid #7c8c97; }
 .sidebar .icon { width:21px; height:21px; }
+.sidebar .icon[data-icon-name="chip"] { width:25px; height:25px; }
+.device-status { fill:#9aabba; }
+.device-status.ready { fill:#62f59d; }
 .sidebar-art { position:relative; width:100%; height:106px; flex-shrink:0; margin:auto 0 0; isolation:isolate; background:var(--graphite); pointer-events:none; }
 /* Reuse the original silhouette without editing the source bitmap. */
 .art-filters { position:absolute; }
@@ -173,6 +176,12 @@ tr.changed td:first-child { border-left:3px solid #d89a24; }
 .counter-strip { display:flex; flex-wrap:wrap; gap:22px; border-top:1px solid var(--line); margin-top:13px; padding-top:10px; font-size:12px; }
 .counter-strip strong { display:block; font-size:15px; font-variant-numeric:tabular-nums; }
 .rule-summary { margin:0 0 12px; }
+.policy-rule-column { min-width:0; }
+.tabs.policy-list-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:-14px -14px 14px; overflow:visible; background:var(--soft); }
+.tabs.policy-list-tabs button { min-width:0; min-height:44px; padding:10px 16px; margin:0; border:0; }
+.tabs.policy-list-tabs button+button { border-left:1px solid var(--line); }
+.policy-list-count { min-width:24px; padding:1px 6px; border:1px solid var(--line); border-radius:var(--radius); font-size:12px; line-height:18px; font-variant-numeric:tabular-nums; }
+.rule-toolbar h2 { margin:0; font-size:15px; }
 .rule-fields { display:grid; gap:12px; }
 .rule-fields label { grid-template-columns:90px minmax(0,1fr); align-items:center; }
 .rule-compare { font-size:12px; }

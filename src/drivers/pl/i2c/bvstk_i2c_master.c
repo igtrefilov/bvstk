@@ -83,6 +83,33 @@ static void recover(bvstk_i2c_master_hw_t *hardware)
     bvstk_clock_sleep_ms(&hardware->clock, BVSTK_I2C_RECOVERY_DELAY_MS);
 }
 
+static bvstk_status_t wait_completion(bvstk_i2c_master_hw_t *hardware,
+                                       size_t read_size,
+                                       uint32_t timeout_ms,
+                                       int *nack)
+{
+    uint64_t start = bvstk_clock_now_ms(&hardware->clock);
+    timeout_ms = effective_timeout(timeout_ms);
+    *nack = 0;
+    for (;;) {
+        uint32_t csr, irq;
+        if (read32(&hardware->master, BVSTK_I2C_MSTR_CSR_OFFSET, &csr) != BVSTK_OK ||
+            read32(&hardware->master, BVSTK_I2C_MSTR_IRQ_OFFSET, &irq) != BVSTK_OK)
+            return BVSTK_ERR_IO;
+        if (irq & BVSTK_I2C_MSTR_IRQ_ERR_ACK) {
+            *nack = 1;
+            return BVSTK_ERR_IO;
+        }
+        /* Idle alone can precede START or the BRAM writer. A read needs a
+         * newly latched DATA_VALID, never bytes left by an earlier request. */
+        if (!(csr & UINT32_C(1)) &&
+            (!read_size || (irq & BVSTK_I2C_MSTR_IRQ_DATA_VALID))) return BVSTK_OK;
+        if (bvstk_clock_now_ms(&hardware->clock) - start >= timeout_ms)
+            return BVSTK_ERR_TIMEOUT;
+        bvstk_clock_sleep_ms(&hardware->clock, 1U);
+    }
+}
+
 static bvstk_status_t write_fifo_bytes(bvstk_i2c_master_hw_t *hardware,
                                        const uint8_t *data,
                                        size_t size)
@@ -138,14 +165,16 @@ static bvstk_status_t transfer_locked(bvstk_i2c_master_hw_t *hardware,
     }
 
     for (attempt = 0U; attempt < BVSTK_I2C_RECOVERY_ATTEMPTS; ++attempt) {
+        int nack = 0;
         status = wait_ready(hardware, timeout_ms);
         if (status != BVSTK_OK) {
             recover(hardware);
             continue;
         }
 
-        status = BVSTK_OK;
-        if (write_size != 0U) {
+        status = write32(&hardware->master, BVSTK_I2C_MSTR_IRQ_OFFSET,
+                         BVSTK_I2C_MSTR_IRQ_RESET_BIT);
+        if (status == BVSTK_OK && write_size != 0U) {
             status = write32(&hardware->master,
                              BVSTK_I2C_MSTR_TX_FIFO_OFFSET,
                              make_header(addr_7b,
@@ -167,8 +196,10 @@ static bvstk_status_t transfer_locked(bvstk_i2c_master_hw_t *hardware,
                              BVSTK_I2C_MSTR_START_BIT);
         }
         if (status == BVSTK_OK) {
-            status = wait_ready(hardware, timeout_ms);
+            status = wait_completion(hardware, read_size, timeout_ms, &nack);
         }
+        /* A rejected address/data byte is not a reason to replay a write. */
+        if (nack) { recover(hardware); return status; }
         if (status == BVSTK_OK && read_size != 0U) {
             size_t offset = 0U;
             while (offset < read_size) {

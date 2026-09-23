@@ -1,5 +1,5 @@
 import * as api from "./api.js";
-import {icon, esc, notice, ask, stale, clearNotice} from "./ui.js";
+import {icon, esc, notice, ask, stale, clearNotice, deviceState} from "./ui.js";
 import {overview, sdPage} from "./overview.js";
 import {busPage} from "./buses.js";
 import {filesPage} from "./files.js";
@@ -16,9 +16,9 @@ document.querySelector(".skip-link").onclick = event => { event.preventDefault()
 menu.onclick = () => { const open = sidebar.classList.toggle("open"); menu.setAttribute("aria-expanded", String(open)); };
 document.addEventListener("keydown", event => { if (event.key === "Escape") { sidebar.classList.remove("open"); menu.setAttribute("aria-expanded","false"); } });
 let view, controller, hash = "", navigating = false, refreshBusy = false, pollTimer;
-let context = {section:"overview"}, knownVolumes = false;
-const knownBuses = new Set();
-function selectNavigation() {
+let context = {section:"overview"}, knownVolumes = false, selectedNavigation = "";
+const knownBuses = new Map();
+function selectNavigation(reveal = false) {
   sidebar.querySelectorAll("a").forEach(el => {
     let active = false;
     if (el.dataset.deviceName) active = el.dataset.deviceBus === context.section && el.dataset.deviceName === context.name;
@@ -31,7 +31,10 @@ function selectNavigation() {
     el.classList.toggle("active",active);
     if (active) {
       el.setAttribute("aria-current","page");
-      const branch = el.closest("details"); if (branch) branch.open = true;
+      // Reveal a new destination, not the same object on every API refresh.
+      const target = el.getAttribute("href"), branch = el.closest("details");
+      if (branch && (reveal || target !== selectedNavigation)) branch.open = true;
+      selectedNavigation = target;
     } else el.removeAttribute("aria-current");
   });
   document.getElementById("object-status").textContent = context.object ||
@@ -39,12 +42,37 @@ function selectNavigation() {
       {overview:"Состояние",system:"Система","sd-pl":"SD-PL",files:"Файлы",i2c:"I²C",mdio:"MDIO"}[context.section] || context.section);
 }
 window.addEventListener("bvstk-devices", event => {
-  const {bus,data} = event.detail; knownBuses.add(bus);
+  const {bus,data} = event.detail; knownBuses.set(bus,Date.now());
   const tree = sidebar.querySelector(`[data-device-tree="${bus}"]`);
   if (!tree) return;
-  tree.innerHTML = data.devices.map(d => `<a href="#${bus}?name=${encodeURIComponent(d.name)}" data-device-bus="${bus}" data-device-name="${esc(d.name)}">${icon("chip")}${esc(d.name)}</a>`).join("");
+  const previous = new Map([...tree.children].map(el => [el.dataset.deviceName,el]));
+  data.devices.forEach((device,index) => {
+    const link = previous.get(device.name) || document.createElement("a");
+    const state = deviceState(bus,device);
+    previous.delete(device.name);
+    link.href = `#${bus}?name=${encodeURIComponent(device.name)}`;
+    link.dataset.deviceBus = bus; link.dataset.deviceName = device.name;
+    link.dataset.deviceReady = String(state.ready);
+    link.title = `${device.name}: ${state.label}`;
+    link.setAttribute("aria-label",link.title);
+    link.innerHTML = `${icon("chip",{ready:state.ready})}${esc(device.name)}`;
+    // Keep the focused anchor and manual branch state across status refreshes.
+    if (tree.children[index] !== link) tree.insertBefore(link,tree.children[index] || null);
+  });
+  previous.forEach(link => link.remove());
   selectNavigation();
 });
+function staleDeviceIndicators() {
+  knownBuses.forEach((_,bus) => knownBuses.set(bus,0));
+  sidebar.querySelectorAll("[data-device-name]").forEach(link => {
+    link.dataset.deviceReady = "false";
+    link.querySelector(".device-status")?.classList.remove("ready");
+    link.title = `${link.dataset.deviceName}: состояние не подтверждено, нет связи`;
+    link.setAttribute("aria-label",link.title);
+  });
+}
+window.addEventListener("bvstk-connection", event => { if (!event.detail.ok) staleDeviceIndicators(); });
+window.addEventListener("offline",staleDeviceIndicators);
 window.addEventListener("bvstk-volumes", event => {
   knownVolumes = true;
   for (const v of event.detail.volumes) {
@@ -52,8 +80,8 @@ window.addEventListener("bvstk-volumes", event => {
     if (el) el.title = v.ready ? "Смонтирован" : "Том недоступен";
   }
 });
-async function loadNavigation() {
-  for (const bus of ["i2c","mdio"]) if (!knownBuses.has(bus)) { try { await api.busList(bus); } catch {} }
+async function loadNavigation(maxAge = Infinity) {
+  for (const bus of ["i2c","mdio"]) if (!knownBuses.has(bus) || Date.now() - knownBuses.get(bus) >= maxAge) { try { await api.busList(bus); } catch {} }
   if (!knownVolumes) { try { await api.volumes(); } catch {} }
 }
 async function runRefresh(refresh) {
@@ -78,7 +106,7 @@ async function route() {
     hash = targetHash;
     const [name,query = ""] = targetHash.slice(1).split("?"), section = name || "overview", params = new URLSearchParams(query);
     context = {section,name:params.get("name"),volume:section === "files" ? params.get("volume") || "sd-pl" : null,tab:section === "system" ? params.get("tab") || "network" : null};
-    selectNavigation();
+    selectNavigation(true);
     sidebar.classList.remove("open"); menu.setAttribute("aria-expanded","false");
     const root = document.createElement("div"); root.innerHTML = '<div class="loading">Загрузка данных…</div>';
     document.getElementById("content").replaceChildren(root);
@@ -110,8 +138,9 @@ async function route() {
 function schedulePoll() {
   clearTimeout(pollTimer);
   pollTimer = setTimeout(async () => {
-    if (!document.hidden && !navigating && !api.pending && !refreshBusy && !document.getElementById("modal").open && Date.now() >= api.downloadPauseUntil && !view?.dirty?.()) {
-      if (view?.poll) await runRefresh(() => view.refresh(true));
+    if (!document.hidden && !navigating && !api.pending && !refreshBusy && !document.getElementById("modal").open && Date.now() >= api.downloadPauseUntil) {
+      if (view?.poll && !view?.dirty?.()) await runRefresh(() => view.refresh(true));
+      await loadNavigation(15000);
     }
     schedulePoll();
   },15000);

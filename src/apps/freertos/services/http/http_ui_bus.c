@@ -85,7 +85,21 @@ static int online(size_t id)
         bvstk_mdio_service_cache_entry(s, id, 3, &b) == BVSTK_OK &&
         a.valid && b.valid && !a.seeded && !b.seeded &&
         a.value != 0xffffU && b.value != 0xffffU && (a.value || b.value) &&
-        bvstk_platform_now_ms() - a.updated_ms < 3000U;
+        bvstk_platform_now_ms() - a.updated_ms < 3000U &&
+        bvstk_platform_now_ms() - b.updated_ms < 3000U;
+}
+static int device_presence(int mdio, size_t id)
+{
+    bvstk_i2c_presence_t presence;
+    if (mdio) return online(id);
+    if (bvstk_i2c_master_service_device_presence(bvstk_runtime_i2c_master_service(),
+            id, &presence) != BVSTK_OK || presence == BVSTK_I2C_PRESENCE_UNKNOWN)
+        return -1;
+    return presence == BVSTK_I2C_PRESENCE_RESPONDING;
+}
+static const char *presence_name(int presence)
+{
+    return presence < 0 ? "unknown" : presence ? "responding" : "unavailable";
 }
 static void list(int fd, int mdio)
 {
@@ -101,29 +115,29 @@ static void list(int fd, int mdio)
             bvstk_mdio_device_info_t d;
             if (bvstk_mdio_service_device_info(bvstk_runtime_mdio_service(), i, &d) != BVSTK_OK) continue;
             memcpy(name, d.name, sizeof(name)); address = d.phy_addr;
-            white = d.policy == MDIO_POLICY_WHITELIST; available = online(i);
+            white = d.policy == MDIO_POLICY_WHITELIST; available = device_presence(mdio, i);
         } else {
             bvstk_i2c_device_t d;
             bvstk_i2c_policy_entry_t pol;
             if (bvstk_i2c_master_service_device_info(bvstk_runtime_i2c_master_service(), i, &d) != BVSTK_OK ||
                 bvstk_i2c_master_service_get_policy(bvstk_runtime_i2c_master_service(), i, &pol) != BVSTK_OK) continue;
             memcpy(name, d.name, sizeof(name)); address = d.addr_7b;
-            white = pol.mode == I2C_POLICY_WHITELIST; available = 1;
+            white = pol.mode == I2C_POLICY_WHITELIST; available = device_presence(mdio, i);
         }
         http_ui_text(fd, comma++ ? ",{\"name\":" : "{\"name\":"); http_ui_string(fd, name);
-        http_ui_printf(fd, ",\"address\":%u,\"available\":%s,\"policy\":\"%s\"}", address,
-            available ? "true" : "false", white ? "whitelist" : "blacklist");
+        http_ui_printf(fd, ",\"address\":%u,\"available\":%s,\"presence\":\"%s\",\"policy\":\"%s\"}", address,
+            available > 0 ? "true" : "false", presence_name(available), white ? "whitelist" : "blacklist");
     }
     http_ui_text(fd, "]}\n");
 }
 static void detail(int fd, int mdio, size_t id, bus_workspace_t *w)
 {
-    int saved = persisted(mdio, w);
+    int saved = persisted(mdio, w), presence = device_presence(mdio, id);
     http_ui_header(fd, "application/json", -1);
     http_ui_text(fd, "{\"config\":"); http_ui_text(fd, w->json);
-    http_ui_printf(fd, ",\"revision\":\"%08lx\",\"saved\":%s,\"available\":%s,\"file_name\":",
+    http_ui_printf(fd, ",\"revision\":\"%08lx\",\"saved\":%s,\"available\":%s,\"presence\":\"%s\",\"file_name\":",
         (unsigned long)bvstk_http_revision(w->json), saved < 0 ? "null" : saved ? "true" : "false",
-        !mdio || online(id) ? "true" : "false");
+        presence > 0 ? "true" : "false", presence_name(presence));
     http_ui_string(fd, file_name(mdio, &w->current));
     if (mdio) {
         bvstk_mdio_stats_t stats;

@@ -78,6 +78,22 @@ static SemaphoreHandle_t s_i2c_save_mutex;
 static char s_mdio_save_buf[8192];
 static SemaphoreHandle_t s_mdio_save_mutex;
 
+/* FAT directory slot order changes after save/rename. Keep service IDs and
+ * the first I2C device (the current slave target) deterministic at startup. */
+static int compare_i2c_address(const void *left, const void *right)
+{
+    const i2c_device_config_t *a = left, *b = right;
+    int order = (int)a->addr_7b - (int)b->addr_7b;
+    return order ? order : strcmp(a->name, b->name);
+}
+
+static int compare_mdio_address(const void *left, const void *right)
+{
+    const mdio_phy_config_t *a = left, *b = right;
+    int order = (int)a->phy_addr - (int)b->phy_addr;
+    return order ? order : strcmp(a->name, b->name);
+}
+
 static void config_apply_defaults(network_config_t *cfg)
 {
     if (!cfg) return;
@@ -807,6 +823,8 @@ static void config_task(void *arg)
         }
     }
 
+    qsort(s_i2c_cfgs, s_i2c_cfg_count, sizeof(s_i2c_cfgs[0]), compare_i2c_address);
+
     s_mdio_cfg_count = 0;
     if (qspi_fs_is_ready() && !mdio_load_failed) {
         for (int pass = 0; pass < 2; ++pass) {
@@ -861,6 +879,7 @@ static void config_task(void *arg)
         s_mdio_cfg_count = 0;
         xil_printf("CFG: invalid/unreadable MDIO configuration; all forwarding disabled\r\n");
     }
+    qsort(s_mdio_cfgs, s_mdio_cfg_count, sizeof(s_mdio_cfgs[0]), compare_mdio_address);
 
 done:
     s_ready = 1;
