@@ -46,6 +46,12 @@ function observed(bus, channel, data) {
   rows.push({id:String(rows.length+1),time_us:rows.length*10000+5000000,type:258,status:0,source:1,
     operation:0,address:bus==='mdio'?1:54,reg:2,value:7,...data});
 }
+function telemetryAvailable(bus,address) {
+  const profiles = [configurations[bus],...additional[bus]];
+  const profile = profiles.find(p => (bus === 'mdio' ? p.phy_addr : p.addr_7b) === address);
+  if (!profile) return false;
+  return (profile === configurations[bus] ? presence[bus] : bus === 'i2c' ? 'unknown' : 'unavailable') === 'responding';
+}
 const files = new Map([["sd-pl:/test1",null],["sd-pl:/roundtrip.json",Buffer.from('{"example":true}\n')],["sd-pl:/Firmware.tif",Buffer.alloc(223423)]]);
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,"http://local"),q=Object.fromEntries(u.searchParams),chunks=[];
@@ -89,7 +95,7 @@ const server=http.createServer(async(req,res)=>{
     const scan=rows.slice(reset?0:after,(reset?0:after)+32),last=scan.at(-1)?.id||String(rows.length);
     const lost=observeLoss;observeLoss="0";
     return reply({ok:true,next:last,head:String(rows.length),lost,reset,more:Number(last)<rows.length,
-      uptime_ms:observeUptime,capacity:256,records:scan.filter(r=>r.address===Number(q.address))});
+      uptime_ms:observeUptime,capacity:256,records:q.channel === 'telemetry' && !telemetryAvailable(q.bus,Number(q.address)) ? [] : scan.filter(r=>r.address===Number(q.address))});
   }
   if(u.pathname==="/api/ui/files"){
     const key=q.volume+":"+q.path;
@@ -210,6 +216,15 @@ try{
   assert.equal(await page.locator('#content > div > :first-child').getAttribute('class'),'workbench overview-workbench');
   assert.equal(await page.locator('.overview-workbench .card-head h1').textContent(),'Состояние подсистем');
   assert.equal(await page.locator('.overview-workbench .card-head [data-refresh]').count(),1);
+  const subsystemStates = await page.locator('table[aria-label="Состояние подсистем"] tbody td:nth-child(4)').allTextContents();
+  assert(subsystemStates.length > 0);
+  assert(subsystemStates.every(state => ['Готово','Не готово'].includes(state.trim())),`Unexpected subsystem state: ${subsystemStates.join(', ')}`);
+  assert.equal(await page.locator('[data-subsystem="i2c:axp15060"] td').nth(3).textContent(),'Готово');
+  assert.equal(await page.locator('[data-subsystem="i2c:pca9536"] td').nth(3).textContent(),'Не готово');
+  assert.equal(await page.locator('[data-subsystem="mdio:lan8720"] td').nth(3).textContent(),'Готово');
+  assert.equal(await page.locator('[data-subsystem="mdio:dp83848c"] td').nth(3).textContent(),'Не готово');
+  assert.equal(await page.locator('[data-subsystem="i2c:pca9536"] .badge.offline').count(),1);
+  assert.equal(await page.locator('[data-subsystem="mdio:dp83848c"] .badge.offline').count(),1);
   assert.deepEqual(await page.locator('.nav-branch > summary').allTextContents(),['Подсистемы','Файлы','Система']);
   await page.locator('[data-device-name="lan8720"]').waitFor();
   await checkConnection(true);
@@ -240,6 +255,7 @@ try{
   assert.equal(await page.getByText('Тракт управления',{exact:false}).count(),0);
   await page.locator('[data-subsystem="i2c:axp15060"]').click();
   await page.locator('#overview-inspector').getByText('axp15060',{exact:true}).waitFor();
+  assert.equal(await page.locator('.device-meta .badge').textContent(),'Готово');
   await page.locator('[data-subsystem="mdio:lan8720"]').click();
   await page.locator('#overview-inspector').getByText('Сохранена',{exact:true}).waitFor();
   await screenshot("01-overview");
@@ -248,6 +264,8 @@ try{
     await page.locator('.device-name').filter({hasText:name}).waitFor();
     assert.equal(await page.locator('.device-meta>span').first().textContent(),'Адрес '+address);
     assert.equal(await page.locator('.device-meta .badge.ok').count(),0);
+    assert.equal(await page.locator('.device-meta .badge.offline').count(),1);
+    assert.equal(await page.locator('.device-meta .badge').textContent(),'Не готово');
   }
   await page.locator('[data-nav="overview"]').click();
   await page.locator('#overview-inspector').getByText('Сохранена',{exact:true}).waitFor();
@@ -266,38 +284,48 @@ try{
   const detailReads = () => calls.filter(([method,path,q])=>method==='GET'&&path==='/api/ui/bus'&&q.bus==='mdio'&&q.name).length;
   const beforeUnavailable=detailReads();
   mdioListState="unready";await page.locator('[data-refresh]').click();
-  await page.locator('[data-subsystem="mdio:"]').getByText('Сервис не готов',{exact:true}).waitFor();
+  await page.locator('[data-subsystem="mdio:"]').getByText('Не готово',{exact:true}).waitFor();
   assert.equal(detailReads(),beforeUnavailable);
   mdioListState="empty";await page.locator('[data-refresh]').click();
-  await page.locator('[data-subsystem="mdio:"]').getByText('Устройства не настроены',{exact:true}).waitFor();
+  await page.locator('[data-subsystem="mdio:"]').getByText('Не готово',{exact:true}).waitFor();
+  await page.locator('#overview-inspector').getByText('Нет настроенных устройств',{exact:true}).waitFor();
   assert.equal(detailReads(),beforeUnavailable);
   mdioListState="devices";await page.locator('[data-refresh]').click();
   await page.locator('#overview-inspector').getByText('Сохранена',{exact:true}).waitFor();
   await page.locator('[data-nav="mdio"]').click();
   await page.locator('.device-name').filter({hasText:"lan8720"}).waitFor();
   assert.equal(await page.locator('.device-meta>span').first().textContent(),'Адрес 0x01');
+  assert.equal(await page.locator('.device-meta .badge').textContent(),'Готово');
   const writesBeforeObserve=calls.filter(([method])=>method==='PUT').length;
   observed('mdio','telemetry',{});
   observed('mdio','telemetry',{source:3,reg:3,value:49393});
   observed('mdio','telemetry',{type:257,operation:1,reg:4,value:481});
   observed('mdio','telemetry',{address:2,reg:1,value:65535});
   await page.locator('[data-tab="telemetry"]').click();
-  await page.locator('[data-record-id="3"]').waitFor();
-  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),3);
+  await page.locator('[data-record-id="2"]').waitFor();
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),2);
+  assert.equal(await page.locator('[data-record-id="1"] td').nth(6).textContent(),'Успешно');
+  assert.equal(await page.locator('[data-record-id="1"]').evaluate(el=>getComputedStyle(el.querySelector('td:last-child')).color),'rgb(40, 122, 67)');
   assert.equal(await page.locator('.save-bar').count(),0);
   await page.locator('[data-live-source]').selectOption('1');
-  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),2);
-  await page.locator('[data-live-reg]').fill('0x04');
   assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),1);
+  await page.locator('[data-live-reg]').fill('0x04');
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),0);
   await page.locator('[data-live-reg]').fill('');
   await page.locator('[data-live-source]').selectOption('');
   await page.locator('[data-live-pause]').click();
   observed('mdio','telemetry',{type:258,source:4,reg:5,value:0,status:5});
-  await page.locator('[data-live-state]').filter({hasText:'Получено строк: 4'}).waitFor();
+  await page.waitForTimeout(700);
+  const pausedObserveRequests=calls.filter(([method,path])=>method==='GET'&&path==='/api/ui/observe').length;
+  await page.waitForTimeout(700);
+  assert.equal(calls.filter(([method,path])=>method==='GET'&&path==='/api/ui/observe').length,pausedObserveRequests);
+  await page.locator('[data-live-state]').filter({hasText:'Приём новых записей приостановлен. Получено строк: 2'}).waitFor();
   assert.equal(await page.locator('[data-record-id="5"]').count(),0);
   await page.locator('[data-live-pause]').click();
   await page.locator('[data-record-id="5"]').waitFor();
   assert.equal(await page.locator('[data-record-id="5"] td').nth(5).textContent(),'—');
+  assert.equal(await page.locator('[data-record-id="5"] td').nth(6).textContent(),'Ошибка');
+  assert.equal(await page.locator('[data-record-id="5"]').evaluate(el=>getComputedStyle(el.querySelector('td:last-child')).color),'rgb(163, 50, 39)');
   observeLoss='3';
   await page.locator('[data-live-warning]').filter({hasText:'Пропущено в программном журнале шины: 3'}).waitFor();
   await screenshot('09-mdio-telemetry');
@@ -311,19 +339,26 @@ try{
   observed('mdio','events',{type:3,operation:1,source:4,reg:4,value:481,status:3});
   await page.locator('[data-tab="events"]').click();
   await page.locator('[data-record-id="2"]').waitFor();
-  assert(await page.locator('[data-live-rows]').textContent().then(t=>t.includes('Запрещено политикой')));
+  assert(await page.locator('[data-live-rows]').textContent().then(t=>t.includes('Ошибка')));
   await screenshot('10-mdio-events');
   await page.locator('[data-device-name="dp83848c"]').click();
   await page.locator('.device-name').filter({hasText:'dp83848c'}).waitFor();
   await page.locator('[data-tab="telemetry"]').click();
-  await page.locator('[data-record-id="4"]').waitFor();
-  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),1);
+  await page.locator('[data-live-rows] .empty').filter({hasText:'Нет подтверждённых взаимодействий'}).waitFor();
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),0);
+  observed('i2c','telemetry',{address:65,reg:2,value:255});
+  await page.locator('[data-device-name="pca9536"]').click();
+  await page.locator('.device-name').filter({hasText:'pca9536'}).waitFor();
+  await page.locator('[data-tab="telemetry"]').click();
+  await page.locator('[data-live-rows] .empty').filter({hasText:'Нет подтверждённых взаимодействий'}).waitFor();
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),0);
   observed('i2c','telemetry',{type:260,reg:19,value:19});
   observed('i2c','telemetry',{type:262,reg:19,value:16});
   await page.locator('[data-device-name="axp15060"]').click();
   await page.locator('.device-name').filter({hasText:'axp15060'}).waitFor();
   await page.locator('[data-tab="telemetry"]').click();
-  await page.locator('[data-record-id="2"]').waitFor();
+  await page.locator('[data-live-rows] .empty').filter({hasText:'Нет подтверждённых взаимодействий'}).waitFor();
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),0);
   await screenshot('11-i2c-telemetry');
   for(const width of [1280,768,390]) {
     await page.setViewportSize({width,height:992});

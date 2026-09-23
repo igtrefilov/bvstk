@@ -409,7 +409,8 @@ int main(void)
                                                    10U) == BVSTK_OK);
         CHECK(read_window_size == 0U);
         CHECK(events.last.type == BVSTK_EVENT_SLAVE_POINTER &&
-              events.last.source == BVSTK_EVENT_SOURCE_HOST && events.last.arg1 == 2U);
+              events.last.source == BVSTK_EVENT_SOURCE_HOST && events.last.arg1 == 2U &&
+              events.last.flags == BVSTK_EVENT_FLAG_NONE);
         CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                                                    NULL,
                                                    0U,
@@ -419,7 +420,8 @@ int main(void)
                                                    &read_window_size,
                                                    10U) == BVSTK_OK);
         CHECK(read_window_size == 1U && response[0] == 0xA5U);
-        CHECK(events.last.type == BVSTK_EVENT_SLAVE_REPLY_PREPARED && events.last.arg2 == 0xA5U);
+        CHECK(events.last.type == BVSTK_EVENT_SLAVE_REPLY_PREPARED && events.last.arg2 == 0xA5U &&
+              events.last.flags == BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
         bvstk_i2c_slave_service_end_transaction(&i2c_slave_service);
         CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                                                    NULL,
@@ -430,7 +432,8 @@ int main(void)
                                                    &read_window_size,
                                                    10U) == BVSTK_OK);
         CHECK(read_window_size == 0U);
-        CHECK(events.last.type == BVSTK_EVENT_SLAVE_READ_REQUEST);
+        CHECK(events.last.type == BVSTK_EVENT_SLAVE_READ_REQUEST &&
+              events.last.flags == BVSTK_EVENT_FLAG_NONE);
         {
             uint8_t denied_frame[] = {3U, 7U, 5U};
             unsigned before = bus.writes;

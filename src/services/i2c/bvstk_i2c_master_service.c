@@ -30,14 +30,15 @@ static void record_response(bvstk_i2c_master_service_t *service,
         service->presence[device_id] = BVSTK_I2C_PRESENCE_UNAVAILABLE;
 }
 
-static void emit(bvstk_i2c_master_service_t *service,
+static void emit_flags(bvstk_i2c_master_service_t *service,
                  uint16_t type,
                  uint16_t status,
                  bvstk_event_source_t source,
                  bvstk_event_op_t operation,
                  const bvstk_i2c_device_t *device,
                  uint32_t reg,
-                 uint8_t value)
+                 uint8_t value,
+                 uint8_t flags)
 {
     bvstk_event_t event;
 
@@ -51,10 +52,31 @@ static void emit(bvstk_i2c_master_service_t *service,
     event.source = (uint8_t)source;
     event.bus = BVSTK_EVENT_BUS_I2C;
     event.operation = (uint8_t)operation;
+    event.flags = flags;
     event.arg0 = device->addr_7b;
     event.arg1 = reg;
     event.arg2 = value;
     service->events.publish(service->events.context, &event);
+}
+
+static void emit(bvstk_i2c_master_service_t *service,
+                 uint16_t type,
+                 uint16_t status,
+                 bvstk_event_source_t source,
+                 bvstk_event_op_t operation,
+                 const bvstk_i2c_device_t *device,
+                 uint32_t reg,
+                 uint8_t value)
+{
+    emit_flags(service, type, status, source, operation, device, reg, value,
+               BVSTK_EVENT_FLAG_NONE);
+}
+
+static int presence_confirmed(const bvstk_i2c_master_service_t *service,
+                              size_t device_id)
+{
+    return service != NULL && device_id < I2C_CFG_MAX_DEVICES &&
+        service->presence[device_id] == BVSTK_I2C_PRESENCE_RESPONDING;
 }
 
 static bvstk_status_t backend_read(bvstk_i2c_master_service_t *service,
@@ -87,7 +109,11 @@ void bvstk_i2c_master_service_observe(bvstk_i2c_master_service_t *service,
     bvstk_i2c_device_t device;
     if (service_status(service, id) == BVSTK_OK &&
         bvstk_i2c_devices_get(service->devices, id, &device) == BVSTK_OK)
-        emit(service, type, (uint16_t)status, BVSTK_EVENT_SOURCE_HOST, op, &device, reg, value);
+        emit_flags(service, type, (uint16_t)status, BVSTK_EVENT_SOURCE_HOST, op,
+                   &device, reg, value,
+                   type == BVSTK_EVENT_SLAVE_REPLY_PREPARED ?
+                       BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED :
+                       BVSTK_EVENT_FLAG_NONE);
 }
 
 static bvstk_status_t backend_write(bvstk_i2c_master_service_t *service,
@@ -223,6 +249,7 @@ bvstk_status_t bvstk_i2c_master_service_read_from(
     uint8_t *value, bvstk_event_source_t source, uint32_t timeout_ms)
 {
     bvstk_i2c_device_t device;
+    int was_present;
     bvstk_status_t status = service_status(service, device_id);
 
     if (status != BVSTK_OK) {
@@ -234,10 +261,13 @@ bvstk_status_t bvstk_i2c_master_service_read_from(
         reg >= device.reg_count) {
         return BVSTK_ERR_RANGE;
     }
+    was_present = presence_confirmed(service, device_id);
     status = backend_read(service, &device, reg, value, timeout_ms);
-    emit(service, BVSTK_EVENT_MASTER_READ, (uint16_t)status, source,
-        BVSTK_EVENT_OP_READ, &device, reg, status == BVSTK_OK ? *value : 0);
     record_response(service, device_id, device.addr_7b, status, 1);
+    emit_flags(service, BVSTK_EVENT_MASTER_READ, (uint16_t)status, source,
+        BVSTK_EVENT_OP_READ, &device, reg, status == BVSTK_OK ? *value : 0,
+        (was_present || status == BVSTK_OK) ? BVSTK_EVENT_FLAG_NONE :
+            BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
     if (status == BVSTK_OK) {
         (void)bvstk_i2c_cache_write(service->cache, device_id, reg, *value);
     }
@@ -274,6 +304,7 @@ bvstk_status_t bvstk_i2c_master_service_write(
     uint32_t timeout_ms)
 {
     bvstk_i2c_device_t device;
+    int was_present;
     bvstk_status_t status = service_status(service, device_id);
 
     if (status != BVSTK_OK) {
@@ -282,6 +313,7 @@ bvstk_status_t bvstk_i2c_master_service_write(
     if (bvstk_i2c_devices_get(service->devices, device_id, &device) != BVSTK_OK) {
         return BVSTK_ERR_NOT_FOUND;
     }
+    was_present = presence_confirmed(service, device_id);
     emit(service,
          BVSTK_EVENT_REG_ATTEMPT,
          0U,
@@ -311,9 +343,11 @@ bvstk_status_t bvstk_i2c_master_service_write(
         return BVSTK_ERR_DENIED;
     }
     status = backend_write(service, &device, reg, value, timeout_ms);
-    emit(service, BVSTK_EVENT_MASTER_WRITE, (uint16_t)status, source,
-        BVSTK_EVENT_OP_WRITE, &device, reg, value);
     record_response(service, device_id, device.addr_7b, status, 0);
+    emit_flags(service, BVSTK_EVENT_MASTER_WRITE, (uint16_t)status, source,
+        BVSTK_EVENT_OP_WRITE, &device, reg, value,
+        (was_present || status == BVSTK_OK) ? BVSTK_EVENT_FLAG_NONE :
+            BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
     if (status != BVSTK_OK) {
         emit(service,
              BVSTK_EVENT_FAULT,

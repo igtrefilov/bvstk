@@ -42,6 +42,15 @@ typedef enum {
     BVSTK_EVENT_SLAVE_REPLY_PREPARED = 0x0106
 } bvstk_event_type_t;
 
+/* Flags carried with software observations. They do not change the public
+ * event type or the DCP2 wire record. The FreeRTOS observer uses the first
+ * flag to keep unconfirmed/probe traffic out of per-device telemetry while
+ * retaining the event for local service diagnostics and tests. */
+enum {
+    BVSTK_EVENT_FLAG_NONE = 0x00,
+    BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED = 0x01
+};
+
 typedef struct {
     uint64_t time_us;
     uint16_t type;
@@ -49,6 +58,7 @@ typedef struct {
     uint8_t source;
     uint8_t bus;
     uint8_t operation;
+    uint8_t flags;
     uint32_t arg0;
     uint32_t arg1;
     uint32_t arg2;

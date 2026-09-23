@@ -161,6 +161,22 @@ int main(int argc,char **argv) {
     assert(strstr(output,"\"presence\":\"unknown\""));
     assert(bvstk_i2c_master_service_set_config(&i2c,0,&i2c_config)==BVSTK_OK);
     {
+        uint64_t before = bvstk_observer_head(0, BVSTK_JOURNAL_TELEMETRY);
+        io_status = BVSTK_ERR_IO;
+        http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&reg=2","{}",500);
+        io_status = BVSTK_OK;
+        snprintf(path,sizeof(path),"/api/ui/observe?bus=i2c&channel=telemetry&address=54&after=%llu",
+            (unsigned long long)before);
+        http_run("GET",path,"",200);
+        assert(strstr(output,"\"records\":[]"));
+        before = bvstk_observer_head(1, BVSTK_JOURNAL_TELEMETRY);
+        assert(bvstk_mdio_service_step(&mdio, 1000U, 100U) == BVSTK_OK);
+        snprintf(path,sizeof(path),"/api/ui/observe?bus=mdio&channel=telemetry&address=1&after=%llu",
+            (unsigned long long)before);
+        http_run("GET",path,"",200);
+        assert(strstr(output,"\"records\":[]"));
+    }
+    {
         const uint32_t physical_reads = mdio.stats.reads;
         const unsigned physical_writes = writes;
         uint64_t head = bvstk_observer_head(0, BVSTK_JOURNAL_EVENTS);

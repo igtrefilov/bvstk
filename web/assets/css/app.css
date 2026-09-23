@@ -52,6 +52,7 @@ small { font-size:12px; }
 .dot.warn { background:#dfa12a; }
 .dot.bad { background:#c9483e; }
 .badge { display:inline-flex; align-items:center; gap:8px; font-size:13px; padding:0; white-space:nowrap; font-weight:400; color:var(--text); }
+.badge.offline { color:var(--text); }
 .badge.warn { color:#855700; }
 .badge.bad { color:#a52b24; }
 .is-stale .badge .dot.ok { background:#a0abb5; }

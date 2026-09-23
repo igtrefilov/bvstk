@@ -7,6 +7,11 @@ static bvstk_journal_t journal;
 void bvstk_observer_publish(void *context, const bvstk_event_t *event)
 {
     (void)context;
+    if (event != NULL &&
+        (event->flags & BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED) != 0U &&
+        bvstk_event_is_telemetry(event->type)) {
+        return;
+    }
     /* Called from tasks only. No IO, allocation or blocking in this section. */
     taskENTER_CRITICAL();
     bvstk_journal_publish(&journal, event);
