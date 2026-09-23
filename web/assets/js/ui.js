@@ -22,6 +22,7 @@ const paths = {
   grid:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
   bus:'<path d="M2 8H22M2 16H22M6 8V3M18 16V21"/><circle cx="6" cy="3" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="21" r="1.5" fill="currentColor" stroke="none"/>',
   chip:'<rect x="6" y="6" width="12" height="12" rx=".5"/><path d="M9 2V6M15 2V6M9 18V22M15 18V22M2 9H6M2 15H6M18 9H22M18 15H22"/>',
+  runtime:'<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2M12 2v2M12 20v2M2 12h2M20 12h2"/>',
   disk:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',
   storage:'<path d="M6 3h12l3 13v5H3v-5zM3 16h18M7 7h10M6 11h12M7 19h1"/>',
   tools:'<path d="M14 5a5 5 0 0 0-6 6L2 17l5 5 6-7a5 5 0 0 0 6-6l-4 3-3-3z"/>',
@@ -47,7 +48,7 @@ export function deviceState(bus, device) {
 }
 export function badge(text, state = "") { return `<span class="badge ${state}"><span class="dot ${state}"></span>${esc(text)}</span>`; }
 export const kv = rows => `<dl class="kv">${rows.map(([key,value]) => `<dt>${esc(key)}</dt><dd>${esc(value)}</dd>`).join("")}</dl>`;
-export const head = (title, subtitle, extra = "") => `<div class="page-head"><div><h1>${esc(title)}</h1><p>${esc(subtitle)}</p></div><div class="actions">${extra}<button data-refresh>${icon("refresh")}Обновить</button></div></div>`;
+export const head = (title, subtitle, extra = "") => `<div class="page-head"><div><h1>${esc(title)}</h1><p>${esc(subtitle)}</p></div>${extra ? `<div class="actions">${extra}</div>` : ""}</div>`;
 export function footer() {
   const text = "Обновлено " + new Date().toLocaleTimeString("ru-RU");
   const global = document.getElementById("snapshot-status");

@@ -66,7 +66,6 @@ export async function filesPage(root, params, ctx) {
     const current = vols.find(v => v.name === volume);
     ctx.setContext({volume,path});
     root.innerHTML = `${head("Файлы",volume + ":" + path)}<div class="file-toolbar actions"><button data-upload ${!current.ready ? "disabled" : ""}>${icon("upload")}Загрузить</button><button data-download disabled>${icon("download")}Скачать</button><button data-mkdir ${!current.ready ? "disabled" : ""}>${icon("folder")}Создать каталог</button><button data-rename disabled>${icon("edit")}Переименовать</button><button data-copy disabled>${icon("copy")}Копировать</button><button data-remove disabled>${icon("trash")}Удалить</button></div><div class="path-toolbar"><form class="path-form"><button type="button" data-up class="icon-button" ${path === "/" ? "disabled" : ""} aria-label="Родительский каталог">${icon("up")}</button><input aria-label="Путь к каталогу" value="${esc(volume+":"+path)}" autocomplete="off"></form><input class="filter" aria-label="Фильтр по имени" placeholder="Фильтр загруженных имён" value="${esc(filter)}"></div><div class="volume-strip"><span>${esc(volumePurpose(volume))}</span>${badge(current.ready ? "Смонтирован" : "Недоступен",current.ready ? "ok" : "bad")}<span>${current.fat_bits ? "FAT"+current.fat_bits : "Тип ФС не определён"}</span><span>Размер тома ${bytes(current.total_bytes)}</span><span>Свободно ${current.free_bytes == null ? "не определено" : bytes(current.free_bytes)}</span></div><input type="file" id="upload-file" class="hidden">${current.ready ? `<div class="file-layout"><div class="file-list" id="file-table">${table()}</div><aside class="card file-detail" id="file-detail">${detail()}</aside></div>` : '<article class="card"><div class="empty">Том недоступен. Проверьте состояние носителя и сообщения системы.</div></article>'}${fresh}`;
-    root.querySelector("[data-refresh]").onclick = () => ctx.runRefresh(refresh);
     root.querySelector(".path-form").onsubmit = event => {
       event.preventDefault(); const value = event.currentTarget.querySelector("input").value.trim();
       const match = /^(flash|sd|sd-pl):(\/.*)$/.exec(value);
@@ -111,7 +110,7 @@ export async function filesPage(root, params, ctx) {
     try {
       await work();
       try { await refresh(); }
-      catch (e) { notice("Операция выполнена, но список не обновлён. Обновите его вручную. " + e.message,true); }
+      catch (e) { notice("Операция выполнена, но список не обновился. Откройте раздел заново. " + e.message,true); }
     } finally { busy = false; }
   }
   async function sendFile(file) {
@@ -149,5 +148,5 @@ export async function filesPage(root, params, ctx) {
     root.querySelector("[data-rename]") .onclick = () => ask({title:"Переименовать",body:`<label>Новое имя<input name="name" value="${esc(e.name)}" required maxlength="63"></label><p class="muted">Существующий объект не будет перезаписан.</p>`,submit:"Переименовать",run:form => operation(() => api.fsAction(volume,p,"rename",{dst_volume:volume,dst:join(path,validName(form.elements.name.value))}))});
     root.querySelector("[data-copy]") .onclick = () => ask({title:"Копировать файл",body:`<label>Том<select name="volume">${vols.filter(v => v.ready).map(v => `<option ${v.name === volume ? "selected" : ""} value="${v.name}">${v.name}:/</option>`).join("")}</select></label><label>Полный путь на томе<input name="path" value="${esc(join(path,e.name + ".copy"))}" required></label><p class="muted">Промежуточные каталоги должны существовать. Перезапись запрещена.</p>`,submit:"Копировать",run:form => operation(() => api.fsAction(volume,p,"copy",{dst_volume:form.elements.volume.value,dst:form.elements.path.value}))});
   }
-  await refresh(); return {refresh,dirty:() => busy,busy:() => busy};
+  await refresh(); return {refresh,poll:true,dirty:() => busy,busy:() => busy};
 }

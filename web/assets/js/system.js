@@ -41,7 +41,6 @@ export async function systemPage(root, params, ctx) {
     root.querySelector("#reboot").onclick = () => ask({title:"Перезагрузить bvstk?",body:"<p>Сначала завершите передачу файлов и сохраните конфигурации I²C и MDIO. Несохранённые изменения в RAM будут потеряны.</p>",submit:"Перезагрузить",danger:true,run:async () => {
       await api.request("/api/reboot",{method:"PUT",body:{confirm:true,delay_ms:1000}}); notice("Перезапуск запрошен. Дождитесь восстановления связи.");
     }});
-    root.querySelector("[data-refresh]").onclick = () => ctx.runRefresh(refresh);
   }
-  await refresh(); return {refresh,dirty:() => dirty};
+  await refresh(); return {refresh,poll:true,dirty:() => dirty};
 }
