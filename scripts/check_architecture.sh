@@ -52,10 +52,13 @@ check_forbidden \
   '#[[:space:]]*include[[:space:]]*"(apps/neutrino|ports/neutrino-zynq7000)/' \
   src/apps/freertos src/ports/freertos-xilinx
 
+# The UI bus adapter has an explicit action=save, like the shell save command.
+# Keep all other runtime/service handlers RAM-only.
+mapfile -t ram_only_services < <(rg --files src/apps/freertos/services -g '*.[ch]' -g '!http_ui_bus.c')
 check_forbidden \
-  "implicit I2C persistence outside the explicit shell save" \
+  "implicit I2C persistence outside explicit shell/HTTP save" \
   'config_store_save_i2c_device[[:space:]]*\(' \
-  src/apps/freertos/runtime src/apps/freertos/services
+  src/apps/freertos/runtime "${ram_only_services[@]}"
 
 check_forbidden \
   "Neutrino target (FreeRTOS source dependency)" \

@@ -1,0 +1,137 @@
+/* Reuse the shell fixture's actual portable services, fake buses and config
+ * store. HTTP and shell consequently exercise the same policies. */
+#define main shell_fixture_main
+#include "test_bus_shell.c"
+#undef main
+#define DIR NativeDir
+#include <dirent.h>
+#undef DIR
+#include <errno.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include "apps/freertos/services/http/http_ui.h"
+#include "ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.h"
+#include "ports/freertos-xilinx/storage/sd-pl/bvstk_sd_master_freertos.h"
+
+static char storage[256];
+static int mounted = 1, close_error;
+static FATFS fat = {.n_fatent=4098,.csize=1};
+static fs_shared_ctx_t contexts[] = {{.ready=&mounted,.root="0:/"},{.ready=&mounted,.root="1:/"},{.ready=&mounted,.root="2:/"}};
+static fs_device_info_t host_devices[] = {{"flash","flash",&contexts[0]},{"sd","sd",&contexts[1]},{"sd-pl","sd-pl",&contexts[2]}};
+void *pvPortMalloc(size_t n) { return malloc(n); }
+void vPortFree(void *p) { free(p); }
+int http_server_write(int fd, const void *p, size_t n) { if (n > 17) n = 17; return console_stream_write(fd,p,n); }
+int xSemaphoreTake(SemaphoreHandle_t s, unsigned t) { (void)s;(void)t;return 1; }
+int xSemaphoreGive(SemaphoreHandle_t s) { (void)s;return 1; }
+int bvstk_runtime_i2c_ready(void) { return ready; }
+int bvstk_runtime_mdio_ready(void) { return ready; }
+int fs_shared_is_ready(const fs_shared_ctx_t *c) { return c && *c->ready; }
+const fs_device_info_t *fs_device_by_name(const char *name) {
+    for (size_t i=0;i<3;i++) if (!strcmp(name,host_devices[i].name)) return &host_devices[i];
+    return NULL;
+}
+static FRESULT failure(void) { return errno == ENOENT ? FR_NO_FILE : errno == EEXIST ? FR_EXIST : FR_DENIED; }
+static void native_path(const char *path,char out[512]) {
+    assert(path[1] == ':' && path[2] == '/' && path[0] >= '0' && path[0] <= '2');
+    assert(!strstr(path,".."));
+    snprintf(out,512,"%s/%c%s",storage,path[0],path+2);
+}
+FRESULT f_open(FIL *f,const char *path,BYTE flags) {
+    char p[512]; native_path(path,p); struct stat st;
+    int exists = !stat(p,&st);
+    if (exists && S_ISDIR(st.st_mode)) return FR_DENIED;
+    if ((flags & FA_CREATE_NEW) && exists) return FR_EXIST;
+    const char *mode = flags & FA_WRITE ? ((flags & FA_CREATE_NEW) || !exists ? "w+b" : "r+b") : "rb";
+    f->native=fopen(p,mode); f->size=exists ? (FSIZE_t)st.st_size : 0;
+    return f->native ? FR_OK : failure();
+}
+FRESULT f_read(FIL *f,void *p,UINT n,UINT *got) { *got=(UINT)fread(p,1,n,f->native); return ferror(f->native) ? FR_DISK_ERR : FR_OK; }
+FRESULT f_write(FIL *f,const void *p,UINT n,UINT *got) { *got=(UINT)fwrite(p,1,n,f->native); f->size=(FSIZE_t)ftell(f->native); return *got==n ? FR_OK : FR_DISK_ERR; }
+FRESULT f_close(FIL *f) { int r=fclose(f->native); if(close_error){close_error=0;return FR_DISK_ERR;} return r ? FR_DISK_ERR : FR_OK; }
+FRESULT f_sync(FIL *f) { return fflush(f->native) ? FR_DISK_ERR : FR_OK; }
+FRESULT f_truncate(FIL *f) { f->size=0; return ftruncate(fileno(f->native),0) ? FR_DISK_ERR : FR_OK; }
+FRESULT f_stat(const char *path,FILINFO *fi) {
+    char p[512]; struct stat st; native_path(path,p);
+    if(stat(p,&st)) return failure();
+    memset(fi,0,sizeof(*fi));
+    snprintf(fi->fname,sizeof(fi->fname),"%s",strrchr(path,'/')+1);
+    fi->fsize=(FSIZE_t)st.st_size;fi->fattrib=S_ISDIR(st.st_mode)?AM_DIR:0;return FR_OK;
+}
+FRESULT f_getfree(const char *p,DWORD *n,FATFS **out) { (void)p;*n=2048;*out=&fat;return FR_OK; }
+FRESULT f_opendir(DIR *d,const char *p) { native_path(p,d->path);d->native=opendir(d->path);return d->native?FR_OK:failure(); }
+FRESULT f_readdir(DIR *d,FILINFO *fi) {
+    struct dirent *entry=readdir(d->native);memset(fi,0,sizeof(*fi));if(!entry)return FR_OK;
+    snprintf(fi->fname,sizeof(fi->fname),"%s",entry->d_name);
+    fi->fattrib=entry->d_type==DT_DIR?AM_DIR:0;return FR_OK;
+}
+FRESULT f_closedir(DIR *d) { return closedir(d->native)?FR_DISK_ERR:FR_OK; }
+FRESULT f_mkdir(const char *p) {char n[512];native_path(p,n);return mkdir(n,0700)?failure():FR_OK;}
+FRESULT f_unlink(const char *p) {char n[512];native_path(p,n);return remove(n)?failure():FR_OK;}
+FRESULT f_rename(const char *a,const char *b) {char x[512],y[512];struct stat st;native_path(a,x);native_path(b,y);if(!stat(y,&st))return FR_EXIST;return rename(x,y)?failure():FR_OK;}
+int bvstk_sd_pl_is_ready(void) {return mounted;}
+const bvstk_sd_volume_t *bvstk_sd_pl_volume(void) {static bvstk_sd_volume_t v={0,10000,32};return &v;}
+bvstk_sd_service_t *bvstk_sd_master_freertos_service(void) {return NULL;}
+bvstk_status_t bvstk_sd_service_info(bvstk_sd_service_t *s,bvstk_sd_card_info_t *out) {(void)s;memset(out,0,sizeof(*out));out->ready=1;return BVSTK_OK;}
+
+static int body_read(void *user,void *out,size_t n) {
+    const char **p=user;size_t len=strlen(*p);if(n>len)n=len;if(n>13)n=13;
+    memcpy(out,*p,n);*p+=n;return (int)n;
+}
+static void http_run(const char *method,const char *path,const char *body,int status) {
+    const char *cursor=body; char expected[40];
+    http_request_t req={.method=method,.path=path,.has_content_length=true,.content_length=strlen(body)};
+    http_conn_t conn={.fd=-1,.read_body=body_read,.read_user=&cursor};
+    output_length=0;output[0]=0;
+    assert(http_ui_handle(&req,&conn)==1);
+    snprintf(expected,sizeof(expected),"HTTP/1.0 %d ",status);
+    if(strncmp(output,expected,strlen(expected))){fprintf(stderr,"%s %s expected %d:\n%s\n",method,path,status,output);abort();}
+}
+static void revision(char out[9]) {
+    const char *p=strstr(output,"\"revision\":\"");assert(p);memcpy(out,p+12,8);out[8]=0;
+}
+int main(int argc,char **argv) {
+    assert(argc==2);snprintf(storage,sizeof(storage),"%s",argv[1]);assert(!mkdir(storage,0700));
+    for(int i=0;i<3;i++){char p[300];snprintf(p,sizeof(p),"%s/%d",storage,i);assert(!mkdir(p,0700));}
+    reset_fixture();char rev[9],path[256],json[32768];size_t n;
+    http_run("GET","/api/ui/bus?bus=mdio","",200);assert(strstr(output,"\"devices\""));
+    http_run("GET","/api/ui/bus?bus=mdio&name=dev","",200);revision(rev);assert(strstr(output,"\"saved\":false"));
+    snprintf(path,sizeof(path),"/api/ui/bus?bus=mdio&name=dev&action=save&revision=%s",rev);
+    http_run("PUT",path,"{}",200);assert(mdio_saves==1);
+    save_ok=0;http_run("PUT",path,"{}",500);save_ok=1;
+    http_run("PUT","/api/ui/bus?bus=mdio&name=dev&action=apply&revision=wrong","{}",409);
+    snprintf(path,sizeof(path),"/api/ui/bus?bus=mdio&name=dev&action=apply&revision=%s",rev);
+    mdio_saved.policy=MDIO_POLICY_BLACKLIST;
+    assert(bvstk_mdio_config_format(&mdio_saved,json,sizeof(json),&n)==BVSTK_OK);
+    http_run("PUT",path,json,200);assert(mdio_saves==2); /* explicit failed save above counted, apply did not save */
+    http_run("PUT",path,json,409);
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);revision(rev);
+    snprintf(path,sizeof(path),"/api/ui/bus?bus=i2c&name=dev&action=apply&revision=%s",rev);
+    http_run("PUT",path,"{\"name\":\"dev\",\"name\":\"other\"}",400);
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&reg=2&val=4&confirm=true","{}",403);assert(!writes);
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&reg=2&val=3&confirm=true","{}",200);assert(writes==1);
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&reg=2","{}",200);assert(strstr(output,"\"val\":3"));
+    http_run("GET","/api/ui/volumes","",200);assert(strstr(output,"sd-pl"));
+    http_run("GET","/api/ui/files?volume=sd-pl&path=%2F","",200);
+    http_run("PUT","/api/ui/files?volume=sd-pl&path=%2Fdemo&action=mkdir&confirm=true","{}",200);
+    http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&confirm=true","hello",200);
+    http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&confirm=true","bad",409);
+    http_run("GET","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt","",200);assert(strstr(output,"hello"));
+    http_run("GET","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&max_bytes=4","",413);
+    http_run("GET","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&max_bytes=5","",200);
+    http_run("GET","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&max_bytes=-1","",400);
+    http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&confirm=true&overwrite=true","new",200);
+    http_run("PUT","/api/ui/files?volume=sd-pl&path=%2Fdemo%2Ffile.txt&action=copy&dst_volume=flash&dst=%2Fcopy.txt&confirm=true","{}",200);
+    http_run("GET","/api/ui/file?volume=flash&path=%2Fcopy.txt","",200);assert(strstr(output,"new"));
+    http_run("PUT","/api/ui/files?volume=flash&path=%2Fcopy.txt&action=rename&dst_volume=flash&dst=%2Frenamed.txt&confirm=true","{}",200);
+    http_run("PUT","/api/ui/files?volume=flash&path=%2Frenamed.txt&action=remove&confirm=true","{}",200);
+    http_run("GET","/api/ui/files?volume=sd-pl&path=%2F..%2Fsecret","",400);
+    http_run("GET","/api/ui/files?volume=sd-pl&path=%2F&path=%2Fa","",400);
+    http_run("GET","/api/ui/files?volume=sd-pl&path=%2F%00oops","",400);
+    http_run("PUT","/api/ui/files?volume=sd-pl&path=%2F&action=remove&confirm=true","{}",400);
+    http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Funconfirmed","x",400);
+    close_error=1;
+    http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fclose-failure&confirm=true","x",500);
+    mounted=0;http_run("GET","/api/ui/files?volume=sd-pl&path=%2F","",503);mounted=1;
+    puts("HTTP UI bus and filesystem tests passed");return 0;
+}

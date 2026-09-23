@@ -71,6 +71,8 @@ Vitis создаёт представление исходников в `vitis_w
 | Перенос файлового чтения DCP2 | `src/services/fs/`, адаптер файловой системы целевого приложения |
 | Формат или обработка DCP2 | `src/protocols/dcp2/`, модель в `src/shared/protocols/dcp2/` |
 | FreeRTOS HTTP/TCP/SSH | `src/apps/freertos/services/` |
+| Веб-интерфейс | `web/assets/`, HTTP-адаптеры `src/apps/freertos/services/http/http_ui*.c` |
+| Проверка HTTP-ввода без ОС | `src/shared/protocols/http/bvstk_http_input.c` |
 | Команда FreeRTOS | `src/apps/freertos/console/` |
 | Загрузка JSON FreeRTOS | `src/apps/freertos/config/` |
 | Запуск общих сервисов FreeRTOS | `src/apps/freertos/runtime/` и `main.c` |

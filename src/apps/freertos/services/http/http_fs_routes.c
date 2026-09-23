@@ -1,4 +1,5 @@
 #include "apps/freertos/services/http/http_server.h"
+#include "apps/freertos/services/http/http_ui.h"
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -89,7 +90,7 @@ static void ctx_unlock(const fs_shared_ctx_t *ctx)
 
 static void http_write_str(int fd, const char *s)
 {
-    (void)lwip_write(fd, s, (int)strlen(s));
+    (void)http_server_write(fd, s, strlen(s));
 }
 
 static void http_reply_simple(int fd, int code, const char *reason, const char *body)
@@ -103,7 +104,7 @@ static void http_reply_simple(int fd, int code, const char *reason, const char *
         "Content-Length: %u\r\n"
         "\r\n",
         code, reason ? reason : "ERR", (unsigned)strlen(b));
-    if (n > 0) lwip_write(fd, hdr, n);
+    if (n > 0) http_server_write(fd, hdr, (size_t)n);
     if (b[0]) http_write_str(fd, b);
 }
 
@@ -116,7 +117,7 @@ static void http_reply_json_hdr(int fd, int code, const char *reason)
         "Content-Type: application/json; charset=utf-8\r\n"
         "\r\n",
         code, reason ? reason : "OK");
-    if (n > 0) lwip_write(fd, hdr, n);
+    if (n > 0) http_server_write(fd, hdr, (size_t)n);
 }
 
 static void json_write_escaped(int fd, const char *s)
@@ -133,7 +134,7 @@ static void json_write_escaped(int fd, const char *s)
             int n = snprintf(esc, sizeof(esc), "\\u%04x", (unsigned)(unsigned char)c);
             if (n > 0) http_write_str(fd, esc);
         } else {
-            (void)lwip_write(fd, &c, 1);
+            (void)http_server_write(fd, &c, 1);
         }
     }
     http_write_str(fd, "\"");
@@ -727,6 +728,7 @@ static void api_handle_i2c(int fd, const char *name_opt)
         json_write_escaped(fd, d->file_name);
         http_write_str(fd, ",\"policy\":");
         json_write_escaped(fd, (d->policy == I2C_POLICY_BLACKLIST) ? "blacklist" : "whitelist");
+        http_write_str(fd, ",");
         api_write_i2c_rules(fd, "whitelist", d->whitelist, d->whitelist_len, true);
         api_write_i2c_rules(fd, "blacklist", d->blacklist, d->blacklist_len, false);
         http_write_str(fd, "}}");
@@ -1221,7 +1223,7 @@ static bool map_url_to_web_fatfs(const char *url_path, char *out_fat, size_t out
 static int tar_sock_write(void *user, const void *buf, size_t len)
 {
     int fd = *(int *)user;
-    int w = lwip_write(fd, buf, (int)len);
+    int w = http_server_write(fd, buf, len);
     return (w <= 0) ? -1 : w;
 }
 
@@ -1262,7 +1264,7 @@ static int handle_get_file(int fd, const fs_device_info_t *dev, const char *fat_
         "Content-Length: %lu\r\n"
         "\r\n",
         (unsigned long)info.fsize);
-    if (hn > 0) lwip_write(fd, hdr, hn);
+    if (hn > 0) http_server_write(fd, hdr, (size_t)hn);
 
     uint8_t buf[1024];
     UINT br = 0;
@@ -1270,7 +1272,7 @@ static int handle_get_file(int fd, const fs_device_info_t *dev, const char *fat_
         FRESULT rres = f_read(&f, buf, sizeof(buf), &br);
         if (rres != FR_OK) break;
         if (br == 0) break;
-        int wr = lwip_write(fd, buf, (int)br);
+        int wr = http_server_write(fd, buf, br);
         if (wr <= 0) break;
     }
     f_close(&f);
@@ -1321,7 +1323,7 @@ static int handle_get_file_typed(int fd, const fs_device_info_t *dev, const char
         "Content-Length: %lu\r\n"
         "\r\n",
         ct, (unsigned long)info.fsize);
-    if (hn > 0) lwip_write(fd, hdr, hn);
+    if (hn > 0) http_server_write(fd, hdr, (size_t)hn);
 
     uint8_t buf[1024];
     UINT br = 0;
@@ -1329,7 +1331,7 @@ static int handle_get_file_typed(int fd, const fs_device_info_t *dev, const char
         FRESULT rres = f_read(&f, buf, sizeof(buf), &br);
         if (rres != FR_OK) break;
         if (br == 0) break;
-        int wr = lwip_write(fd, buf, (int)br);
+        int wr = http_server_write(fd, buf, br);
         if (wr <= 0) break;
     }
     f_close(&f);
@@ -1401,6 +1403,7 @@ static int handle_put_tar(int fd, const fs_device_info_t *dev, const char *fat_d
 int http_handle_request(const http_request_t *req, http_conn_t *conn)
 {
     if (!req || !conn || !req->method || !req->path) return 0;
+    if (http_ui_handle(req, conn)) return 1;
 
     // 0) JSON API: /api/...
     if (starts_with(req->path, "/api/")) {

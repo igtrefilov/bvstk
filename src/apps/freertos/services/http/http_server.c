@@ -16,10 +16,57 @@
 #include "xil_printf.h"
 
 enum { HTTP_PORT_DEFAULT = 80 };
-enum { HTTP_THREAD_STACK = 2048 };
+/* Bounded JSON validation and FAT directory operations need more than the
+ * original telemetry-only handler. Large bodies are allocated on the heap. */
+enum { HTTP_THREAD_STACK = 4096 };
+enum { HTTP_IO_IDLE_MS = 30000, HTTP_HEADER_IDLE_MS = 5000 };
 
 static uint16_t s_port = HTTP_PORT_DEFAULT;
 static volatile int s_startup_done;
+/* The server handles one client at a time. Once a connection fails, later
+ * fragments must fail immediately instead of waiting once per JSON field. */
+static int s_failed_fd = -1;
+static unsigned s_read_idle_ms = HTTP_HEADER_IDLE_MS;
+
+static int socket_wait(int fd, int writing, unsigned ms)
+{
+    fd_set set;
+    struct timeval timeout = {(long)(ms / 1000U), (long)(ms % 1000U) * 1000L};
+    if (s_failed_fd == fd) return 0;
+    FD_ZERO(&set); FD_SET(fd, &set);
+    int n = lwip_select(fd + 1, writing ? NULL : &set, writing ? &set : NULL, NULL, &timeout);
+    if (n <= 0) s_failed_fd = fd;
+    return n > 0;
+}
+
+static int socket_read(int fd, void *data, size_t length)
+{
+    if (!socket_wait(fd, 0, s_read_idle_ms)) return -1;
+    int n = lwip_recv(fd, data, length, MSG_DONTWAIT);
+    if (n <= 0) s_failed_fd = fd;
+    return n;
+}
+
+int http_server_write(int fd, const void *data, size_t length)
+{
+    const char *p = data;
+    size_t sent = 0;
+    uint32_t progress = sys_now();
+    while (sent < length) {
+        uint32_t elapsed = sys_now() - progress;
+        if (elapsed >= HTTP_IO_IDLE_MS || !socket_wait(fd, 1, HTTP_IO_IDLE_MS - elapsed)) goto fail;
+        size_t chunk = length - sent;
+        if (chunk > 2048U) chunk = 2048U;
+        int n = lwip_send(fd, p + sent, chunk, MSG_DONTWAIT);
+        if (n < 0 && (errno == EWOULDBLOCK || errno == EINTR)) continue;
+        if (n <= 0) goto fail;
+        sent += (size_t)n; progress = sys_now();
+    }
+    return (int)sent;
+fail:
+    s_failed_fd = fd;
+    return -1;
+}
 
 int http_server_startup_done(void)
 {
@@ -40,7 +87,7 @@ __attribute__((weak)) int http_handle_request(const http_request_t *req, http_co
 
 static void http_write_str(int fd, const char *s)
 {
-    (void)lwip_write(fd, s, (int)strlen(s));
+    (void)http_server_write(fd, s, strlen(s));
 }
 
 static void http_reply_simple(int fd, int code, const char *reason, const char *body)
@@ -54,7 +101,7 @@ static void http_reply_simple(int fd, int code, const char *reason, const char *
         "Content-Length: %u\r\n"
         "\r\n",
         code, reason ? reason : "ERR", (unsigned)strlen(b));
-    if (n > 0) lwip_write(fd, hdr, n);
+    if (n > 0) http_server_write(fd, hdr, (size_t)n);
     if (b[0]) http_write_str(fd, b);
 }
 
@@ -76,7 +123,7 @@ static int sock_read_exact(int fd, void *buf, size_t len)
     uint8_t *p = (uint8_t *)buf;
     size_t got = 0;
     while (got < len) {
-        int r = lwip_read(fd, p + got, (int)(len - got));
+        int r = socket_read(fd, p + got, len - got);
         if (r <= 0) return -1;
         got += (size_t)r;
     }
@@ -89,8 +136,8 @@ static int read_line(int fd, char *out, size_t out_sz)
     size_t n = 0;
     while (n + 1 < out_sz) {
         char c = 0;
-        int r = lwip_read(fd, &c, 1);
-        if (r <= 0) return -1;
+        int r = socket_read(fd, &c, 1);
+        if (r <= 0 || !c) return -1;
         if (c == '\n') {
             out[n] = '\0';
             if (n > 0 && out[n - 1] == '\r') out[n - 1] = '\0';
@@ -99,7 +146,7 @@ static int read_line(int fd, char *out, size_t out_sz)
         out[n++] = c;
     }
     out[out_sz - 1] = '\0';
-    return (int)n;
+    return -1; /* Do not parse a truncated request/header as another line. */
 }
 
 typedef struct {
@@ -117,7 +164,7 @@ static int http_body_read_impl(void *user, void *buf, size_t len)
     if (!b->chunked) {
         if (b->remaining == 0) return 0;
         size_t want = (b->remaining < (uint64_t)len) ? (size_t)b->remaining : len;
-        int r = lwip_read(b->fd, buf, (int)want);
+        int r = socket_read(b->fd, buf, want);
         if (r <= 0) return -1;
         b->remaining -= (uint64_t)r;
         return r;
@@ -127,13 +174,14 @@ static int http_body_read_impl(void *user, void *buf, size_t len)
     if (b->chunk_remaining == 0) {
         char line[64];
         if (read_line(b->fd, line, sizeof(line)) < 0) return -1;
-        unsigned long sz = 0;
+        uint64_t sz = 0;
         for (char *p = line; *p; ++p) {
             if (*p == ';') { *p = '\0'; break; }
         }
+        if (!line[0]) return -1;
         for (char *p = line; *p; ++p) {
-            if (!is_hex_digit(*p)) return -1;
-            sz = (sz << 4) | (unsigned long)hex_val(*p);
+            if (!is_hex_digit(*p) || sz > (UINT64_MAX - (unsigned)hex_val(*p)) / 16U) return -1;
+            sz = sz * 16U + (unsigned)hex_val(*p);
         }
         b->chunk_remaining = (uint64_t)sz;
         if (b->chunk_remaining == 0) {
@@ -147,7 +195,7 @@ static int http_body_read_impl(void *user, void *buf, size_t len)
     }
 
     size_t want = (b->chunk_remaining < (uint64_t)len) ? (size_t)b->chunk_remaining : len;
-    int r = lwip_read(b->fd, buf, (int)want);
+    int r = socket_read(b->fd, buf, want);
     if (r <= 0) return -1;
     b->chunk_remaining -= (uint64_t)r;
     if (b->chunk_remaining == 0) {
@@ -160,7 +208,9 @@ static int http_body_read_impl(void *user, void *buf, size_t len)
 
 static void handle_client(int fd)
 {
-    char reqline[256];
+    s_failed_fd = -1;
+    s_read_idle_ms = HTTP_HEADER_IDLE_MS;
+    char reqline[1024];
     if (read_line(fd, reqline, sizeof(reqline)) <= 0) return;
 
     char *method = NULL;
@@ -199,10 +249,26 @@ static void handle_client(int fd)
         if (strncasecmp(line, "Content-Length:", 15) == 0) {
             const char *p = line + 15;
             while (*p && isspace((unsigned char)*p)) p++;
-            req.content_length = (uint64_t)strtoull(p, NULL, 10);
+            if (req.has_content_length || !isdigit((unsigned char)*p)) {
+                http_reply_simple(fd, 400, "Bad Request", "invalid content length\r\n"); return;
+            }
+            for (; isdigit((unsigned char)*p); ++p) {
+                unsigned digit = (unsigned)(*p - '0');
+                if (req.content_length > (UINT64_MAX - digit) / 10U) {
+                    http_reply_simple(fd, 400, "Bad Request", "content length overflow\r\n"); return;
+                }
+                req.content_length = req.content_length * 10U + digit;
+            }
+            while (*p && isspace((unsigned char)*p)) p++;
+            if (*p) { http_reply_simple(fd, 400, "Bad Request", "invalid content length\r\n"); return; }
             req.has_content_length = true;
         } else if (strncasecmp(line, "Transfer-Encoding:", 18) == 0) {
-            if (strstr(line, "chunked")) req.chunked = true;
+            const char *p = line + 18;
+            while (*p && isspace((unsigned char)*p)) p++;
+            if (req.chunked || strcasecmp(p, "chunked")) {
+                http_reply_simple(fd, 400, "Bad Request", "unsupported transfer encoding\r\n"); return;
+            }
+            req.chunked = true;
         } else if (strncasecmp(line, "Content-Type:", 13) == 0) {
             const char *p = line + 13;
             while (*p && isspace((unsigned char)*p)) p++;
@@ -211,6 +277,11 @@ static void handle_client(int fd)
             req.content_type = content_type_buf;
         }
     }
+
+    if (req.chunked && req.has_content_length) {
+        http_reply_simple(fd, 400, "Bad Request", "ambiguous body length\r\n"); return;
+    }
+    s_read_idle_ms = HTTP_IO_IDLE_MS;
 
     http_body_t body = {
         .fd = fd,
@@ -249,7 +320,7 @@ static void http_server_thread(void *p)
         vTaskDelete(NULL);
         return;
     }
-    lwip_listen(s, 1);
+    lwip_listen(s, 6);
     xil_printf("HTTP: listening on %u\r\n", (unsigned)s_port);
     s_startup_done = 1;
 

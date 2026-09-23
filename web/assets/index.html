@@ -1,295 +1,49 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="color-scheme" content="light" />
-    <title>BVSTK</title>
-    <link rel="stylesheet" href="./css/app.css" />
-  </head>
-  <body>
-    <div class="wrap">
-      <header>
-        <div class="container topbar">
-          <a class="brand" href="#home" aria-label="Главная">
-            <img src="./logo.png" alt="BVSTK" />
-            <span>BVSTK</span>
-          </a>
-          <nav aria-label="Разделы">
-            <ul>
-              <li><a data-tab="home" class="active" href="#home">Главная</a></li>
-              <li><a data-tab="diag" href="#diag">Диагностика</a></li>
-              <li><a data-tab="settings" href="#settings">Настройки</a></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
-      <main>
-        <div class="container">
-          <section id="tab-home" aria-label="Главная">
-            <div class="section-toolbar" role="group" aria-label="Действия">
-              <button class="btn-danger" type="button" data-action="reboot">Перезагрузить</button>
-              <span class="status reboot-status" aria-live="polite">—</span>
-            </div>
-            <div class="tiles" role="list">
-              <article class="card" role="listitem" aria-label="Сеть">
-                <div class="pill"><span id="net-dot" class="dot"></span>Сеть</div>
-                <table class="kv" aria-label="Сеть">
-                  <tr><th>IP</th><td id="net-ip">—</td></tr>
-                  <tr><th>Mode</th><td id="net-mode">—</td></tr>
-                  <tr><th>Netmask</th><td id="net-netmask">—</td></tr>
-                  <tr><th>Gateway</th><td id="net-gateway">—</td></tr>
-                  <tr><th>MAC</th><td id="net-mac" class="mono">—</td></tr>
-                </table>
-              </article>
-
-              <article class="card" role="listitem" aria-label="RTOS">
-                <div class="pill"><span id="rtos-dot" class="dot"></span>RTOS</div>
-                <table class="kv" aria-label="RTOS">
-                  <tr><th>Uptime</th><td id="rtos-uptime">—</td></tr>
-                  <tr><th>Heap free</th><td id="rtos-heap-free">—</td></tr>
-                  <tr><th>Heap min</th><td id="rtos-heap-min">—</td></tr>
-                  <tr><th>Tick rate</th><td id="rtos-tick">—</td></tr>
-                </table>
-              </article>
-
-              <article class="card" role="listitem" aria-label="Файловые системы">
-                <div class="pill"><span id="fs-dot" class="dot"></span>FS</div>
-                <table class="kv" aria-label="FS">
-                  <tr><th>Flash</th><td id="fs-flash">—</td></tr>
-                  <tr><th>SD</th><td id="fs-sd">—</td></tr>
-                </table>
-              </article>
-
-              <article class="card" role="listitem" aria-label="I2C">
-                <div class="pill"><span id="i2c-dot" class="dot"></span>I2C</div>
-                <table class="kv" aria-label="I2C">
-                  <tr><th>Ready</th><td id="i2c-ready">—</td></tr>
-                  <tr><th>Devices</th><td id="i2c-count">—</td></tr>
-                  <tr>
-                    <th>List</th>
-                    <td class="mono">
-                      <div id="i2c-list" class="scroll">—</div>
-                    </td>
-                  </tr>
-                </table>
-              </article>
-            </div>
-          </section>
-
-          <section id="tab-diag" class="hidden section" aria-label="Диагностика">
-            <div class="section-toolbar" role="group" aria-label="Действия">
-              <button class="btn-danger" type="button" data-action="reboot">Перезагрузить</button>
-              <span class="status reboot-status" aria-live="polite">—</span>
-            </div>
-            <div class="tiles" role="list">
-              <article class="card" role="listitem" aria-label="I2C регистры">
-                <h2 class="section-title">I2C</h2>
-                <p class="section-desc">Чтение/запись регистров выбранного I2C устройства.</p>
-                <form id="diag-i2c" class="form" autocomplete="off">
-                  <label class="field">
-                    <span>Device</span>
-                    <select id="diag-i2c-dev"></select>
-                  </label>
-                  <label class="field">
-                    <span>Reg (0..255)</span>
-                    <input id="diag-i2c-reg" inputmode="numeric" placeholder="19" />
-                  </label>
-                  <label class="field">
-                    <span>Val (0..255)</span>
-                    <input id="diag-i2c-val" inputmode="numeric" placeholder="16" />
-                  </label>
-                  <div class="actions">
-                    <button id="diag-i2c-read" type="button">Read</button>
-                    <button id="diag-i2c-write" type="button">Write</button>
-                    <span id="diag-i2c-out" class="status">—</span>
-                  </div>
-                </form>
-              </article>
-
-              <article class="card" role="listitem" aria-label="MEM регистры">
-                <h2 class="section-title">MEM</h2>
-                <p class="section-desc">Опасно: чтение/запись MMIO памяти. Запись требует подтверждения.</p>
-                <form id="diag-mem" class="form" autocomplete="off">
-                  <label class="field">
-                    <span>Address (hex or dec)</span>
-                    <input id="diag-mem-addr" inputmode="text" placeholder="0xE000A000" />
-                  </label>
-                  <label class="field">
-                    <span>Value (hex or dec)</span>
-                    <input id="diag-mem-val" inputmode="text" placeholder="0x00000001" />
-                  </label>
-                  <label class="check">
-                    <input id="diag-mem-confirm" type="checkbox" />
-                    <span>Confirm write</span>
-                  </label>
-                  <div class="actions">
-                    <button id="diag-mem-read" type="button">Read</button>
-                    <button id="diag-mem-write" type="button">Write</button>
-                    <span id="diag-mem-out" class="status">—</span>
-                  </div>
-                </form>
-              </article>
-            </div>
-          </section>
-
-          <section id="tab-settings" class="hidden section" aria-label="Настройки">
-            <div class="section-toolbar" role="group" aria-label="Действия">
-              <button class="btn-danger" type="button" data-action="reboot">Перезагрузить</button>
-              <span class="status reboot-status" aria-live="polite">—</span>
-            </div>
-            <div class="stack">
-              <article class="card" aria-label="Сетевые настройки">
-                <h2 class="section-title">Сеть</h2>
-                <p class="section-desc">
-                  Изменение IP/маски/шлюза/MAC. При применении IP текущая сессия может оборваться.
-                </p>
-
-                <form id="net-form" class="form" autocomplete="off">
-                  <label class="field">
-                    <span>IP</span>
-                    <input id="cfg-ip" inputmode="decimal" placeholder="192.168.0.10" />
-                  </label>
-
-                  <label class="field">
-                    <span>Netmask</span>
-                    <input id="cfg-netmask" inputmode="decimal" placeholder="255.255.255.0" />
-                  </label>
-
-                  <label class="field">
-                    <span>Gateway</span>
-                    <input id="cfg-gateway" inputmode="decimal" placeholder="192.168.0.1" />
-                  </label>
-
-                  <label class="field">
-                    <span>MAC</span>
-                    <input id="cfg-mac" inputmode="text" placeholder="00:0a:35:00:01:02" />
-                  </label>
-
-                  <label class="check">
-                    <input id="cfg-apply" type="checkbox" checked />
-                    <span>Применить сразу</span>
-                  </label>
-
-                  <div class="actions">
-                    <button id="cfg-save" type="submit">Сохранить</button>
-                    <span id="cfg-status" class="status">—</span>
-                  </div>
-                </form>
-              </article>
-
-              <section class="group" aria-label="PL драйвера">
-                <div class="group-head">
-                  <h2 class="group-title">PL драйвера</h2>
-                  <p class="group-desc">I2C / SMI / SPI — настройки и диагностика драйверов.</p>
-                </div>
-
-                <div class="tiles" role="list">
-                  <article class="card" role="listitem" aria-label="I2C настройки">
-                    <h3 class="section-title">I2C</h3>
-                    <p class="section-desc">Выбор устройства и изменение параметров конфигурации.</p>
-
-                    <form id="i2c-form" class="form" autocomplete="off">
-                      <label class="field">
-                        <span>Device</span>
-                        <select id="i2c-dev" aria-label="I2C device"></select>
-                      </label>
-
-                      <label class="field">
-                        <span>Policy</span>
-                        <select id="i2c-policy">
-                          <option value="whitelist">whitelist</option>
-                          <option value="blacklist">blacklist</option>
-                        </select>
-                      </label>
-
-                      <label class="check">
-                        <input id="i2c-autopoll-enabled" type="checkbox" />
-                        <span>Autopoll enabled</span>
-                      </label>
-
-                      <label class="field">
-                        <span>Autopoll regs (comma separated)</span>
-                        <input id="i2c-autopoll-regs" inputmode="text" placeholder="0, 49, 50, 72, 73" />
-                      </label>
-
-                      <label class="field">
-                        <span>Whitelist rules (one per line: reg=val)</span>
-                        <textarea id="i2c-whitelist" placeholder="19=16&#10;19=17"></textarea>
-                      </label>
-
-                      <label class="field">
-                        <span>Blacklist rules (one per line: reg=val)</span>
-                        <textarea id="i2c-blacklist" placeholder=""></textarea>
-                      </label>
-
-                      <label class="field">
-                        <span>Reg delay (ms)</span>
-                        <input id="i2c-reg-delay" inputmode="numeric" placeholder="5" />
-                      </label>
-
-                      <label class="field">
-                        <span>Cycle delay (ms)</span>
-                        <input id="i2c-cycle-delay" inputmode="numeric" placeholder="200" />
-                      </label>
-
-                      <div class="actions">
-                        <button id="i2c-save" type="submit">Сохранить</button>
-                        <span id="i2c-status" class="status">—</span>
-                      </div>
-                    </form>
-                  </article>
-
-                  <article class="card" role="listitem" aria-label="SMI настройки">
-                    <h3 class="section-title">SMI</h3>
-                    <p class="section-desc">Заглушка для будущих настроек PHY/MDIO (SMI).</p>
-                    <form class="form" autocomplete="off">
-                      <label class="field">
-                        <span>PHY address</span>
-                        <input disabled placeholder="0" />
-                      </label>
-                      <label class="field">
-                        <span>Link mode</span>
-                        <select disabled>
-                          <option>auto</option>
-                        </select>
-                      </label>
-                      <div class="actions">
-                        <button type="button" disabled>Сохранить</button>
-                        <span class="status">coming soon</span>
-                      </div>
-                    </form>
-                  </article>
-
-                  <article class="card" role="listitem" aria-label="SPI настройки">
-                    <h3 class="section-title">SPI</h3>
-                    <p class="section-desc">Заглушка для будущих настроек SPI‑драйвера.</p>
-                    <form class="form" autocomplete="off">
-                      <label class="field">
-                        <span>Mode</span>
-                        <select disabled>
-                          <option>MODE0</option>
-                        </select>
-                      </label>
-                      <label class="field">
-                        <span>Clock (Hz)</span>
-                        <input disabled placeholder="1000000" />
-                      </label>
-                      <div class="actions">
-                        <button type="button" disabled>Сохранить</button>
-                        <span class="status">coming soon</span>
-                      </div>
-                    </form>
-                  </article>
-                </div>
-              </section>
-            </div>
-          </section>
-        </div>
-      </main>
-    </div>
-
-    <script type="module" src="./js/main.js"></script>
-  </body>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light"><title>bvstk</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<a class="skip-link" href="#content">К содержимому</a>
+<header class="topbar">
+<button id="menu-toggle" class="icon-button mobile-only" aria-label="Открыть навигацию" aria-expanded="false">☰</button>
+<a class="brand" href="#overview" aria-label="bvstk — состояние"><img src="/logo.png" alt="Росатом"><span>bvstk</span></a>
+<span class="product-caption">Управление подсистемами</span>
+<div class="connection" id="connection" role="status" data-state="offline" aria-live="polite"><span class="dot offline" aria-hidden="true"></span><span>Оффлайн</span></div>
+</header>
+<aside class="sidebar" id="sidebar" aria-label="Навигация">
+<nav>
+<a href="#overview" data-nav="overview"><span data-icon="home"></span>Состояние</a>
+<details class="nav-branch" open><summary class="nav-group"><span data-icon="grid"></span>Подсистемы</summary><div class="nav-children">
+<a href="#i2c" data-nav="i2c"><span data-icon="bus"></span>I²C</a>
+<div class="device-tree" data-device-tree="i2c"></div>
+<a href="#mdio" data-nav="mdio"><span data-icon="bus"></span>MDIO</a>
+<div class="device-tree" data-device-tree="mdio"></div>
+<a href="#sd-pl" data-nav="sd-pl"><span data-icon="disk"></span>SD-PL</a>
+</div></details>
+<details class="nav-branch" open><summary><a href="#files" data-nav="files"><span data-icon="file"></span>Файлы</a></summary><div class="nav-children" id="volume-tree">
+<a href="#files?volume=flash" data-volume-nav="flash"><span data-icon="storage"></span>flash:/</a>
+<a href="#files?volume=sd" data-volume-nav="sd"><span data-icon="storage"></span>sd:/</a>
+<a href="#files?volume=sd-pl" data-volume-nav="sd-pl"><span data-icon="storage"></span>sd-pl:/</a>
+</div></details>
+<details class="nav-branch" open><summary><a href="#system" data-nav="system"><span data-icon="settings"></span>Система</a></summary><div class="nav-children">
+<a href="#system?tab=network" data-system-nav="network"><span data-icon="net"></span>Сеть</a>
+<a href="#system?tab=runtime" data-system-nav="runtime"><span data-icon="chip"></span>FreeRTOS</a>
+<a href="#system?tab=maintenance" data-system-nav="maintenance"><span data-icon="tools"></span>Обслуживание</a>
+</div></details>
+</nav><div class="sidebar-art" aria-hidden="true"><svg width="0" height="0" class="art-filters"><defs><filter id="bird-monochrome" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 .867 0 0 0 0 .89 0 0 0 0 .918 -6 0 6 0 -1.5"/></filter></defs></svg><span class="brand-bird"></span><svg class="brand-waves" viewBox="1 2 110 22" preserveAspectRatio="none" fill="none"></svg></div>
+</aside>
+<main id="content" tabindex="-1"><div class="loading">Загрузка интерфейса…</div></main>
+<footer class="workspace-status"><span id="snapshot-status">Ожидание данных</span><span id="object-status">Состояние</span><span class="workspace-name">bvstk</span></footer>
+<div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
+<dialog id="modal" aria-labelledby="modal-title"><form id="modal-form" method="dialog">
+<div class="dialog-head"><h2 id="modal-title"></h2><button type="button" data-dismiss class="icon-button" aria-label="Закрыть">×</button></div>
+<div id="modal-body"></div><p id="modal-error" class="error-text" role="alert"></p>
+<div class="actions"><button type="button" data-dismiss>Отмена</button><button type="submit" class="primary" id="modal-submit">Продолжить</button></div>
+</form></dialog>
+<noscript>Для работы интерфейса необходимо включить JavaScript.</noscript>
+<script type="module" src="/js/main.js"></script>
+</body>
 </html>

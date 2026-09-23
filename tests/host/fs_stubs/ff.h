@@ -6,10 +6,11 @@
 typedef uint8_t BYTE;
 typedef unsigned UINT;
 typedef uint32_t FSIZE_t;
-typedef struct { unsigned unused; } FATFS;
-typedef struct { FSIZE_t size; } FIL;
-typedef struct { unsigned unused; } DIR;
-typedef struct { char fname[256], altname[13]; BYTE fattrib; FSIZE_t fsize; } FILINFO;
+typedef uint32_t DWORD;
+typedef struct { unsigned unused, n_fatent, csize; } FATFS;
+typedef struct { FSIZE_t size; void *native; } FIL;
+typedef struct { unsigned unused; void *native; char path[512]; } DIR;
+typedef struct { char fname[256], altname[13]; BYTE fattrib; FSIZE_t fsize; unsigned short fdate, ftime; } FILINFO;
 typedef enum {
     FR_OK, FR_DISK_ERR, FR_INT_ERR, FR_NOT_READY, FR_NO_FILE, FR_NO_PATH,
     FR_INVALID_NAME, FR_DENIED, FR_EXIST, FR_INVALID_OBJECT, FR_WRITE_PROTECTED,
@@ -25,6 +26,7 @@ typedef enum {
 #define AM_DIR 0x10
 #define FA_READ 1
 #define FA_WRITE 2
+#define FA_CREATE_NEW 4
 #define FA_CREATE_ALWAYS 8
 #define FA_OPEN_ALWAYS 16
 #define f_size(fp) ((fp)->size)
@@ -32,6 +34,8 @@ FRESULT f_mount(FATFS *, const char *, BYTE);
 FRESULT f_mkfs(const char *, BYTE, unsigned, void *, UINT);
 FRESULT f_open(FIL *, const char *, BYTE);
 FRESULT f_close(FIL *);
+FRESULT f_sync(FIL *);
+FRESULT f_getfree(const char *, DWORD *, FATFS **);
 FRESULT f_truncate(FIL *);
 FRESULT f_lseek(FIL *, FSIZE_t);
 FRESULT f_read(FIL *, void *, UINT, UINT *);

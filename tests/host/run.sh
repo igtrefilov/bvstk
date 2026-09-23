@@ -6,6 +6,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 TEST_TMP="$(mktemp -d)"
 trap 'rm -rf "$TEST_TMP"' EXIT
 
+bash "$SCRIPT_DIR/run_http.sh" "$TEST_TMP"
+
 cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_shared.c" \
