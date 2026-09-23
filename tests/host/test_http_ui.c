@@ -19,7 +19,7 @@
 
 static char storage[256];
 static int mounted = 1, close_error;
-static FATFS fat = {.n_fatent=4098,.csize=1};
+static FATFS fat = {.fs_type=FS_FAT32,.n_fatent=4098,.csize=1};
 static fs_shared_ctx_t contexts[] = {{.ready=&mounted,.root="0:/"},{.ready=&mounted,.root="1:/"},{.ready=&mounted,.root="2:/"}};
 static fs_device_info_t host_devices[] = {{"flash","flash",&contexts[0]},{"sd","sd",&contexts[1]},{"sd-pl","sd-pl",&contexts[2]}};
 void *pvPortMalloc(size_t n) { return malloc(n); }
@@ -192,7 +192,7 @@ int main(int argc,char **argv) {
         http_run("PUT","/api/ui/observe?bus=i2c&channel=events","",405);
         http_run("GET","/api/ui/observe-more?bus=i2c&channel=events","",404);
     }
-    http_run("GET","/api/ui/volumes","",200);assert(strstr(output,"sd-pl"));
+    http_run("GET","/api/ui/volumes","",200);assert(strstr(output,"sd-pl"));assert(strstr(output,"\"name\":\"flash\",\"ready\":true,\"fat_bits\":32"));assert(strstr(output,"\"name\":\"sd\",\"ready\":true,\"fat_bits\":32"));
     http_run("GET","/api/ui/files?volume=sd-pl&path=%2F","",200);
     http_run("PUT","/api/ui/files?volume=sd-pl&path=%2Fdemo&action=mkdir&confirm=true","{}",200);
     http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&confirm=true","hello",200);
