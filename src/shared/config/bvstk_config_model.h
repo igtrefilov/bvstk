@@ -27,12 +27,15 @@ typedef struct {
  * The bridge adapters retain its policy/cache/polling semantics exactly. */
 #define BVSTK_PROFILE_JSON_MAX 65536u
 #define BVSTK_PROFILE_IDS_CAP 2048u
+#define BVSTK_REGISTER_MAP_NAME_MAX 64u
 typedef struct {
     uint8_t version; /* zero: unversioned legacy projection, two: profile v2 */
     char vendor[65];
     char model[65];
     char device_class[16];
     char label[97];
+    char register_map[BVSTK_REGISTER_MAP_NAME_MAX];
+    char view[BVSTK_REGISTER_MAP_NAME_MAX];
     uint16_t id_offset[I2C_CFG_MAX_REG_COUNT];
     uint16_t ids_size;
     char ids[BVSTK_PROFILE_IDS_CAP];

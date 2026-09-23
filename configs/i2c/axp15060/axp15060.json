@@ -1,6 +1,8 @@
 {
   "schema_version": 2,
   "id": "axp15060",
+  "register_map": "register_map.json",
+  "view": "view.js",
   "device": {
     "model": "AXP15060",
     "class": "power"

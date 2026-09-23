@@ -101,9 +101,11 @@ int main(int argc,char **argv) {
     assert(bvstk_device_profile_format_i2c(&i2c_config,json,sizeof(json),&n)==BVSTK_OK);
     assert(bvstk_i2c_config_parse_json(json,&i2c_config)==BVSTK_OK);
     strcpy(i2c_config.file_name,"dev.json"); strcpy(i2c_config.profile.label,"I2C metadata");
+    strcpy(i2c_config.profile.register_map,"register_map.json"); strcpy(i2c_config.profile.view,"view.js");
     assert(bvstk_device_profile_format_mdio(&mdio_saved,json,sizeof(json),&n)==BVSTK_OK);
     assert(bvstk_mdio_config_parse(json,&mdio_saved)==BVSTK_OK);
     strcpy(mdio_saved.file_name,"dev.json"); strcpy(mdio_saved.profile.label,"MDIO metadata");
+    strcpy(mdio_saved.profile.register_map,"register_map.json"); strcpy(mdio_saved.profile.view,"view.js");
     init_services();
     i2c.events.publish = bvstk_observer_publish;
     mdio.events.publish = bvstk_observer_publish;
@@ -120,6 +122,7 @@ int main(int argc,char **argv) {
     assert(strstr(output,"\"available\":false,\"presence\":\"unavailable\""));
     mdio.cache[0][3].seeded=0;
     http_run("GET","/api/ui/bus?bus=mdio&name=dev","",200);revision(rev);assert(strstr(output,"\"saved\":false"));
+    assert(strstr(output,"\"register_map\":\"register_map.json\",\"view\":\"view.js\""));
     snprintf(path,sizeof(path),"/api/ui/bus?bus=mdio&name=dev&action=save&revision=%s",rev);
     http_run("PUT",path,"{}",200);assert(mdio_saves==1);
     save_ok=0;http_run("PUT",path,"{}",500);save_ok=1;
@@ -131,8 +134,10 @@ int main(int argc,char **argv) {
     mdio_phy_config_t mdio_after;
     assert(bvstk_mdio_service_get_config(&mdio,0,&mdio_after)==BVSTK_OK);
     assert(mdio_after.profile.version==2 && !strcmp(mdio_after.profile.label,"MDIO metadata"));
+    assert(!strcmp(mdio_after.profile.register_map,"register_map.json") && !strcmp(mdio_after.profile.view,"view.js"));
     http_run("PUT",path,json,409);
     http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);revision(rev);
+    assert(strstr(output,"\"register_map\":\"register_map.json\",\"view\":\"view.js\""));
     assert(strstr(output,"\"available\":false,\"presence\":\"unknown\""));
     assert(bvstk_i2c_cache_write(&cache,0,2,3)==BVSTK_OK);
     http_run("GET","/api/ui/bus?bus=i2c","",200);

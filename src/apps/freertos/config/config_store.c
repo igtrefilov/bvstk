@@ -28,6 +28,7 @@
 
 static void build_flash_path(char *out, size_t out_sz, const char *suffix_no_slash);
 static int file_exists(const char *path);
+static int profile_file_present(const char *path);
 static int read_file_to_buf(const char *path, char *buf, size_t buf_sz, size_t *out_len);
 
 static void build_cfg_path(char *out_primary, size_t out_primary_sz,
@@ -245,12 +246,12 @@ static int json_get_string(const char *json, const char *key, char *out, size_t 
 static int parse_mac(const char *s, uint8_t out_mac[6])
 {
     if (!s || !out_mac) return 0;
-    int vals[6] = {0};
+    unsigned vals[6] = {0};
     int got = sscanf(s, "%x:%x:%x:%x:%x:%x",
                      &vals[0], &vals[1], &vals[2], &vals[3], &vals[4], &vals[5]);
     if (got != 6) return 0;
     for (int i = 0; i < 6; ++i) {
-        if (vals[i] < 0 || vals[i] > 255) return 0;
+        if (vals[i] > 255U) return 0;
         out_mac[i] = (uint8_t)vals[i];
     }
     return 1;
@@ -330,7 +331,7 @@ static int write_device_file(const char *path, const void *data, size_t len)
     }
     return 1;
 }
-static int recover_device_configs(const char *path)
+static int recover_device_configs_level(const char *path, int bundles)
 {
     DIR dir;
     FILINFO entry;
@@ -342,19 +343,196 @@ static int recover_device_configs(const char *path)
         size_t len;
         result = f_readdir(&dir, &entry);
         if (result != FR_OK || !entry.fname[0]) break;
+        if (!strcmp(entry.fname, ".") || !strcmp(entry.fname, "..")) continue;
         len = strlen(entry.fname);
+        if (bundles && (entry.fattrib & AM_DIR)) {
+            if (snprintf(canonical, sizeof(canonical), "%s/%s", path, entry.fname) >= (int)sizeof(canonical) ||
+                !recover_device_configs_level(canonical, 0)) { result = FR_DISK_ERR; break; }
+            continue;
+        }
         if ((entry.fattrib & AM_DIR) || len < 10U || strcasecmp(entry.fname + len - 9U, ".json.bak")) continue;
         if (snprintf(backup, sizeof(backup), "%s/%s", path, entry.fname) >= (int)sizeof(backup)) {
             result = FR_INVALID_NAME; break;
         }
         strcpy(canonical, backup);
         canonical[strlen(canonical) - 4U] = '\0';
-        if (!file_exists(canonical) && !copy_file_atomic(backup, canonical, s_cfg_buf, sizeof(s_cfg_buf))) {
+        if (bvstk_device_profile_is_register_map(strrchr(canonical, '/')+1)) continue;
+        if (!bundles) {
+            const char *bundle = strrchr(path, '/') + 1;
+            char relative[I2C_CFG_FILE_NAME_MAX];
+            if (!bundle || snprintf(relative, sizeof(relative), "%s/%s", bundle,
+                                    strrchr(canonical, '/') + 1) >= (int)sizeof(relative) ||
+                !bvstk_device_profile_path_valid(relative)) continue;
+        }
+        int present = profile_file_present(canonical);
+        if (present < 0 || (!present && !copy_file_atomic(backup, canonical, s_cfg_buf, sizeof(s_cfg_buf)))) {
             result = FR_DISK_ERR; break;
         }
     }
     (void)f_closedir(&dir);
     return result == FR_OK;
+}
+static int recover_device_configs(const char *path)
+{
+    return recover_device_configs_level(path, 1);
+}
+static int ensure_device_parent(const char *path)
+{
+    char parent[200], *slash;
+    if (strlen(path) >= sizeof(parent)) return 0;
+    strcpy(parent, path);
+    slash = strrchr(parent, '/');
+    if (!slash) return 0;
+    *slash = 0;
+    return ensure_dir_exists(parent);
+}
+static int profile_file_present(const char *path)
+{
+    FILINFO info;
+    FRESULT result = f_stat(path, &info);
+    if (result == FR_NO_FILE || result == FR_NO_PATH) return 0;
+    if (result != FR_OK || (info.fattrib & AM_DIR)) return -1;
+    return 1;
+}
+/* A bundle supersedes its flat copy. Other JSON files inside the bundle are
+ * reference data, never candidate configurations. No recursive traversal. */
+static int profile_candidate(const char *directory, const FILINFO *entry,
+                             char relative[I2C_CFG_FILE_NAME_MAX])
+{
+    char path[200], canonical[I2C_CFG_FILE_NAME_MAX], legacy[I2C_CFG_FILE_NAME_MAX];
+    size_t n = strlen(entry->fname);
+    int length, present;
+    if (entry->fattrib & AM_DIR) {
+        length = snprintf(canonical, sizeof(canonical), "%s/%s.json", entry->fname, entry->fname);
+        if (length < 0 || length >= (int)sizeof(canonical) ||
+            !bvstk_device_profile_path_valid(canonical)) return 0;
+        if (snprintf(path, sizeof(path), "%s/%s", directory, canonical) >= (int)sizeof(path)) return -1;
+        present = profile_file_present(path);
+        if (present < 0) return -1;
+        if (present > 0) {
+            strcpy(relative, canonical);
+            return 1;
+        }
+        length = snprintf(legacy, sizeof(legacy), "%s/profile.json", entry->fname);
+        if (length < 0 || length >= (int)sizeof(legacy) ||
+            !bvstk_device_profile_path_valid(legacy)) return 0;
+        if (snprintf(path, sizeof(path), "%s/%s", directory, legacy) >= (int)sizeof(path)) return -1;
+        present = profile_file_present(path);
+        if (present < 0) return -1;
+        if (present > 0) {
+            strcpy(relative, legacy);
+            return 1;
+        }
+        return 0;
+    }
+    if (n < 6 || strcasecmp(entry->fname+n-5, ".json") ||
+        bvstk_device_profile_is_register_map(entry->fname)) return 0;
+    if (n >= I2C_CFG_FILE_NAME_MAX || !bvstk_device_profile_path_valid(entry->fname)) return -1;
+    if (snprintf(path, sizeof(path), "%s/%.*s/%.*s.json", directory,
+                 (int)(n-5U), entry->fname, (int)(n-5U), entry->fname) >= (int)sizeof(path)) return -1;
+    present = profile_file_present(path);
+    if (present < 0) return -1;
+    if (present) return 0;
+    if (snprintf(path, sizeof(path), "%s/%.*s/profile.json", directory,
+                 (int)(n-5U), entry->fname) >= (int)sizeof(path)) return -1;
+    present = profile_file_present(path);
+    if (present < 0) return -1;
+    if (present) return 0;
+    strcpy(relative, entry->fname);
+    return 1;
+}
+/* Materialize the canonical bundle filename without deleting legacy files.
+ * This keeps old installations readable while making the on-device layout
+ * self-describing for the web UI and future saves. */
+static int migrate_profile_layout(const char *directory)
+{
+    DIR dir;
+    FILINFO entry;
+    FRESULT result = f_opendir(&dir, directory);
+    if (result == FR_NO_PATH || result == FR_NO_FILE) return 1;
+    if (result != FR_OK) return 0;
+    for (;;) {
+        char canonical[200], legacy[200], source[200];
+        size_t n;
+        result = f_readdir(&dir, &entry);
+        if (result != FR_OK || !entry.fname[0]) break;
+        if (!strcmp(entry.fname, ".") || !strcmp(entry.fname, "..")) continue;
+        if (entry.fattrib & AM_DIR) {
+            if (snprintf(canonical, sizeof(canonical), "%s/%s/%s.json",
+                         directory, entry.fname, entry.fname) >= (int)sizeof(canonical) ||
+                snprintf(legacy, sizeof(legacy), "%s/%s/profile.json",
+                         directory, entry.fname) >= (int)sizeof(legacy)) continue;
+            if (profile_file_present(canonical) == 0 && profile_file_present(legacy) > 0 &&
+                !copy_file_atomic(legacy, canonical, s_cfg_buf, sizeof(s_cfg_buf))) {
+                result = FR_DISK_ERR; break;
+            }
+            continue;
+        }
+        n = strlen(entry.fname);
+        if (n < 6U || strcasecmp(entry.fname + n - 5U, ".json") ||
+            bvstk_device_profile_is_register_map(entry.fname) ||
+            !bvstk_device_profile_path_valid(entry.fname)) continue;
+        if (snprintf(canonical, sizeof(canonical), "%s/%.*s/%.*s.json", directory,
+                     (int)(n - 5U), entry.fname, (int)(n - 5U), entry.fname) >= (int)sizeof(canonical)) continue;
+        if (profile_file_present(canonical) == 0) {
+            if (snprintf(source, sizeof(source), "%s/%s", directory, entry.fname) >= (int)sizeof(source) ||
+                !ensure_device_parent(canonical) ||
+                !copy_file_atomic(source, canonical, s_cfg_buf, sizeof(s_cfg_buf))) {
+                result = FR_DISK_ERR; break;
+            }
+        }
+    }
+    (void)f_closedir(&dir);
+    return result == FR_OK;
+}
+/* Do not install defaults over an existing profile in any supported layout. */
+static int profile_exists(const char *path)
+{
+    char alternate[200], flat[200], *slash;
+    if (profile_file_present(path) != 0) return 1;
+    if (strlen(path) >= sizeof(alternate)) return 1;
+    strcpy(alternate, path);
+    slash = strrchr(alternate, '/');
+    if (!slash) return 0;
+    if (!strcmp(slash + 1, "profile.json")) {
+        char *bundle = slash;
+        while (bundle > alternate && bundle[-1] != '/') --bundle;
+        if (bundle == slash) return 0;
+        if (snprintf(slash + 1, sizeof(alternate) - (size_t)(slash + 1 - alternate),
+                     "%.*s.json", (int)(slash - bundle), bundle) < 0) return 0;
+    } else {
+        const char *leaf = slash + 1;
+        size_t leaf_len = strlen(leaf);
+        if (leaf_len <= 5U || strcasecmp(leaf + leaf_len - 5U, ".json")) return 0;
+        strcpy(slash + 1, "profile.json");
+    }
+    if (profile_file_present(alternate) != 0) return 1;
+
+    /* A first-start default is also suppressed by an old flat profile in the
+     * same bus directory. */
+    if (strlen(path) >= sizeof(flat)) return 1;
+    {
+        const char *last = strrchr(path, '/');
+        const char *bundle = last;
+        while (bundle && bundle > path && bundle[-1] != '/') --bundle;
+        if (last && bundle && bundle < last &&
+            snprintf(flat, sizeof(flat), "%.*s/%.*s.json",
+                     (int)(bundle - path - 1U), path,
+                     (int)(last - bundle), bundle) >= 0 &&
+            profile_file_present(flat) != 0) return 1;
+    }
+    return 0;
+}
+
+static const char *canonical_profile_name(const char *device,
+                                          char *out, size_t capacity)
+{
+    int length;
+    if (!device || !device[0] || !out || capacity == 0U) return NULL;
+    length = snprintf(out, capacity, "%s/%s.json", device, device);
+    if (length <= 0 || (size_t)length >= capacity ||
+        !bvstk_device_profile_path_valid(out)) return NULL;
+    return out;
 }
 
 /* Read-only compatibility with old on-device paths. Never remove or overwrite
@@ -436,7 +614,8 @@ static void config_task(void *arg)
             }
         }
         (void)ensure_dir_exists(i2c_dir_path);
-        if (!recover_device_configs(i2c_dir_path) || !recover_device_configs(i2c_dir_path_fb))
+        if (!recover_device_configs(i2c_dir_path) || !recover_device_configs(i2c_dir_path_fb) ||
+            !migrate_profile_layout(i2c_dir_path) || !migrate_profile_layout(i2c_dir_path_fb))
             i2c_load_failed = 1;
         for (unsigned i = 0; !i2c_load_failed && i < DEFAULT_I2C_CONFIG_FILES_COUNT; ++i) {
             const default_json_file_t *d = &DEFAULT_I2C_CONFIG_FILES[i];
@@ -445,8 +624,8 @@ static void config_task(void *arg)
             snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_SUBDIR_NAME, d->file_name);
             build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
             if (!cfg_path[0] || !cfg_path_fb[0]) continue;
-            if (!file_exists(cfg_path) && !file_exists(cfg_path_fb)) {
-                if (!write_file_atomic(cfg_path, d->json, d->json_len)) {
+            if (!profile_exists(cfg_path) && !profile_exists(cfg_path_fb)) {
+                if (!ensure_device_parent(cfg_path) || !write_file_atomic(cfg_path, d->json, d->json_len)) {
                     xil_printf("CFG: failed to write default %s\r\n", cfg_path);
                 } else {
                     xil_printf("CFG: wrote default %s\r\n", cfg_path);
@@ -456,7 +635,8 @@ static void config_task(void *arg)
 
         mdio_first_start = !file_exists(mdio_marker);
         if (!recover_device_configs(mdio_dir_path) || !recover_device_configs(mdio_dir_path_fb) ||
-            (mdio_first_start && !migrate_mdio_configs(mdio_dir_path))) mdio_load_failed = 1;
+            (mdio_first_start && !migrate_mdio_configs(mdio_dir_path)) ||
+            !migrate_profile_layout(mdio_dir_path) || !migrate_profile_layout(mdio_dir_path_fb)) mdio_load_failed = 1;
         for (unsigned i = 0; mdio_first_start && !mdio_load_failed && i < DEFAULT_MDIO_CONFIG_FILES_COUNT; ++i) {
             const default_json_file_t *d = &DEFAULT_MDIO_CONFIG_FILES[i];
             char cfg_path[160], cfg_path_fb[160];
@@ -464,8 +644,8 @@ static void config_task(void *arg)
             snprintf(suf, sizeof(suf), "%s/%s", MDIO_CFG_SUBDIR_NAME, d->file_name);
             build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
             if (!cfg_path[0] || !cfg_path_fb[0]) continue;
-            if (!file_exists(cfg_path) && !file_exists(cfg_path_fb)) {
-                if (!write_file_atomic(cfg_path, d->json, d->json_len)) {
+            if (!profile_exists(cfg_path) && !profile_exists(cfg_path_fb)) {
+                if (!ensure_device_parent(cfg_path) || !write_file_atomic(cfg_path, d->json, d->json_len)) {
                     xil_printf("CFG: failed to write default %s\r\n", cfg_path);
                     mdio_load_failed = 1;
                 } else {
@@ -569,15 +749,15 @@ static void config_task(void *arg)
             for (;;) {
                 if (f_readdir(&d, &fno) != FR_OK) { i2c_load_failed = 1; break; }
                 if (!fno.fname[0]) break;
-                if (fno.fattrib & AM_DIR) continue;
-                const char *fn = fno.fname;
+                char fn[I2C_CFG_FILE_NAME_MAX];
+                int candidate = profile_candidate(scan_dir, &fno, fn);
+                if (candidate < 0) { i2c_load_failed = 1; break; }
+                if (!candidate) continue;
                 size_t fl = strlen(fn);
-                if (fl < 6) continue;
-                if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
                 /* A fallback copy cannot replace the primary file's policy. */
                 bool same_file = false;
                 for (size_t j = 0; pass && j < s_i2c_cfg_count; ++j)
-                    if (!strcasecmp(s_i2c_cfgs[j].file_name, fn)) same_file = true;
+                    if (bvstk_device_profile_same_file(s_i2c_cfgs[j].file_name, fn)) same_file = true;
                 if (same_file) continue;
                 char pth[200];
                 int pn = snprintf(pth, sizeof(pth), "%s/%s", scan_dir, fn);
@@ -634,22 +814,24 @@ static void config_task(void *arg)
             if (result == FR_NO_PATH || result == FR_NO_FILE) continue;
             if (result != FR_OK) { mdio_load_failed = 1; break; }
             for (;;) {
-                char pth[200];
+                char pth[200], fn[MDIO_CFG_FILE_NAME_MAX];
                 mdio_phy_config_t tmp;
                 size_t fl;
                 bool duplicate = false;
                 result = f_readdir(&d, &fno);
                 if (result != FR_OK) { mdio_load_failed = 1; break; }
                 if (!fno.fname[0]) break;
-                fl = strlen(fno.fname);
-                if ((fno.fattrib & AM_DIR) || fl < 6 || strcasecmp(fno.fname + fl - 5, ".json")) continue;
+                int candidate = profile_candidate(scan_dir, &fno, fn);
+                if (candidate < 0) { mdio_load_failed = 1; break; }
+                if (!candidate) continue;
+                fl = strlen(fn);
                 mdio_files_seen = 1;
                 /* Same filename in fallback must not override a primary policy. */
                 for (size_t j = 0; j < s_mdio_cfg_count; ++j)
-                    if (!strcasecmp(s_mdio_cfgs[j].file_name, fno.fname)) duplicate = true;
+                    if (bvstk_device_profile_same_file(s_mdio_cfgs[j].file_name, fn)) duplicate = true;
                 if (duplicate) continue;
                 if (s_mdio_cfg_count >= MDIO_CFG_MAX_DEVICES || fl >= MDIO_CFG_FILE_NAME_MAX ||
-                    snprintf(pth, sizeof(pth), "%s/%s", scan_dir, fno.fname) >= (int)sizeof(pth) ||
+                    snprintf(pth, sizeof(pth), "%s/%s", scan_dir, fn) >= (int)sizeof(pth) ||
                     !read_file_to_buf(pth, s_cfg_buf, sizeof(s_cfg_buf), &blen) ||
                     bvstk_mdio_config_parse(s_cfg_buf, &tmp) != BVSTK_OK) {
                     mdio_load_failed = 1; break;
@@ -658,7 +840,7 @@ static void config_task(void *arg)
                     if (!strcasecmp(s_mdio_cfgs[j].name, tmp.name) || s_mdio_cfgs[j].phy_addr == tmp.phy_addr)
                         duplicate = true;
                 if (duplicate) { mdio_load_failed = 1; break; }
-                memcpy(tmp.file_name, fno.fname, fl + 1U);
+                memcpy(tmp.file_name, fn, fl + 1U);
                 if (bvstk_mdio_config_validate(&tmp) != BVSTK_OK) { mdio_load_failed = 1; break; }
                 s_mdio_cfgs[s_mdio_cfg_count++] = tmp;
             }
@@ -874,28 +1056,26 @@ static int save_i2c_device_locked(const i2c_device_config_t *cfg)
     const size_t json_cap = sizeof(s_i2c_save_buf);
     size_t pos = 0;
     bvstk_status_t status = bvstk_device_profile_format_i2c(cfg, json, json_cap, &pos);
-    /* Keep old non-v2 identifiers usable without silently renaming a device. */
     if (status == BVSTK_ERR_UNSUPPORTED && !cfg->profile.version)
         status = bvstk_i2c_config_serialize_json(cfg, json, json_cap, &pos);
     if (status != BVSTK_OK) return 0;
 
     char cfg_path[160], cfg_path_fb[160];
     char suf[96];
-    const char *fn = (cfg->file_name[0] ? cfg->file_name : NULL);
     char tmp_fn[I2C_CFG_FILE_NAME_MAX];
-    if (!fn) {
-        snprintf(tmp_fn, sizeof(tmp_fn), "%s.json", cfg->name);
-        fn = tmp_fn;
-    }
+    const char *fn = canonical_profile_name(cfg->name, tmp_fn, sizeof(tmp_fn));
+    if (!fn && cfg->file_name[0]) fn = cfg->file_name;
+    if (!fn) return 0;
+    if (!bvstk_device_profile_path_valid(fn)) return 0;
     snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_SUBDIR_NAME, fn);
     build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
     if (!cfg_path[0] || !cfg_path_fb[0]) return 0;
 
-    int ok = write_device_file(cfg_path, json, pos);
+    int ok = ensure_device_parent(cfg_path) && write_device_file(cfg_path, json, pos);
     if (ok && dir_exists(root_dir_path_fb)) {
         (void)ensure_dir_exists(root_dir_path_fb);
         (void)ensure_dir_exists(i2c_dir_path_fb);
-        (void)write_device_file(cfg_path_fb, json, pos);
+        if (ensure_device_parent(cfg_path_fb)) (void)write_device_file(cfg_path_fb, json, pos);
     }
     return ok;
 }
@@ -933,17 +1113,16 @@ static int save_mdio_device_locked(const mdio_phy_config_t *cfg)
 
     char cfg_path[160], cfg_path_fb[160];
     char suf[96];
-    const char *fn = (cfg->file_name[0] ? cfg->file_name : NULL);
     char tmp_fn[MDIO_CFG_FILE_NAME_MAX];
-    if (!fn) {
-        snprintf(tmp_fn, sizeof(tmp_fn), "%s.json", cfg->name);
-        fn = tmp_fn;
-    }
+    const char *fn = canonical_profile_name(cfg->name, tmp_fn, sizeof(tmp_fn));
+    if (!fn && cfg->file_name[0]) fn = cfg->file_name;
+    if (!fn) return 0;
+    if (!bvstk_device_profile_path_valid(fn)) return 0;
     snprintf(suf, sizeof(suf), "%s/%s", MDIO_CFG_SUBDIR_NAME, fn);
     build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
     if (!cfg_path[0] || !cfg_path_fb[0]) return 0;
 
-    return write_device_file(cfg_path, json, pos);
+    return ensure_device_parent(cfg_path) && write_device_file(cfg_path, json, pos);
 }
 
 int config_store_save_mdio_device(const mdio_phy_config_t *cfg)

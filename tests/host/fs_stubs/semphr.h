@@ -3,4 +3,5 @@
 #include "FreeRTOS.h"
 int xSemaphoreTake(SemaphoreHandle_t semaphore, unsigned ticks);
 int xSemaphoreGive(SemaphoreHandle_t semaphore);
+SemaphoreHandle_t xSemaphoreCreateMutex(void);
 #endif

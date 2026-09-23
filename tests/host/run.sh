@@ -25,6 +25,16 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" -o "$TEST_TMP/test_device_profiles"
 "$TEST_TMP/test_device_profiles" "$REPO_ROOT/configs"
 
+cc -std=c11 -Wall -Wextra -Werror -pedantic -Wno-overlength-strings -ffunction-sections -fdata-sections \
+  -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" -I"$REPO_ROOT/src/apps/freertos/config" \
+  "$SCRIPT_DIR/test_config_bundles.c" \
+  "$REPO_ROOT/src/apps/neutrino/config/bvstk_i2c_config_store.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" \
+  -Wl,--gc-sections -o "$TEST_TMP/test_config_bundles"
+"$TEST_TMP/test_config_bundles" "$TEST_TMP/flash"
+
 cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_profile_v2.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \

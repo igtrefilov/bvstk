@@ -1,0 +1,251 @@
+{
+  "schema_version": 1,
+  "kind": "register_map",
+  "id": "lan8720a",
+  "device": "LAN8720A и LAN8720Ai",
+  "bus": "mdio",
+  "width_bits": 16,
+  "register_count": 32,
+  "source": {
+    "title": "LAN8720A/LAN8720Ai Data Sheet",
+    "document": "DS00002165C",
+    "revision": "C, 2024",
+    "url": "https://ww1.microchip.com/downloads/aemDocuments/documents/UNG/ProductDocuments/DataSheets/LAN8720A-LAN8720Ai-Data-Sheet-DS00002165.pdf"
+  },
+  "notes": "Расшифровка последнего снимка кэша. Регистры могут быть прочитаны в разное время. Зафиксированные события не обязательно активны сейчас. Начальные значения из settings не подтверждают состояние оборудования. Зарезервированные адреса не следует читать или записывать.",
+  "identity": [
+    {"field": "phyid1.oui_high", "equals": 7},
+    {"field": "phyid2.oui_low", "equals": 48},
+    {"field": "phyid2.model", "equals": 15}
+  ],
+  "registers": [
+    {
+      "id": "bcr", "address": "0x00", "name": "BCR", "label": "Основное управление", "section": "4.2.1, pp. 42–43",
+      "fields": [
+        {"id":"reset","label":"Программный сброс","lsb":15,"width":1,"type":"enum","access":"rw","reset":"0","attributes":["self_clear"],"values":{"0":{"label":"Не выполняется"},"1":{"label":"Запрошен","tone":"warn"}},"note":"Бит сбрасывается автоматически. При записи запроса сброса в остальные биты этого регистра следует записывать нули. Режим восстанавливается по регистру MODE, а не по уровням strap-выводов."},
+        {"id":"loopback","label":"Внутренняя петля","lsb":14,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Выключена"},"1":{"label":"Включена","tone":"warn"}}},
+        {"id":"speed","label":"Заданная скорость","lsb":13,"width":1,"type":"enum","access":"rw","reset":"MODE straps","values":{"0":{"label":"10 Мбит/с"},"1":{"label":"100 Мбит/с"}},"note":"Действует при выключенном автосогласовании; не является результатом переговоров."},
+        {"id":"autoneg","label":"Автосогласование","lsb":12,"width":1,"type":"enum","access":"rw","reset":"MODE straps","values":{"0":{"label":"Выключено"},"1":{"label":"Включено"}}},
+        {"id":"powerdown","label":"Отключение питания PHY","lsb":11,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Рабочий режим"},"1":{"label":"Power-down","tone":"warn"}},"note":"Перед установкой Power Down необходимо выключить автосогласование."},
+        {"id":"isolate","label":"Изоляция RMII","lsb":10,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Выключена"},"1":{"label":"PHY изолирован","tone":"warn"}}},
+        {"id":"restart","label":"Перезапуск автосогласования","lsb":9,"width":1,"type":"enum","access":"rw","reset":"0","attributes":["self_clear"],"values":{"0":{"label":"Не запрошен"},"1":{"label":"Запрошен","tone":"warn"}}},
+        {"id":"duplex","label":"Заданный дуплекс","lsb":8,"width":1,"type":"enum","access":"rw","reset":"MODE straps","values":{"0":{"label":"Полудуплекс"},"1":{"label":"Полный дуплекс"}},"note":"Действует при выключенном автосогласовании."},
+        {"id":"reserved","label":"Резерв","lsb":0,"width":8,"type":"reserved","access":"ro","reset":"unspecified"}
+      ]
+    },
+    {
+      "id":"bsr","address":"0x01","name":"BSR","label":"Основной статус","section":"4.2.2, pp. 43–44",
+      "fields":[
+        {"id":"t4","label":"Поддержка 100BASE-T4","lsb":15,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"tx_full","label":"Поддержка 100BASE-TX полного дуплекса","lsb":14,"width":1,"type":"enum","access":"ro","reset":"1","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"tx_half","label":"Поддержка 100BASE-TX полудуплекса","lsb":13,"width":1,"type":"enum","access":"ro","reset":"1","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"t_full","label":"Поддержка 10BASE-T полного дуплекса","lsb":12,"width":1,"type":"enum","access":"ro","reset":"1","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"t_half","label":"Поддержка 10BASE-T полудуплекса","lsb":11,"width":1,"type":"enum","access":"ro","reset":"1","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"t2_full","label":"Поддержка 100BASE-T2 полного дуплекса","lsb":10,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"t2_half","label":"Поддержка 100BASE-T2 полудуплекса","lsb":9,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"extended_status","label":"Расширенный статус в регистре 15","lsb":8,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Не поддерживается"},"1":{"label":"Поддерживается"}}},
+        {"id":"reserved","label":"Резерв","lsb":6,"width":2,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"an_complete","label":"Завершение автосогласования","lsb":5,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Не завершено"},"1":{"label":"Завершено","tone":"ok"}}},
+        {"id":"remote_fault","label":"Ошибка удалённой стороны","lsb":4,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксирована"},"1":{"label":"Зафиксирована","tone":"bad"}},"note":"Единица удерживается до чтения; ошибка могла уже исчезнуть."},
+        {"id":"an_ability","label":"Поддержка автосогласования","lsb":3,"width":1,"type":"enum","access":"ro","reset":"1","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"link","label":"Link","lsb":2,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_low"],"values":{"0":{"label":"Нет связи или зафиксирован обрыв","tone":"offline"},"1":{"label":"Поднят при чтении","tone":"ok"}},"note":"Latch-low: ноль сохраняется после обрыва до чтения. Один кэшированный ноль не отличает текущий обрыв от уже восстановленного соединения."},
+        {"id":"jabber","label":"Jabber","lsb":1,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксирован"},"1":{"label":"Зафиксирован","tone":"bad"}}},
+        {"id":"extended","label":"Расширенные регистры","lsb":0,"width":1,"type":"enum","access":"ro","reset":"1","values":{"0":{"label":"Не поддерживаются"},"1":{"label":"Поддерживаются"}}}
+      ]
+    },
+    {
+      "id":"phyid1","address":"0x02","name":"PHYID1","label":"Идентификатор PHY, старшая часть","section":"4.2.3, p. 44",
+      "fields":[{"id":"oui_high","label":"Биты OUI 3–18","lsb":0,"width":16,"type":"hex","access":"rw","reset":"0x0007","note":"В таблице datasheet для ID указан доступ R/W. Идентификатор служит проверкой совместимости карты, но не гарантирует подлинность чипа."}]
+    },
+    {
+      "id":"phyid2","address":"0x03","name":"PHYID2","label":"Идентификатор PHY, модель и ревизия","section":"4.2.4, p. 45",
+      "fields":[
+        {"id":"oui_low","label":"Биты OUI 19–24","lsb":10,"width":6,"type":"hex","access":"rw","reset":"0x30"},
+        {"id":"model","label":"Код модели","lsb":4,"width":6,"type":"hex","access":"rw","reset":"0x0F"},
+        {"id":"revision","label":"Ревизия кристалла","lsb":0,"width":4,"type":"uint","access":"rw","reset":"silicon revision"}
+      ]
+    },
+    {
+      "id":"anar","address":"0x04","name":"ANAR","label":"Объявляемые возможности","section":"4.2.5, pp. 45–46",
+      "fields":[
+        {"id":"reserved_high","label":"Резерв","lsb":14,"width":2,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"remote_fault","label":"Объявление удалённой ошибки","lsb":13,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Нет ошибки"},"1":{"label":"Ошибка","tone":"bad"}}},
+        {"id":"reserved_12","label":"Резерв","lsb":12,"width":1,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"pause","label":"Возможности PAUSE","lsb":10,"width":2,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Не объявлены"},"1":{"label":"Симметричный PAUSE"},"2":{"label":"Асимметричный PAUSE к партнёру"},"3":{"label":"Симметричный и асимметричный PAUSE к локальному устройству"}},"note":"Это объявленные возможности, а не подтверждение согласованного управления потоком."},
+        {"id":"reserved_9","label":"Резерв","lsb":9,"width":1,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"tx_full","label":"100BASE-TX полный дуплекс","lsb":8,"width":1,"type":"enum","access":"rw","reset":"MODE straps","values":{"0":{"label":"Не объявлен"},"1":{"label":"Объявлен"}}},
+        {"id":"tx_half","label":"100BASE-TX полудуплекс","lsb":7,"width":1,"type":"enum","access":"rw","reset":"1","values":{"0":{"label":"Не объявлен"},"1":{"label":"Объявлен"}}},
+        {"id":"t_full","label":"10BASE-T полный дуплекс","lsb":6,"width":1,"type":"enum","access":"rw","reset":"MODE straps","values":{"0":{"label":"Не объявлен"},"1":{"label":"Объявлен"}}},
+        {"id":"t_half","label":"10BASE-T полудуплекс","lsb":5,"width":1,"type":"enum","access":"rw","reset":"MODE straps","values":{"0":{"label":"Не объявлен"},"1":{"label":"Объявлен"}}},
+        {"id":"selector","label":"Селектор протокола","lsb":0,"width":5,"type":"enum","access":"rw","reset":"1","values":{"1":{"label":"IEEE 802.3"}}}
+      ]
+    },
+    {
+      "id":"anlpar","address":"0x05","name":"ANLPAR","label":"Возможности партнёра","section":"4.2.6, pp. 46–47",
+      "fields":[
+        {"id":"next_page","label":"Следующая страница партнёра","lsb":15,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Не поддерживается"},"1":{"label":"Поддерживается"}},"note":"LAN8720A сам не поддерживает обмен следующими страницами."},
+        {"id":"ack","label":"Кодовое слово партнёра","lsb":14,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Не получено"},"1":{"label":"Получено"}}},
+        {"id":"remote_fault","label":"Ошибка партнёра","lsb":13,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},
+        {"id":"reserved","label":"Резерв","lsb":11,"width":2,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"pause","label":"PAUSE партнёра","lsb":10,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Не поддерживается"},"1":{"label":"Поддерживается"}}},
+        {"id":"t4","label":"100BASE-T4 партнёра","lsb":9,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}},"note":"LAN8720A не поддерживает 100BASE-T4."},
+        {"id":"tx_full","label":"100BASE-TX полный дуплекс партнёра","lsb":8,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"tx_half","label":"100BASE-TX полудуплекс партнёра","lsb":7,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"t_full","label":"10BASE-T полный дуплекс партнёра","lsb":6,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"t_half","label":"10BASE-T полудуплекс партнёра","lsb":5,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},
+        {"id":"selector","label":"Селектор протокола партнёра","lsb":0,"width":5,"type":"enum","access":"ro","reset":"1","values":{"1":{"label":"IEEE 802.3"}}}
+      ]
+    },
+    {
+      "id":"aner","address":"0x06","name":"ANER","label":"Расширение автосогласования","section":"4.2.7, p. 47",
+      "fields":[
+        {"id":"reserved","label":"Резерв","lsb":5,"width":11,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"parallel_fault","label":"Ошибка параллельного определения","lsb":4,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксирована"},"1":{"label":"Зафиксирована","tone":"bad"}}},
+        {"id":"partner_next_page","label":"Следующая страница партнёра","lsb":3,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Не поддерживается"},"1":{"label":"Поддерживается"}}},
+        {"id":"next_page","label":"Следующая страница локального PHY","lsb":2,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Не поддерживается"},"1":{"label":"Поддерживается"}}},
+        {"id":"page_received","label":"Новая страница","lsb":1,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксирована"},"1":{"label":"Получена"}}},
+        {"id":"partner_an","label":"Автосогласование партнёра","lsb":0,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Не поддерживается"},"1":{"label":"Поддерживается"}}}
+      ]
+    },
+    {"id":"reserved_07","address":"0x07","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_08","address":"0x08","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_09","address":"0x09","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_0a","address":"0x0A","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_0b","address":"0x0B","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_0c","address":"0x0C","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_0d","address":"0x0D","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_0e","address":"0x0E","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_0f","address":"0x0F","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_10","address":"0x10","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {
+      "id":"mcsr","address":"0x11","name":"MCSR","label":"Управление режимами и статус","section":"4.2.8, pp. 47–48",
+      "fields":[
+        {"id":"reserved_high","label":"Резерв","lsb":14,"width":2,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"ed_powerdown","label":"Энергосбережение по наличию сигнала","lsb":13,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Выключено"},"1":{"label":"Включено"}}},
+        {"id":"reserved_middle","label":"Резерв","lsb":10,"width":3,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"far_loopback","label":"Удалённая петля","lsb":9,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Выключена"},"1":{"label":"Включена","tone":"warn"}},"note":"Возврат принятых пакетов в режиме 100BASE-TX, в том числе при установленном Isolate."},
+        {"id":"reserved_8_7","label":"Резерв","lsb":7,"width":2,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"altint","label":"Режим прерываний","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Основной"},"1":{"label":"Альтернативный"}}},
+        {"id":"reserved_5_2","label":"Резерв","lsb":2,"width":4,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"energy","label":"Сигнал на линии","lsb":1,"width":1,"type":"enum","access":"ro","reset":"1","attributes":["nasr"],"values":{"0":{"label":"Не обнаружен"},"1":{"label":"Обнаружен"}},"note":"После аппаратного сброса равен 1; переходит в 0 при отсутствии допустимого сигнала в течение 256 мс. Программный сброс его не меняет."},
+        {"id":"reserved_0","label":"Резерв","lsb":0,"width":1,"type":"reserved","access":"rw","reset":"0","write_value":0}
+      ]
+    },
+    {
+      "id":"smr","address":"0x12","name":"SMR","label":"Специальные режимы","section":"4.2.9, p. 48; 3.7.2, Table 3-4",
+      "fields":[
+        {"id":"reserved_15","label":"Резерв","lsb":15,"width":1,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"reserved_14","label":"Резерв, при записи 1","lsb":14,"width":1,"type":"reserved","access":"rw","reset":"1","attributes":["nasr"],"write_value":1},
+        {"id":"reserved_13_8","label":"Резерв","lsb":8,"width":6,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"mode","label":"Конфигурация режима","lsb":5,"width":3,"type":"enum","access":"rw","reset":"MODE straps","attributes":["nasr"],"values":{"0":{"label":"10BASE-T полудуплекс, автосогласование выключено"},"1":{"label":"10BASE-T полный дуплекс, автосогласование выключено"},"2":{"label":"100BASE-TX полудуплекс, автосогласование выключено"},"3":{"label":"100BASE-TX полный дуплекс, автосогласование выключено"},"4":{"label":"Автосогласование, объявлен 100BASE-TX полудуплекс"},"5":{"label":"Повторитель, автосогласование, 100BASE-TX полудуплекс"},"6":{"label":"Power-down, рабочий обмен недоступен","tone":"warn"},"7":{"label":"Автосогласование, объявлены все режимы"}},"note":"Для выхода из MODE=6 требуется другой MODE и программный сброс. MODE описывает конфигурацию, а не результат согласования линии."},
+        {"id":"phy_address","label":"Адрес PHY","lsb":0,"width":5,"type":"hex","access":"rw","reset":"PHYAD strap","attributes":["nasr"]}
+      ]
+    },
+    {"id":"reserved_13","address":"0x13","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_14","address":"0x14","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_15","address":"0x15","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_16","address":"0x16","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_17","address":"0x17","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_18","address":"0x18","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {"id":"reserved_19","address":"0x19","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {
+      "id":"secr","address":"0x1A","name":"SECR","label":"Счётчик символьных ошибок","section":"4.2.10, p. 49",
+      "fields":[{"id":"errors","label":"Символьные ошибки","lsb":0,"width":16,"type":"uint","access":"ro","reset":"0","note":"100BASE-TX: учитываются недопустимые символы, включая IDLE, максимум одно приращение на пакет. 16-битное переполнение возвращает счётчик к нулю. Чтение его не сбрасывает; в 10BASE-T счётчик не увеличивается."}]
+    },
+    {
+      "id":"scsir","address":"0x1B","name":"SCSIR","label":"MDIX, SQE и полярность","section":"4.2.11, p. 49",
+      "fields":[
+        {"id":"amdix_disable","label":"Автоматический MDIX","lsb":15,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Включён"},"1":{"label":"Выключен"}}},
+        {"id":"reserved_14","label":"Резерв","lsb":14,"width":1,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"channel","label":"Ручной выбор канала","lsb":13,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"MDI"},"1":{"label":"MDIX"}},"note":"Управляет каналом только при выключенном Auto-MDIX. Не показывает автоматически выбранный канал."},
+        {"id":"reserved_12","label":"Резерв","lsb":12,"width":1,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"sqe_disable","label":"Тест SQE","lsb":11,"width":1,"type":"enum","access":"rw","reset":"0","attributes":["nasr"],"values":{"0":{"label":"Включён"},"1":{"label":"Выключен"}}},
+        {"id":"reserved_10_5","label":"Резерв","lsb":5,"width":6,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"polarity","label":"Полярность 10BASE-T","lsb":4,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Нормальная"},"1":{"label":"Обратная"}},"note":"Имеет смысл для режима 10BASE-T."},
+        {"id":"reserved_low","label":"Резерв","lsb":0,"width":4,"type":"reserved","access":"ro","reset":"unspecified"}
+      ]
+    },
+    {"id":"reserved_1c","address":"0x1C","name":"RESERVED","label":"Зарезервированный адрес","section":"4.2, Table 4-2","reserved":true,"fields":[{"id":"reserved","label":"Резерв","lsb":0,"width":16,"type":"reserved","access":"none","reset":"unspecified"}]},
+    {
+      "id":"isfr","address":"0x1D","name":"ISFR","label":"Источники прерываний","section":"4.2.12, p. 50; 3.6",
+      "note":"Флаги latch-high сохраняют события до чтения. Это история на момент физического чтения, а не перечень текущих неисправностей.",
+      "fields":[
+        {"id":"reserved_high","label":"Резерв","lsb":8,"width":8,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"energy","label":"Обнаружение сигнала","lsb":7,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксировано"},"1":{"label":"Зафиксировано"}}},
+        {"id":"an_complete","label":"Завершение автосогласования","lsb":6,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксировано"},"1":{"label":"Зафиксировано"}}},
+        {"id":"remote_fault","label":"Удалённая ошибка","lsb":5,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксирована"},"1":{"label":"Зафиксирована","tone":"bad"}}},
+        {"id":"link_down","label":"Обрыв связи","lsb":4,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксирован"},"1":{"label":"Зафиксирован","tone":"warn"}}},
+        {"id":"partner_ack","label":"Подтверждение партнёра","lsb":3,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксировано"},"1":{"label":"Зафиксировано"}}},
+        {"id":"parallel_fault","label":"Ошибка параллельного определения","lsb":2,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксирована"},"1":{"label":"Зафиксирована","tone":"bad"}}},
+        {"id":"page_received","label":"Получение страницы","lsb":1,"width":1,"type":"enum","access":"ro","reset":"0","attributes":["latch_high"],"values":{"0":{"label":"Не зафиксировано"},"1":{"label":"Зафиксировано"}}},
+        {"id":"reserved_0","label":"Резерв","lsb":0,"width":1,"type":"reserved","access":"ro","reset":"0"}
+      ]
+    },
+    {
+      "id":"imr","address":"0x1E","name":"IMR","label":"Разрешения прерываний","section":"4.2.13, p. 50",
+      "fields":[
+        {"id":"reserved_high","label":"Резерв","lsb":8,"width":8,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"energy","label":"Обнаружение сигнала","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Маскировано"},"1":{"label":"Разрешено"}}},
+        {"id":"an_complete","label":"Завершение автосогласования","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Маскировано"},"1":{"label":"Разрешено"}}},
+        {"id":"remote_fault","label":"Удалённая ошибка","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Маскировано"},"1":{"label":"Разрешено"}}},
+        {"id":"link_down","label":"Обрыв связи","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Маскировано"},"1":{"label":"Разрешено"}}},
+        {"id":"partner_ack","label":"Подтверждение партнёра","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Маскировано"},"1":{"label":"Разрешено"}}},
+        {"id":"parallel_fault","label":"Ошибка параллельного определения","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Маскировано"},"1":{"label":"Разрешено"}}},
+        {"id":"page_received","label":"Получение страницы","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0","values":{"0":{"label":"Маскировано"},"1":{"label":"Разрешено"}}},
+        {"id":"reserved_0","label":"Резерв","lsb":0,"width":1,"type":"reserved","access":"ro","reset":"unspecified"}
+      ]
+    },
+    {
+      "id":"pscsr","address":"0x1F","name":"PSCSR","label":"Итоговый режим PHY","section":"4.2.14, p. 51",
+      "fields":[
+        {"id":"reserved_high","label":"Резерв","lsb":13,"width":3,"type":"reserved","access":"ro","reset":"unspecified"},
+        {"id":"autodone","label":"Завершение автосогласования","lsb":12,"width":1,"type":"enum","access":"ro","reset":"0","values":{"0":{"label":"Не завершено, выключено или не активно"},"1":{"label":"Завершено","tone":"ok"}}},
+        {"id":"reserved_middle","label":"Резерв, при записи 0000010","lsb":5,"width":7,"type":"reserved","access":"rw","reset":"0x02","write_value":2},
+        {"id":"hcdspeed","label":"Режим HCDSPEED","lsb":2,"width":3,"type":"enum","access":"ro","reset":"unspecified","values":{"1":{"label":"10 Мбит/с, полудуплекс"},"5":{"label":"10 Мбит/с, полный дуплекс"},"2":{"label":"100 Мбит/с, полудуплекс"},"6":{"label":"100 Мбит/с, полный дуплекс"}},"note":"Прочие коды не определены документацией. Для сводки согласованной линии дополнительно проверяются Link и завершение автосогласования."},
+        {"id":"reserved_low","label":"Резерв","lsb":0,"width":2,"type":"reserved","access":"ro","reset":"unspecified"}
+      ]
+    }
+  ],
+  "summary": [
+    {"id":"link","label":"Link","field":"bsr.link","note":"Последнее физическое чтение. Ноль может сохранять уже прошедший обрыв (latch-low)."},
+    {"id":"speed","label":"Скорость","cases":[
+      {"when":[{"field":"bsr.link","equals":0}],"label":"Соединение не подтверждено","tone":"offline"},
+      {"when":[{"field":"bcr.reset","equals":1}],"label":"Сброс PHY","tone":"warn"},
+      {"when":[{"field":"bcr.powerdown","equals":1}],"label":"Power-down","tone":"offline"},
+      {"when":[{"field":"bcr.isolate","equals":1}],"label":"RMII изолирован","tone":"offline"},
+      {"when":[{"field":"bcr.autoneg","equals":0}],"field":"bcr.speed"},
+      {"when":[{"field":"bsr.an_complete","equals":0}],"label":"Автосогласование не завершено","tone":"unknown"},
+      {"when":[{"field":"pscsr.autodone","equals":0}],"label":"Режим не подтверждён","tone":"unknown"},
+      {"when":[{"field":"pscsr.autodone","equals":1}],"field":"pscsr.hcdspeed","values":{"1":{"label":"10 Мбит/с","tone":"ok"},"5":{"label":"10 Мбит/с","tone":"ok"},"2":{"label":"100 Мбит/с","tone":"ok"},"6":{"label":"100 Мбит/с","tone":"ok"}}}
+    ],"note":"При автосогласовании используется HCDSPEED, при принудительном режиме — BCR. Данные разных регистров не являются атомарным снимком."},
+    {"id":"duplex","label":"Дуплекс","cases":[
+      {"when":[{"field":"bsr.link","equals":0}],"label":"Соединение не подтверждено","tone":"offline"},
+      {"when":[{"field":"bcr.reset","equals":1}],"label":"Сброс PHY","tone":"warn"},
+      {"when":[{"field":"bcr.powerdown","equals":1}],"label":"Power-down","tone":"offline"},
+      {"when":[{"field":"bcr.isolate","equals":1}],"label":"RMII изолирован","tone":"offline"},
+      {"when":[{"field":"bcr.autoneg","equals":0}],"field":"bcr.duplex"},
+      {"when":[{"field":"bsr.an_complete","equals":0}],"label":"Автосогласование не завершено","tone":"unknown"},
+      {"when":[{"field":"pscsr.autodone","equals":0}],"label":"Режим не подтверждён","tone":"unknown"},
+      {"when":[{"field":"pscsr.autodone","equals":1}],"field":"pscsr.hcdspeed","values":{"1":{"label":"Полудуплекс"},"2":{"label":"Полудуплекс"},"5":{"label":"Полный дуплекс","tone":"ok"},"6":{"label":"Полный дуплекс","tone":"ok"}}}
+    ]},
+    {"id":"autonegotiation","label":"Автосогласование","cases":[
+      {"when":[{"field":"bcr.autoneg","equals":0}],"label":"Выключено","tone":"offline"},
+      {"when":[{"field":"bcr.autoneg","equals":1}],"field":"bsr.an_complete"}
+    ]},
+    {"id":"power","label":"Режим питания","field":"bcr.powerdown"},
+    {"id":"isolation","label":"Изоляция RMII","field":"bcr.isolate"},
+    {"id":"energy","label":"Сигнал на линии","field":"mcsr.energy","note":"При аппаратном старте бит равен 1; для обнаружения отсутствия сигнала нужно до 256 мс."},
+    {"id":"energy_saving","label":"Энергосбережение","field":"mcsr.ed_powerdown"},
+    {"id":"loopback","label":"Внутренняя петля","field":"bcr.loopback"},
+    {"id":"far_loopback","label":"Удалённая петля","field":"mcsr.far_loopback"},
+    {"id":"mdix","label":"Выбор канала","cases":[
+      {"when":[{"field":"scsir.amdix_disable","equals":0}],"label":"Автоматический MDI/MDIX"},
+      {"when":[{"field":"scsir.amdix_disable","equals":1}],"field":"scsir.channel"}
+    ],"note":"В автоматическом режиме карта не определяет фактически выбранный канал по биту ручной настройки."},
+    {"id":"remote_fault","label":"Удалённая ошибка","field":"bsr.remote_fault","note":"Зафиксированное событие до физического чтения, а не обязательно текущая ошибка."},
+    {"id":"jabber","label":"Jabber","field":"bsr.jabber"},
+    {"id":"symbol_errors","label":"Символьные ошибки","field":"secr.errors","note":"Накопительный 16-битный счётчик для 100BASE-TX; возможен переход через ноль."},
+    {"id":"phy_address","label":"Адрес PHY","field":"smr.phy_address"},
+    {"id":"silicon_revision","label":"Ревизия кристалла","field":"phyid2.revision"}
+  ]
+}

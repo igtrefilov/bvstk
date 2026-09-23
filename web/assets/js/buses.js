@@ -4,6 +4,7 @@ import {esc, hex, head, kv, badge, footer, ask, notice, number, clearNotice, dev
 import {registerWorkspace} from "./registers.js";
 import {policyWorkspace} from "./policy.js";
 import {observationWorkspace} from "./observe.js";
+import {indicatorsWorkspace} from "./indicators.js";
 
 const clone = value => JSON.parse(JSON.stringify(value));
 export async function busPage(root, params, ctx, bus) {
@@ -14,11 +15,14 @@ export async function busPage(root, params, ctx, bus) {
   const observations = new Map();
   let stopObservation = () => {};
   let stopRegisters = () => {};
+  let indicators = null;
+  const stopIndicators = () => { indicators?.dispose(); indicators = null; };
+  ctx.signal.addEventListener("abort",() => { stopObservation(); stopRegisters(); stopIndicators(); },{once:true});
   function resetDraft() {
     draft = clone(detail.config); invalid = false;
     ruleIds = Object.fromEntries(["whitelist","blacklist"].map(key => [key,draft[key].map((_,i) => i)]));
   }
-  const tabs = {overview:"Состояние",registers:"Регистры",policy:"Политика",telemetry:"Телеметрия",events:"События"};
+  const tabs = {overview:"Состояние",indicators:"Показатели",registers:"Регистры",policy:"Политика",telemetry:"Телеметрия",events:"События"};
   if (tab === "cache") tab = "registers";
   if (!tabs[tab]) tab = "overview";
   const changed = () => !!detail && (invalid || JSON.stringify(draft) !== JSON.stringify(detail.config));
@@ -57,7 +61,7 @@ export async function busPage(root, params, ctx, bus) {
     await locked(async () => {
     devices = await api.busList(bus, ctx.signal);
     if (!devices.devices.length) {
-      stopObservation(); stopRegisters();
+      stopObservation(); stopRegisters(); stopIndicators();
       root.innerHTML = `${head(label,"Подсистема") }<article class="card"><h2>${devices.ready ? "Нет настроенных устройств" : "Сервис недоступен"}</h2><p>Проверьте конфигурацию и диагностический вывод системы.</p></article>`;
       return;
     }
@@ -65,8 +69,17 @@ export async function busPage(root, params, ctx, bus) {
     const next = await api.busGet(bus, selected, ctx.signal);
     if (ctx.signal.aborted) return;
     const viewport = captureRegisterViewport();
+    const keepIndicators = tab === "indicators" && indicators && currentDevice === selected &&
+      ["file_name","register_map","view"].every(key => detail[key] === next[key]) && detail.config.reg_count === next.config.reg_count;
     if (currentDevice !== selected) { regState = {}; ruleState = {list:"whitelist",index:0}; currentDevice = selected; }
     detail = next; resetDraft(); fresh = footer(); root.classList.remove("is-stale");
+    if (keepIndicators) {
+      indicators.update(detail);
+      const state = deviceState(bus,detail);
+      root.querySelector(".device-meta .badge").outerHTML = badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline");
+      root.querySelector("[data-fresh]").outerHTML = fresh;
+      return;
+    }
     render();
     restoreRegisterViewport(viewport);
     });
@@ -100,15 +113,17 @@ export async function busPage(root, params, ctx, bus) {
     if (tab === "overview") return `<article class="card"><h2>Устройство ${esc(selected)}</h2>${kv([["Подсистема",label],["Адрес",hex(mdio ? draft.phy_addr : draft.addr_7b)],["Регистров",draft.reg_count],["Политика",detail.config.policy],["Разрешающих правил",detail.config.whitelist.length],["Запрещающих правил",detail.config.blacklist.length]])}</article>${mdio && detail.stats ? `<article class="card"><h2>Счётчики подсистемы MDIO</h2>${kv([["Чтения",detail.stats.reads],["Переданные записи",detail.stats.writes],["Отказы политики",detail.stats.denied],["Ошибки",detail.stats.errors],["Обработанные входные ячейки",detail.stats.observed]])}<p class="muted">Общие счётчики всех PHY. PL может объединять входные записи; точное число потерянных кадров неизвестно.</p></article>` : ""}`;
     if (tab === "policy") return '<div id="policy-workspace"></div>';
     if (tab === "registers") return '<div id="register-workspace"></div>';
+    if (tab === "indicators") return '<div id="indicators-workspace"></div>';
     if (tab === "telemetry" || tab === "events") return '<div id="observation-workspace"></div>';
 
     return "";
   }
   function render() {
-    stopObservation(); stopRegisters();
+    stopObservation(); stopRegisters(); stopIndicators();
     ctx.setContext({name:selected,tab});
     const state = deviceState(bus,detail);
-    root.innerHTML = `<div class="page-head"><div class="device-heading"><h1>${label}</h1><span class="device-name">${esc(selected)}</span></div></div><div class="device-meta"><span>Адрес <strong class="mono">${hex(mdio ? detail.config.phy_addr : detail.config.addr_7b)}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${tab !== "registers" || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
+    root.innerHTML = `<div class="page-head"><div class="device-heading"><h1>${label}</h1><span class="device-name">${esc(selected)}</span></div></div><div class="device-meta"><span>Адрес <strong class="mono">${hex(mdio ? detail.config.phy_addr : detail.config.addr_7b)}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${!["registers","indicators"].includes(tab) || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
+    if (tab === "indicators") indicators = indicatorsWorkspace(root.querySelector("#indicators-workspace"),{bus,detail,signal:ctx.signal,busy:() => !!busy});
     if (tab === "registers") {
       const view = registerWorkspace(root.querySelector("#register-workspace"), {bus,detail,state:regState,canOperate:!changed(),onRead:reg => registerOp(reg,false),onWrite:(reg,val) => registerOp(reg,true,val)});
       let stopped = false, timer = 0;

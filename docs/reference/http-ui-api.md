@@ -45,11 +45,18 @@ GET /api/ui/bus?bus=mdio&name=lan8720
 | `config` | Совместимая проекция настроек RAM в прежнем формате API, не документ профиля v2 |
 | `revision` | Восемь hex-символов, FNV-1a 32 бит от канонического JSON |
 | `saved` | `true`, если снимок совпадает с сохранённым конфигом; `false`, если нет; `null`, если прочитать состояние не удалось |
-| `file_name` | Имя файла в `flash:/config/i2c/` либо `flash:/config/mdio/` |
+| `file_name` | Относительный путь в `flash:/config/i2c/` либо `flash:/config/mdio/`: например `lan8720/lan8720.json`; старые `lan8720/profile.json` и `lan8720.json` принимаются для миграции |
+| `register_map` | Имя карты рядом с профилем, пустая строка при отсутствии |
+| `view` | Имя JS-формы рядом с профилем, пустая строка при отсутствии |
 | `available` | `true` только при `presence=responding`; не просто наличие профиля |
 | `presence` | `unknown`, `responding` или `unavailable`; то же поле есть в списке устройств |
 | `cache` | Кэш I²C или MDIO: массив `reg`, `val`, `valid`, `source`, `updated_ms` |
 | `stats` | Только MDIO: общие счётчики `reads`, `writes`, `denied`, `errors`, `observed` |
+
+`register_map` и `view` — метаданные [пакета устройства](device-bundles.md),
+а не поля совместимой `config`. Действия `apply` и `save` сохраняют их.
+Файлы получает браузер через обычный `GET /api/ui/file` из тома Flash;
+PS не выполняет JS и не расшифровывает физические битовые поля.
 
 Источники кэша — `settings` для начальных значений, `I2C` для успешного
 физического обмена I²C и `PHY` для обмена с PHY по MDIO. `valid=false`

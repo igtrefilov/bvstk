@@ -12,7 +12,26 @@ static char json[BVSTK_PROFILE_JSON_MAX+1], encoded[BVSTK_PROFILE_JSON_MAX+1], c
 static void read_profile(const char *root, const char *relative)
 {
     char path[1024]; assert(snprintf(path,sizeof(path),"%s/%s",root,relative)<(int)sizeof(path));
-    FILE *f=fopen(path,"rb"); assert(f);
+    FILE *f=fopen(path,"rb");
+    if (!f) {
+        const char *slash=strrchr(relative,'/');
+        const char *leaf=slash ? slash+1 : relative;
+        size_t length=strlen(leaf);
+        if (slash && length>5U && !strcmp(leaf+length-5U,".json")) {
+            /* Build from the relative path without assuming a fixed bus. */
+            assert(snprintf(path,sizeof(path),"%s/%.*s/%.*s/%.*s.json",root,
+                            (int)(slash-relative),relative,(int)(length-5U),leaf,
+                            (int)(length-5U),leaf) < (int)sizeof(path));
+            f=fopen(path,"rb");
+            if (!f) {
+                assert(snprintf(path,sizeof(path),"%s/%.*s/%.*s/profile.json",root,
+                                (int)(slash-relative),relative,(int)(length-5U),leaf) < (int)sizeof(path));
+                f=fopen(path,"rb");
+            }
+        }
+    }
+    assert(f);
+    assert(f);
     size_t n=fread(json,1,BVSTK_PROFILE_JSON_MAX,f); assert(!ferror(f) && feof(f)); json[n]=0;
     assert(fclose(f)==0);
 }
@@ -43,6 +62,7 @@ static void same_metadata(const bvstk_profile_metadata_t *a,const bvstk_profile_
     assert(a->version==2 && b->version==2);
     assert(!strcmp(a->model,b->model) && !strcmp(a->vendor,b->vendor));
     assert(!strcmp(a->device_class,b->device_class) && !strcmp(a->label,b->label));
+    assert(!strcmp(a->register_map,b->register_map) && !strcmp(a->view,b->view));
     for(unsigned r=0;r<count;++r) assert(!strcmp(a->ids+a->id_offset[r],b->ids+b->id_offset[r]));
 }
 static void policy_i2c(const i2c_device_config_t *a,const i2c_device_config_t *b)
@@ -102,6 +122,12 @@ static void malformed(const char *root)
     read_profile(root,"mdio/lan8720.json"); assert(bvstk_mdio_config_parse(json,&c)==BVSTK_OK);
     assert(bvstk_device_profile_format_mdio(&c,encoded,sizeof(encoded),&n)==BVSTK_OK);
     const char *edits[][2]={
+        {"\"register_map\": \"register_map.json\"","\"register_map\": \"../register_map.json\""},
+        {"\"register_map\": \"register_map.json\"","\"register_map\": \"profile.json\""},
+        {"\"register_map\": \"register_map.json\",",""},
+        {"\"view\": \"view.js\"","\"view\": \"../view.js\""},
+        {"\"view\": \"view.js\"","\"view\": \"https://example.com/view.js\""},
+        {"\"view\": \"view.js\"","\"view\": \"\""},
         {"\"schema_version\": 2","\"schema_version\": 3"},
         {"\"schema_version\": 2","\"schema_version\": 2, \"schema_version\": 2"},
         {"\"schema_version\": 2,",""},

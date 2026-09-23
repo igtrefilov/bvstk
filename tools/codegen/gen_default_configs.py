@@ -26,13 +26,32 @@ def c_escape_bytes(data: bytes) -> str:
 
 
 def c_ident_from_filename(name: str) -> str:
-    stem = Path(name).stem
+    path = Path(name)
+    stem = path.parent.name if path.parent != Path(".") else path.stem
     s = re.sub(r"[^a-zA-Z0-9]+", "_", stem).strip("_")
     if not s:
         s = "I2C_DEVICE"
     if s[0].isdigit():
         s = "_" + s
     return s.upper()
+
+
+def profile_files(directory: Path) -> list[tuple[str, bytes, str]]:
+    # Only the device JSON is firmware configuration. Maps/views stay on
+    # Flash.  A legacy */profile.json is accepted while source trees migrate
+    # to the canonical */<device>.json name.
+    candidates: dict[str, Path] = {}
+    for p in directory.glob("*/*.json"):
+        if p.name == "profile.json" or p.stem.lower() == p.parent.name.lower():
+            candidates[p.parent.name.lower()] = p
+    for p in directory.glob("*.json"):
+        if p.name != "register_map.json" and not p.name.endswith("_register_map.json"):
+            candidates.setdefault(p.stem.lower(), p)
+    result = []
+    for _, p in sorted(candidates.items()):
+        data = p.read_bytes()
+        result.append((p.relative_to(directory).as_posix(), data, c_escape_bytes(data)))
+    return result
 
 
 def main() -> int:
@@ -56,17 +75,8 @@ def main() -> int:
     net_data = network_src.read_bytes()
     net_escaped = c_escape_bytes(net_data)
 
-    i2c_files: list[tuple[str, bytes, str]] = []
-    if i2c_dir.exists():
-        for p in sorted(i2c_dir.glob("*.json")):
-            data = p.read_bytes()
-            i2c_files.append((p.name, data, c_escape_bytes(data)))
-
-    mdio_files: list[tuple[str, bytes, str]] = []
-    if mdio_dir.exists():
-        for p in sorted(mdio_dir.glob("*.json")):
-            data = p.read_bytes()
-            mdio_files.append((p.name, data, c_escape_bytes(data)))
+    i2c_files = profile_files(i2c_dir)
+    mdio_files = profile_files(mdio_dir)
 
     out.parent.mkdir(parents=True, exist_ok=True)
     parts: list[str] = []

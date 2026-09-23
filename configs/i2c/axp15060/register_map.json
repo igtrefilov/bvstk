@@ -1,0 +1,568 @@
+{
+  "schema_version": 1,
+  "kind": "register_map",
+  "id": "axp15060",
+  "device": "AXP15060",
+  "bus": "i2c",
+  "width_bits": 8,
+  "register_count": 74,
+  "source": {
+    "title": "X-Powers AXP15060 Datasheet",
+    "document": "AXP15060 Datasheet",
+    "revision": "V0.1, 2018-04-10",
+    "url": "https://files.pine64.org/doc/datasheet/star64/AXP15060%20datasheet%20V0.1.pdf"
+  },
+  "notes": "Показаны последние значения кэша, а не измерения напряжения, тока или температуры. Разрешение выхода не подтверждает наличие напряжения. Значения settings не считаются данными устройства. Кэш разных регистров не является атомарным снимком; источник I2C не различает чтение и запись. Запись единицы в IRQ очищает флаг и не доказывает аварию. Неописанные адреса и коды не следует читать или записывать. Умолчания могут зависеть от исполнения PMIC.",
+  "registers": [
+    {"id":"power_on","address":"0x00","name":"REG 0x00","label":"Источники включения","section":"10.2, с. 27","note":"Системный сброс. Признаки причины включения, не текущие уровни выводов. Значение после сброса не указано.",
+      "fields": [
+      {"id":"reserved_6","label":"Резерв","lsb":6,"width":2,"type":"reserved","access":"none","reset":"Не указан"},
+      {"id":"aldoin_good_en","label":"ALDOINGOOD при высоком EN","lsb":5,"width":1,"type":"enum","access":"ro","reset":"Не указан","values":{"0":{"label":"Не отмечен"},"1":{"label":"Зафиксирован"}}},
+      {"id":"en","label":"Фронт EN при ALDOINGOOD","lsb":4,"width":1,"type":"enum","access":"ro","reset":"Не указан","values":{"0":{"label":"Не отмечен"},"1":{"label":"Зафиксирован"}}},
+      {"id":"irq","label":"Сигнал IRQ","lsb":3,"width":1,"type":"enum","access":"ro","reset":"Не указан","values":{"0":{"label":"Не отмечен"},"1":{"label":"Зафиксирован"}}},
+      {"id":"pok","label":"Нажатие PWRON","lsb":2,"width":1,"type":"enum","access":"ro","reset":"Не указан","values":{"0":{"label":"Не отмечено"},"1":{"label":"Зафиксировано"}}},
+      {"id":"reserved_1","label":"Резерв","lsb":1,"width":1,"type":"reserved","access":"none","reset":"Не указан"},
+      {"id":"aldoin","label":"Фронт ALDOIN","lsb":0,"width":1,"type":"enum","access":"ro","reset":"Не указан","values":{"0":{"label":"Не отмечен"},"1":{"label":"Зафиксирован"}}}
+      ]
+    },
+    {"id":"undocumented_01","address":"0x01","name":"REG 0x01","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_02","address":"0x02","name":"REG 0x02","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_03","address":"0x03","name":"REG 0x03","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"buffer0","address":"0x04","name":"REG 0x04","label":"Буфер данных 0","section":"10.2, с. 27","note":"Сброс при подаче питания. Не является измерением или идентификатором устройства.",
+      "fields": [
+      {"id":"data","label":"Данные","lsb":0,"width":8,"type":"hex","access":"rw","reset":"0x00"}
+      ]
+    },
+    {"id":"buffer1","address":"0x05","name":"REG 0x05","label":"Буфер данных 1","section":"10.2, с. 27","note":"Сброс при подаче питания. Не является измерением или идентификатором устройства.",
+      "fields": [
+      {"id":"data","label":"Данные","lsb":0,"width":8,"type":"hex","access":"rw","reset":"0x00"}
+      ]
+    },
+    {"id":"buffer2","address":"0x06","name":"REG 0x06","label":"Буфер данных 2","section":"10.2, с. 27","note":"Сброс при подаче питания. Не является измерением или идентификатором устройства.",
+      "fields": [
+      {"id":"data","label":"Данные","lsb":0,"width":8,"type":"hex","access":"rw","reset":"0x00"}
+      ]
+    },
+    {"id":"buffer3","address":"0x07","name":"REG 0x07","label":"Буфер данных 3","section":"10.2, с. 27","note":"Сброс при подаче питания. Не является измерением или идентификатором устройства.",
+      "fields": [
+      {"id":"data","label":"Данные","lsb":0,"width":8,"type":"hex","access":"rw","reset":"0x00"}
+      ]
+    },
+    {"id":"undocumented_08","address":"0x08","name":"REG 0x08","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_09","address":"0x09","name":"REG 0x09","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_0a","address":"0x0A","name":"REG 0x0A","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_0b","address":"0x0B","name":"REG 0x0B","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_0c","address":"0x0C","name":"REG 0x0C","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_0d","address":"0x0D","name":"REG 0x0D","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_0e","address":"0x0E","name":"REG 0x0E","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_0f","address":"0x0F","name":"REG 0x0F","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"outputs1","address":"0x10","name":"REG 0x10","label":"Разрешение DC-DC","section":"10.2, с. 27","note":"Системный сброс. Бит разрешает канал, но не подтверждает фактическое напряжение. В двухфазном режиме действуют настройки ведущего канала (§9.2).",
+      "fields": [
+      {"id":"reserved_6","label":"Резерв","lsb":6,"width":2,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"dcdc6","label":"DCDC6","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"dcdc5","label":"DCDC5","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"dcdc4","label":"DCDC4","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"dcdc3","label":"DCDC3","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"dcdc2","label":"DCDC2","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"dcdc1","label":"DCDC1","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}}
+      ]
+    },
+    {"id":"outputs2","address":"0x11","name":"REG 0x11","label":"Разрешение ALDO и BLDO","section":"10.2, с. 27–28","note":"Системный сброс",
+      "fields": [
+      {"id":"bldo3","label":"BLDO3","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"bldo2","label":"BLDO2","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"bldo1","label":"BLDO1","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"aldo5","label":"ALDO5","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"aldo4","label":"ALDO4","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"aldo3","label":"ALDO3","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"aldo2","label":"ALDO2","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"aldo1","label":"ALDO1","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}}
+      ]
+    },
+    {"id":"outputs3","address":"0x12","name":"REG 0x12","label":"Разрешение BLDO, CLDO и вспомогательных выходов","section":"10.2, с. 28","note":"Системный сброс. CLDO3 и CLDO4 доступны как LDO только при соответствующей функции многофункционального вывода.",
+      "fields": [
+      {"id":"switch","label":"DC1SW","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"cpusldo","label":"CPUSLDO","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"cldo4","label":"CLDO4","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"cldo3","label":"CLDO3","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"cldo2","label":"CLDO2","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"cldo1","label":"CLDO1","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"bldo5","label":"BLDO5","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}},
+      {"id":"bldo4","label":"BLDO4","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Отключён"},"1":{"label":"Разрешён","tone":"ok"}}}
+      ]
+    },
+    {"id":"dcdc1","address":"0x13","name":"REG 0x13","label":"Напряжение DCDC1","section":"10.2, с. 28","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x12","unit":"мВ","ranges":[{"min":0,"max":19,"scale":100,"offset":1500}]}
+      ]
+    },
+    {"id":"dcdc2","address":"0x14","name":"REG 0x14","label":"Напряжение DCDC2","section":"10.2, с. 28","note":"Системный сброс. Коды 0–70: 500–1200 мВ; 71–87: 1220–1540 мВ. Для ведомого канала двухфазной пары действует задание ведущего (§9.2).",
+      "fields": [
+      {"id":"reserved_7","label":"Резерв","lsb":7,"width":1,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":7,"type":"uint","access":"rw","reset":"0x3C","unit":"мВ","ranges":[{"min":0,"max":70,"scale":10,"offset":500},{"min":71,"max":87,"scale":20,"offset":-200}]}
+      ]
+    },
+    {"id":"dcdc3","address":"0x15","name":"REG 0x15","label":"Напряжение DCDC3","section":"10.2, с. 28","note":"Системный сброс. Коды 0–70: 500–1200 мВ; 71–87: 1220–1540 мВ. Для ведомого канала двухфазной пары действует задание ведущего (§9.2).",
+      "fields": [
+      {"id":"reserved_7","label":"Резерв","lsb":7,"width":1,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":7,"type":"uint","access":"rw","reset":"0x3C","unit":"мВ","ranges":[{"min":0,"max":70,"scale":10,"offset":500},{"min":71,"max":87,"scale":20,"offset":-200}]}
+      ]
+    },
+    {"id":"dcdc4","address":"0x16","name":"REG 0x16","label":"Напряжение DCDC4","section":"10.2, с. 29","note":"Системный сброс. Коды 0–70: 500–1200 мВ; 71–87: 1220–1540 мВ. Для ведомого канала двухфазной пары действует задание ведущего (§9.2).",
+      "fields": [
+      {"id":"reserved_7","label":"Резерв","lsb":7,"width":1,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":7,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":70,"scale":10,"offset":500},{"min":71,"max":87,"scale":20,"offset":-200}]}
+      ]
+    },
+    {"id":"dcdc5","address":"0x17","name":"REG 0x17","label":"Напряжение DCDC5","section":"10.2, с. 29","note":"Системный сброс. Начальное напряжение также зависит от DC5SET и исполнения (§9.2, с. 24); состояние вывода из кэша неизвестно.",
+      "fields": [
+      {"id":"reserved_7","label":"Резерв","lsb":7,"width":1,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":7,"type":"uint","access":"rw","reset":"0x2C","unit":"мВ","ranges":[{"min":0,"max":32,"scale":10,"offset":800},{"min":33,"max":68,"scale":20,"offset":480}]}
+      ]
+    },
+    {"id":"dcdc6","address":"0x18","name":"REG 0x18","label":"Напряжение DCDC6","section":"10.2, с. 29","note":"Системный сброс. В двухфазной паре DCDC4 и DCDC6 управляет DCDC4 (§9.2).",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x06","unit":"мВ","ranges":[{"min":0,"max":29,"scale":100,"offset":500}]}
+      ]
+    },
+    {"id":"aldo1","address":"0x19","name":"REG 0x19","label":"Напряжение ALDO1","section":"10.2, с. 29","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"dcdc_mode1","address":"0x1A","name":"REG 0x1A","label":"Двухфазные режимы и DVM","section":"10.2, с. 29–30","note":"Системный сброс. В двухфазном режиме параметры пары задаются ведущим каналом. DVM описывает переход к заданию, не измерение напряжения.",
+      "fields": [
+      {"id":"poly46","label":"Двухфазная пара DCDC4 и DCDC6","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Независимые каналы"},"1":{"label":"Ведущий DCDC4"}}},
+      {"id":"poly23","label":"Двухфазная пара DCDC2 и DCDC3","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Независимые каналы"},"1":{"label":"Ведущий DCDC2"}}},
+      {"id":"ramp","label":"Время одного шага DVM","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"15,625 мкс"},"1":{"label":"31,250 мкс"}}},
+      {"id":"reserved_4","label":"Резерв","lsb":4,"width":1,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"dvm5","label":"DVM DCDC5","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"dvm4","label":"DVM DCDC4","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"dvm3","label":"DVM DCDC3","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"dvm2","label":"DVM DCDC2","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}}
+      ]
+    },
+    {"id":"dcdc_mode2","address":"0x1B","name":"REG 0x1B","label":"Режимы переключения DC-DC","section":"10.2, с. 30","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_6","label":"Резерв","lsb":6,"width":2,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"dcdc6","label":"DCDC6","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Автоматический PFM или PWM"},"1":{"label":"Принудительный PWM"}}},
+      {"id":"dcdc5","label":"DCDC5","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Автоматический PFM или PWM"},"1":{"label":"Принудительный PWM"}}},
+      {"id":"dcdc4","label":"DCDC4","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Автоматический PFM или PWM"},"1":{"label":"Принудительный PWM"}}},
+      {"id":"dcdc3","label":"DCDC3","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Автоматический PFM или PWM"},"1":{"label":"Принудительный PWM"}}},
+      {"id":"dcdc2","label":"DCDC2","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Автоматический PFM или PWM"},"1":{"label":"Принудительный PWM"}}},
+      {"id":"dcdc1","label":"DCDC1","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Автоматический PFM или PWM"},"1":{"label":"Принудительный PWM"}}}
+      ]
+    },
+    {"id":"undocumented_1c","address":"0x1C","name":"REG 0x1C","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_1d","address":"0x1D","name":"REG 0x1D","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"protection","address":"0x1E","name":"REG 0x1E","label":"Защита выходов и разряд","section":"10.2, с. 30","note":"Сброс при подаче питания. Пороги OVP: 120% задания для DCDC1 и DCDC6, 130% для DCDC2–5 (§7). Эти биты включают защиту, а не показывают срабатывание.",
+      "fields": [
+      {"id":"discharge","label":"Разряд при выключении выходов","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"uvp6","label":"Отключение PMIC при снижении DCDC6 ниже 85%","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"uvp5","label":"Отключение PMIC при снижении DCDC5 ниже 85%","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"uvp4","label":"Отключение PMIC при снижении DCDC4 ниже 85%","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"uvp3","label":"Отключение PMIC при снижении DCDC3 ниже 85%","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"uvp2","label":"Отключение PMIC при снижении DCDC2 ниже 85%","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"uvp1","label":"Отключение PMIC при снижении DCDC1 ниже 85%","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"ovp","label":"Отключение при перенапряжении DC-DC","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}}
+      ]
+    },
+    {"id":"power_good","address":"0x1F","name":"REG 0x1F","label":"Порог питания, IRQ и PWROK","section":"10.2, с. 30–31","note":"Сброс при подаче питания. VOFF — заданный порог, не значение ALDOIN.",
+      "fields": [
+      {"id":"irq_wakeup","label":"Включение и пробуждение по IRQ","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"reserved_6","label":"Резерв","lsb":6,"width":1,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voff","label":"Порог отключения VOFF","lsb":3,"width":3,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","scale":100,"offset":2600},
+      {"id":"off_delay","label":"Задержка штатного выключения 4 мс","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"pwrok_delay","label":"Задержка PWROK после готовности питания","lsb":0,"width":2,"type":"enum","access":"rw","reset":"0x03","values":{"0":{"label":"8 мс"},"1":{"label":"16 мс"},"2":{"label":"32 мс"},"3":{"label":"64 мс"}}}
+      ]
+    },
+    {"id":"aldo2","address":"0x20","name":"REG 0x20","label":"Напряжение ALDO2","section":"10.2, с. 31","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x17","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"aldo3","address":"0x21","name":"REG 0x21","label":"Напряжение ALDO3","section":"10.2, с. 31","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"aldo4","address":"0x22","name":"REG 0x22","label":"Напряжение ALDO4","section":"10.2, с. 31","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"aldo5","address":"0x23","name":"REG 0x23","label":"Напряжение ALDO5","section":"10.2, с. 31","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"bldo1","address":"0x24","name":"REG 0x24","label":"Напряжение BLDO1","section":"10.2, с. 32","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x0B","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"bldo2","address":"0x25","name":"REG 0x25","label":"Напряжение BLDO2","section":"10.2, с. 32","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x0B","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"bldo3","address":"0x26","name":"REG 0x26","label":"Напряжение BLDO3","section":"10.2, с. 32","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"bldo4","address":"0x27","name":"REG 0x27","label":"Напряжение BLDO4","section":"10.2, с. 32","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"bldo5","address":"0x28","name":"REG 0x28","label":"Напряжение BLDO5","section":"10.2, с. 32","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"cldo1","address":"0x29","name":"REG 0x29","label":"Напряжение CLDO1","section":"10.2, с. 32–33","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"cldo2","address":"0x2A","name":"REG 0x2A","label":"Напряжение CLDO2","section":"10.2, с. 33","note":"Системный сброс",
+      "fields": [
+      {"id":"reserved_5","label":"Резерв","lsb":5,"width":3,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x04","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"cldo3","address":"0x2B","name":"REG 0x2B","label":"CLDO3, GPIO1 и вход пробуждения","section":"10.2, с. 33","note":"Системный сброс. В режиме GPIO1 напряжение высокого уровня задаётся кодом voltage; документация ограничивает его диапазоном 1,25–3,3 В. Порог входа пробуждения 1,2 В.",
+      "fields": [
+      {"id":"wakeup_level","label":"Активный уровень пробуждения","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Низкий"},"1":{"label":"Высокий"}},"note":"Действует только при function=3."},
+      {"id":"function","label":"Назначение вывода CLDO3","lsb":5,"width":2,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"CLDO3"},"1":{"label":"GPIO1: низкий уровень"},"2":{"label":"GPIO1: высокий уровень"},"3":{"label":"Вход пробуждения"}}},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":5,"type":"uint","access":"rw","reset":"0x1A","unit":"мВ","ranges":[{"min":0,"max":26,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"gpio2","address":"0x2C","name":"REG 0x2C","label":"Назначение CLDO4 и GPIO2","section":"10.2, с. 33","note":"Бит 2 сбрасывается при подаче питания; остальные — при системном сбросе. Вход GPIO2 имеет порог 1,2 В. Код высокого уровня берётся из REG 0x2D, допустимый диапазон GPIO 1,25–3,3 В.",
+      "fields": [
+      {"id":"reserved_4","label":"Резерв","lsb":4,"width":4,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"irq_edge","label":"Фронт IRQ для входа GPIO2","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Спадающий"},"1":{"label":"Нарастающий"}},"note":"Действует только при function=3."},
+      {"id":"function","label":"Назначение вывода CLDO4","lsb":0,"width":3,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"CLDO4"},"1":{"label":"GPIO2: низкий уровень"},"2":{"label":"GPIO2: высокий уровень"},"3":{"label":"GPIO2: вход"},"4":{"label":"Зарезервировано","tone":"unknown"},"5":{"label":"Зарезервировано","tone":"unknown"},"6":{"label":"Высокоимпедансное состояние"},"7":{"label":"Высокоимпедансное состояние"}}}
+      ]
+    },
+    {"id":"cldo4","address":"0x2D","name":"REG 0x2D","label":"Напряжение CLDO4","section":"10.2, с. 34","note":"Системный сброс. В режиме GPIO2 код задаёт высокий уровень, для которого действует ограничение 1,25–3,3 В (§10.2 REG 0x2C).",
+      "fields": [
+      {"id":"reserved_6","label":"Резерв","lsb":6,"width":2,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":6,"type":"uint","access":"rw","reset":"0x00","unit":"мВ","ranges":[{"min":0,"max":35,"scale":100,"offset":700}]}
+      ]
+    },
+    {"id":"cpusldo","address":"0x2E","name":"REG 0x2E","label":"Напряжение CPUSLDO","section":"10.2, с. 34","note":"Системный сброс. Код 15 задаёт слежение VDDR/2, а не 1450 мВ. В режиме слежения числовое выходное напряжение по этому регистру неизвестно.",
+      "fields": [
+      {"id":"reserved_4","label":"Резерв","lsb":4,"width":4,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"voltage","label":"Заданное напряжение","lsb":0,"width":4,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"700 мВ"},"1":{"label":"750 мВ"},"2":{"label":"800 мВ"},"3":{"label":"850 мВ"},"4":{"label":"900 мВ"},"5":{"label":"950 мВ"},"6":{"label":"1000 мВ"},"7":{"label":"1050 мВ"},"8":{"label":"1100 мВ"},"9":{"label":"1150 мВ"},"10":{"label":"1200 мВ"},"11":{"label":"1250 мВ"},"12":{"label":"1300 мВ"},"13":{"label":"1350 мВ"},"14":{"label":"1400 мВ"},"15":{"label":"VDDR/2 (слежение)"}}}
+      ]
+    },
+    {"id":"undocumented_2f","address":"0x2F","name":"REG 0x2F","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_30","address":"0x30","name":"REG 0x30","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"wakeup","address":"0x31","name":"REG 0x31","label":"Управление пробуждением","section":"10.2, с. 34","note":"Бит 3 — системный сброс; остальные — сброс при подаче питания. Командные биты не являются подтверждением текущего сна или пробуждения PMIC.",
+      "fields": [
+      {"id":"pwrok_low","label":"PWROK в период пробуждения","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не притягивать к нулю"},"1":{"label":"Притягивать к нулю"}},"note":"Действует при wakeup.enable=1."},
+      {"id":"voltage","label":"Напряжения после пробуждения","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Вернуть умолчания"},"1":{"label":"Сохранить настройки напряжений"}}},
+      {"id":"trigger","label":"Команда программного пробуждения","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечена"},"1":{"label":"Запрошена"}},"attributes":["self_clear"]},
+      {"id":"irq_mode","label":"IRQ при разрешённом пробуждении","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выход IRQ замаскирован; пробуждение разрешено"},"1":{"label":"Обычный IRQ; пробуждение по IRQ запрещено"}}},
+      {"id":"enable","label":"Разрешение функции пробуждения","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}},"attributes":["self_clear"]},
+      {"id":"reserved_0","label":"Резерв","lsb":0,"width":3,"type":"reserved","access":"none","reset":"0x00"}
+      ]
+    },
+    {"id":"power_control","address":"0x32","name":"REG 0x32","label":"Выключение, перезапуск и температурная защита","section":"10.2, с. 34–35","note":"Биты 7–6 — системный сброс; остальные — сброс при подаче питания. Температурный уровень 2: 125 °C (§9.1); это порог защиты, а не измерение температуры. Командные биты сбрасываются автоматически.",
+      "fields": [
+      {"id":"power_off","label":"Команда выключения","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечена"},"1":{"label":"Запрошена","tone":"warn"}},"attributes":["self_clear"]},
+      {"id":"restart","label":"Команда перезапуска","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечена"},"1":{"label":"Запрошена","tone":"warn"}},"attributes":["self_clear"]},
+      {"id":"pwrok_monitor","label":"Контроль PWROK при запуске","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"pwrok_restart","label":"Перезапуск по низкому PWROK","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"off_sequence","label":"Последовательность выключения","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Одновременно"},"1":{"label":"Обратно порядку включения"}}},
+      {"id":"temperature","label":"Контроль температуры кристалла","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"overtemperature","label":"Отключение при температурном уровне 2","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"pok16s","label":"Выключение при удержании POK 16 с","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}}
+      ]
+    },
+    {"id":"undocumented_33","address":"0x33","name":"REG 0x33","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_34","address":"0x34","name":"REG 0x34","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_35","address":"0x35","name":"REG 0x35","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"pok","address":"0x36","name":"REG 0x36","label":"Параметры кнопки питания","section":"10.2, с. 35","note":"Бит 3 — системный сброс; остальные — сброс при подаче питания. Заданные интервалы, не длительность последнего нажатия.",
+      "fields": [
+      {"id":"on_time","label":"Удержание для включения","lsb":6,"width":2,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"128 мс"},"1":{"label":"1 с"},"2":{"label":"2 с"},"3":{"label":"3 с"}}},
+      {"id":"irq_time","label":"Удержание для IRQ","lsb":4,"width":2,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"1 с"},"1":{"label":"1,5 с"},"2":{"label":"2 с"},"3":{"label":"2,5 с"}}},
+      {"id":"off_enable","label":"Выключение по OFFLEVEL","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"restart","label":"Включение после выключения по OFFLEVEL","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"off_time","label":"Удержание для выключения","lsb":0,"width":2,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"4 с"},"1":{"label":"6 с"},"2":{"label":"8 с"},"3":{"label":"10 с"}}}
+      ]
+    },
+    {"id":"undocumented_37","address":"0x37","name":"REG 0x37","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_38","address":"0x38","name":"REG 0x38","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_39","address":"0x39","name":"REG 0x39","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_3a","address":"0x3A","name":"REG 0x3A","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_3b","address":"0x3B","name":"REG 0x3B","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_3c","address":"0x3C","name":"REG 0x3C","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_3d","address":"0x3D","name":"REG 0x3D","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_3e","address":"0x3E","name":"REG 0x3E","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_3f","address":"0x3F","name":"REG 0x3F","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"irq_enable1","address":"0x40","name":"REG 0x40","label":"Разрешение IRQ питания и температуры","section":"10.2, с. 35–36","note":"Системный сброс. Разрешения IRQ не являются флагами событий.",
+      "fields": [
+      {"id":"dcdc6","label":"DCDC6 ниже 85% задания","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"dcdc5","label":"DCDC5 ниже 85% задания","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"dcdc4","label":"DCDC4 ниже 85% задания","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"dcdc3","label":"DCDC3 ниже 85% задания","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"dcdc2","label":"DCDC2 ниже 85% задания","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"dcdc1","label":"DCDC1 ниже 85% задания","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"temperature2","label":"Температурный уровень 2","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"temperature1","label":"Температурный уровень 1","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}}
+      ]
+    },
+    {"id":"irq_enable2","address":"0x41","name":"REG 0x41","label":"Разрешение IRQ кнопки и GPIO","section":"10.2, с. 36","note":"Системный сброс. Разрешения IRQ не являются флагами событий.",
+      "fields": [
+      {"id":"reserved_6","label":"Резерв","lsb":6,"width":2,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"gpio2","label":"Событие GPIO2","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"pok_rise","label":"Нарастающий фронт POK","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"pok_fall","label":"Спадающий фронт POK","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"gpio1","label":"Событие GPIO1","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"pok_short","label":"Короткое нажатие POK","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}},
+      {"id":"pok_long","label":"Длительное нажатие POK","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x01","values":{"0":{"label":"Выключено"},"1":{"label":"Включено","tone":"ok"}}}
+      ]
+    },
+    {"id":"undocumented_42","address":"0x42","name":"REG 0x42","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_43","address":"0x43","name":"REG 0x43","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_44","address":"0x44","name":"REG 0x44","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_45","address":"0x45","name":"REG 0x45","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_46","address":"0x46","name":"REG 0x46","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"undocumented_47","address":"0x47","name":"REG 0x47","label":"Неописанный адрес","section":"10.1, с. 26–27","reserved":true,
+      "fields": [
+      {"id":"bits","label":"Не описано","lsb":0,"width":8,"type":"reserved","access":"none","reset":"Не указан"}
+      ]
+    },
+    {"id":"irq_status1","address":"0x48","name":"REG 0x48","label":"Флаги IRQ питания и температуры","section":"10.2, с. 36","note":"Системный сброс. Флаг очищается записью 1 либо восстановлением напряжения или температуры. Ноль не доказывает отсутствие прежних аварий; маски IRQ также влияют на регистрацию. Кэш записанной команды очистки не подтверждает событие (§9.4).",
+      "fields": [
+      {"id":"dcdc6","label":"DCDC6 ниже 85% задания","lsb":7,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"bad"}},"attributes":["write_one_clear"]},
+      {"id":"dcdc5","label":"DCDC5 ниже 85% задания","lsb":6,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"bad"}},"attributes":["write_one_clear"]},
+      {"id":"dcdc4","label":"DCDC4 ниже 85% задания","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"bad"}},"attributes":["write_one_clear"]},
+      {"id":"dcdc3","label":"DCDC3 ниже 85% задания","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"bad"}},"attributes":["write_one_clear"]},
+      {"id":"dcdc2","label":"DCDC2 ниже 85% задания","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"bad"}},"attributes":["write_one_clear"]},
+      {"id":"dcdc1","label":"DCDC1 ниже 85% задания","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"bad"}},"attributes":["write_one_clear"]},
+      {"id":"temperature2","label":"Температурный уровень 2","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"bad"}},"attributes":["write_one_clear"]},
+      {"id":"temperature1","label":"Температурный уровень 1","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"bad"}},"attributes":["write_one_clear"]}
+      ]
+    },
+    {"id":"irq_status2","address":"0x49","name":"REG 0x49","label":"Флаги IRQ кнопки и GPIO","section":"10.2, с. 36–37","note":"Системный сброс. Флаги событий очищаются записью 1. Это исторические признаки, не текущие уровни выводов. GPIO IRQ зависит от назначения вывода (§9.4); для GPIO1 отдельный выбор фронта в открытой карте не описан.",
+      "fields": [
+      {"id":"reserved_6","label":"Резерв","lsb":6,"width":2,"type":"reserved","access":"none","reset":"0x00"},
+      {"id":"gpio2","label":"Событие GPIO2","lsb":5,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"warn"}},"attributes":["write_one_clear"]},
+      {"id":"pok_rise","label":"Нарастающий фронт POK","lsb":4,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"warn"}},"attributes":["write_one_clear"]},
+      {"id":"pok_fall","label":"Спадающий фронт POK","lsb":3,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"warn"}},"attributes":["write_one_clear"]},
+      {"id":"gpio1","label":"Событие GPIO1","lsb":2,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"warn"}},"attributes":["write_one_clear"]},
+      {"id":"pok_short","label":"Короткое нажатие POK","lsb":1,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"warn"}},"attributes":["write_one_clear"]},
+      {"id":"pok_long","label":"Длительное нажатие POK","lsb":0,"width":1,"type":"enum","access":"rw","reset":"0x00","values":{"0":{"label":"Не отмечено"},"1":{"label":"Отмечено в кэше","tone":"warn"}},"attributes":["write_one_clear"]}
+      ]
+    }
+  ],
+  "summary": [
+    {"id":"dcdc1_enable","label":"DCDC1: разрешение","field":"outputs1.dcdc1"},
+    {"id":"dcdc1_voltage","label":"DCDC1: задание напряжения","field":"dcdc1.voltage"},
+    {"id":"dcdc1_mode","label":"DCDC1: режим переключения","field":"dcdc_mode2.dcdc1"},
+    {"id":"dcdc2_enable","label":"DCDC2: разрешение","field":"outputs1.dcdc2"},
+    {"id":"dcdc2_voltage","label":"DCDC2: задание напряжения","field":"dcdc2.voltage"},
+    {"id":"dcdc2_mode","label":"DCDC2: режим переключения","field":"dcdc_mode2.dcdc2"},
+    {"id":"dcdc3_enable","label":"DCDC3: разрешение","cases":[{"when":[{"field":"dcdc_mode1.poly23","equals":0}],"field":"outputs1.dcdc3"},{"when":[{"field":"dcdc_mode1.poly23","equals":1}],"field":"outputs1.dcdc2"}]},
+    {"id":"dcdc3_voltage","label":"DCDC3: задание напряжения","cases":[{"when":[{"field":"dcdc_mode1.poly23","equals":0}],"field":"dcdc3.voltage"},{"when":[{"field":"dcdc_mode1.poly23","equals":1}],"field":"dcdc2.voltage"}]},
+    {"id":"dcdc3_mode","label":"DCDC3: режим переключения","cases":[{"when":[{"field":"dcdc_mode1.poly23","equals":0}],"field":"dcdc_mode2.dcdc3"},{"when":[{"field":"dcdc_mode1.poly23","equals":1}],"field":"dcdc_mode2.dcdc2"}]},
+    {"id":"dcdc4_enable","label":"DCDC4: разрешение","field":"outputs1.dcdc4"},
+    {"id":"dcdc4_voltage","label":"DCDC4: задание напряжения","field":"dcdc4.voltage"},
+    {"id":"dcdc4_mode","label":"DCDC4: режим переключения","field":"dcdc_mode2.dcdc4"},
+    {"id":"dcdc5_enable","label":"DCDC5: разрешение","field":"outputs1.dcdc5"},
+    {"id":"dcdc5_voltage","label":"DCDC5: задание напряжения","field":"dcdc5.voltage"},
+    {"id":"dcdc5_mode","label":"DCDC5: режим переключения","field":"dcdc_mode2.dcdc5"},
+    {"id":"dcdc6_enable","label":"DCDC6: разрешение","cases":[{"when":[{"field":"dcdc_mode1.poly46","equals":0}],"field":"outputs1.dcdc6"},{"when":[{"field":"dcdc_mode1.poly46","equals":1}],"field":"outputs1.dcdc4"}]},
+    {"id":"dcdc6_voltage","label":"DCDC6: задание напряжения","cases":[{"when":[{"field":"dcdc_mode1.poly46","equals":0}],"field":"dcdc6.voltage"},{"when":[{"field":"dcdc_mode1.poly46","equals":1}],"field":"dcdc4.voltage"}]},
+    {"id":"dcdc6_mode","label":"DCDC6: режим переключения","cases":[{"when":[{"field":"dcdc_mode1.poly46","equals":0}],"field":"dcdc_mode2.dcdc6"},{"when":[{"field":"dcdc_mode1.poly46","equals":1}],"field":"dcdc_mode2.dcdc4"}]},
+    {"id":"aldo1_enable","label":"ALDO1: разрешение","field":"outputs2.aldo1"},
+    {"id":"aldo1_voltage","label":"ALDO1: задание напряжения","field":"aldo1.voltage"},
+    {"id":"aldo2_enable","label":"ALDO2: разрешение","field":"outputs2.aldo2"},
+    {"id":"aldo2_voltage","label":"ALDO2: задание напряжения","field":"aldo2.voltage"},
+    {"id":"aldo3_enable","label":"ALDO3: разрешение","field":"outputs2.aldo3"},
+    {"id":"aldo3_voltage","label":"ALDO3: задание напряжения","field":"aldo3.voltage"},
+    {"id":"aldo4_enable","label":"ALDO4: разрешение","field":"outputs2.aldo4"},
+    {"id":"aldo4_voltage","label":"ALDO4: задание напряжения","field":"aldo4.voltage"},
+    {"id":"aldo5_enable","label":"ALDO5: разрешение","field":"outputs2.aldo5"},
+    {"id":"aldo5_voltage","label":"ALDO5: задание напряжения","field":"aldo5.voltage"},
+    {"id":"bldo1_enable","label":"BLDO1: разрешение","field":"outputs2.bldo1"},
+    {"id":"bldo1_voltage","label":"BLDO1: задание напряжения","field":"bldo1.voltage"},
+    {"id":"bldo2_enable","label":"BLDO2: разрешение","field":"outputs2.bldo2"},
+    {"id":"bldo2_voltage","label":"BLDO2: задание напряжения","field":"bldo2.voltage"},
+    {"id":"bldo3_enable","label":"BLDO3: разрешение","field":"outputs2.bldo3"},
+    {"id":"bldo3_voltage","label":"BLDO3: задание напряжения","field":"bldo3.voltage"},
+    {"id":"bldo4_enable","label":"BLDO4: разрешение","field":"outputs3.bldo4"},
+    {"id":"bldo4_voltage","label":"BLDO4: задание напряжения","field":"bldo4.voltage"},
+    {"id":"bldo5_enable","label":"BLDO5: разрешение","field":"outputs3.bldo5"},
+    {"id":"bldo5_voltage","label":"BLDO5: задание напряжения","field":"bldo5.voltage"},
+    {"id":"cldo1_enable","label":"CLDO1: разрешение","field":"outputs3.cldo1"},
+    {"id":"cldo1_voltage","label":"CLDO1: задание напряжения","field":"cldo1.voltage"},
+    {"id":"cldo2_enable","label":"CLDO2: разрешение","field":"outputs3.cldo2"},
+    {"id":"cldo2_voltage","label":"CLDO2: задание напряжения","field":"cldo2.voltage"},
+    {"id":"cldo3_enable","label":"CLDO3: разрешение","cases":[{"when":[{"field":"cldo3.function","equals":0}],"field":"outputs3.cldo3"},{"when":[{"field":"cldo3.function","equals":1}],"field":"cldo3.function"},{"when":[{"field":"cldo3.function","equals":2}],"field":"cldo3.function"},{"when":[{"field":"cldo3.function","equals":3}],"field":"cldo3.function"}]},
+    {"id":"cldo3_voltage","label":"CLDO3: задание напряжения","field":"cldo3.voltage"},
+    {"id":"cldo4_enable","label":"CLDO4: разрешение","cases":[{"when":[{"field":"gpio2.function","equals":0}],"field":"outputs3.cldo4"},{"when":[{"field":"gpio2.function","equals":1}],"field":"gpio2.function"},{"when":[{"field":"gpio2.function","equals":2}],"field":"gpio2.function"},{"when":[{"field":"gpio2.function","equals":3}],"field":"gpio2.function"},{"when":[{"field":"gpio2.function","equals":4}],"field":"gpio2.function"},{"when":[{"field":"gpio2.function","equals":5}],"field":"gpio2.function"},{"when":[{"field":"gpio2.function","equals":6}],"field":"gpio2.function"},{"when":[{"field":"gpio2.function","equals":7}],"field":"gpio2.function"}]},
+    {"id":"cldo4_voltage","label":"CLDO4: задание напряжения","field":"cldo4.voltage"},
+    {"id":"cpusldo_enable","label":"CPUSLDO: разрешение","field":"outputs3.cpusldo"},
+    {"id":"cpusldo_voltage","label":"CPUSLDO: задание напряжения","field":"cpusldo.voltage"},
+    {"id":"switch_enable","label":"DC1SW: разрешение","field":"outputs3.switch"},
+    {"id":"ovp","label":"Защита от перенапряжения","field":"protection.ovp"},
+    {"id":"temperature","label":"Контроль температуры","field":"power_control.temperature"},
+    {"id":"overtemperature","label":"Отключение при перегреве","field":"power_control.overtemperature"},
+    {"id":"voff","label":"Порог VOFF","field":"power_good.voff"},
+    {"id":"discharge","label":"Разряд при выключении","field":"protection.discharge"},
+    {"id":"poly23","label":"DCDC2 и DCDC3","field":"dcdc_mode1.poly23"},
+    {"id":"poly46","label":"DCDC4 и DCDC6","field":"dcdc_mode1.poly46"},
+    {"id":"dvm_ramp","label":"Время шага DVM","field":"dcdc_mode1.ramp"},
+    {"id":"wakeup","label":"Функция пробуждения","field":"wakeup.enable"},
+    {"id":"irq_wakeup","label":"Пробуждение по IRQ","field":"power_good.irq_wakeup"},
+    {"id":"off_sequence","label":"Порядок выключения","field":"power_control.off_sequence"},
+    {"id":"gpio1","label":"Назначение GPIO1","field":"cldo3.function"},
+    {"id":"gpio2","label":"Назначение GPIO2","field":"gpio2.function"}
+  ]
+}

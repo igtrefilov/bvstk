@@ -18,7 +18,7 @@ bvstk_status_t bvstk_mdio_config_validate(const mdio_phy_config_t *c)
 {
     size_t i, j;
     if (!c || !safe_name(c->name, sizeof(c->name), 0) ||
-        !safe_name(c->file_name, sizeof(c->file_name), 1) ||
+        (c->file_name[0] && !bvstk_device_profile_path_valid(c->file_name)) ||
         c->phy_addr > 31U || !c->reg_count || c->reg_count > 32U ||
         (c->policy != MDIO_POLICY_WHITELIST && c->policy != MDIO_POLICY_BLACKLIST) ||
         c->whitelist_len > MDIO_CFG_RULES_MAX || c->blacklist_len > MDIO_CFG_RULES_MAX ||

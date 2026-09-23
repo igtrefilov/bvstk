@@ -34,7 +34,7 @@ function apiProjection(p) {
       {addr_7b:Number(p.transport.address),max_value_code:Number(options.max_write_value)})};
 }
 for (const [bus,name] of [['i2c','pca9536'],['mdio','dp83848c'],['mdio','ksz8081rna']]) {
-  additional[bus].push(apiProjection(JSON.parse(await readFile(new URL(`../../configs/${bus}/${name}.json`,import.meta.url),'utf8'))));
+  additional[bus].push(apiProjection(JSON.parse(await readFile(new URL(`../../configs/${bus}/${name}/${name}.json`,import.meta.url),'utf8'))));
 }
 const presence = {i2c:'responding',mdio:'responding'};
 const revision={mdio:1,i2c:1},saved={mdio:true,i2c:true};

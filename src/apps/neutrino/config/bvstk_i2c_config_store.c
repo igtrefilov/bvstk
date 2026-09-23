@@ -50,33 +50,9 @@ static int ensure_directory_tree(const char *path)
     return mkdir(current, 0755) == 0 || errno == EEXIST;
 }
 
-static int has_json_suffix(const char *name)
-{
-    size_t length;
-
-    if (name == NULL || (length = strlen(name)) < 6U) {
-        return 0;
-    }
-    return strcasecmp(name + length - 5U, ".json") == 0;
-}
-
 static int file_name_safe(const char *name)
 {
-    const unsigned char *cursor = (const unsigned char *)name;
-
-    if (!has_json_suffix(name) || strlen(name) >= I2C_CFG_FILE_NAME_MAX) {
-        return 0;
-    }
-    while (*cursor != '\0') {
-        if (!( (*cursor >= 'a' && *cursor <= 'z') ||
-               (*cursor >= 'A' && *cursor <= 'Z') ||
-               (*cursor >= '0' && *cursor <= '9') ||
-               *cursor == '_' || *cursor == '-' || *cursor == '.')) {
-            return 0;
-        }
-        ++cursor;
-    }
-    return 1;
+    return bvstk_device_profile_path_valid(name);
 }
 
 static int read_file(const char *path, char **json)
@@ -155,7 +131,7 @@ static size_t load_directory(bvstk_neutrino_i2c_config_store_t *store,
     initial_count = store->device_count;
     for (;;) {
         i2c_device_config_t config;
-        char path[256];
+        char path[256], relative[I2C_CFG_FILE_NAME_MAX];
         char *json = NULL;
         int length;
 
@@ -166,14 +142,35 @@ static size_t load_directory(bvstk_neutrino_i2c_config_store_t *store,
             break;
         }
 
-        if (!file_name_safe(entry->d_name)) {
-            continue;
-        }
         length = snprintf(path,
                           sizeof(path),
                           "%s/%s",
                           directory,
                           entry->d_name);
+        if (length <= 0 || (size_t)length >= sizeof(path)) { closedir(handle); return SIZE_MAX; }
+        if (directory_exists(path)) {
+            if (snprintf(relative, sizeof(relative), "%s/%s.json", entry->d_name,
+                         entry->d_name) >= (int)sizeof(relative) ||
+                !file_name_safe(relative)) continue;
+            length = snprintf(path, sizeof(path), "%s/%s", directory, relative);
+            if (access(path, F_OK) != 0) {
+                if (snprintf(relative, sizeof(relative), "%s/profile.json", entry->d_name) >= (int)sizeof(relative) ||
+                    !file_name_safe(relative) ||
+                    snprintf(path, sizeof(path), "%s/%s", directory, relative) >= (int)sizeof(path) ||
+                    access(path, F_OK) != 0) continue;
+            }
+        } else {
+            char nested[256];
+            if (!file_name_safe(entry->d_name) || bvstk_device_profile_is_register_map(entry->d_name)) continue;
+            snprintf(nested, sizeof(nested), "%s/%.*s/%.*s.json", directory,
+                     (int)(strlen(entry->d_name)-5U), entry->d_name,
+                     (int)(strlen(entry->d_name)-5U), entry->d_name);
+            if (access(nested, F_OK) == 0) continue;
+            snprintf(nested, sizeof(nested), "%s/%.*s/profile.json", directory,
+                     (int)(strlen(entry->d_name)-5U), entry->d_name);
+            if (access(nested, F_OK) == 0) continue;
+            strcpy(relative, entry->d_name);
+        }
         if (store->device_count >= I2C_CFG_MAX_DEVICES ||
             length <= 0 || (size_t)length >= sizeof(path) ||
             !read_file(path, &json)) {
@@ -191,7 +188,7 @@ static size_t load_directory(bvstk_neutrino_i2c_config_store_t *store,
             continue;
         }
         strncpy(config.file_name,
-                entry->d_name,
+                relative,
                 sizeof(config.file_name) - 1U);
         config.file_name[sizeof(config.file_name) - 1U] = '\0';
         store->devices[store->device_count++] = config;
@@ -249,20 +246,20 @@ static int config_file_name(const i2c_device_config_t *config,
 {
     int length;
 
+    length = snprintf(file_name,
+                      file_name_capacity,
+                      "%s/%s.json",
+                      config->name,
+                      config->name);
+    if (length > 0 && (size_t)length < file_name_capacity &&
+        file_name_safe(file_name)) return 1;
     if (file_name_safe(config->file_name)) {
         size_t source_length = strlen(config->file_name);
-        if (source_length >= file_name_capacity) {
-            return 0;
-        }
+        if (source_length >= file_name_capacity) return 0;
         memcpy(file_name, config->file_name, source_length + 1U);
         return 1;
     }
-    length = snprintf(file_name,
-                      file_name_capacity,
-                      "%s.json",
-                      config->name);
-    return length > 0 && (size_t)length < file_name_capacity &&
-           file_name_safe(file_name);
+    return 0;
 }
 
 int bvstk_neutrino_i2c_config_store_save(
@@ -304,6 +301,12 @@ int bvstk_neutrino_i2c_config_store_save(
         free(json);
         return 0;
     }
+    char parent[256];
+    strcpy(parent, destination);
+    char *slash = strrchr(parent, '/');
+    if (!slash) { free(json); return 0; }
+    *slash = 0;
+    if (!ensure_directory_tree(parent)) { free(json); return 0; }
     fd = open(temporary, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd >= 0 && write_all(fd, json, json_size) && fsync(fd) == 0 &&
         close(fd) == 0) {

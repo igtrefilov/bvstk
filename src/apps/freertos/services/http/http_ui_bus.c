@@ -217,6 +217,10 @@ static void detail(int fd, int mdio, size_t id, bus_workspace_t *w)
         (unsigned long)bvstk_http_revision(w->json), saved < 0 ? "null" : saved ? "true" : "false",
         presence > 0 ? "true" : "false", presence_name(presence));
     http_ui_string(fd, file_name(mdio, &w->current));
+    http_ui_text(fd, ",\"register_map\":");
+    http_ui_string(fd, mdio ? w->current.mdio.profile.register_map : w->current.i2c.profile.register_map);
+    http_ui_text(fd, ",\"view\":");
+    http_ui_string(fd, mdio ? w->current.mdio.profile.view : w->current.i2c.profile.view);
     if (mdio) {
         bvstk_mdio_stats_t stats;
         http_ui_text(fd, ",\"cache\":[");

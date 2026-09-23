@@ -1,6 +1,8 @@
 {
   "schema_version": 2,
   "id": "lan8720",
+  "register_map": "register_map.json",
+  "view": "view.js",
   "device": {
     "model": "LAN8720A",
     "vendor": "Microchip",

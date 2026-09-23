@@ -15,5 +15,11 @@ bvstk_status_t bvstk_device_profile_parse_mdio(const char *, mdio_phy_config_t *
 bvstk_status_t bvstk_device_profile_format_i2c(const i2c_device_config_t *, char *, size_t, size_t *);
 bvstk_status_t bvstk_device_profile_format_mdio(const mdio_phy_config_t *, char *, size_t, size_t *);
 bvstk_status_t bvstk_device_profile_metadata_validate(const bvstk_profile_metadata_t *, size_t);
+/* Sidecar descriptions are not device profiles, even when stored beside them. */
+int bvstk_device_profile_is_register_map(const char *filename);
+/* Canonical <device>/<device>.json, legacy <device>/profile.json, or a flat
+ * legacy leaf.json. */
+int bvstk_device_profile_path_valid(const char *path);
+int bvstk_device_profile_same_file(const char *a, const char *b);
 
 #endif

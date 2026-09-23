@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 
 /* Bounded, allocation-free JSON views. Parsing never searches for a key in a
  * different object and never narrows a number before validating its range. */
@@ -316,6 +317,99 @@ bvstk_status_t bvstk_device_profile_version(const char *json, unsigned *version)
     return BVSTK_OK;
 }
 
+int bvstk_device_profile_is_register_map(const char *filename)
+{
+    static const char suffix[] = "_register_map.json";
+    size_t n, i;
+    if (filename && !strcmp(filename, "register_map.json")) return 1;
+    if (!filename || (n = strlen(filename)) <= sizeof(suffix) - 1U) return 0;
+    filename += n - (sizeof(suffix) - 1U);
+    for (i = 0; i < sizeof(suffix) - 1U; ++i) {
+        char c = filename[i];
+        if (c >= 'A' && c <= 'Z') c = (char)(c - 'A' + 'a');
+        if (c != suffix[i]) return 0;
+    }
+    return 1;
+}
+int bvstk_device_profile_path_valid(const char *path)
+{
+    size_t i, n, slash = 0;
+    const char *leaf;
+    if (!path || !memchr(path, 0, I2C_CFG_FILE_NAME_MAX) ||
+        (n = strlen(path)) < 6U || strstr(path, "..")) return 0;
+
+    for (i = 0; i < n; ++i) {
+        char c = path[i];
+        if (c == '/') {
+            if (!i || slash || i >= I2C_CFG_NAME_MAX) return 0;
+            slash = i;
+        } else if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                     digit(c) || c == '_' || c == '-' || c == '.')) return 0;
+    }
+
+    if (!slash) {
+        /* A flat name is retained for old installations. */
+        return n > 5U && path[n-5] == '.' &&
+               (path[n-4] == 'j' || path[n-4] == 'J') &&
+               (path[n-3] == 's' || path[n-3] == 'S') &&
+               (path[n-2] == 'o' || path[n-2] == 'O') &&
+               (path[n-1] == 'n' || path[n-1] == 'N');
+    }
+
+    /* A bundle directory has no extension.  The old profile.json leaf is
+     * accepted for migration, while new files must be named after the
+     * directory: <device>/<device>.json. */
+    for (i = 0; i < slash; ++i) if (path[i] == '.') return 0;
+    leaf = path + slash + 1U;
+    if (!strcasecmp(leaf, "profile.json")) return 1;
+    if (strlen(leaf) != slash + 5U) return 0;
+    for (i = 0; i < slash; ++i) {
+        char a = path[i], b = leaf[i];
+        if (a >= 'A' && a <= 'Z') a = (char)(a - 'A' + 'a');
+        if (b >= 'A' && b <= 'Z') b = (char)(b - 'A' + 'a');
+        if (a != b) return 0;
+    }
+    return leaf[slash] == '.' &&
+           (leaf[slash + 1U] == 'j' || leaf[slash + 1U] == 'J') &&
+           (leaf[slash + 2U] == 's' || leaf[slash + 2U] == 'S') &&
+           (leaf[slash + 3U] == 'o' || leaf[slash + 3U] == 'O') &&
+           (leaf[slash + 4U] == 'n' || leaf[slash + 4U] == 'N');
+}
+int bvstk_device_profile_same_file(const char *a, const char *b)
+{
+    const char *sa, *sb;
+    size_t na, nb, i;
+    if (!bvstk_device_profile_path_valid(a) || !bvstk_device_profile_path_valid(b)) return 0;
+    sa = strchr(a, '/'); sb = strchr(b, '/');
+    na = sa ? (size_t)(sa - a) : strlen(a) - 5U;
+    nb = sb ? (size_t)(sb - b) : strlen(b) - 5U;
+    if (na != nb) return 0;
+    for (i = 0; i < na; ++i) {
+        char ca = a[i], cb = b[i];
+        if (ca >= 'A' && ca <= 'Z') ca += 'a'-'A';
+        if (cb >= 'A' && cb <= 'Z') cb += 'a'-'A';
+        if (ca != cb) return 0;
+    }
+    return 1;
+}
+static int asset_name_valid(const char *filename, const char *extension)
+{
+    size_t i, n, suffix = strlen(extension);
+    if (!memchr(filename, 0, BVSTK_REGISTER_MAP_NAME_MAX)) return 0;
+    if (!filename[0]) return 1;
+    n = strlen(filename);
+    if (n <= suffix || strcmp(filename+n-suffix, extension)) return 0;
+    for (i = 0; i < n-suffix; ++i)
+        if (!((filename[i] >= 'a' && filename[i] <= 'z') ||
+              (filename[i] >= 'A' && filename[i] <= 'Z') || digit(filename[i]) ||
+              filename[i] == '_' || filename[i] == '-')) return 0;
+    return 1;
+}
+static int register_map_valid(const char *filename)
+{
+    return asset_name_valid(filename, ".json") &&
+        (!filename[0] || bvstk_device_profile_is_register_map(filename));
+}
 static const char *resource_id(const bvstk_profile_metadata_t *p, unsigned reg, char fallback[16])
 {
     if (p->version == 2U) return p->ids + p->id_offset[reg];
@@ -325,7 +419,8 @@ static const char *resource_id(const bvstk_profile_metadata_t *p, unsigned reg, 
 bvstk_status_t bvstk_device_profile_metadata_validate(const bvstk_profile_metadata_t *p, size_t count)
 {
     size_t i, j;
-    if (!p || count > I2C_CFG_MAX_REG_COUNT) return BVSTK_ERR_MALFORMED;
+    if (!p || count > I2C_CFG_MAX_REG_COUNT || !register_map_valid(p->register_map) ||
+        !asset_name_valid(p->view, ".js") || (p->view[0] && !p->register_map[0])) return BVSTK_ERR_MALFORMED;
     if (!p->version) return BVSTK_OK;
     if (p->version != 2U || !count || p->ids_size > sizeof(p->ids) || !p->ids_size || p->ids[0] ||
         !memchr(p->vendor, 0, sizeof(p->vendor)) || !memchr(p->model, 0, sizeof(p->model)) ||
@@ -377,7 +472,7 @@ static int no_refresh(view_t v)
 
 static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c, mdio_phy_config_t *m)
 {
-    static const char *const root_keys[] = {"schema_version", "id", "device", "transport", "protocol", "resources", "defaults", "policy", "settings", "observability"};
+    static const char *const root_keys[] = {"schema_version", "id", "device", "transport", "protocol", "resources", "defaults", "policy", "settings", "observability", "register_map", "view"};
     static const char *const device_keys[] = {"model", "vendor", "class", "label"};
     static const char *const transport_keys[] = {"bus", "controller", "address", "address_bits"};
     static const char *const protocol_keys[] = {"driver", "options"};
@@ -393,7 +488,7 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     static const char *const observe_keys[] = {"telemetry", "events"};
     bvstk_profile_metadata_t *meta = mdio ? &m->profile : &i2c->profile;
     char *name = mdio ? m->name : i2c->name;
-    view_t root, r[10], f[13], defaults[13] = {{0}}, options[6] = {{0}}, policies[2];
+    view_t root, r[12], f[13], defaults[13] = {{0}}, options[6] = {{0}}, policies[2];
     view_t entry, part[3], list[2], rule[2], match[2];
     const char *cursor;
     uint8_t seen[256] = {0};
@@ -401,8 +496,12 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     uint32_t n, val, mask;
     int next, flag, mode;
     size_t k, which, nr;
-    if (!document(json, &root) || !fields(root, root_keys, 10, r) ||
+    if (!document(json, &root) || !fields(root, root_keys, 12, r) ||
         !number(r[0], 2, &n) || n != 2U || !text(r[1], name, 32) || !id_valid(name)) return BVSTK_ERR_MALFORMED;
+    if (r[10].p && (!text(r[10], meta->register_map, sizeof(meta->register_map)) ||
+        !meta->register_map[0] || !register_map_valid(meta->register_map))) return BVSTK_ERR_MALFORMED;
+    if (r[11].p && (!text(r[11], meta->view, sizeof(meta->view)) || !meta->view[0] ||
+        !asset_name_valid(meta->view, ".js") || !meta->register_map[0])) return BVSTK_ERR_MALFORMED;
     if (!fields(r[2], device_keys, 4, f) || !text(f[0], meta->model, sizeof(meta->model)) || !meta->model[0]) return BVSTK_ERR_MALFORMED;
     if (f[1].p && (!text(f[1], meta->vendor, sizeof(meta->vendor)) || !meta->vendor[0])) return BVSTK_ERR_MALFORMED;
     strcpy(meta->device_class, "generic");
@@ -596,6 +695,8 @@ static bvstk_status_t format(int mdio, const i2c_device_config_t *i2c, const mdi
     out[0] = 0;
     if (!id_valid(name)) return BVSTK_ERR_UNSUPPORTED;
     append(&w, "{\n  \"schema_version\": 2,\n  \"id\": "); quoted(&w, name);
+    if (meta->register_map[0]) { append(&w, ",\n  \"register_map\": "); quoted(&w, meta->register_map); }
+    if (meta->view[0]) { append(&w, ",\n  \"view\": "); quoted(&w, meta->view); }
     append(&w, ",\n  \"device\": {\"model\": "); quoted(&w, meta->version ? meta->model : name);
     append(&w, ", \"class\": "); quoted(&w, meta->version ? meta->device_class : mdio ? "phy" : "generic");
     if (meta->version && meta->vendor[0]) { append(&w, ", \"vendor\": "); quoted(&w, meta->vendor); }
