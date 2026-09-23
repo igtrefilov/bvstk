@@ -38,7 +38,7 @@ const paths = {
   copy:'<rect x="8" y="8" width="13" height="13"/><path d="M16 8V3H3v13h5"/>',
   trash:'<path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/>',
 };
-export const icon = (name, {ready} = {}) => `<svg class="icon ${name === "folder" ? "folder" : ""}" data-icon-name="${esc(name)}" viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.file}${name === "chip" && typeof ready === "boolean" ? `<circle class="device-status${ready ? " ready" : ""}" cx="15" cy="9" r="2" stroke="none"/>` : ""}</svg>`;
+export const icon = (name, {ready} = {}) => `<svg class="icon ${name === "folder" ? "folder" : ""}" data-icon-name="${esc(name)}" viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.file}${name === "chip" && typeof ready === "boolean" ? `<circle class="device-status${ready ? " ready" : ""}" cx="12" cy="12" r="2" stroke="none"/>` : ""}</svg>`;
 export function deviceState(bus, device) {
   // Older I2C firmware reports service readiness as availability. Do not
   // misrepresent that flag as proof that a configured chip has responded.

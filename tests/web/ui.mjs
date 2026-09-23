@@ -194,9 +194,11 @@ async function checkDeviceIcon(name,ready) {
   assert.equal(await dot.getAttribute('r'),'2');
   assert(await dot.evaluate(el=>{
     const point=el.getBBox(), chip=el.ownerSVGElement.querySelector('rect').getBBox();
-    return point.x>chip.x+chip.width/2 && point.y+point.height<chip.y+chip.height/2 &&
-      point.x+point.width<chip.x+chip.width && point.y>chip.y;
-  }),'Readiness point belongs inside the upper-right corner of the chip');
+    const pointCenter={x:point.x+point.width/2,y:point.y+point.height/2};
+    const chipCenter={x:chip.x+chip.width/2,y:chip.y+chip.height/2};
+    return Math.abs(pointCenter.x-chipCenter.x)<.01 && Math.abs(pointCenter.y-chipCenter.y)<.01 &&
+      point.x>chip.x && point.y>chip.y && point.x+point.width<chip.x+chip.width && point.y+point.height<chip.y+chip.height;
+  }),'Readiness point belongs at the center of the chip');
 }
 const versionCalls=()=>calls.filter(([method,path])=>method==='GET'&&path==='/api/version').length;
 const idle=()=>page.waitForFunction(async()=>!(await import('/js/api.js')).pending);
