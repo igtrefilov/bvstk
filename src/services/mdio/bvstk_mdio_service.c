@@ -89,7 +89,10 @@ static bvstk_status_t read_phy(bvstk_mdio_service_t *s, size_t d, uint8_t r,
     if (st != BVSTK_OK) {
         e->valid = 0;
         (void)publish(s, phy, r, 0xFFFFU);
-        ++s->stats.errors;
+        /* Identity probes are presence checks, not device transactions.
+         * A missing or temporarily unreachable PHY must not turn the
+         * diagnostic exchange-error counter into a probe-attempt counter. */
+        if (!probe) ++s->stats.errors;
     }
     return st;
 }
@@ -370,7 +373,6 @@ bvstk_status_t bvstk_mdio_service_step(bvstk_mdio_service_t *s, uint64_t now, ui
                 s->online[d] = 1;
             } else {
                 (void)invalidate(s, d);
-                if (st == BVSTK_OK) ++s->stats.errors;
                 result = st == BVSTK_OK ? BVSTK_ERR_NOT_READY : st;
             }
             s->probe_due[d] = now + 1000U;

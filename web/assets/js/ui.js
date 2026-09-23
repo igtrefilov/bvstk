@@ -72,7 +72,7 @@ export function wireRows(root, selector, select) {
     row.onkeydown = event => {
       if (event.target !== row) return;
       const next = {ArrowDown:Math.min(rows.length-1,i+1),ArrowUp:Math.max(0,i-1),Home:0,End:rows.length-1}[event.key];
-      if (next !== undefined) { event.preventDefault(); select(rows[next]); root.querySelectorAll(selector)[next]?.focus(); }
+      if (next !== undefined) { event.preventDefault(); select(rows[next]); root.querySelectorAll(selector)[next]?.focus({preventScroll:true}); }
       else if (event.key === "Enter" || event.key === " ") { event.preventDefault(); select(row); }
     };
   });

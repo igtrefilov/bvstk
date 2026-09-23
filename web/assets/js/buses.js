@@ -29,6 +29,29 @@ export async function busPage(root, params, ctx, bus) {
     try { return await work(); }
     finally { busy--; root.inert = !!busy; updateBar(); }
   }
+  function captureRegisterViewport() {
+    if (tab !== "registers") return null;
+    const table = root.querySelector(".register-table");
+    if (!table) return null;
+    const active = document.activeElement, row = active?.closest?.("[data-register]");
+    const viewport = {
+      scrollTop: table.scrollTop,
+      scrollLeft: table.scrollLeft,
+      filterFocused: active === root.querySelector(".device-select"),
+      register: row?.dataset.register,
+      input: ["reg","val"].includes(active?.id) ? active.id : ""
+    };
+    return viewport;
+  }
+  function restoreRegisterViewport(viewport) {
+    if (!viewport) return;
+    const table = root.querySelector(".register-table");
+    if (!table) return;
+    if (viewport.filterFocused) root.querySelector(".device-select")?.focus({preventScroll:true});
+    else if (viewport.register !== undefined) root.querySelector(`[data-register="${viewport.register}"]`)?.focus({preventScroll:true});
+    else if (viewport.input) root.querySelector(`#${viewport.input}`)?.focus({preventScroll:true});
+    table.scrollTop = viewport.scrollTop; table.scrollLeft = viewport.scrollLeft;
+  }
   async function load(force = false) {
     if (!force && changed() && !await ask({title:"Отбросить черновик?",body:"<p>Изменения в браузере будут потеряны. Уже применённая конфигурация RAM не откатывается.</p>"})) return;
     await locked(async () => {
@@ -41,8 +64,11 @@ export async function busPage(root, params, ctx, bus) {
     if (!devices.devices.some(d => d.name === selected)) selected = devices.devices[0].name;
     const next = await api.busGet(bus, selected, ctx.signal);
     if (ctx.signal.aborted) return;
+    const viewport = captureRegisterViewport();
     if (currentDevice !== selected) { regState = {}; ruleState = {list:"whitelist",index:0}; currentDevice = selected; }
-    detail = next; resetDraft(); fresh = footer(); root.classList.remove("is-stale"); render();
+    detail = next; resetDraft(); fresh = footer(); root.classList.remove("is-stale");
+    render();
+    restoreRegisterViewport(viewport);
     });
   }
   function saveBar() {

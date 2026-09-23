@@ -262,7 +262,9 @@ static void service_tests(void)
     /* Missing PHY invalidates old replies; identity polling recovers it. */
     now += 20000U;
     phy[1][2] = phy[1][3] = 0xFFFFU;
+    count = service.stats.errors;
     assert(bvstk_mdio_service_step(&service, now, 5) == BVSTK_ERR_NOT_READY);
+    assert(service.stats.errors == count);
     assert(!service.online[0] && host_read(1, 4) == 0xFFFFU);
     assert(bvstk_mdio_service_read_cached(&service, 0, 4, &v) == BVSTK_ERR_NOT_READY);
     count = service.stats.reads;
