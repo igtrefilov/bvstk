@@ -78,6 +78,13 @@ bvstk_status_t bvstk_i2c_master_service_read(
     uint8_t reg,
     uint8_t *value,
     uint32_t timeout_ms);
+/* Explicit initiator; legacy read() remains INTERNAL. Cached reads emit no IO. */
+bvstk_status_t bvstk_i2c_master_service_read_from(
+    bvstk_i2c_master_service_t *, size_t, uint8_t, uint8_t *,
+    bvstk_event_source_t, uint32_t);
+/* Host-facing PL observations; prepared replies are not confirmed wire reads. */
+void bvstk_i2c_master_service_observe(bvstk_i2c_master_service_t *, size_t,
+    uint16_t type, bvstk_event_op_t, uint32_t reg, uint8_t value, bvstk_status_t);
 bvstk_status_t bvstk_i2c_master_service_read_cached(
     const bvstk_i2c_master_service_t *service,
     size_t device_id,

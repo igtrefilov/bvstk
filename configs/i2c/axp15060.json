@@ -1,14 +1,159 @@
 {
-  "name": "axp15060",
-  "addr_7b": 54,
-  "reg_count": 74,
-  "max_value_code": 64,
-  "policy": "whitelist",
-  "whitelist": [
-    { "reg": 19, "val": 16 },
-    { "reg": 19, "val": 17 },
-    { "reg": 19, "val": 18 },
-    { "reg": 19, "val": 19 }
+  "schema_version": 2,
+  "id": "axp15060",
+  "device": {
+    "model": "AXP15060",
+    "class": "power"
+  },
+  "transport": {
+    "bus": "i2c",
+    "controller": "pl_i2c_0",
+    "address": "0x36",
+    "address_bits": 7
+  },
+  "protocol": {
+    "driver": "bvstk_i2c_bridge",
+    "options": {
+      "max_write_value": "0x40",
+      "capture_cache_on_save": true
+    }
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 8,
+      "access": "rw",
+      "write_mask": "0xFF",
+      "cache": {
+        "mode": "driver"
+      },
+      "verify": {
+        "mode": "driver"
+      }
+    }
+  },
+  "resources": [
+    {"id": "reg_00", "kind": "register", "address": "0x00"},
+    {"id": "reg_01", "kind": "register", "address": "0x01"},
+    {"id": "reg_02", "kind": "register", "address": "0x02"},
+    {"id": "reg_03", "kind": "register", "address": "0x03"},
+    {"id": "reg_04", "kind": "register", "address": "0x04"},
+    {"id": "reg_05", "kind": "register", "address": "0x05"},
+    {"id": "reg_06", "kind": "register", "address": "0x06"},
+    {"id": "reg_07", "kind": "register", "address": "0x07"},
+    {"id": "reg_08", "kind": "register", "address": "0x08"},
+    {"id": "reg_09", "kind": "register", "address": "0x09"},
+    {"id": "reg_0a", "kind": "register", "address": "0x0A"},
+    {"id": "reg_0b", "kind": "register", "address": "0x0B"},
+    {"id": "reg_0c", "kind": "register", "address": "0x0C"},
+    {"id": "reg_0d", "kind": "register", "address": "0x0D"},
+    {"id": "reg_0e", "kind": "register", "address": "0x0E"},
+    {"id": "reg_0f", "kind": "register", "address": "0x0F"},
+    {"id": "reg_10", "kind": "register", "address": "0x10"},
+    {"id": "reg_11", "kind": "register", "address": "0x11"},
+    {"id": "reg_12", "kind": "register", "address": "0x12"},
+    {"id": "reg_13", "kind": "register", "address": "0x13"},
+    {"id": "reg_14", "kind": "register", "address": "0x14"},
+    {"id": "reg_15", "kind": "register", "address": "0x15"},
+    {"id": "reg_16", "kind": "register", "address": "0x16"},
+    {"id": "reg_17", "kind": "register", "address": "0x17"},
+    {"id": "reg_18", "kind": "register", "address": "0x18"},
+    {"id": "reg_19", "kind": "register", "address": "0x19"},
+    {"id": "reg_1a", "kind": "register", "address": "0x1A"},
+    {"id": "reg_1b", "kind": "register", "address": "0x1B"},
+    {"id": "reg_1c", "kind": "register", "address": "0x1C"},
+    {"id": "reg_1d", "kind": "register", "address": "0x1D"},
+    {"id": "reg_1e", "kind": "register", "address": "0x1E"},
+    {"id": "reg_1f", "kind": "register", "address": "0x1F"},
+    {"id": "reg_20", "kind": "register", "address": "0x20"},
+    {"id": "reg_21", "kind": "register", "address": "0x21"},
+    {"id": "reg_22", "kind": "register", "address": "0x22"},
+    {"id": "reg_23", "kind": "register", "address": "0x23"},
+    {"id": "reg_24", "kind": "register", "address": "0x24"},
+    {"id": "reg_25", "kind": "register", "address": "0x25"},
+    {"id": "reg_26", "kind": "register", "address": "0x26"},
+    {"id": "reg_27", "kind": "register", "address": "0x27"},
+    {"id": "reg_28", "kind": "register", "address": "0x28"},
+    {"id": "reg_29", "kind": "register", "address": "0x29"},
+    {"id": "reg_2a", "kind": "register", "address": "0x2A"},
+    {"id": "reg_2b", "kind": "register", "address": "0x2B"},
+    {"id": "reg_2c", "kind": "register", "address": "0x2C"},
+    {"id": "reg_2d", "kind": "register", "address": "0x2D"},
+    {"id": "reg_2e", "kind": "register", "address": "0x2E"},
+    {"id": "reg_2f", "kind": "register", "address": "0x2F"},
+    {"id": "reg_30", "kind": "register", "address": "0x30"},
+    {"id": "reg_31", "kind": "register", "address": "0x31"},
+    {"id": "reg_32", "kind": "register", "address": "0x32"},
+    {"id": "reg_33", "kind": "register", "address": "0x33"},
+    {"id": "reg_34", "kind": "register", "address": "0x34"},
+    {"id": "reg_35", "kind": "register", "address": "0x35"},
+    {"id": "reg_36", "kind": "register", "address": "0x36"},
+    {"id": "reg_37", "kind": "register", "address": "0x37"},
+    {"id": "reg_38", "kind": "register", "address": "0x38"},
+    {"id": "reg_39", "kind": "register", "address": "0x39"},
+    {"id": "reg_3a", "kind": "register", "address": "0x3A"},
+    {"id": "reg_3b", "kind": "register", "address": "0x3B"},
+    {"id": "reg_3c", "kind": "register", "address": "0x3C"},
+    {"id": "reg_3d", "kind": "register", "address": "0x3D"},
+    {"id": "reg_3e", "kind": "register", "address": "0x3E"},
+    {"id": "reg_3f", "kind": "register", "address": "0x3F"},
+    {"id": "reg_40", "kind": "register", "address": "0x40"},
+    {"id": "reg_41", "kind": "register", "address": "0x41"},
+    {"id": "reg_42", "kind": "register", "address": "0x42"},
+    {"id": "reg_43", "kind": "register", "address": "0x43"},
+    {"id": "reg_44", "kind": "register", "address": "0x44"},
+    {"id": "reg_45", "kind": "register", "address": "0x45"},
+    {"id": "reg_46", "kind": "register", "address": "0x46"},
+    {"id": "reg_47", "kind": "register", "address": "0x47"},
+    {"id": "reg_48", "kind": "register", "address": "0x48"},
+    {"id": "reg_49", "kind": "register", "address": "0x49"}
   ],
-  "blacklist": []
+  "policy": {
+    "read": {
+      "mode": "blacklist",
+      "rules": []
+    },
+    "write": {
+      "mode": "whitelist",
+      "rules": [
+        {
+          "resource": "reg_13",
+          "match": {
+            "value": "0x10",
+            "mask": "0xFF"
+          }
+        },
+        {
+          "resource": "reg_13",
+          "match": {
+            "value": "0x11",
+            "mask": "0xFF"
+          }
+        },
+        {
+          "resource": "reg_13",
+          "match": {
+            "value": "0x12",
+            "mask": "0xFF"
+          }
+        },
+        {
+          "resource": "reg_13",
+          "match": {
+            "value": "0x13",
+            "mask": "0xFF"
+          }
+        }
+      ],
+      "inactive_rules": []
+    }
+  },
+  "settings": {
+    "desired": [],
+    "cache_seed": [],
+    "apply_on_startup": false
+  },
+  "observability": {
+    "telemetry": true,
+    "events": true
+  }
 }

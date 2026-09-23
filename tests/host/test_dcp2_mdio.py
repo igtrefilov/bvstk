@@ -60,5 +60,27 @@ class MdioTests(unittest.TestCase):
         self.assertIn("mdio", dcp.STREAM_SERVICES)
         self.assertNotIn("smi", dcp.STREAM_SERVICES)
 
+    def test_real_stream_record(self):
+        data = b"BVT1" + struct.pack(">QHHBBBBIII", 42, 0x102, 0, 4, 1, 0, 16, 1, 2, 7)
+        body = struct.pack(">QBIH", 123000, 2, 0, len(data)) + data
+        frame = dcp.read_frame(Socket(dcp.build_frame(3, 0x50, 0, body)))
+        decoded = dcp.decode_stream_event(frame, True, True)
+        for text in ["record=42", "kind=MASTER_READ", "source=WEB", "address=0x01", "reg=0x02", "value=0x0007"]:
+            self.assertIn(text, decoded)
+        body = struct.pack(">BIH", 3, 9, len(data)) + data
+        frame = dcp.read_frame(Socket(dcp.build_frame(3, 0x50, 0, body)))
+        decoded = dcp.decode_stream_event(frame, False, False)
+        self.assertIn("lost_delta=9", decoded)
+        self.assertIn("overflow=1", decoded)
+
+    def test_stream_does_not_present_failed_read_as_data(self):
+        data = b"BVT1" + struct.pack(">QHHBBBBIII", 1, 0x102, 5, 3, 0, 0, 8, 54, 19, 0)
+        frame = dcp.read_frame(Socket(dcp.build_frame(2, 0x50, 0, struct.pack(">BIH", 2, 0, 32) + data)))
+        self.assertNotIn("value=", dcp.decode_stream_event(frame, False, True))
+        frame = dcp.read_frame(Socket(dcp.build_frame(2, 0x50, 0, struct.pack(">BIH", 2, 0, 4) + b"oops")))
+        self.assertIn("malformed", dcp.decode_stream_event(frame, False, True))
+        frame = dcp.read_frame(Socket(dcp.build_frame(2, 0x50, 0, struct.pack(">BIH", 4, 0, 4) + b"test")))
+        self.assertIn("synthetic=1", dcp.decode_stream_event(frame, False, True))
+
 if __name__ == "__main__":
     unittest.main()

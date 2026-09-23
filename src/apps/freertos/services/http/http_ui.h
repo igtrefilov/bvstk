@@ -3,10 +3,11 @@
 #include "shared/protocols/http/bvstk_http.h"
 #include "shared/base/bvstk_status.h"
 #include "apps/freertos/storage/fs/fs_devices.h"
-#define HTTP_UI_JSON_CAP 32768U
+#define HTTP_UI_JSON_CAP 65537U
 int http_ui_handle(const http_request_t *, http_conn_t *);
 int http_ui_bus(const http_request_t *, http_conn_t *);
 int http_ui_files(const http_request_t *, http_conn_t *);
+int http_ui_observe(const http_request_t *, http_conn_t *);
 int http_ui_send(int fd, const void *data, size_t size);
 void http_ui_text(int fd, const char *text);
 void http_ui_printf(int fd, const char *format, ...);

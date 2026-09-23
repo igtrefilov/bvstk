@@ -21,6 +21,7 @@ typedef enum {
     DCP2_NOTIFY_SOURCE_HOST = 1,
     DCP2_NOTIFY_SOURCE_DCP = 2,
     DCP2_NOTIFY_SOURCE_INTERNAL = 3,
+    DCP2_NOTIFY_SOURCE_WEB = 4,
 } dcp2_notify_source_t;
 
 typedef enum {
@@ -45,6 +46,7 @@ typedef enum {
     DCP2_NOTIFY_EV_REG_DENIED = 0x0003,
     DCP2_NOTIFY_EV_STATE_CHANGED = 0x0004,
     DCP2_NOTIFY_EV_FAULT = 0x0005,
+    DCP2_NOTIFY_EV_LOST = 0x0006,
 } dcp2_notify_ev_type_t;
 
 typedef struct {

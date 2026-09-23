@@ -19,6 +19,7 @@
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
+#include "apps/freertos/runtime/bvstk_observer.h"
 #include "apps/freertos/services/dcp2/dcp2_stream_sim.h"
 #include "apps/freertos/services/lan/bvstk_lan.h"
 #include "apps/freertos/storage/fs/fs_dcp2_backend.h"
@@ -90,6 +91,8 @@ typedef struct {
     uint8_t stream_flags[4];
     bool notify_enabled;
     dcp2_notify_filter_t notify_filter;
+    uint64_t notify_cursor[BVSTK_JOURNAL_BUSES];
+    uint64_t stream_cursor[BVSTK_JOURNAL_BUSES];
 } dcp2_conn_state_t;
 
 typedef struct {
@@ -110,6 +113,7 @@ static uint8_t s_mem_read_buf[DCP2_MAX_PAYLOAD];
 /* The current server serves one TCP connection at a time. Keep bounded stream
  * state out of its task stack and destroy it on every disconnect. */
 static bvstk_dcp2_fs_session_t s_fs_session;
+static bvstk_journal_batch_t s_observations;
 
 static uint32_t dcp2_now_ms(void)
 {
@@ -313,11 +317,34 @@ static int dcp2_send_notify_event(int fd, const dcp2_conn_state_t *state, const 
 
 static int dcp2_drain_notify_events(int fd, dcp2_conn_state_t *state)
 {
-    dcp2_notify_event_t event;
-
-    while (dcp2_notify_receive(&event, 0)) {
-        if (!dcp2_notify_filter_match(state, &event)) continue;
-        if (dcp2_send_notify_event(fd, state, &event) < 0) return -1;
+    unsigned bus;
+    if (!state->notify_enabled) return 0;
+    for (bus = 0; bus < BVSTK_JOURNAL_BUSES; ++bus) {
+        size_t i;
+        if (!(state->notify_filter.bus_mask & (1U << bus))) continue;
+        bvstk_observer_read(bus, BVSTK_JOURNAL_EVENTS, -1,
+            state->notify_cursor[bus], &s_observations);
+        state->notify_cursor[bus] = s_observations.next;
+        if (s_observations.lost) {
+            /* Delivery metadata is visible even with a narrow event filter. */
+            dcp2_notify_event_t lost = {0};
+            lost.ev_type = DCP2_NOTIFY_EV_LOST;
+            lost.time_us = (uint64_t)dcp2_now_ms() * 1000U;
+            lost.bus = (uint8_t)bus; lost.source = DCP2_NOTIFY_SOURCE_INTERNAL;
+            lost.op_kind = DCP2_NOTIFY_OP_STATE_TOGGLE;
+            lost.arg0 = s_observations.lost > UINT32_MAX ? UINT32_MAX : (uint32_t)s_observations.lost;
+            if (dcp2_send_notify_event(fd, state, &lost) < 0) return -1;
+        }
+        for (i = 0; i < s_observations.count; ++i) {
+            const bvstk_event_t *e = &s_observations.records[i].event;
+            dcp2_notify_event_t event = {0};
+            event.time_us = e->time_us; event.ev_type = e->type;
+            event.status = e->status; event.source = e->source;
+            event.bus = e->bus; event.op_kind = e->operation;
+            event.arg0 = e->arg0; event.arg1 = e->arg1; event.arg2 = e->arg2;
+            if (!dcp2_notify_filter_match(state, &event)) continue;
+            if (dcp2_send_notify_event(fd, state, &event) < 0) return -1;
+        }
     }
     return 0;
 }
@@ -371,8 +398,38 @@ static int dcp2_drain_stream_events(int fd, dcp2_conn_state_t *state)
         dcp2_stream_sim_event_t event;
 
         if (idx < 0 || !state->stream_enabled[idx]) continue;
-        if (!dcp2_stream_sim_next(srv, &event)) continue;
-        if (dcp2_send_stream_event(fd, state, &event) < 0) return -1;
+        if (dcp2_stream_sim_next(srv, &event)) {
+            event.ev_flags |= 0x04U; /* explicitly synthetic */
+            if (dcp2_send_stream_event(fd, state, &event) < 0) return -1;
+        }
+        if ((unsigned)idx < BVSTK_JOURNAL_BUSES) {
+            size_t i;
+            bvstk_observer_read((unsigned)idx, BVSTK_JOURNAL_TELEMETRY, -1,
+                state->stream_cursor[idx], &s_observations);
+            state->stream_cursor[idx] = s_observations.next;
+            for (i = 0; i < s_observations.count; ++i) {
+                const bvstk_journal_record_t *record = &s_observations.records[i];
+                const bvstk_event_t *e = &record->event;
+                memset(&event, 0, sizeof(event));
+                event.service = srv; event.time_us = e->time_us;
+                event.ev_flags = 0x02U; /* versioned software observation */
+                if (i == 0 && s_observations.lost) {
+                    event.ev_flags |= 0x01U;
+                    event.lost_delta = s_observations.lost > UINT32_MAX ? UINT32_MAX : (uint32_t)s_observations.lost;
+                }
+                event.data_len = 32U;
+                memcpy(event.data, "BVT1", 4);
+                be64_write(event.data + 4, record->sequence);
+                be16_write(event.data + 12, e->type);
+                be16_write(event.data + 14, e->status);
+                event.data[16] = e->source; event.data[17] = e->bus;
+                event.data[18] = e->operation; event.data[19] = e->bus == 0 ? 8 : 16;
+                be32_write(event.data + 20, e->arg0);
+                be32_write(event.data + 24, e->arg1);
+                be32_write(event.data + 28, e->arg2);
+                if (dcp2_send_stream_event(fd, state, &event) < 0) return -1;
+            }
+        }
     }
     return 0;
 }
@@ -617,10 +674,11 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
     }
     if (opcode == DCP2_OP_I2C_READ_REG) {
         uint8_t value = 0U;
-        status = bvstk_i2c_master_service_read(service,
+        status = bvstk_i2c_master_service_read_from(service,
                                                dev_idx,
                                                body[1],
                                                &value,
+                                               BVSTK_EVENT_SOURCE_DCP,
                                                100U);
         return dcp2_send_response(fd,
                                   srv,
@@ -707,10 +765,11 @@ static int dcp2_handle_mdio(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, c
     if (opcode == DCP2_OP_MDIO_READ) {
         uint16_t value = 0U;
         uint8_t response[2];
-        status = bvstk_mdio_service_read(common_service,
+        status = bvstk_mdio_service_read_from(common_service,
                                         device_id,
                                         body[1],
                                         &value,
+                                        BVSTK_EVENT_SOURCE_DCP,
                                         100U);
         if (status == BVSTK_OK) {
             be16_write(response, value);
@@ -770,7 +829,7 @@ static int dcp2_handle_notify(int fd,
                             (uint32_t)DCP2_NOTIFY_CLASS_FAULT)) != 0u) {
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
         }
-        if ((source_mask & ~0x0Fu) != 0u || (bus_mask & ~0x1Fu) != 0u) {
+        if ((source_mask & ~0x1Fu) != 0u || (bus_mask & ~0x1Fu) != 0u) {
             return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
         }
         if ((flags & (uint8_t)~(DCP2_NOTIFY_FLAG_WITH_TIMESTAMP | DCP2_NOTIFY_FLAG_SNAPSHOT_ON_SUBSCRIBE)) != 0u) {
@@ -782,6 +841,8 @@ static int dcp2_handle_notify(int fd,
         state->notify_filter.source_mask = source_mask;
         state->notify_filter.bus_mask = bus_mask;
         state->notify_filter.flags = flags;
+        for (unsigned b = 0; b < BVSTK_JOURNAL_BUSES; ++b)
+            state->notify_cursor[b] = bvstk_observer_head(b, BVSTK_JOURNAL_EVENTS);
         return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
     }
 
@@ -819,6 +880,8 @@ static int dcp2_handle_stream_ctl(int fd,
         }
         state->stream_enabled[idx] = true;
         state->stream_flags[idx] = body[0];
+        if ((unsigned)idx < BVSTK_JOURNAL_BUSES)
+            state->stream_cursor[idx] = bvstk_observer_head((unsigned)idx, BVSTK_JOURNAL_TELEMETRY);
         if ((body[0] & DCP2_SUB_RESET_LOST_COUNTERS) != 0u) {
             dcp2_stream_sim_reset_lost(srv);
         }
@@ -1015,13 +1078,12 @@ uint16_t dcp2_server_port(void)
 
 void start_dcp2_server(void)
 {
-    bool notify_ok = dcp2_notify_init();
     bool stream_ok = dcp2_stream_sim_init();
     sys_thread_t th;
 
     s_startup_done = 0;
     th = sys_thread_new("dcp2", dcp2_server_thread, 0, DCP2_THREAD_STACK, tskIDLE_PRIORITY + 1);
-    if (!notify_ok || !stream_ok) {
+    if (!stream_ok) {
         xil_printf("DCP2: failed to start\r\n");
     }
     if (!th) {

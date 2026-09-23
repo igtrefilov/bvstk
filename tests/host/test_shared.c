@@ -361,8 +361,9 @@ int main(void)
                                          BVSTK_EVENT_SOURCE_DCP,
                                          10U) == BVSTK_OK);
     CHECK(bus.writes == 1U && events.last.source == BVSTK_EVENT_SOURCE_DCP);
-    CHECK(events.count == 4U && events.types[1] == BVSTK_EVENT_REG_DENIED &&
-          events.types[3] == BVSTK_EVENT_REG_COMMIT);
+    CHECK(events.count == 6U && events.types[0] == BVSTK_EVENT_MASTER_READ &&
+          events.types[2] == BVSTK_EVENT_REG_DENIED &&
+          events.types[4] == BVSTK_EVENT_MASTER_WRITE && events.types[5] == BVSTK_EVENT_REG_COMMIT);
 
     CHECK(bvstk_i2c_master_hw_init(&i2c_master_hw, NULL, NULL) == BVSTK_OK);
     {
@@ -407,6 +408,8 @@ int main(void)
                                                    &read_window_size,
                                                    10U) == BVSTK_OK);
         CHECK(read_window_size == 0U);
+        CHECK(events.last.type == BVSTK_EVENT_SLAVE_POINTER &&
+              events.last.source == BVSTK_EVENT_SOURCE_HOST && events.last.arg1 == 2U);
         CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                                                    NULL,
                                                    0U,
@@ -416,6 +419,7 @@ int main(void)
                                                    &read_window_size,
                                                    10U) == BVSTK_OK);
         CHECK(read_window_size == 1U && response[0] == 0xA5U);
+        CHECK(events.last.type == BVSTK_EVENT_SLAVE_REPLY_PREPARED && events.last.arg2 == 0xA5U);
         bvstk_i2c_slave_service_end_transaction(&i2c_slave_service);
         CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                                                    NULL,
@@ -426,6 +430,17 @@ int main(void)
                                                    &read_window_size,
                                                    10U) == BVSTK_OK);
         CHECK(read_window_size == 0U);
+        CHECK(events.last.type == BVSTK_EVENT_SLAVE_READ_REQUEST);
+        {
+            uint8_t denied_frame[] = {3U, 7U, 5U};
+            unsigned before = bus.writes;
+            CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                denied_frame, sizeof(denied_frame), 0, response, sizeof(response),
+                &read_window_size, 10U) == BVSTK_ERR_DENIED);
+            CHECK(bus.writes == before);
+            CHECK(events.last.type == BVSTK_EVENT_FAULT &&
+                events.last.status == BVSTK_ERR_NOT_READY && events.last.arg1 == 4U);
+        }
     }
     bvstk_i2c_slave_service_shutdown(&i2c_slave_service);
 

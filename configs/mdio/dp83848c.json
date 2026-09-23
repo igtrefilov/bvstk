@@ -1,13 +1,90 @@
 {
-  "name": "dp83848c",
-  "phy_addr": 2,
-  "reg_count": 32,
-  "policy": "whitelist",
-  "autopoll_enabled": false,
-  "autopoll_reg_delay_ms": 0,
-  "autopoll_cycle_delay_ms": 1000,
-  "autopoll_regs": [],
-  "whitelist": [],
-  "blacklist": [],
-  "settings": []
+  "schema_version": 2,
+  "id": "dp83848c",
+  "device": {
+    "model": "DP83848C",
+    "vendor": "Texas Instruments",
+    "class": "phy"
+  },
+  "transport": {
+    "bus": "mdio",
+    "controller": "pl_mdio_0",
+    "address": "0x02"
+  },
+  "protocol": {
+    "driver": "bvstk_mdio_bridge",
+    "options": {
+      "autopoll_enabled": false,
+      "autopoll_reg_delay_ms": 0,
+      "autopoll_cycle_delay_ms": 1000,
+      "autopoll_order": []
+    }
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 16,
+      "access": "rw",
+      "write_mask": "0xFFFF",
+      "cache": {
+        "mode": "driver"
+      },
+      "verify": {
+        "mode": "driver"
+      }
+    }
+  },
+  "resources": [
+    {"id": "reg_00", "kind": "register", "address": "0x00"},
+    {"id": "reg_01", "kind": "register", "address": "0x01"},
+    {"id": "reg_02", "kind": "register", "address": "0x02"},
+    {"id": "reg_03", "kind": "register", "address": "0x03"},
+    {"id": "reg_04", "kind": "register", "address": "0x04"},
+    {"id": "reg_05", "kind": "register", "address": "0x05"},
+    {"id": "reg_06", "kind": "register", "address": "0x06"},
+    {"id": "reg_07", "kind": "register", "address": "0x07"},
+    {"id": "reg_08", "kind": "register", "address": "0x08"},
+    {"id": "reg_09", "kind": "register", "address": "0x09"},
+    {"id": "reg_0a", "kind": "register", "address": "0x0A"},
+    {"id": "reg_0b", "kind": "register", "address": "0x0B"},
+    {"id": "reg_0c", "kind": "register", "address": "0x0C"},
+    {"id": "reg_0d", "kind": "register", "address": "0x0D"},
+    {"id": "reg_0e", "kind": "register", "address": "0x0E"},
+    {"id": "reg_0f", "kind": "register", "address": "0x0F"},
+    {"id": "reg_10", "kind": "register", "address": "0x10"},
+    {"id": "reg_11", "kind": "register", "address": "0x11"},
+    {"id": "reg_12", "kind": "register", "address": "0x12"},
+    {"id": "reg_13", "kind": "register", "address": "0x13"},
+    {"id": "reg_14", "kind": "register", "address": "0x14"},
+    {"id": "reg_15", "kind": "register", "address": "0x15"},
+    {"id": "reg_16", "kind": "register", "address": "0x16"},
+    {"id": "reg_17", "kind": "register", "address": "0x17"},
+    {"id": "reg_18", "kind": "register", "address": "0x18"},
+    {"id": "reg_19", "kind": "register", "address": "0x19"},
+    {"id": "reg_1a", "kind": "register", "address": "0x1A"},
+    {"id": "reg_1b", "kind": "register", "address": "0x1B"},
+    {"id": "reg_1c", "kind": "register", "address": "0x1C"},
+    {"id": "reg_1d", "kind": "register", "address": "0x1D"},
+    {"id": "reg_1e", "kind": "register", "address": "0x1E"},
+    {"id": "reg_1f", "kind": "register", "address": "0x1F"}
+  ],
+  "policy": {
+    "read": {
+      "mode": "blacklist",
+      "rules": []
+    },
+    "write": {
+      "mode": "whitelist",
+      "rules": [],
+      "inactive_rules": []
+    }
+  },
+  "settings": {
+    "desired": [],
+    "cache_seed": [],
+    "apply_on_startup": false
+  },
+  "observability": {
+    "telemetry": true,
+    "events": true
+  }
 }

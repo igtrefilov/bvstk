@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "id": "lan8720",
+  "device": {
+    "vendor": "Microchip",
+    "model": "LAN8720A",
+    "class": "phy"
+  },
+  "transport": {
+    "bus": "mdio",
+    "controller": "pl_mdio_0",
+    "address": "0x01"
+  },
+  "protocol": {
+    "driver": "mdio_clause22",
+    "timeout_ms": 100
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 16,
+      "access": "none",
+      "cache": {"mode": "none"},
+      "refresh": {"on": [], "period_ms": 0},
+      "persist_mask": "0x0000"
+    }
+  },
+  "resources": [
+    {
+      "id": "irq_mask",
+      "kind": "register",
+      "address": "0x1E",
+      "access": "rw",
+      "write_mask": "0x00FE",
+      "read_effect": {},
+      "write_effect": {},
+      "cache": {"mode": "snapshot", "max_age_ms": 2000},
+      "refresh": {
+        "on": ["startup", "write_complete"],
+        "period_ms": 1000
+      },
+      "verify": {
+        "mode": "masked_readback",
+        "mask": "0x00FE",
+        "timeout_ms": 100,
+        "delay_ms": 0,
+        "interval_ms": 1
+      },
+      "persist_mask": "0x00FE"
+    }
+  ],
+  "policy": {
+    "read": {
+      "mode": "whitelist",
+      "rules": [{"resource": "irq_mask"}]
+    },
+    "write": {"mode": "whitelist", "rules": []}
+  },
+  "settings": {
+    "desired": [],
+    "cache_seed": [],
+    "apply_on_startup": false
+  },
+  "observability": {"telemetry": true, "events": true}
+}

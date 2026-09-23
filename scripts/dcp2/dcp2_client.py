@@ -48,6 +48,8 @@ STREAM_FLAG_RAW_WORDS = 1 << 0
 STREAM_FLAG_WITH_TIMESTAMP = 1 << 1
 STREAM_FLAG_RESET_LOST_COUNTERS = 1 << 2
 STREAM_EVENT_OVERFLOW = 1 << 0
+STREAM_EVENT_OBSERVATION = 1 << 1
+STREAM_EVENT_SYNTHETIC = 1 << 2
 
 DCP2_MIN_PAYLOAD = 4
 DCP2_MAX_PAYLOAD = 4096
@@ -106,6 +108,7 @@ SOURCE_BITS: Dict[str, int] = {
     "host": 1 << 1,
     "dcp": 1 << 2,
     "internal": 1 << 3,
+    "web": 1 << 4,
 }
 
 BUS_BITS: Dict[str, int] = {
@@ -137,6 +140,7 @@ EVENT_NAMES: Dict[int, str] = {
     0x0003: "REG_DENIED",
     0x0004: "STATE_CHANGED",
     0x0005: "FAULT",
+    0x0006: "SOFTWARE_LOSS",
 }
 
 SOURCE_NAMES: Dict[int, str] = {
@@ -144,6 +148,7 @@ SOURCE_NAMES: Dict[int, str] = {
     0x01: "HOST",
     0x02: "DCP",
     0x03: "INTERNAL",
+    0x04: "WEB",
 }
 
 BUS_NAMES: Dict[int, str] = {
@@ -544,6 +549,23 @@ def decode_stream_event(frame: Frame, with_timestamp: bool, raw_words: bool) -> 
         parts.append("overflow=1")
     parts.append(f"lost_delta={lost_delta}")
     parts.append(f"data_len={data_len}")
+    if ev_flags & STREAM_EVENT_SYNTHETIC:
+        parts.append("synthetic=1")
+    if ev_flags & STREAM_EVENT_OBSERVATION:
+        if data_len != 32 or data[:4] != b"BVT1" or ev_flags & STREAM_EVENT_SYNTHETIC:
+            return "malformed observation record"
+        sequence, kind, status, source, bus, operation, width, address, reg, value = struct.unpack(
+            ">QHHBBBBIII", data[4:])
+        kinds = {0x101: "CAPTURE_WRITE", 0x102: "MASTER_READ", 0x103: "MASTER_WRITE",
+                 0x104: "SLAVE_POINTER", 0x105: "SLAVE_READ_REQUEST", 0x106: "SLAVE_REPLY_PREPARED"}
+        parts.extend([f"record={sequence}", f"kind={kinds.get(kind, hex(kind))}",
+                      f"source={SOURCE_NAMES.get(source, hex(source))}",
+                      f"bus={BUS_NAMES.get(bus, hex(bus))}", f"operation={OP_NAMES.get(operation, hex(operation))}",
+                      f"width={width}", f"address=0x{address:02X}", f"reg=0x{reg:02X}", f"status={status}"])
+        # A failed read or request indication contains no observed data value.
+        if kind != 0x105 and not (kind == 0x102 and status):
+            parts.append(f"value=0x{value:0{width // 4}X}")
+        return " ".join(parts)
     if raw_words:
         words = [
             int.from_bytes(data[index:index + 4], "big")
@@ -1044,8 +1066,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--sources",
-        default="telnet,host,dcp,internal",
-        help="source mask: comma list of telnet,host,dcp,internal or hex mask",
+        default="telnet,host,dcp,internal,web",
+        help="source mask: comma list of telnet,host,dcp,internal,web or hex mask",
     )
     parser.add_argument(
         "--buses",

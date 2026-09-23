@@ -190,7 +190,7 @@ bool mdio_handle(char *tok, char **save, int fd)
         uint16_t v;
         st = bus_shell_number(a[2], c.reg_count - 1U, &reg);
         if (st != BVSTK_OK) { result(fd, st); return true; }
-        st = bvstk_mdio_service_read(s, d, (uint8_t)reg, &v, 100U);
+        st = bvstk_mdio_service_read_from(s, d, (uint8_t)reg, &v, BVSTK_EVENT_SOURCE_CONSOLE, 100U);
         if (st == BVSTK_OK) bus_shell_read_result(fd, (uint8_t)reg, v, 4);
         else result(fd, st);
         return true;
@@ -211,7 +211,7 @@ bool mdio_handle(char *tok, char **save, int fd)
             st = c.autopoll_regs_len ? BVSTK_OK : BVSTK_ERR_NOT_READY;
             for (size_t i = 0; i < c.autopoll_regs_len && st == BVSTK_OK; ++i) {
                 uint16_t v;
-                st = bvstk_mdio_service_read(s, d, c.autopoll_regs[i], &v, 100U);
+                st = bvstk_mdio_service_read_from(s, d, c.autopoll_regs[i], &v, BVSTK_EVENT_SOURCE_CONSOLE, 100U);
             }
             result(fd, st);
         } else result(fd, BVSTK_ERR_MALFORMED);

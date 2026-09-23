@@ -23,6 +23,21 @@ typedef struct {
 #define I2C_CFG_RULES_MAX 256u
 #define I2C_CFG_SETTINGS_MAX 256u
 
+/* File-format metadata is kept separate from the established bus-facing model.
+ * The bridge adapters retain its policy/cache/polling semantics exactly. */
+#define BVSTK_PROFILE_JSON_MAX 65536u
+#define BVSTK_PROFILE_IDS_CAP 2048u
+typedef struct {
+    uint8_t version; /* zero: unversioned legacy projection, two: profile v2 */
+    char vendor[65];
+    char model[65];
+    char device_class[16];
+    char label[97];
+    uint16_t id_offset[I2C_CFG_MAX_REG_COUNT];
+    uint16_t ids_size;
+    char ids[BVSTK_PROFILE_IDS_CAP];
+} bvstk_profile_metadata_t;
+
 typedef enum {
     I2C_POLICY_WHITELIST = 0,
     I2C_POLICY_BLACKLIST = 1
@@ -46,6 +61,7 @@ typedef struct {
     size_t blacklist_len;
     i2c_rule_entry_t settings[I2C_CFG_SETTINGS_MAX];
     size_t settings_len;
+    bvstk_profile_metadata_t profile;
 } i2c_device_config_t;
 
 #define MDIO_CFG_MAX_DEVICES 8u
@@ -89,6 +105,7 @@ typedef struct {
     size_t blacklist_len;
     mdio_setting_entry_t settings[MDIO_CFG_SETTINGS_MAX];
     size_t settings_len;
+    bvstk_profile_metadata_t profile;
 } mdio_phy_config_t;
 
 #endif /* BVSTK_SHARED_CONFIG_MODEL_H */

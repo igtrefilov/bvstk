@@ -14,6 +14,14 @@ static unsigned writes, resets, depth, locks;
 static bvstk_mdio_core_t core;
 static bvstk_mdio_service_t service;
 static mdio_phy_config_t config;
+static bvstk_event_t observed[256];
+static size_t observed_count;
+static void observe(void *context, const bvstk_event_t *event)
+{
+    (void)context;
+    assert(observed_count < sizeof(observed)/sizeof(observed[0]));
+    observed[observed_count++] = *event;
+}
 
 uint64_t bvstk_platform_now_ms(void) { return now; }
 void bvstk_platform_sleep_ms(uint32_t ms)
@@ -194,7 +202,8 @@ static void service_tests(void)
     unsigned count;
     size_t id;
     assert(bvstk_mdio_config_parse(json, &config) == BVSTK_OK);
-    assert(bvstk_mdio_service_init(&service, &core, NULL, &config, 1, NULL) == BVSTK_OK);
+    const bvstk_event_sink_t sink = {.publish=observe};
+    assert(bvstk_mdio_service_init(&service, &core, NULL, &config, 1, &sink) == BVSTK_OK);
     service.mutex = (bvstk_mutex_t){NULL, lock_service, unlock_service};
     assert(host_read(0, 2) == 0xFFFFU && host_read(1, 2) == 0xFFFFU);
     assert(host_read(1, 17) == 55U);
@@ -203,12 +212,19 @@ static void service_tests(void)
     assert(bvstk_mdio_service_find_by_phy(&service, 33, &id) == BVSTK_ERR_RANGE);
     assert(bvstk_mdio_service_step(&service, now, 5) == BVSTK_OK);
     assert(host_read(1, 2) == 7 && host_read(1, 3) == 0xC0F1);
+    assert(observed_count == 2 && observed[0].type == BVSTK_EVENT_MASTER_READ &&
+        observed[0].source == BVSTK_EVENT_SOURCE_INTERNAL && observed[0].arg2 == 7);
 
     count = writes;
     assert(bvstk_mdio_service_write(&service, 0, 4, 482, BVSTK_EVENT_SOURCE_CONSOLE, 5) == BVSTK_ERR_DENIED);
+    assert(observed_count == 4 && observed[2].type == BVSTK_EVENT_REG_ATTEMPT &&
+        observed[3].type == BVSTK_EVENT_REG_DENIED);
     host_write(1, 4, 482);
     assert(bvstk_mdio_service_step(&service, now, 5) == BVSTK_OK);
     assert(writes == count && phy[1][4] == 481);
+    assert(observed[4].type == BVSTK_EVENT_CAPTURE_WRITE && observed[4].arg2 == 482 &&
+        observed[4].source == BVSTK_EVENT_SOURCE_HOST);
+    assert(observed[5].type == BVSTK_EVENT_REG_ATTEMPT && observed[6].type == BVSTK_EVENT_REG_DENIED);
     host_write(1, 4, 481);
     assert(bvstk_mdio_service_step(&service, now, 5) == BVSTK_OK && writes == ++count);
     host_write(1, 4, 481); /* Equal-value repetition must still be forwarded. */
@@ -227,6 +243,8 @@ static void service_tests(void)
     assert(bvstk_mdio_service_step(&service, now + 10000U, 5) == BVSTK_OK && service.stats.reads == count + 2U);
     suppress_result = 1;
     assert(bvstk_mdio_service_read(&service, 0, 4, &v, 5) == BVSTK_ERR_TIMEOUT);
+    assert(observed[observed_count-1].type == BVSTK_EVENT_MASTER_READ &&
+        observed[observed_count-1].status == BVSTK_ERR_TIMEOUT && !observed[observed_count-1].arg2);
     assert(bvstk_mdio_service_read_cached(&service, 0, 4, &v) == BVSTK_ERR_NOT_READY);
     assert(host_read(1, 4) == 0xFFFFU);
     suppress_result = 0;

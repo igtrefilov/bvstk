@@ -90,6 +90,7 @@ int bvstk_runtime_i2c_sync_device(size_t id)
     i2c_device_config_t next;
     assert(bvstk_i2c_master_service_get_config(&i2c, id, &next) == BVSTK_OK);
     strcpy(next.file_name, i2c_config.file_name);
+    next.profile = i2c_config.profile;
     for (unsigned r = 0; r < next.reg_count; ++r) {
         uint8_t value;
         if (bvstk_i2c_cache_read(&cache, id, (uint8_t)r, &value) == BVSTK_OK) {

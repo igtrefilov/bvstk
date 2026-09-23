@@ -36,7 +36,7 @@ static void emit(bvstk_i2c_master_service_t *service,
                  bvstk_event_source_t source,
                  bvstk_event_op_t operation,
                  const bvstk_i2c_device_t *device,
-                 uint8_t reg,
+                 uint32_t reg,
                  uint8_t value)
 {
     bvstk_event_t event;
@@ -78,6 +78,16 @@ static bvstk_status_t backend_read(bvstk_i2c_master_service_t *service,
                                         reg,
                                         value,
                                         timeout_ms);
+}
+
+void bvstk_i2c_master_service_observe(bvstk_i2c_master_service_t *service,
+    size_t id, uint16_t type, bvstk_event_op_t op, uint32_t reg, uint8_t value,
+    bvstk_status_t status)
+{
+    bvstk_i2c_device_t device;
+    if (service_status(service, id) == BVSTK_OK &&
+        bvstk_i2c_devices_get(service->devices, id, &device) == BVSTK_OK)
+        emit(service, type, (uint16_t)status, BVSTK_EVENT_SOURCE_HOST, op, &device, reg, value);
 }
 
 static bvstk_status_t backend_write(bvstk_i2c_master_service_t *service,
@@ -204,6 +214,14 @@ bvstk_status_t bvstk_i2c_master_service_read(
     uint8_t *value,
     uint32_t timeout_ms)
 {
+    return bvstk_i2c_master_service_read_from(service, device_id, reg, value,
+        BVSTK_EVENT_SOURCE_INTERNAL, timeout_ms);
+}
+
+bvstk_status_t bvstk_i2c_master_service_read_from(
+    bvstk_i2c_master_service_t *service, size_t device_id, uint8_t reg,
+    uint8_t *value, bvstk_event_source_t source, uint32_t timeout_ms)
+{
     bvstk_i2c_device_t device;
     bvstk_status_t status = service_status(service, device_id);
 
@@ -217,6 +235,8 @@ bvstk_status_t bvstk_i2c_master_service_read(
         return BVSTK_ERR_RANGE;
     }
     status = backend_read(service, &device, reg, value, timeout_ms);
+    emit(service, BVSTK_EVENT_MASTER_READ, (uint16_t)status, source,
+        BVSTK_EVENT_OP_READ, &device, reg, status == BVSTK_OK ? *value : 0);
     record_response(service, device_id, device.addr_7b, status, 1);
     if (status == BVSTK_OK) {
         (void)bvstk_i2c_cache_write(service->cache, device_id, reg, *value);
@@ -262,9 +282,6 @@ bvstk_status_t bvstk_i2c_master_service_write(
     if (bvstk_i2c_devices_get(service->devices, device_id, &device) != BVSTK_OK) {
         return BVSTK_ERR_NOT_FOUND;
     }
-    if (reg >= device.reg_count || value > device.max_value_code) {
-        return BVSTK_ERR_RANGE;
-    }
     emit(service,
          BVSTK_EVENT_REG_ATTEMPT,
          0U,
@@ -273,6 +290,11 @@ bvstk_status_t bvstk_i2c_master_service_write(
          &device,
          reg,
          value);
+    if (reg >= device.reg_count || value > device.max_value_code) {
+        emit(service, BVSTK_EVENT_FAULT, BVSTK_ERR_RANGE, source,
+            BVSTK_EVENT_OP_WRITE, &device, reg, value);
+        return BVSTK_ERR_RANGE;
+    }
     if (!bvstk_i2c_policy_permits(service->policy,
                                   device_id,
                                   &device,
@@ -289,6 +311,8 @@ bvstk_status_t bvstk_i2c_master_service_write(
         return BVSTK_ERR_DENIED;
     }
     status = backend_write(service, &device, reg, value, timeout_ms);
+    emit(service, BVSTK_EVENT_MASTER_WRITE, (uint16_t)status, source,
+        BVSTK_EVENT_OP_WRITE, &device, reg, value);
     record_response(service, device_id, device.addr_7b, status, 0);
     if (status != BVSTK_OK) {
         emit(service,

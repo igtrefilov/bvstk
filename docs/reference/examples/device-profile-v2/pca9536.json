@@ -1,0 +1,42 @@
+{
+  "schema_version": 2,
+  "id": "pca9536",
+  "device": {
+    "vendor": "Texas Instruments",
+    "model": "PCA9536",
+    "class": "gpio"
+  },
+  "transport": {
+    "bus": "i2c",
+    "controller": "pl_i2c_0",
+    "address": "0x41",
+    "address_bits": 7
+  },
+  "protocol": {
+    "driver": "i2c_regmap",
+    "options": {
+      "register_address_bits": 8,
+      "register_address_order": "big",
+      "value_byte_order": "big",
+      "repeated_start": true
+    }
+  },
+  "resources": [
+    {
+      "id": "inputs",
+      "kind": "register",
+      "address": "0x00",
+      "width_bits": 8,
+      "access": "ro",
+      "cache": {"mode": "snapshot", "max_age_ms": 2000},
+      "fields": [
+        {"id": "gpio", "lsb": 0, "width_bits": 4, "label": "GPIO inputs"}
+      ]
+    }
+  ],
+  "policy": {
+    "read": {"mode": "whitelist", "rules": [{"resource": "inputs"}]},
+    "write": {"mode": "whitelist", "rules": []}
+  },
+  "observability": {"telemetry": true, "events": true}
+}

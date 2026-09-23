@@ -6,7 +6,7 @@
 #include "task.h"
 
 #include "apps/freertos/config/config_store.h"
-#include "apps/freertos/services/dcp2/dcp2_notify.h"
+#include "apps/freertos/runtime/bvstk_observer.h"
 #include "drivers/pl/i2c/bvstk_i2c_master.h"
 #include "drivers/pl/i2c/bvstk_i2c_slave.h"
 #include "drivers/pl/mdio/bvstk_mdio_core.h"
@@ -59,22 +59,6 @@ static void update_setting(i2c_device_config_t *config,
 }
 
 #if BVSTK_PL_RUNTIME_ENABLED
-static void publish_event(void *context, const bvstk_event_t *event)
-{
-    (void)context;
-    if (event == NULL) {
-        return;
-    }
-    dcp2_notify_publish_simple(event->type,
-                               event->status,
-                               (dcp2_notify_source_t)event->source,
-                               (dcp2_notify_bus_t)event->bus,
-                               (dcp2_notify_op_t)event->operation,
-                               event->arg0,
-                               event->arg1,
-                               event->arg2);
-}
-
 #if BVSTK_PL_HAS_I2C_CORE
 static int initialize_i2c(const i2c_device_config_t *configs,
                           size_t config_count,
@@ -181,7 +165,7 @@ static void runtime_task(void *argument)
 #if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_MDIO_CORE
     if (config_store_wait_ready(35000U) != 0) {
         memset(&events, 0, sizeof(events));
-        events.publish = publish_event;
+        events.publish = bvstk_observer_publish;
 #if BVSTK_PL_HAS_I2C_CORE
         devices = config_store_get_i2c_devices();
         device_count = config_store_get_i2c_device_count();

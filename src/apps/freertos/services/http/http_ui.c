@@ -105,6 +105,6 @@ int http_ui_handle(const http_request_t *r, http_conn_t *c)
     if (strcmp(r->method, "GET") && strcmp(r->method, "PUT")) {
         http_ui_error(c->fd, 405, "only GET and PUT"); return 1;
     }
-    if (http_ui_bus(r, c) || http_ui_files(r, c)) return 1;
+    if (http_ui_observe(r, c) || http_ui_bus(r, c) || http_ui_files(r, c)) return 1;
     http_ui_error(c->fd, 404, "unknown UI endpoint"); return 1;
 }

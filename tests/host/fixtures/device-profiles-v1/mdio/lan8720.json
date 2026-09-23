@@ -1,0 +1,18 @@
+{
+  "name": "lan8720",
+  "phy_addr": 1,
+  "reg_count": 32,
+  "policy": "whitelist",
+  "autopoll_enabled": true,
+  "autopoll_reg_delay_ms": 0,
+  "autopoll_cycle_delay_ms": 50,
+  "autopoll_regs": [0, 1, 2, 3, 4, 5, 17, 31],
+  "whitelist": [
+    {"reg": 0, "val": 0, "mask": 0},
+    {"reg": 4, "val": 0, "mask": 0},
+    {"reg": 18, "val": 0, "mask": 0},
+    {"reg": 30, "val": 0, "mask": 0}
+  ],
+  "blacklist": [],
+  "settings": []
+}

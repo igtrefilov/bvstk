@@ -1,0 +1,14 @@
+{
+  "name": "axp15060",
+  "addr_7b": 54,
+  "reg_count": 74,
+  "max_value_code": 64,
+  "policy": "whitelist",
+  "whitelist": [
+    { "reg": 19, "val": 16 },
+    { "reg": 19, "val": 17 },
+    { "reg": 19, "val": 18 },
+    { "reg": 19, "val": 19 }
+  ],
+  "blacklist": []
+}

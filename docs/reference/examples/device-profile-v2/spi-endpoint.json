@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "id": "spi_endpoint",
+  "device": {
+    "model": "SPI endpoint",
+    "class": "generic"
+  },
+  "transport": {
+    "bus": "spi",
+    "controller": "pl_spi_0",
+    "chip_select": 0,
+    "mode": 0,
+    "max_hz": 1000000,
+    "bits_per_word": 8,
+    "bit_order": "msb_first"
+  },
+  "protocol": {"driver": "spi_raw", "timeout_ms": 100},
+  "resources": [
+    {
+      "id": "transfer",
+      "kind": "command",
+      "operation": "transfer",
+      "access": "execute",
+      "effect": "opaque",
+      "request": {"encoding": "bytes", "max_bytes": 64},
+      "response": {"encoding": "bytes", "max_bytes": 64},
+      "timeout_ms": 100
+    }
+  ],
+  "policy": {
+    "execute": {"mode": "whitelist", "rules": []}
+  },
+  "observability": {"telemetry": true, "events": true}
+}

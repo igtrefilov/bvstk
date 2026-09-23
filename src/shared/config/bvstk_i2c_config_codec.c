@@ -1,4 +1,5 @@
 #include "shared/config/bvstk_i2c_config_codec.h"
+#include "shared/config/bvstk_device_profile.h"
 
 #include <ctype.h>
 #include <stdarg.h>
@@ -321,7 +322,7 @@ bvstk_status_t bvstk_i2c_config_validate(
             return BVSTK_ERR_RANGE;
         }
     }
-    return BVSTK_OK;
+    return bvstk_device_profile_metadata_validate(&config->profile, config->reg_count);
 }
 
 bvstk_status_t bvstk_i2c_config_parse_json(const char *json,
@@ -331,10 +332,15 @@ bvstk_status_t bvstk_i2c_config_parse_json(const char *json,
     uint32_t number;
     int ok;
     char policy[16];
+    unsigned version;
+    bvstk_status_t status;
 
     if (json == NULL || config == NULL) {
         return BVSTK_ERR_MALFORMED;
     }
+    status = bvstk_device_profile_version(json, &version);
+    if (status != BVSTK_OK) return status;
+    if (version == 2U) return bvstk_device_profile_parse_i2c(json, config);
     memset(config, 0, sizeof(*config));
     config->policy = I2C_POLICY_WHITELIST;
 

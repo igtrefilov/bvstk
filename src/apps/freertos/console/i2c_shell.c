@@ -121,8 +121,8 @@ static void cmd_read(int fd, size_t id, const i2c_device_config_t *config, const
     bvstk_status_t status = number(text, config->reg_count - 1U, &reg);
 
     if (status == BVSTK_OK) {
-        status = bvstk_i2c_master_service_read(bvstk_runtime_i2c_master_service(),
-                                              id, (uint8_t)reg, &value, 100U);
+        status = bvstk_i2c_master_service_read_from(bvstk_runtime_i2c_master_service(),
+            id, (uint8_t)reg, &value, BVSTK_EVENT_SOURCE_CONSOLE, 100U);
     }
     if (status == BVSTK_OK) {
         bus_shell_read_result(fd, (uint8_t)reg, value, 2);
@@ -295,6 +295,21 @@ static void cmd_save(int fd, size_t id, const char *name)
     bus_shell_saved(fd, "i2c", snapshot.file_name);
 }
 
+/* Keep the large v2 configuration copy out of the dispatcher frame: save
+ * already needs a snapshot and runtime cache synchronization on the stack. */
+static void cmd_address(int fd, const i2c_device_config_t *config, const char *text)
+{
+    unsigned long address;
+    i2c_device_config_t next = *config;
+    bvstk_status_t status = number(text, 0x7FU, &address);
+    if (status == BVSTK_OK) {
+        next.addr_7b = (uint8_t)address;
+        status = apply_config(&next);
+    }
+    if (status == BVSTK_OK) bus_shell_changed(fd);
+    else result(fd, status);
+}
+
 bool i2c_handle(char *token, char **save, int fd)
 {
     char *argv[8];
@@ -345,18 +360,7 @@ bool i2c_handle(char *token, char **save, int fd)
     } else if (argc == 4 && (eq(argv[1], "w") || eq(argv[1], "write"))) {
         cmd_write(fd, id, config, argv[2], argv[3]);
     } else if (argc == 3 && (eq(argv[1], "addr") || eq(argv[1], "address"))) {
-        unsigned long address;
-        i2c_device_config_t next = *config;
-        status = number(argv[2], 0x7FU, &address);
-        if (status == BVSTK_OK) {
-            next.addr_7b = (uint8_t)address;
-            status = apply_config(&next);
-        }
-        if (status == BVSTK_OK) {
-            bus_shell_changed(fd);
-        } else {
-            result(fd, status);
-        }
+        cmd_address(fd, config, argv[2]);
     } else if (argc == 2 && eq(argv[1], "save")) {
         cmd_save(fd, id, config->name);
     } else if (eq(argv[1], "policy")) {

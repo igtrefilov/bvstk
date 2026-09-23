@@ -3,6 +3,7 @@ import {esc, hex, icon, head, kv, badge, footer, ask, notice, number, action, cl
 
 import {registerWorkspace} from "./registers.js";
 import {policyWorkspace} from "./policy.js";
+import {observationWorkspace} from "./observe.js";
 
 const clone = value => JSON.parse(JSON.stringify(value));
 export async function busPage(root, params, ctx, bus) {
@@ -11,11 +12,13 @@ export async function busPage(root, params, ctx, bus) {
   let detail, draft, list = "whitelist", invalid = false, busy = 0, fresh = "", currentDevice;
   let ruleIds, regState = {}, ruleState = {list:"whitelist",index:0};
   const reads = new Map();
+  const observations = new Map();
+  let stopObservation = () => {};
   function resetDraft() {
     draft = clone(detail.config); invalid = false;
     ruleIds = Object.fromEntries(["whitelist","blacklist"].map(key => [key,draft[key].map((_,i) => i)]));
   }
-  const tabs = {overview:"Состояние",registers:"Регистры",policy:"Политика",...(mdio ? {autopoll:"Опрос"} : {}),settings:"Конфигурация"};
+  const tabs = {overview:"Состояние",registers:"Регистры",policy:"Политика",telemetry:"Телеметрия",events:"События",...(mdio ? {autopoll:"Опрос"} : {}),settings:"Конфигурация"};
   if (tab === "cache") tab = "registers";
   if (!tabs[tab]) tab = "overview";
   const changed = () => !!detail && (invalid || JSON.stringify(draft) !== JSON.stringify(detail.config));
@@ -76,15 +79,23 @@ export async function busPage(root, params, ctx, bus) {
     if (tab === "overview") return `<article class="card"><h2>Устройство ${esc(selected)}</h2>${kv([["Подсистема",label],["Адрес",hex(mdio ? draft.phy_addr : draft.addr_7b)],["Регистров",draft.reg_count],["Политика",detail.config.policy],["Разрешающих правил",detail.config.whitelist.length],["Запрещающих правил",detail.config.blacklist.length]])}</article>${mdio && detail.stats ? `<article class="card"><h2>Счётчики подсистемы MDIO</h2>${kv([["Чтения",detail.stats.reads],["Переданные записи",detail.stats.writes],["Отказы политики",detail.stats.denied],["Ошибки",detail.stats.errors],["Обработанные входные ячейки",detail.stats.observed]])}<p class="muted">Общие счётчики всех PHY. PL может объединять входные записи; точное число потерянных кадров неизвестно.</p></article>` : ""}`;
     if (tab === "policy") return '<div id="policy-workspace"></div>';
     if (tab === "registers") return '<div id="register-workspace"></div>';
+    if (tab === "telemetry" || tab === "events") return '<div id="observation-workspace"></div>';
 
     if (tab === "autopoll") return `<article class="card"><div class="card-head"><h2>Автоматический опрос</h2><div class="actions"><button data-cache-refresh>Прочитать список опроса</button><button data-invalidate>Сбросить кэш</button></div></div><div class="form-grid"><label class="check wide"><input type="checkbox" data-field="autopoll_enabled" ${draft.autopoll_enabled ? "checked" : ""}>Автоопрос включён</label><label class="wide">Регистры через запятую<input data-regs value="${esc(draft.autopoll_regs.map(r => hex(r)).join(", "))}"></label><label>Задержка между регистрами, мс<input data-field="autopoll_reg_delay_ms" value="${draft.autopoll_reg_delay_ms}" inputmode="numeric"></label><label>Задержка цикла, мс<input data-field="autopoll_cycle_delay_ms" value="${draft.autopoll_cycle_delay_ms}" inputmode="numeric"></label></div><p class="info-strip">Проверка идентификаторов PHY выполняется и при выключенном автоопросе. Фактический период зависит от нагрузки. Чтение некоторых регистров сбрасывает защёлкнутые биты статуса; учитывайте описание PHY.</p></article>`;
     return `<article class="card"><h2>Настройки устройства</h2><div class="form-grid"><label>Адрес<input data-field="${mdio ? "phy_addr" : "addr_7b"}" value="${hex(mdio ? draft.phy_addr : draft.addr_7b)}"></label><label>Количество регистров<input value="${draft.reg_count}" disabled></label></div><p class="muted">Имя и границы устройства не изменяются в веб-интерфейсе.</p>${mdio ? rulesEditor(true) + '<p class="info-strip">Это начальные значения кэша, а не команды физическому PHY. Автоопрос заменяет их реальными данными.</p>' : `<h3>Сохраняемые настройки</h3><p class="muted">${draft.settings.length} значений. Редактор не изменяет начальные значения I²C; они сохраняются штатным ConfigStore.</p>`}</article>`;
   }
   function render() {
+    stopObservation();
     ctx.setContext({name:selected,tab});
     const state = deviceState(bus,detail);
     root.innerHTML = `<div class="page-head"><div class="device-heading"><h1>${label}</h1><span class="device-name">${esc(selected)}</span></div><div class="actions"><select class="device-select ${devices.devices.length < 2 ? "hidden" : ""}" aria-label="Устройство">${devices.devices.map(d => `<option ${d.name === selected ? "selected" : ""} value="${esc(d.name)}">${esc(d.name)}</option>`).join("")}</select><button data-refresh>${icon("refresh")}Обновить</button></div></div><div class="device-meta"><span>Адрес <strong class="mono">${hex(mdio ? detail.config.phy_addr : detail.config.addr_7b)}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.label,state.ready ? "ok" : "")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${tab !== "registers" || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
     if (tab === "registers") registerWorkspace(root.querySelector("#register-workspace"), {bus,detail,reads,state:regState,canOperate:!changed(),onRead:reg => registerOp(reg,false),onWrite:(reg,val) => registerOp(reg,true,val),onSnapshot:() => ctx.runRefresh(load)});
+    if (tab === "telemetry" || tab === "events") {
+      const address = mdio ? detail.config.phy_addr : detail.config.addr_7b, key = `${selected}:${address}:${tab}`;
+      if (!observations.has(key)) observations.set(key, {});
+      stopObservation = observationWorkspace(root.querySelector("#observation-workspace"), {bus,address,channel:tab,signal:ctx.signal,state:observations.get(key)});
+      if (!changed()) root.querySelector(".save-bar")?.remove();
+    }
     if (tab === "policy") policyWorkspace(root.querySelector("#policy-workspace"), {bus,base:detail.config,draft,ids:ruleIds,state:ruleState,onChange:value => { invalid = value; updateBar(); },onAdd:key => { if (invalid) { notice("Сначала исправьте неверные значения полей",true); return; } editRule(key); }});
     wireSave();
     root.querySelector("[data-refresh]").onclick = () => ctx.runRefresh(load);

@@ -31,7 +31,8 @@ static void emit(bvstk_mdio_service_t *s, uint16_t type, bvstk_status_t st,
     memset(&e, 0, sizeof(e));
     e.time_us = bvstk_platform_now_ms() * UINT64_C(1000);
     e.type = type; e.status = (uint16_t)st; e.source = (uint8_t)source;
-    e.bus = BVSTK_EVENT_BUS_MDIO; e.operation = BVSTK_EVENT_OP_WRITE;
+    e.bus = BVSTK_EVENT_BUS_MDIO;
+    e.operation = type == BVSTK_EVENT_MASTER_READ ? BVSTK_EVENT_OP_READ : BVSTK_EVENT_OP_WRITE;
     e.arg0 = phy; e.arg1 = reg; e.arg2 = value;
     s->events.publish(s->events.context, &e);
 }
@@ -47,13 +48,14 @@ static bvstk_status_t invalidate(bvstk_mdio_service_t *s, size_t d)
     return result;
 }
 static bvstk_status_t read_phy(bvstk_mdio_service_t *s, size_t d, uint8_t r,
-    uint16_t *v, uint32_t timeout)
+    uint16_t *v, bvstk_event_source_t source, uint32_t timeout)
 {
     bvstk_status_t st;
     bvstk_mdio_cache_entry_t *e = &s->cache[d][r];
     uint8_t phy = s->devices[d].phy_addr;
     if (s->bus.read) st = s->bus.read(s->bus.context, phy, r, v, timeout);
     else st = s->core ? bvstk_mdio_core_read(s->core, phy, r, v, timeout) : BVSTK_ERR_NOT_READY;
+    emit(s, BVSTK_EVENT_MASTER_READ, st, source, phy, r, st == BVSTK_OK ? *v : 0);
     ++s->stats.reads;
     if (st == BVSTK_OK) {
         st = publish(s, phy, r, *v);
@@ -91,11 +93,12 @@ static bvstk_status_t write_phy(bvstk_mdio_service_t *s, size_t d, uint8_t r,
         }
         if (s->bus.write) st = s->bus.write(s->bus.context, phy, r, v, source, timeout);
         else st = s->core ? bvstk_mdio_core_write(s->core, phy, r, v, timeout) : BVSTK_ERR_NOT_READY;
+        emit(s, BVSTK_EVENT_MASTER_WRITE, st, source, phy, r, v);
         if (st == BVSTK_OK) {
             uint16_t actual;
             ++s->stats.writes;
             /* Write success means frame completed, not PHY acceptance. Never retry. */
-            (void)read_phy(s, d, r, &actual, timeout);
+            (void)read_phy(s, d, r, &actual, source, timeout);
             s->poll_due[d] = 0; s->poll_index[d] = 0;
             emit(s, BVSTK_EVENT_REG_COMMIT, st, source, phy, r, v);
         } else {
@@ -197,11 +200,16 @@ bvstk_status_t bvstk_mdio_service_find_by_phy(const bvstk_mdio_service_t *s, uin
 }
 bvstk_status_t bvstk_mdio_service_read(bvstk_mdio_service_t *s, size_t d, uint8_t r, uint16_t *v, uint32_t timeout)
 {
+    return bvstk_mdio_service_read_from(s, d, r, v, BVSTK_EVENT_SOURCE_INTERNAL, timeout);
+}
+bvstk_status_t bvstk_mdio_service_read_from(bvstk_mdio_service_t *s, size_t d, uint8_t r,
+    uint16_t *v, bvstk_event_source_t source, uint32_t timeout)
+{
     bvstk_status_t st = lock(s);
     if (st != BVSTK_OK) return st;
     st = check(s, d, r);
     if (!v) st = BVSTK_ERR_MALFORMED;
-    if (st == BVSTK_OK) st = read_phy(s, d, r, v, timeout);
+    if (st == BVSTK_OK) st = read_phy(s, d, r, v, source, timeout);
     bvstk_mutex_unlock(&s->mutex);
     return st;
 }
@@ -307,9 +315,11 @@ bvstk_status_t bvstk_mdio_service_step(bvstk_mdio_service_t *s, uint64_t now, ui
         if (st == BVSTK_ERR_NOT_FOUND) continue;
         if (st != BVSTK_OK) { ++s->stats.errors; result = st; break; }
         ++taken; ++s->stats.observed;
+        emit(s, BVSTK_EVENT_CAPTURE_WRITE, BVSTK_OK, BVSTK_EVENT_SOURCE_HOST, phy, reg, v);
         d = find_phy(s, phy);
         if (d == s->device_count) {
             ++s->stats.unknown_phy; ++s->stats.denied;
+            emit(s, BVSTK_EVENT_REG_ATTEMPT, BVSTK_OK, BVSTK_EVENT_SOURCE_HOST, phy, reg, v);
             emit(s, BVSTK_EVENT_REG_DENIED, BVSTK_ERR_NOT_FOUND, BVSTK_EVENT_SOURCE_HOST, phy, reg, v);
         } else {
             st = write_phy(s, d, reg, v, BVSTK_EVENT_SOURCE_HOST, timeout);
@@ -327,8 +337,8 @@ bvstk_status_t bvstk_mdio_service_step(bvstk_mdio_service_t *s, uint64_t now, ui
          * retry it independently of the user-selected cache refresh list. */
         if (now >= s->probe_due[d] && c->reg_count >= 4U) {
             uint16_t id1 = 0, id2 = 0;
-            st = read_phy(s, d, 2, &id1, timeout);
-            if (st == BVSTK_OK) st = read_phy(s, d, 3, &id2, timeout);
+            st = read_phy(s, d, 2, &id1, BVSTK_EVENT_SOURCE_INTERNAL, timeout);
+            if (st == BVSTK_OK) st = read_phy(s, d, 3, &id2, BVSTK_EVENT_SOURCE_INTERNAL, timeout);
             if (st == BVSTK_OK && id1 != 0xFFFFU && id2 != 0xFFFFU && (id1 || id2)) {
                 if (!s->online[d]) s->poll_due[d] = 0;
                 s->online[d] = 1;
@@ -342,7 +352,7 @@ bvstk_status_t bvstk_mdio_service_step(bvstk_mdio_service_t *s, uint64_t now, ui
         }
         if (!c->autopoll_enabled || !c->autopoll_regs_len || now < s->poll_due[d]) continue;
         if (c->reg_count >= 4U && !s->online[d]) continue;
-        st = read_phy(s, d, c->autopoll_regs[s->poll_index[d]], &v, timeout);
+        st = read_phy(s, d, c->autopoll_regs[s->poll_index[d]], &v, BVSTK_EVENT_SOURCE_INTERNAL, timeout);
         if (st != BVSTK_OK) {
             result = st;
             (void)invalidate(s, d);

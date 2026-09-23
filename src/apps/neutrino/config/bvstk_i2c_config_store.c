@@ -12,10 +12,11 @@
 
 #include "default_configs.h"
 #include "shared/config/bvstk_i2c_config_codec.h"
+#include "shared/config/bvstk_device_profile.h"
 
 enum {
-    BVSTK_I2C_CONFIG_FILE_MAX = 32768,
-    BVSTK_I2C_CONFIG_JSON_MAX = 32768
+    BVSTK_I2C_CONFIG_FILE_MAX = BVSTK_PROFILE_JSON_MAX,
+    BVSTK_I2C_CONFIG_JSON_MAX = BVSTK_PROFILE_JSON_MAX + 1U
 };
 
 static int directory_exists(const char *path)
@@ -115,7 +116,10 @@ static int read_file(const char *path, char **json)
         }
         offset += (size_t)count;
     }
-    close(fd);
+    if (close(fd) != 0 || memchr(buffer, 0, offset) != NULL) {
+        free(buffer);
+        return 0;
+    }
     buffer[offset] = '\0';
     *json = buffer;
     return 1;
@@ -146,15 +150,21 @@ static size_t load_directory(bvstk_neutrino_i2c_config_store_t *store,
     }
     handle = opendir(directory);
     if (handle == NULL) {
-        return 0U;
+        return SIZE_MAX;
     }
     initial_count = store->device_count;
-    while (store->device_count < I2C_CFG_MAX_DEVICES &&
-           (entry = readdir(handle)) != NULL) {
+    for (;;) {
         i2c_device_config_t config;
         char path[256];
         char *json = NULL;
         int length;
+
+        errno = 0;
+        entry = readdir(handle);
+        if (!entry) {
+            if (errno != 0) { closedir(handle); return SIZE_MAX; }
+            break;
+        }
 
         if (!file_name_safe(entry->d_name)) {
             continue;
@@ -164,14 +174,17 @@ static size_t load_directory(bvstk_neutrino_i2c_config_store_t *store,
                           "%s/%s",
                           directory,
                           entry->d_name);
-        if (length <= 0 || (size_t)length >= sizeof(path) ||
+        if (store->device_count >= I2C_CFG_MAX_DEVICES ||
+            length <= 0 || (size_t)length >= sizeof(path) ||
             !read_file(path, &json)) {
-            continue;
+            closedir(handle);
+            return SIZE_MAX;
         }
         if (bvstk_i2c_config_parse_json(json, &config) != BVSTK_OK) {
-            fprintf(stderr, "bvstkd: ignoring invalid I2C config %s\n", path);
+            fprintf(stderr, "bvstkd: invalid I2C config %s; I2C disabled\n", path);
             free(json);
-            continue;
+            closedir(handle);
+            return SIZE_MAX;
         }
         free(json);
         if (duplicate_name(store, config.name)) {
@@ -273,10 +286,12 @@ int bvstk_neutrino_i2c_config_store_save(
     if (json == NULL) {
         return 0;
     }
-    if (bvstk_i2c_config_serialize_json(config,
-                                        json,
-                                        BVSTK_I2C_CONFIG_JSON_MAX,
-                                        &json_size) != BVSTK_OK ||
+    bvstk_status_t status = bvstk_device_profile_format_i2c(config, json,
+                                      BVSTK_I2C_CONFIG_JSON_MAX, &json_size);
+    if (status == BVSTK_ERR_UNSUPPORTED && !config->profile.version)
+        status = bvstk_i2c_config_serialize_json(config, json,
+                                      BVSTK_I2C_CONFIG_JSON_MAX, &json_size);
+    if (status != BVSTK_OK ||
         snprintf(destination,
                  sizeof(destination),
                  "%s/%s",
@@ -339,7 +354,7 @@ int bvstk_neutrino_i2c_config_store_init(
         loaded = load_embedded_defaults(store);
         migrate_to_primary = loaded != 0U;
     }
-    if (loaded == 0U) {
+    if (loaded == 0U || loaded == SIZE_MAX) {
         memset(store, 0, sizeof(*store));
         return 0;
     }

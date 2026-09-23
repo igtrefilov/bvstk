@@ -1,4 +1,5 @@
 #include "shared/config/bvstk_mdio_config_codec.h"
+#include "shared/config/bvstk_device_profile.h"
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -38,7 +39,7 @@ bvstk_status_t bvstk_mdio_config_validate(const mdio_phy_config_t *c)
         for (j = 0; j < i; ++j)
             if (c->settings[j].reg == c->settings[i].reg) return BVSTK_ERR_MALFORMED;
     }
-    return BVSTK_OK;
+    return bvstk_device_profile_metadata_validate(&c->profile, c->reg_count);
 }
 int bvstk_mdio_policy_allows(const mdio_phy_config_t *c, uint8_t reg, uint16_t value)
 {
@@ -145,7 +146,12 @@ bvstk_status_t bvstk_mdio_config_parse(const char *json, mdio_phy_config_t *out)
     uint32_t seen = 0;
     int more;
     const char *p = json;
+    unsigned version;
+    bvstk_status_t status;
     if (!json || !out) return BVSTK_ERR_MALFORMED;
+    status = bvstk_device_profile_version(json, &version);
+    if (status != BVSTK_OK) return status;
+    if (version == 2U) return bvstk_device_profile_parse_mdio(json, out);
     memset(&c, 0, sizeof(c));
     c.autopoll_cycle_delay_ms = 50U;
     if (!ch(&p, '{')) return BVSTK_ERR_MALFORMED;

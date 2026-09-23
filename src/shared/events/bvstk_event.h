@@ -7,7 +7,8 @@ typedef enum {
     BVSTK_EVENT_SOURCE_CONSOLE = 0,
     BVSTK_EVENT_SOURCE_HOST = 1,
     BVSTK_EVENT_SOURCE_DCP = 2,
-    BVSTK_EVENT_SOURCE_INTERNAL = 3
+    BVSTK_EVENT_SOURCE_INTERNAL = 3,
+    BVSTK_EVENT_SOURCE_WEB = 4
 } bvstk_event_source_t;
 
 typedef enum {
@@ -31,7 +32,14 @@ typedef enum {
     BVSTK_EVENT_REG_COMMIT = 0x0002,
     BVSTK_EVENT_REG_DENIED = 0x0003,
     BVSTK_EVENT_STATE_CHANGED = 0x0004,
-    BVSTK_EVENT_FAULT = 0x0005
+    BVSTK_EVENT_FAULT = 0x0005,
+    /* Software observations, NOT a lossless logic-analyser trace. */
+    BVSTK_EVENT_CAPTURE_WRITE = 0x0101,
+    BVSTK_EVENT_MASTER_READ = 0x0102,
+    BVSTK_EVENT_MASTER_WRITE = 0x0103,
+    BVSTK_EVENT_SLAVE_POINTER = 0x0104,
+    BVSTK_EVENT_SLAVE_READ_REQUEST = 0x0105,
+    BVSTK_EVENT_SLAVE_REPLY_PREPARED = 0x0106
 } bvstk_event_type_t;
 
 typedef struct {

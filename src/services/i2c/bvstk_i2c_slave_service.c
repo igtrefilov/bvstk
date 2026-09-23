@@ -54,10 +54,11 @@ static bvstk_status_t load_window(bvstk_i2c_slave_service_t *service,
         if (i != 0U) {
             break;
         }
-        status = bvstk_i2c_master_service_read(service->master,
+        status = bvstk_i2c_master_service_read_from(service->master,
                                                 device_id,
                                                 reg,
                                                 &window[0],
+                                                BVSTK_EVENT_SOURCE_HOST,
                                                 timeout_ms);
         if (status != BVSTK_OK) {
             return status;
@@ -161,10 +162,13 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
     }
 
     if (read_phase != 0U) {
+        reg = service->register_pointer[target];
+        bvstk_i2c_master_service_observe(service->master, target,
+            BVSTK_EVENT_SLAVE_READ_REQUEST, BVSTK_EVENT_OP_READ,
+            (uint8_t)reg, 0, BVSTK_OK);
         if (service->read_armed[target] == 0U) {
             return BVSTK_OK;
         }
-        reg = service->register_pointer[target];
         if (reg >= device.reg_count) {
             reg = 0U;
         }
@@ -179,6 +183,10 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
             return status;
         }
         count = *read_window_size;
+        for (i = 0; i < count; ++i)
+            bvstk_i2c_master_service_observe(service->master, target,
+                BVSTK_EVENT_SLAVE_REPLY_PREPARED, BVSTK_EVENT_OP_READ,
+                (uint8_t)(reg + i), read_window[i], BVSTK_OK);
         service->register_pointer[target] =
             (uint8_t)((count != 0U && reg + count < device.reg_count) ?
                           reg + count : 0U);
@@ -189,14 +197,36 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
         return BVSTK_ERR_MALFORMED;
     }
     reg = frame[0];
+    bvstk_i2c_master_service_observe(service->master, target,
+        BVSTK_EVENT_SLAVE_POINTER, BVSTK_EVENT_OP_WRITE, (uint8_t)reg, frame[0], BVSTK_OK);
+    for (i = 1U; i < frame_size; ++i)
+        bvstk_i2c_master_service_observe(service->master, target,
+            BVSTK_EVENT_CAPTURE_WRITE, BVSTK_EVENT_OP_WRITE,
+            (uint32_t)(reg + i - 1U), frame[i], BVSTK_OK);
     if (reg >= device.reg_count) {
+        for (i = 1; i < frame_size; ++i) {
+            bvstk_i2c_master_service_observe(service->master, target,
+                BVSTK_EVENT_REG_ATTEMPT, BVSTK_EVENT_OP_WRITE,
+                (uint32_t)(reg + i - 1U), frame[i], BVSTK_OK);
+            bvstk_i2c_master_service_observe(service->master, target,
+                BVSTK_EVENT_FAULT, BVSTK_EVENT_OP_WRITE,
+                (uint32_t)(reg + i - 1U), frame[i], BVSTK_ERR_RANGE);
+        }
         return BVSTK_ERR_RANGE;
     }
     service->register_pointer[target] = (uint8_t)reg;
     service->read_armed[target] = 1U;
     for (i = 1U; i < frame_size; ++i) {
         uint8_t current_reg = (uint8_t)(reg + i - 1U);
-        if (current_reg >= device.reg_count) {
+        if (reg + i - 1U >= device.reg_count) {
+            for (; i < frame_size; ++i) {
+                bvstk_i2c_master_service_observe(service->master, target,
+                    BVSTK_EVENT_REG_ATTEMPT, BVSTK_EVENT_OP_WRITE,
+                    (uint32_t)(reg + i - 1U), frame[i], BVSTK_OK);
+                bvstk_i2c_master_service_observe(service->master, target,
+                    BVSTK_EVENT_FAULT, BVSTK_EVENT_OP_WRITE,
+                    (uint32_t)(reg + i - 1U), frame[i], BVSTK_ERR_RANGE);
+            }
             break;
         }
         status = bvstk_i2c_master_service_write(service->master,
@@ -206,6 +236,15 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
                                                 BVSTK_EVENT_SOURCE_HOST,
                                                 timeout_ms);
         if (status != BVSTK_OK) {
+            /* Preserve stop-on-error forwarding, but audit the unprocessed tail. */
+            for (++i; i < frame_size; ++i) {
+                bvstk_i2c_master_service_observe(service->master, target,
+                    BVSTK_EVENT_REG_ATTEMPT, BVSTK_EVENT_OP_WRITE,
+                    (uint32_t)(reg + i - 1U), frame[i], BVSTK_OK);
+                bvstk_i2c_master_service_observe(service->master, target,
+                    BVSTK_EVENT_FAULT, BVSTK_EVENT_OP_WRITE,
+                    (uint32_t)(reg + i - 1U), frame[i], BVSTK_ERR_NOT_READY);
+            }
             return status;
         }
     }

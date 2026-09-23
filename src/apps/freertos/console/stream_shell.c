@@ -129,6 +129,8 @@ bool dcp2_stream_shell_handle(uint8_t service, char **save, int fd)
     }
 
     if (strcasecmp(mode, "status") == 0) {
+        if (service == DCP2_STREAM_SERVICE_I2C || service == DCP2_STREAM_SERVICE_MDIO)
+            write_str(fd, "Real observations: active RAM journal; subscribe using DCP2 STREAM.\r\n");
         print_status(fd, service);
         return true;
     }
@@ -136,8 +138,9 @@ bool dcp2_stream_shell_handle(uint8_t service, char **save, int fd)
     if (strcasecmp(mode, "fake") != 0) {
         if (strcasecmp(mode, "enable") == 0 ||
             strcasecmp(mode, "disable") == 0) {
-            write_str(fd,
-                      "ERR (real stream source unavailable; use fake stream)\r\n");
+            write_str(fd, service == DCP2_STREAM_SERVICE_I2C || service == DCP2_STREAM_SERVICE_MDIO ?
+                "ERR (real observations are always collected; use DCP2 subscribe/unsubscribe)\r\n" :
+                "ERR (real stream source unavailable; use fake stream)\r\n");
         } else {
             write_str(fd, "ERR (expected fake or status)\r\n");
         }

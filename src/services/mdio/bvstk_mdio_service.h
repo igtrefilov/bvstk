@@ -54,6 +54,8 @@ bvstk_status_t bvstk_mdio_service_device_info(const bvstk_mdio_service_t *, size
 bvstk_status_t bvstk_mdio_service_find_by_name(const bvstk_mdio_service_t *, const char *, size_t *);
 bvstk_status_t bvstk_mdio_service_find_by_phy(const bvstk_mdio_service_t *, uint8_t, size_t *);
 bvstk_status_t bvstk_mdio_service_read(bvstk_mdio_service_t *, size_t, uint8_t, uint16_t *, uint32_t);
+bvstk_status_t bvstk_mdio_service_read_from(bvstk_mdio_service_t *, size_t, uint8_t,
+    uint16_t *, bvstk_event_source_t, uint32_t);
 bvstk_status_t bvstk_mdio_service_read_cached(const bvstk_mdio_service_t *, size_t, uint8_t, uint16_t *);
 bvstk_status_t bvstk_mdio_service_cache_entry(const bvstk_mdio_service_t *, size_t, uint8_t, bvstk_mdio_cache_entry_t *);
 bvstk_status_t bvstk_mdio_service_invalidate(bvstk_mdio_service_t *, size_t);

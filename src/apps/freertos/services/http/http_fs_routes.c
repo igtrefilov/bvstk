@@ -917,10 +917,11 @@ static void api_diag_i2c_read(http_conn_t *conn)
         return;
     }
     uint8_t val = 0;
-    if (!service || bvstk_i2c_master_service_read(service,
+    if (!service || bvstk_i2c_master_service_read_from(service,
                                                   idx,
                                                   (uint8_t)reg,
                                                   &val,
+                                                  BVSTK_EVENT_SOURCE_WEB,
                                                   100U) != BVSTK_OK) {
         http_reply_simple(conn->fd, 500, "ERR", "i2c read failed\r\n");
         return;
@@ -982,7 +983,7 @@ static void api_diag_i2c_write(http_conn_t *conn)
                                                    idx,
                                                    (uint8_t)reg,
                                                    (uint8_t)val,
-                                                   BVSTK_EVENT_SOURCE_CONSOLE,
+                                                   BVSTK_EVENT_SOURCE_WEB,
                                                    100U) != BVSTK_OK) {
         http_reply_simple(conn->fd, 403, "Forbidden", "DENIED\r\n");
         return;

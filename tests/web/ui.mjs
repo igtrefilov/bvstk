@@ -14,12 +14,38 @@ const configurations = {
   i2c:{name:"axp15060",addr_7b:54,reg_count:74,max_value_code:64,policy:"whitelist",whitelist:[{reg:19,val:16}],blacklist:[],settings:[]}
 };
 const additional = {i2c:[],mdio:[]};
+// Device files are v2; the existing web API intentionally exposes its v1
+// projection. Mirror that adapter here, not a new browser-side file parser.
+function apiProjection(p) {
+  assert.equal(p.schema_version,2);
+  const bus=p.transport.bus, mdio=bus==='mdio', options=p.protocol.options;
+  assert.equal(p.protocol.driver,`bvstk_${bus}_bridge`);
+  const regs=new Map(p.resources.map(r=>[r.id,Number(r.address)]));
+  const reg=id=>{assert(regs.has(id));return regs.get(id);};
+  const write=p.policy.write;
+  const rules=list=>list.map(r=>({reg:reg(r.resource),val:Number(r.match.value),...(mdio?{mask:Number(r.match.mask)}:{})}));
+  const active=rules(write.rules),inactive=rules(write.inactive_rules||[]);
+  return {name:p.id,reg_count:p.resources.length,policy:write.mode,
+    whitelist:write.mode==='whitelist'?active:inactive,blacklist:write.mode==='blacklist'?active:inactive,
+    settings:p.settings.cache_seed.map(s=>({reg:reg(s.resource),val:Number(s.value)})),
+    ...(mdio?{phy_addr:Number(p.transport.address),autopoll_enabled:options.autopoll_enabled,
+      autopoll_regs:options.autopoll_order.map(reg),autopoll_reg_delay_ms:options.autopoll_reg_delay_ms,
+      autopoll_cycle_delay_ms:options.autopoll_cycle_delay_ms}:
+      {addr_7b:Number(p.transport.address),max_value_code:Number(options.max_write_value)})};
+}
 for (const [bus,name] of [['i2c','pca9536'],['mdio','dp83848c'],['mdio','ksz8081rna']]) {
-  additional[bus].push(JSON.parse(await readFile(new URL(`../../configs/${bus}/${name}.json`,import.meta.url),'utf8')));
+  additional[bus].push(apiProjection(JSON.parse(await readFile(new URL(`../../configs/${bus}/${name}.json`,import.meta.url),'utf8'))));
 }
 const presence = {i2c:'responding',mdio:'responding'};
 const revision={mdio:1,i2c:1},saved={mdio:true,i2c:true};
 const calls=[]; let conflict=false, failRtos=false, mdioListState="devices", versionMode="normal";
+const observations = {i2c:{events:[],telemetry:[]},mdio:{events:[],telemetry:[]}};
+let observeFail = false, observeLoss = "0", observeUptime = 100000;
+function observed(bus, channel, data) {
+  const rows = observations[bus][channel];
+  rows.push({id:String(rows.length+1),time_us:rows.length*10000+5000000,type:258,status:0,source:1,
+    operation:0,address:bus==='mdio'?1:54,reg:2,value:7,...data});
+}
 const files = new Map([["sd-pl:/test1",null],["sd-pl:/roundtrip.json",Buffer.from('{"example":true}\n')],["sd-pl:/Firmware.tif",Buffer.alloc(223423)]]);
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,"http://local"),q=Object.fromEntries(u.searchParams),chunks=[];
@@ -56,6 +82,14 @@ const server=http.createServer(async(req,res)=>{
       else saved[b]=true;
     }
     return reply(q.action==="read"?{ok:true,reg:Number(q.reg),val:7}:{ok:true});
+  }
+  if(u.pathname==="/api/ui/observe"){
+    if(observeFail)return error('journal unavailable',503);
+    const rows=observations[q.bus][q.channel],after=Number(q.after||0),reset=after>rows.length;
+    const scan=rows.slice(reset?0:after,(reset?0:after)+32),last=scan.at(-1)?.id||String(rows.length);
+    const lost=observeLoss;observeLoss="0";
+    return reply({ok:true,next:last,head:String(rows.length),lost,reset,more:Number(last)<rows.length,
+      uptime_ms:observeUptime,capacity:256,records:scan.filter(r=>r.address===Number(q.address))});
   }
   if(u.pathname==="/api/ui/files"){
     const key=q.volume+":"+q.path;
@@ -240,6 +274,63 @@ try{
   await page.locator('[data-nav="mdio"]').click();
   await page.locator('.device-name').filter({hasText:"lan8720"}).waitFor();
   assert.equal(await page.locator('.device-meta>span').first().textContent(),'Адрес 0x01');
+  const writesBeforeObserve=calls.filter(([method])=>method==='PUT').length;
+  observed('mdio','telemetry',{});
+  observed('mdio','telemetry',{source:3,reg:3,value:49393});
+  observed('mdio','telemetry',{type:257,operation:1,reg:4,value:481});
+  observed('mdio','telemetry',{address:2,reg:1,value:65535});
+  await page.locator('[data-tab="telemetry"]').click();
+  await page.locator('[data-record-id="3"]').waitFor();
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),3);
+  assert.equal(await page.locator('.save-bar').count(),0);
+  await page.locator('[data-live-source]').selectOption('1');
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),2);
+  await page.locator('[data-live-reg]').fill('0x04');
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),1);
+  await page.locator('[data-live-reg]').fill('');
+  await page.locator('[data-live-source]').selectOption('');
+  await page.locator('[data-live-pause]').click();
+  observed('mdio','telemetry',{type:258,source:4,reg:5,value:0,status:5});
+  await page.locator('[data-live-state]').filter({hasText:'Получено строк: 4'}).waitFor();
+  assert.equal(await page.locator('[data-record-id="5"]').count(),0);
+  await page.locator('[data-live-pause]').click();
+  await page.locator('[data-record-id="5"]').waitFor();
+  assert.equal(await page.locator('[data-record-id="5"] td').nth(5).textContent(),'—');
+  observeLoss='3';
+  await page.locator('[data-live-warning]').filter({hasText:'Пропущено в программном журнале шины: 3'}).waitFor();
+  await screenshot('09-mdio-telemetry');
+  observeFail=true;
+  await page.locator('[data-live-state]').filter({hasText:'Обновление недоступно'}).waitFor();
+  observeFail=false;
+  await page.locator('[data-live-state]').filter({hasText:'Обновляется автоматически'}).waitFor();
+  await page.locator('[data-live-clear]').click();
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),0);
+  observed('mdio','events',{type:1,operation:1,source:4,reg:4,value:481});
+  observed('mdio','events',{type:3,operation:1,source:4,reg:4,value:481,status:3});
+  await page.locator('[data-tab="events"]').click();
+  await page.locator('[data-record-id="2"]').waitFor();
+  assert(await page.locator('[data-live-rows]').textContent().then(t=>t.includes('Запрещено политикой')));
+  await screenshot('10-mdio-events');
+  await page.locator('[data-device-name="dp83848c"]').click();
+  await page.locator('.device-name').filter({hasText:'dp83848c'}).waitFor();
+  await page.locator('[data-tab="telemetry"]').click();
+  await page.locator('[data-record-id="4"]').waitFor();
+  assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),1);
+  observed('i2c','telemetry',{type:260,reg:19,value:19});
+  observed('i2c','telemetry',{type:262,reg:19,value:16});
+  await page.locator('[data-device-name="axp15060"]').click();
+  await page.locator('.device-name').filter({hasText:'axp15060'}).waitFor();
+  await page.locator('[data-tab="telemetry"]').click();
+  await page.locator('[data-record-id="2"]').waitFor();
+  await screenshot('11-i2c-telemetry');
+  for(const width of [1280,768,390]) {
+    await page.setViewportSize({width,height:992});
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Live view must fit viewport');
+  }
+  await page.setViewportSize({width:1586,height:992});
+  assert.equal(calls.filter(([method])=>method==='PUT').length,writesBeforeObserve,'Observing does not trigger physical operations');
+  await page.locator('[data-device-name="lan8720"]').click();
+  await page.locator('.device-name').filter({hasText:'lan8720'}).waitFor();
   await page.locator('[data-tab="policy"]').click();
   for(const width of [1920,1586,1280,1024,768,390]) {
     await page.setViewportSize({width,height:992});
@@ -430,7 +521,7 @@ try{
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));await screenshot("05-mobile");
   assert.deepEqual(errors,[]);
   assert(calls.some(([method,path,q])=>method==="PUT"&&path==="/api/ui/bus"&&q.action==="save"));
-  console.log("Browser UI tests passed: real device profiles, readiness dots and legacy-I2C fallback, symmetric gear, consistent addresses, live online/offline status, timeout and recovery, no overlapping probes, collapsible object tree and keyboard navigation, full-width policy list tabs, icon classes, edge-to-edge waves, short-screen navigation, stale snapshots, rule diff, explicit save, conflict, passive register selection, confirmed writes, file preview, cross-volume copy, toolbar selection, escaping, mobile layout");
+  console.log("Browser UI tests passed: telemetry and write events for I2C/MDIO, independent device filters, live updates, display pause with continued reception, software-loss notices, failed-read values, read-only observation, reconnect and mobile layout; existing profiles, navigation, policies, registers, file operations and online status");
 }catch(error){
   console.error("Browser errors:",errors,"Recent requests:",calls.slice(-8));
   console.error("Modal:",await page.locator('#modal').textContent());

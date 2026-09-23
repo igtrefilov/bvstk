@@ -19,8 +19,12 @@ cc "${http_flags[@]}" -Itests/host/fs_stubs -Isrc \
   src/apps/freertos/services/http/http_ui.c \
   src/apps/freertos/services/http/http_ui_bus.c \
   src/apps/freertos/services/http/http_ui_files.c \
+  src/apps/freertos/services/http/http_ui_observe.c \
+  src/apps/freertos/runtime/bvstk_observer.c \
+  src/shared/events/bvstk_journal.c \
   src/shared/protocols/http/bvstk_http_input.c \
   src/shared/config/bvstk_i2c_config_codec.c \
+  src/shared/config/bvstk_device_profile.c \
   src/shared/config/bvstk_mdio_config_codec.c \
   src/apps/freertos/console/bus_shell_common.c \
   src/apps/freertos/console/i2c_shell.c \

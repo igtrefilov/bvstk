@@ -2,6 +2,7 @@
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
 #include "shared/config/bvstk_i2c_config_codec.h"
+#include "shared/config/bvstk_device_profile.h"
 #include "shared/protocols/http/bvstk_http_input.h"
 #include "shared/interfaces/bvstk_clock.h"
 #include "task.h"
@@ -27,6 +28,7 @@ static bvstk_status_t snapshot(int mdio, size_t id, bus_config_t *out)
             memcpy(out->i2c.file_name, stored->file_name, sizeof(out->i2c.file_name));
             out->i2c.settings_len = stored->settings_len;
             memcpy(out->i2c.settings, stored->settings, sizeof(out->i2c.settings));
+            out->i2c.profile = stored->profile;
         }
     }
     taskEXIT_CRITICAL();
@@ -41,6 +43,13 @@ static bvstk_status_t format(int mdio, const bus_config_t *cfg, char *out)
 static bvstk_status_t parse(int mdio, const char *json, bus_config_t *out, int strict)
 {
     static const char *const keys[] = {"name", "addr_7b", "reg_count", "max_value_code", "policy", "whitelist", "blacklist", "settings"};
+    /* The web API remains a legacy projection. File import supports v2;
+     * apply must not replace metadata that this editor cannot display. */
+    if (strict) {
+        unsigned version;
+        if (bvstk_device_profile_version(json, &version) != BVSTK_OK || version)
+            return BVSTK_ERR_MALFORMED;
+    }
     if (mdio) return bvstk_mdio_config_parse(json, &out->mdio);
     if (strict && !bvstk_http_json_object(json, keys, 8, 255U)) return BVSTK_ERR_MALFORMED;
     return bvstk_i2c_config_parse_json(json, &out->i2c);
@@ -173,18 +182,18 @@ static void operate(const http_request_t *r, http_conn_t *c, int mdio, size_t id
             http_ui_error(c->fd, 400, "invalid value or missing confirmation"); return;
         }
         st = mdio ? bvstk_mdio_service_write(bvstk_runtime_mdio_service(), id, (uint8_t)reg,
-                (uint16_t)val, BVSTK_EVENT_SOURCE_CONSOLE, 100U) :
+                (uint16_t)val, BVSTK_EVENT_SOURCE_WEB, 100U) :
             bvstk_i2c_master_service_write(bvstk_runtime_i2c_master_service(), id, (uint8_t)reg,
-                (uint8_t)val, BVSTK_EVENT_SOURCE_CONSOLE, 100U);
+                (uint8_t)val, BVSTK_EVENT_SOURCE_WEB, 100U);
         if (!mdio && st == BVSTK_OK) (void)bvstk_runtime_i2c_sync_device(id);
         http_ui_status(c->fd, st); return;
     }
     if (mdio) {
         uint16_t v = 0;
-        st = bvstk_mdio_service_read(bvstk_runtime_mdio_service(), id, (uint8_t)reg, &v, 100U); val = v;
+        st = bvstk_mdio_service_read_from(bvstk_runtime_mdio_service(), id, (uint8_t)reg, &v, BVSTK_EVENT_SOURCE_WEB, 100U); val = v;
     } else {
         uint8_t v = 0;
-        st = bvstk_i2c_master_service_read(bvstk_runtime_i2c_master_service(), id, (uint8_t)reg, &v, 100U); val = v;
+        st = bvstk_i2c_master_service_read_from(bvstk_runtime_i2c_master_service(), id, (uint8_t)reg, &v, BVSTK_EVENT_SOURCE_WEB, 100U); val = v;
     }
     if (st != BVSTK_OK) { http_ui_status(c->fd, st); return; }
     http_ui_header(c->fd, "application/json", -1);
@@ -235,6 +244,7 @@ int http_ui_bus(const http_request_t *r, http_conn_t *c)
             http_ui_error(c->fd, 400, "device limits are read-only"); goto done;
         }
         memcpy(w->next.mdio.file_name, w->current.mdio.file_name, sizeof(w->next.mdio.file_name));
+        w->next.mdio.profile = w->current.mdio.profile;
         st = bvstk_mdio_service_set_config(bvstk_runtime_mdio_service(), id, &w->next.mdio);
     } else {
         /* Limits and boot settings are read-only here. Do not silently alter cache seeds. */
@@ -248,6 +258,7 @@ int http_ui_bus(const http_request_t *r, http_conn_t *c)
             http_ui_error(c->fd, 409, "address is already assigned to another device"); goto done;
         }
         memcpy(w->next.i2c.file_name, w->current.i2c.file_name, sizeof(w->next.i2c.file_name));
+        w->next.i2c.profile = w->current.i2c.profile;
         st = bvstk_runtime_i2c_apply_config(&w->next.i2c) && config_store_set_i2c_device(&w->next.i2c) ? BVSTK_OK : BVSTK_ERR_IO;
     }
     http_ui_status(c->fd, st);

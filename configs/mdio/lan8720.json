@@ -1,18 +1,128 @@
 {
-  "name": "lan8720",
-  "phy_addr": 1,
-  "reg_count": 32,
-  "policy": "whitelist",
-  "autopoll_enabled": true,
-  "autopoll_reg_delay_ms": 0,
-  "autopoll_cycle_delay_ms": 50,
-  "autopoll_regs": [0, 1, 2, 3, 4, 5, 17, 31],
-  "whitelist": [
-    {"reg": 0, "val": 0, "mask": 0},
-    {"reg": 4, "val": 0, "mask": 0},
-    {"reg": 18, "val": 0, "mask": 0},
-    {"reg": 30, "val": 0, "mask": 0}
+  "schema_version": 2,
+  "id": "lan8720",
+  "device": {
+    "model": "LAN8720A",
+    "vendor": "Microchip",
+    "class": "phy"
+  },
+  "transport": {
+    "bus": "mdio",
+    "controller": "pl_mdio_0",
+    "address": "0x01"
+  },
+  "protocol": {
+    "driver": "bvstk_mdio_bridge",
+    "options": {
+      "autopoll_enabled": true,
+      "autopoll_reg_delay_ms": 0,
+      "autopoll_cycle_delay_ms": 50,
+      "autopoll_order": [
+        "reg_00",
+        "reg_01",
+        "reg_02",
+        "reg_03",
+        "reg_04",
+        "reg_05",
+        "reg_11",
+        "reg_1f"
+      ]
+    }
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 16,
+      "access": "rw",
+      "write_mask": "0xFFFF",
+      "cache": {
+        "mode": "driver"
+      },
+      "verify": {
+        "mode": "driver"
+      }
+    }
+  },
+  "resources": [
+    {"id": "reg_00", "kind": "register", "address": "0x00"},
+    {"id": "reg_01", "kind": "register", "address": "0x01"},
+    {"id": "reg_02", "kind": "register", "address": "0x02"},
+    {"id": "reg_03", "kind": "register", "address": "0x03"},
+    {"id": "reg_04", "kind": "register", "address": "0x04"},
+    {"id": "reg_05", "kind": "register", "address": "0x05"},
+    {"id": "reg_06", "kind": "register", "address": "0x06"},
+    {"id": "reg_07", "kind": "register", "address": "0x07"},
+    {"id": "reg_08", "kind": "register", "address": "0x08"},
+    {"id": "reg_09", "kind": "register", "address": "0x09"},
+    {"id": "reg_0a", "kind": "register", "address": "0x0A"},
+    {"id": "reg_0b", "kind": "register", "address": "0x0B"},
+    {"id": "reg_0c", "kind": "register", "address": "0x0C"},
+    {"id": "reg_0d", "kind": "register", "address": "0x0D"},
+    {"id": "reg_0e", "kind": "register", "address": "0x0E"},
+    {"id": "reg_0f", "kind": "register", "address": "0x0F"},
+    {"id": "reg_10", "kind": "register", "address": "0x10"},
+    {"id": "reg_11", "kind": "register", "address": "0x11"},
+    {"id": "reg_12", "kind": "register", "address": "0x12"},
+    {"id": "reg_13", "kind": "register", "address": "0x13"},
+    {"id": "reg_14", "kind": "register", "address": "0x14"},
+    {"id": "reg_15", "kind": "register", "address": "0x15"},
+    {"id": "reg_16", "kind": "register", "address": "0x16"},
+    {"id": "reg_17", "kind": "register", "address": "0x17"},
+    {"id": "reg_18", "kind": "register", "address": "0x18"},
+    {"id": "reg_19", "kind": "register", "address": "0x19"},
+    {"id": "reg_1a", "kind": "register", "address": "0x1A"},
+    {"id": "reg_1b", "kind": "register", "address": "0x1B"},
+    {"id": "reg_1c", "kind": "register", "address": "0x1C"},
+    {"id": "reg_1d", "kind": "register", "address": "0x1D"},
+    {"id": "reg_1e", "kind": "register", "address": "0x1E"},
+    {"id": "reg_1f", "kind": "register", "address": "0x1F"}
   ],
-  "blacklist": [],
-  "settings": []
+  "policy": {
+    "read": {
+      "mode": "blacklist",
+      "rules": []
+    },
+    "write": {
+      "mode": "whitelist",
+      "rules": [
+        {
+          "resource": "reg_00",
+          "match": {
+            "value": "0x0000",
+            "mask": "0x0000"
+          }
+        },
+        {
+          "resource": "reg_04",
+          "match": {
+            "value": "0x0000",
+            "mask": "0x0000"
+          }
+        },
+        {
+          "resource": "reg_12",
+          "match": {
+            "value": "0x0000",
+            "mask": "0x0000"
+          }
+        },
+        {
+          "resource": "reg_1e",
+          "match": {
+            "value": "0x0000",
+            "mask": "0x0000"
+          }
+        }
+      ],
+      "inactive_rules": []
+    }
+  },
+  "settings": {
+    "desired": [],
+    "cache_seed": [],
+    "apply_on_startup": false
+  },
+  "observability": {
+    "telemetry": true,
+    "events": true
+  }
 }

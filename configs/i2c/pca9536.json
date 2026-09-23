@@ -1,10 +1,61 @@
 {
-  "name": "pca9536",
-  "addr_7b": 65,
-  "reg_count": 4,
-  "max_value_code": 15,
-  "policy": "whitelist",
-  "whitelist": [],
-  "blacklist": [],
-  "settings": []
+  "schema_version": 2,
+  "id": "pca9536",
+  "device": {
+    "model": "PCA9536",
+    "vendor": "Texas Instruments",
+    "class": "gpio"
+  },
+  "transport": {
+    "bus": "i2c",
+    "controller": "pl_i2c_0",
+    "address": "0x41",
+    "address_bits": 7
+  },
+  "protocol": {
+    "driver": "bvstk_i2c_bridge",
+    "options": {
+      "max_write_value": "0x0F",
+      "capture_cache_on_save": true
+    }
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 8,
+      "access": "rw",
+      "write_mask": "0xFF",
+      "cache": {
+        "mode": "driver"
+      },
+      "verify": {
+        "mode": "driver"
+      }
+    }
+  },
+  "resources": [
+    {"id": "reg_00", "kind": "register", "address": "0x00"},
+    {"id": "reg_01", "kind": "register", "address": "0x01"},
+    {"id": "reg_02", "kind": "register", "address": "0x02"},
+    {"id": "reg_03", "kind": "register", "address": "0x03"}
+  ],
+  "policy": {
+    "read": {
+      "mode": "blacklist",
+      "rules": []
+    },
+    "write": {
+      "mode": "whitelist",
+      "rules": [],
+      "inactive_rules": []
+    }
+  },
+  "settings": {
+    "desired": [],
+    "cache_seed": [],
+    "apply_on_startup": false
+  },
+  "observability": {
+    "telemetry": true,
+    "events": true
+  }
 }

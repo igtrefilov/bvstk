@@ -1,0 +1,10 @@
+{
+  "name": "pca9536",
+  "addr_7b": 65,
+  "reg_count": 4,
+  "max_value_code": 15,
+  "policy": "whitelist",
+  "whitelist": [],
+  "blacklist": [],
+  "settings": []
+}

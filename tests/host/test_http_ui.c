@@ -11,8 +11,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "apps/freertos/services/http/http_ui.h"
+#include "apps/freertos/runtime/bvstk_observer.h"
 #include "ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.h"
 #include "ports/freertos-xilinx/storage/sd-pl/bvstk_sd_master_freertos.h"
+#include "shared/config/bvstk_device_profile.h"
+#include "shared/config/bvstk_i2c_config_codec.h"
 
 static char storage[256];
 static int mounted = 1, close_error;
@@ -94,6 +97,16 @@ int main(int argc,char **argv) {
     assert(argc==2);snprintf(storage,sizeof(storage),"%s",argv[1]);assert(!mkdir(storage,0700));
     for(int i=0;i<3;i++){char p[300];snprintf(p,sizeof(p),"%s/%d",storage,i);assert(!mkdir(p,0700));}
     reset_fixture();char rev[9],path[256],json[32768];size_t n;
+    /* The API still edits legacy projections of v2-backed profiles. */
+    assert(bvstk_device_profile_format_i2c(&i2c_config,json,sizeof(json),&n)==BVSTK_OK);
+    assert(bvstk_i2c_config_parse_json(json,&i2c_config)==BVSTK_OK);
+    strcpy(i2c_config.file_name,"dev.json"); strcpy(i2c_config.profile.label,"I2C metadata");
+    assert(bvstk_device_profile_format_mdio(&mdio_saved,json,sizeof(json),&n)==BVSTK_OK);
+    assert(bvstk_mdio_config_parse(json,&mdio_saved)==BVSTK_OK);
+    strcpy(mdio_saved.file_name,"dev.json"); strcpy(mdio_saved.profile.label,"MDIO metadata");
+    init_services();
+    i2c.events.publish = bvstk_observer_publish;
+    mdio.events.publish = bvstk_observer_publish;
     http_run("GET","/api/ui/bus?bus=mdio","",200);assert(strstr(output,"\"devices\""));
     mdio.cache[0][2]=(bvstk_mdio_cache_entry_t){.value=7,.valid=1,.updated_ms=bvstk_platform_now_ms()};
     mdio.cache[0][3]=(bvstk_mdio_cache_entry_t){.value=0xc0f1,.valid=1,.updated_ms=bvstk_platform_now_ms()};
@@ -115,6 +128,9 @@ int main(int argc,char **argv) {
     mdio_saved.policy=MDIO_POLICY_BLACKLIST;
     assert(bvstk_mdio_config_format(&mdio_saved,json,sizeof(json),&n)==BVSTK_OK);
     http_run("PUT",path,json,200);assert(mdio_saves==2); /* explicit failed save above counted, apply did not save */
+    mdio_phy_config_t mdio_after;
+    assert(bvstk_mdio_service_get_config(&mdio,0,&mdio_after)==BVSTK_OK);
+    assert(mdio_after.profile.version==2 && !strcmp(mdio_after.profile.label,"MDIO metadata"));
     http_run("PUT",path,json,409);
     http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);revision(rev);
     assert(strstr(output,"\"available\":false,\"presence\":\"unknown\""));
@@ -123,6 +139,9 @@ int main(int argc,char **argv) {
     assert(strstr(output,"\"available\":false,\"presence\":\"unknown\""));
     snprintf(path,sizeof(path),"/api/ui/bus?bus=i2c&name=dev&action=apply&revision=%s",rev);
     http_run("PUT",path,"{\"name\":\"dev\",\"name\":\"other\"}",400);
+    assert(bvstk_i2c_config_serialize_json(&i2c_config,json,sizeof(json),&n)==BVSTK_OK);
+    http_run("PUT",path,json,200);
+    assert(i2c_config.profile.version==2 && !strcmp(i2c_config.profile.label,"I2C metadata"));
     http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&reg=2&val=4&confirm=true","{}",403);assert(!writes);
     http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&reg=2&val=3&confirm=true","{}",200);assert(writes==1);
     http_run("GET","/api/ui/bus?bus=i2c","",200);
@@ -141,6 +160,38 @@ int main(int argc,char **argv) {
     http_run("GET","/api/ui/bus?bus=i2c","",200);
     assert(strstr(output,"\"presence\":\"unknown\""));
     assert(bvstk_i2c_master_service_set_config(&i2c,0,&i2c_config)==BVSTK_OK);
+    {
+        const uint32_t physical_reads = mdio.stats.reads;
+        const unsigned physical_writes = writes;
+        uint64_t head = bvstk_observer_head(0, BVSTK_JOURNAL_EVENTS);
+        assert(head == 4);
+        http_run("GET","/api/ui/observe?bus=i2c&channel=events&address=54","",200);
+        assert(strstr(output,"\"type\":1") && strstr(output,"\"type\":3") && strstr(output,"\"type\":2"));
+        assert(strstr(output,"\"source\":4") && strstr(output,"\"lost\":\"0\""));
+        http_run("GET","/api/ui/observe?bus=i2c&channel=events&address=65","",200);
+        assert(strstr(output,"\"records\":[]") && strstr(output,"\"next\":\"4\""));
+        http_run("GET","/api/ui/observe?bus=i2c&channel=telemetry&address=54","",200);
+        assert(strstr(output,"\"type\":258") && strstr(output,"\"status\":9"));
+        http_run("GET","/api/ui/observe?bus=mdio&channel=telemetry&address=1","",200);
+        assert(strstr(output,"\"records\":[]"));
+        assert(mdio.stats.reads == physical_reads && writes == physical_writes);
+        assert(bvstk_observer_head(0, BVSTK_JOURNAL_EVENTS) == head);
+        http_run("GET","/api/ui/observe?bus=i2c&channel=events&after=4","",200);
+        assert(strstr(output,"\"records\":[]"));
+        http_run("GET","/api/ui/observe?bus=i2c&channel=events&after=999","",200);
+        assert(strstr(output,"\"reset\":true"));
+        const char *bad[] = {"after=-1", "after=18446744073709551616", "after=18446744073709551615",
+            "after=1&after=2", "address=128", "address=1&address=2", "after=abc"};
+        for (size_t i = 0; i < sizeof(bad)/sizeof(bad[0]); ++i) {
+            snprintf(path,sizeof(path),"/api/ui/observe?bus=i2c&channel=events&%s",bad[i]);
+            http_run("GET",path,"",400);
+        }
+        http_run("GET","/api/ui/observe?bus=mdio&channel=telemetry&address=32","",400);
+        http_run("GET","/api/ui/observe?bus=spi&channel=telemetry","",400);
+        http_run("GET","/api/ui/observe?bus=i2c&channel=unknown","",400);
+        http_run("PUT","/api/ui/observe?bus=i2c&channel=events","",405);
+        http_run("GET","/api/ui/observe-more?bus=i2c&channel=events","",404);
+    }
     http_run("GET","/api/ui/volumes","",200);assert(strstr(output,"sd-pl"));
     http_run("GET","/api/ui/files?volume=sd-pl&path=%2F","",200);
     http_run("PUT","/api/ui/files?volume=sd-pl&path=%2Fdemo&action=mkdir&confirm=true","{}",200);

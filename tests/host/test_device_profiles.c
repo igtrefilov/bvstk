@@ -3,17 +3,18 @@
 #include <string.h>
 #include "shared/config/bvstk_i2c_config_codec.h"
 #include "shared/config/bvstk_mdio_config_codec.h"
+#include "shared/config/bvstk_device_profile.h"
 
-static void read_profile(const char *root,const char *relative,char json[4096])
+static void read_profile(const char *root,const char *relative,char json[BVSTK_PROFILE_JSON_MAX+1])
 {
     char path[1024];assert(snprintf(path,sizeof(path),"%s/%s",root,relative)<(int)sizeof(path));
     FILE *f=fopen(path,"rb");assert(f);
-    size_t n=fread(json,1,4095,f);assert(!ferror(f) && feof(f));json[n]=0;
+    size_t n=fread(json,1,BVSTK_PROFILE_JSON_MAX,f);assert(!ferror(f) && feof(f));json[n]=0;
     assert(fclose(f)==0);
 }
 int main(int argc,char **argv)
 {
-    char json[4096];i2c_device_config_t i2c;mdio_phy_config_t mdio;
+    char json[BVSTK_PROFILE_JSON_MAX+1];i2c_device_config_t i2c;mdio_phy_config_t mdio;
     assert(argc==2);
     read_profile(argv[1],"i2c/pca9536.json",json);
     assert(bvstk_i2c_config_parse_json(json,&i2c)==BVSTK_OK);

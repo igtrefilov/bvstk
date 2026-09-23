@@ -35,6 +35,7 @@ COMMON_SOURCES=(
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c"
   "$REPO_ROOT/src/shared/base/bvstk_status.c"
   "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c"
+  "$REPO_ROOT/src/shared/config/bvstk_device_profile.c"
   "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c"
   "$REPO_ROOT/src/shared/pl/access/bvstk_pl_service.c"
   "$REPO_ROOT/src/services/control/bvstk_control_api.c"

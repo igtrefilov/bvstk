@@ -12,6 +12,8 @@
 #include "task.h"
 #include "semphr.h"
 #include "shared/config/bvstk_mdio_config_codec.h"
+#include "shared/config/bvstk_i2c_config_codec.h"
+#include "shared/config/bvstk_device_profile.h"
 
 #include "apps/freertos/storage/qspi/qspi_fs.h"
 
@@ -61,7 +63,7 @@ static int read_file_first_available(const char *p1, const char *p2, char *buf, 
     return 0;
 }
 
-#define CONFIG_TASK_STACK 2048
+#define CONFIG_TASK_STACK 8192
 #define CONFIG_TASK_PRIO (tskIDLE_PRIORITY + 3)
 
 static TaskHandle_t s_task = NULL;
@@ -72,10 +74,10 @@ static i2c_device_config_t s_i2c_cfgs[I2C_CFG_MAX_DEVICES];
 static size_t s_i2c_cfg_count = 0;
 static mdio_phy_config_t s_mdio_cfgs[MDIO_CFG_MAX_DEVICES];
 static size_t s_mdio_cfg_count = 0;
-static char s_cfg_buf[16384];
-static char s_i2c_save_buf[16384];
+static char s_cfg_buf[BVSTK_PROFILE_JSON_MAX + 1U];
+static char s_i2c_save_buf[BVSTK_PROFILE_JSON_MAX + 1U];
 static SemaphoreHandle_t s_i2c_save_mutex;
-static char s_mdio_save_buf[8192];
+static char s_mdio_save_buf[BVSTK_PROFILE_JSON_MAX + 1U];
 static SemaphoreHandle_t s_mdio_save_mutex;
 
 /* FAT directory slot order changes after save/rename. Keep service IDs and
@@ -187,9 +189,10 @@ static int read_file_to_buf(const char *path, char *buf, size_t buf_sz, size_t *
     if (r != FR_OK) return 0;
     if (f_size(&f) >= buf_sz) { (void)f_close(&f); return 0; }
     UINT br = 0;
-    r = f_read(&f, buf, (UINT)(buf_sz - 1), &br);
-    (void)f_close(&f);
-    if (r != FR_OK || memchr(buf, '\0', br) != NULL) return 0;
+    UINT expected = (UINT)f_size(&f);
+    r = f_read(&f, buf, expected, &br);
+    FRESULT close_result = f_close(&f);
+    if (r != FR_OK || close_result != FR_OK || br != expected || memchr(buf, '\0', br) != NULL) return 0;
     buf[br] = '\0';
     if (out_len) *out_len = (size_t)br;
     return 1;
@@ -237,136 +240,6 @@ static int json_get_string(const char *json, const char *key, char *out, size_t 
     }
     out[i] = '\0';
     return (*p == '"') ? 1 : 0;
-}
-
-static const char *parse_json_string_inplace(const char *p, char *out, size_t out_sz, int *ok)
-{
-    if (ok) *ok = 0;
-    if (!out || out_sz == 0) return p;
-    out[0] = '\0';
-    p = skip_ws(p);
-    if (!p || *p != '"') return p;
-    p++;
-    size_t i = 0;
-    while (*p && *p != '"' && i + 1 < out_sz) {
-        if (*p == '\\' && p[1]) p++;
-        out[i++] = *p++;
-    }
-    out[i] = '\0';
-    if (*p != '"') return p;
-    if (ok) *ok = 1;
-    return p + 1;
-}
-
-static const char *parse_json_u32_inplace(const char *p, uint32_t *out, int *ok)
-{
-    if (ok) *ok = 0;
-    if (out) *out = 0;
-    p = skip_ws(p);
-    if (!p || !*p) return p;
-
-    if (*p == '"') {
-        char tmp[32];
-        int sok = 0;
-        const char *e = parse_json_string_inplace(p, tmp, sizeof(tmp), &sok);
-        if (!sok) return p;
-        char *end = NULL;
-        unsigned long v = strtoul(tmp, &end, 0);
-        if (!end || *end != '\0') return p;
-        if (out) *out = (uint32_t)v;
-        if (ok) *ok = 1;
-        return e;
-    }
-
-    char *end = NULL;
-    unsigned long v = strtoul(p, &end, 0);
-    if (!end || end == p) return p;
-    if (out) *out = (uint32_t)v;
-    if (ok) *ok = 1;
-    return end;
-}
-
-static const char *skip_json_value_simple(const char *p, int *ok)
-{
-    if (ok) *ok = 0;
-    p = skip_ws(p);
-    if (!p || !*p) return p;
-    if (*p == '"') {
-        char tmp[8];
-        int sok = 0;
-        const char *e = parse_json_string_inplace(p, tmp, sizeof(tmp), &sok);
-        if (ok) *ok = sok;
-        return e;
-    }
-    if (strncmp(p, "true", 4) == 0) { if (ok) *ok = 1; return p + 4; }
-    if (strncmp(p, "false", 5) == 0) { if (ok) *ok = 1; return p + 5; }
-    if (strncmp(p, "null", 4) == 0) { if (ok) *ok = 1; return p + 4; }
-    uint32_t dummy = 0;
-    int nok = 0;
-    const char *e = parse_json_u32_inplace(p, &dummy, &nok);
-    if (ok) *ok = nok;
-    return e;
-}
-
-static int json_parse_rules_array(const char *p, i2c_rule_entry_t *out, size_t out_max, size_t *out_len)
-{
-    if (out_len) *out_len = 0;
-    if (!p || !out || out_max == 0) return 0;
-    p = skip_ws(p);
-    if (*p != '[') return 0;
-    p++;
-    size_t n = 0;
-    for (;;) {
-        p = skip_ws(p);
-        if (!*p) return 0;
-        if (*p == ']') { p++; break; }
-        if (*p != '{') return 0;
-        p++;
-        int have_reg = 0, have_val = 0;
-        uint32_t reg = 0, val = 0;
-        for (;;) {
-            p = skip_ws(p);
-            if (!*p) return 0;
-            if (*p == '}') { p++; break; }
-            char key[24];
-            int okk = 0;
-            p = parse_json_string_inplace(p, key, sizeof(key), &okk);
-            if (!okk) return 0;
-            p = skip_ws(p);
-            if (*p != ':') return 0;
-            p++;
-            if (strcmp(key, "reg") == 0) {
-                int okn = 0;
-                p = parse_json_u32_inplace(p, &reg, &okn);
-                have_reg = okn;
-            } else if (strcmp(key, "val") == 0) {
-                int okn = 0;
-                p = parse_json_u32_inplace(p, &val, &okn);
-                have_val = okn;
-            } else {
-                int okv = 0;
-                p = skip_json_value_simple(p, &okv);
-                if (!okv) return 0;
-            }
-
-            p = skip_ws(p);
-            if (*p == ',') { p++; continue; }
-            if (*p == '}') { p++; break; }
-            return 0;
-        }
-        if (have_reg && have_val && n < out_max) {
-            if (reg > 0xFFu || val > 0xFFu) return 0;
-            out[n].reg = (uint8_t)(reg & 0xFFu);
-            out[n].val = (uint8_t)(val & 0xFFu);
-            n++;
-        }
-        p = skip_ws(p);
-        if (*p == ',') { p++; continue; }
-        if (*p == ']') { p++; break; }
-        return 0;
-    }
-    if (out_len) *out_len = n;
-    return 1;
 }
 
 static int parse_mac(const char *s, uint8_t out_mac[6])
@@ -424,105 +297,14 @@ static int parse_network_json(const char *json, network_config_t *cfg)
     return cfg->has_ip && cfg->has_netmask && cfg->has_gateway && cfg->has_mac;
 }
 
-static void i2c_cfg_clear(i2c_device_config_t *cfg)
-{
-    if (!cfg) return;
-    memset(cfg, 0, sizeof(*cfg));
-    cfg->policy = I2C_POLICY_WHITELIST;
-}
-
 static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
 {
-    if (!json || !cfg) return 0;
-    i2c_cfg_clear(cfg);
-
-    const char *p = find_key(json, "name");
-    if (!p) return 0;
-    {
-        int ok = 0;
-        (void)parse_json_string_inplace(p, cfg->name, sizeof(cfg->name), &ok);
-        if (!ok || !cfg->name[0]) return 0;
-    }
-
-    p = find_key(json, "addr_7b");
-    if (!p) return 0;
-    {
-        uint32_t v = 0;
-        int ok = 0;
-        (void)parse_json_u32_inplace(p, &v, &ok);
-        if (!ok || v > 0x7Fu) return 0;
-        cfg->addr_7b = (uint8_t)v;
-    }
-
-    p = find_key(json, "reg_count");
-    if (!p) return 0;
-    {
-        uint32_t v = 0;
-        int ok = 0;
-        (void)parse_json_u32_inplace(p, &v, &ok);
-        if (!ok || v == 0 || v > 256u) return 0;
-        cfg->reg_count = (uint16_t)v;
-    }
-
-    p = find_key(json, "max_value_code");
-    if (!p) return 0;
-    {
-        uint32_t v = 0;
-        int ok = 0;
-        (void)parse_json_u32_inplace(p, &v, &ok);
-        if (!ok || v > 64u) return 0;
-        cfg->max_value_code = (uint8_t)v;
-    }
-
-    p = find_key(json, "policy");
-    if (!p) return 0;
-    {
-        char pol[16];
-        int ok = 0;
-        (void)parse_json_string_inplace(p, pol, sizeof(pol), &ok);
-        if (!ok) return 0;
-        if (strcasecmp(pol, "whitelist") == 0) cfg->policy = I2C_POLICY_WHITELIST;
-        else if (strcasecmp(pol, "blacklist") == 0) cfg->policy = I2C_POLICY_BLACKLIST;
-        else return 0;
-    }
-
-    p = find_key(json, "whitelist");
-    if (p) {
-        size_t n = 0;
-        if (!json_parse_rules_array(p, cfg->whitelist, I2C_CFG_RULES_MAX, &n)) return 0;
-        cfg->whitelist_len = n;
-    }
-    p = find_key(json, "blacklist");
-    if (p) {
-        size_t n = 0;
-        if (!json_parse_rules_array(p, cfg->blacklist, I2C_CFG_RULES_MAX, &n)) return 0;
-        cfg->blacklist_len = n;
-    }
-    p = find_key(json, "settings");
-    if (p) {
-        size_t n = 0;
-        if (!json_parse_rules_array(p, cfg->settings, I2C_CFG_SETTINGS_MAX, &n)) return 0;
-        cfg->settings_len = n;
-    }
-
-    for (size_t i = 0; i < cfg->whitelist_len; ++i) {
-        if (cfg->whitelist[i].reg >= cfg->reg_count) return 0;
-        if (cfg->whitelist[i].val > cfg->max_value_code) return 0;
-    }
-    for (size_t i = 0; i < cfg->blacklist_len; ++i) {
-        if (cfg->blacklist[i].reg >= cfg->reg_count) return 0;
-        if (cfg->blacklist[i].val > cfg->max_value_code) return 0;
-    }
-    for (size_t i = 0; i < cfg->settings_len; ++i) {
-        if (cfg->settings[i].reg >= cfg->reg_count) return 0;
-    }
-
-    return 1;
+    return bvstk_i2c_config_parse_json(json, cfg) == BVSTK_OK;
 }
 
 /* Preserve the previous policy while replacing a file. FatFs has no atomic
  * replace: a completed backup is recovered before defaults/migration on boot. */
-static int write_mdio_file(const char *path, const void *data, size_t len)
+static int write_device_file(const char *path, const void *data, size_t len)
 {
     char tmp[200], backup[200];
     FIL file;
@@ -548,7 +330,7 @@ static int write_mdio_file(const char *path, const void *data, size_t len)
     }
     return 1;
 }
-static int recover_mdio_configs(const char *path)
+static int recover_device_configs(const char *path)
 {
     DIR dir;
     FILINFO entry;
@@ -613,6 +395,7 @@ static int migrate_mdio_configs(const char *destination)
 }
 static void config_task(void *arg)
 {
+    int i2c_load_failed = 0;
     int mdio_load_failed = 0;
     int mdio_files_seen = 0;
     int mdio_first_start = 0;
@@ -653,7 +436,9 @@ static void config_task(void *arg)
             }
         }
         (void)ensure_dir_exists(i2c_dir_path);
-        for (unsigned i = 0; i < DEFAULT_I2C_CONFIG_FILES_COUNT; ++i) {
+        if (!recover_device_configs(i2c_dir_path) || !recover_device_configs(i2c_dir_path_fb))
+            i2c_load_failed = 1;
+        for (unsigned i = 0; !i2c_load_failed && i < DEFAULT_I2C_CONFIG_FILES_COUNT; ++i) {
             const default_json_file_t *d = &DEFAULT_I2C_CONFIG_FILES[i];
             char cfg_path[160], cfg_path_fb[160];
             char suf[96];
@@ -670,7 +455,7 @@ static void config_task(void *arg)
         }
 
         mdio_first_start = !file_exists(mdio_marker);
-        if (!recover_mdio_configs(mdio_dir_path) || !recover_mdio_configs(mdio_dir_path_fb) ||
+        if (!recover_device_configs(mdio_dir_path) || !recover_device_configs(mdio_dir_path_fb) ||
             (mdio_first_start && !migrate_mdio_configs(mdio_dir_path))) mdio_load_failed = 1;
         for (unsigned i = 0; mdio_first_start && !mdio_load_failed && i < DEFAULT_MDIO_CONFIG_FILES_COUNT; ++i) {
             const default_json_file_t *d = &DEFAULT_MDIO_CONFIG_FILES[i];
@@ -774,29 +559,36 @@ static void config_task(void *arg)
     }
 
     s_i2c_cfg_count = 0;
-    if (qspi_fs_is_ready()) {
+    if (qspi_fs_is_ready() && !i2c_load_failed) {
         for (int pass = 0; pass < 2; ++pass) {
             const char *scan_dir = (pass == 0) ? i2c_dir_path : i2c_dir_path_fb;
             if (!scan_dir || !scan_dir[0] || !dir_exists(scan_dir)) continue;
             DIR d;
             FILINFO fno;
-            if (f_opendir(&d, scan_dir) != FR_OK) continue;
+            if (f_opendir(&d, scan_dir) != FR_OK) { i2c_load_failed = 1; break; }
             for (;;) {
-                if (f_readdir(&d, &fno) != FR_OK) break;
+                if (f_readdir(&d, &fno) != FR_OK) { i2c_load_failed = 1; break; }
                 if (!fno.fname[0]) break;
                 if (fno.fattrib & AM_DIR) continue;
                 const char *fn = fno.fname;
                 size_t fl = strlen(fn);
                 if (fl < 6) continue;
                 if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
-                if (s_i2c_cfg_count >= I2C_CFG_MAX_DEVICES) break;
-
+                /* A fallback copy cannot replace the primary file's policy. */
+                bool same_file = false;
+                for (size_t j = 0; pass && j < s_i2c_cfg_count; ++j)
+                    if (!strcasecmp(s_i2c_cfgs[j].file_name, fn)) same_file = true;
+                if (same_file) continue;
                 char pth[200];
                 int pn = snprintf(pth, sizeof(pth), "%s/%s", scan_dir, fn);
-                if (pn <= 0 || (size_t)pn >= sizeof(pth)) continue;
-                if (!read_file_to_buf(pth, s_cfg_buf, sizeof(s_cfg_buf), &blen)) continue;
                 i2c_device_config_t tmp;
-                if (!parse_i2c_device_json(s_cfg_buf, &tmp)) continue;
+                if (s_i2c_cfg_count >= I2C_CFG_MAX_DEVICES || fl >= I2C_CFG_FILE_NAME_MAX ||
+                    pn <= 0 || (size_t)pn >= sizeof(pth) ||
+                    !read_file_to_buf(pth, s_cfg_buf, sizeof(s_cfg_buf), &blen) ||
+                    !parse_i2c_device_json(s_cfg_buf, &tmp)) {
+                    xil_printf("CFG: invalid I2C profile %s\r\n", fn);
+                    i2c_load_failed = 1; break;
+                }
 
                 /* Avoid duplicates by device name (primary dir wins). */
                 bool dup = false;
@@ -810,9 +602,16 @@ static void config_task(void *arg)
                 s_i2c_cfgs[s_i2c_cfg_count++] = tmp;
             }
             (void)f_closedir(&d);
+            if (i2c_load_failed) break;
         }
     }
-    if (s_i2c_cfg_count == 0) {
+    if (i2c_load_failed) {
+        /* Never replace an unreadable policy with defaults, or change the
+         * PL slave target by dropping only the first device in the list. */
+        s_i2c_cfg_count = 0;
+        xil_printf("CFG: I2C disabled: stored profiles could not be loaded\r\n");
+    }
+    if (s_i2c_cfg_count == 0 && !i2c_load_failed) {
         for (unsigned i = 0; i < DEFAULT_I2C_CONFIG_FILES_COUNT && s_i2c_cfg_count < I2C_CFG_MAX_DEVICES; ++i) {
             const default_json_file_t *d = &DEFAULT_I2C_CONFIG_FILES[i];
             i2c_device_config_t tmp;
@@ -1074,69 +873,11 @@ static int save_i2c_device_locked(const i2c_device_config_t *cfg)
     char *json = s_i2c_save_buf;
     const size_t json_cap = sizeof(s_i2c_save_buf);
     size_t pos = 0;
-    const char *pol = (cfg->policy == I2C_POLICY_BLACKLIST) ? "blacklist" : "whitelist";
-    int n = snprintf(json + pos, json_cap - pos,
-        "{\n"
-        "  \"name\": \"%s\",\n"
-        "  \"addr_7b\": %u,\n"
-        "  \"reg_count\": %u,\n"
-        "  \"max_value_code\": %u,\n"
-        "  \"policy\": \"%s\",\n"
-        "  \"whitelist\": [\n",
-        cfg->name,
-        (unsigned)cfg->addr_7b,
-        (unsigned)cfg->reg_count,
-        (unsigned)cfg->max_value_code,
-        pol);
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
-
-    for (size_t i = 0; i < cfg->whitelist_len; ++i) {
-        n = snprintf(json + pos, json_cap - pos,
-                     "    { \"reg\": %u, \"val\": %u }%s\n",
-                     (unsigned)cfg->whitelist[i].reg,
-                     (unsigned)cfg->whitelist[i].val,
-                     (i + 1 == cfg->whitelist_len) ? "" : ",");
-        if (n <= 0) return 0;
-        pos += (size_t)n;
-        if (pos >= json_cap) return 0;
-    }
-    n = snprintf(json + pos, json_cap - pos, "  ],\n  \"blacklist\": [\n");
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
-
-    for (size_t i = 0; i < cfg->blacklist_len; ++i) {
-        n = snprintf(json + pos, json_cap - pos,
-                     "    { \"reg\": %u, \"val\": %u }%s\n",
-                     (unsigned)cfg->blacklist[i].reg,
-                     (unsigned)cfg->blacklist[i].val,
-                     (i + 1 == cfg->blacklist_len) ? "" : ",");
-        if (n <= 0) return 0;
-        pos += (size_t)n;
-        if (pos >= json_cap) return 0;
-    }
-    n = snprintf(json + pos, json_cap - pos, "  ],\n  \"settings\": [\n");
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
-
-    for (size_t i = 0; i < cfg->settings_len; ++i) {
-        n = snprintf(json + pos, json_cap - pos,
-                     "    { \"reg\": %u, \"val\": %u }%s\n",
-                     (unsigned)cfg->settings[i].reg,
-                     (unsigned)cfg->settings[i].val,
-                     (i + 1 == cfg->settings_len) ? "" : ",");
-        if (n <= 0) return 0;
-        pos += (size_t)n;
-        if (pos >= json_cap) return 0;
-    }
-
-    n = snprintf(json + pos, json_cap - pos, "  ]\n}\n");
-    if (n <= 0) return 0;
-    pos += (size_t)n;
-    if (pos >= json_cap) return 0;
+    bvstk_status_t status = bvstk_device_profile_format_i2c(cfg, json, json_cap, &pos);
+    /* Keep old non-v2 identifiers usable without silently renaming a device. */
+    if (status == BVSTK_ERR_UNSUPPORTED && !cfg->profile.version)
+        status = bvstk_i2c_config_serialize_json(cfg, json, json_cap, &pos);
+    if (status != BVSTK_OK) return 0;
 
     char cfg_path[160], cfg_path_fb[160];
     char suf[96];
@@ -1150,11 +891,11 @@ static int save_i2c_device_locked(const i2c_device_config_t *cfg)
     build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
     if (!cfg_path[0] || !cfg_path_fb[0]) return 0;
 
-    int ok = write_file_atomic(cfg_path, json, pos) ? 1 : 0;
+    int ok = write_device_file(cfg_path, json, pos);
     if (ok && dir_exists(root_dir_path_fb)) {
         (void)ensure_dir_exists(root_dir_path_fb);
         (void)ensure_dir_exists(i2c_dir_path_fb);
-        (void)write_file_atomic(cfg_path_fb, json, pos);
+        (void)write_device_file(cfg_path_fb, json, pos);
     }
     return ok;
 }
@@ -1185,7 +926,10 @@ static int save_mdio_device_locked(const mdio_phy_config_t *cfg)
     char *json = s_mdio_save_buf;
     const size_t json_cap = sizeof(s_mdio_save_buf);
     size_t pos = 0;
-    if (bvstk_mdio_config_format(cfg, json, json_cap, &pos) != BVSTK_OK) return 0;
+    bvstk_status_t status = bvstk_device_profile_format_mdio(cfg, json, json_cap, &pos);
+    if (status == BVSTK_ERR_UNSUPPORTED && !cfg->profile.version)
+        status = bvstk_mdio_config_format(cfg, json, json_cap, &pos);
+    if (status != BVSTK_OK) return 0;
 
     char cfg_path[160], cfg_path_fb[160];
     char suf[96];
@@ -1199,7 +943,7 @@ static int save_mdio_device_locked(const mdio_phy_config_t *cfg)
     build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
     if (!cfg_path[0] || !cfg_path_fb[0]) return 0;
 
-    return write_mdio_file(cfg_path, json, pos);
+    return write_device_file(cfg_path, json, pos);
 }
 
 int config_store_save_mdio_device(const mdio_phy_config_t *cfg)
