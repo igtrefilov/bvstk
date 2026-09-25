@@ -8,7 +8,9 @@
 enum {
     BVSTK_I2C_SLAVE_FREERTOS_QUEUE_LENGTH = 16,
     BVSTK_I2C_SLAVE_FREERTOS_STACK = 768,
-    BVSTK_I2C_SLAVE_FREERTOS_PRIORITY = tskIDLE_PRIORITY + 1
+    /* The slave's 100 us stretch budget cannot wait for network/UI tasks
+     * at the same priority to finish their scheduler time slice. */
+    BVSTK_I2C_SLAVE_FREERTOS_PRIORITY = tskIDLE_PRIORITY + 5
 };
 
 static void slave_isr(void *callback_ref)
@@ -140,14 +142,16 @@ static void slave_task(void *argument)
                                          sizeof(read_window));
         }
         if (status == BVSTK_OK &&
+            (event.irq_flags & (BVSTK_I2C_SLV_IRQ_ERR_ACK |
+                                BVSTK_I2C_SLV_IRQ_MEM_OVERFLOW)) == 0U &&
             (event.irq_flags & BVSTK_I2C_SLV_IRQ_RD_REQUEST) != 0U) {
             status = process_read_event(adapter,
                                         &event,
                                         read_window,
                                         sizeof(read_window));
         }
-        if ((event.irq_flags & (BVSTK_I2C_SLV_IRQ_FINAL_PACKET |
-                                BVSTK_I2C_SLV_IRQ_ERR_ACK)) != 0U) {
+        if (status != BVSTK_OK ||
+            bvstk_i2c_slave_irq_ends_read(event.irq_flags)) {
             bvstk_i2c_slave_service_end_transaction(adapter->service);
         }
         (void)status;

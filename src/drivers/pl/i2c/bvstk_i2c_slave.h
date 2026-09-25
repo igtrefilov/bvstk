@@ -24,6 +24,10 @@ typedef struct {
     size_t request_size;
 } bvstk_i2c_slave_irq_event_t;
 
+/* DATA_VALID | FINAL_PACKET closes a write phase (STOP or repeated START),
+ * not the following register read. Errors and a read-side FINAL_PACKET end it. */
+int bvstk_i2c_slave_irq_ends_read(uint32_t irq_flags);
+
 bvstk_status_t bvstk_i2c_slave_hw_init(bvstk_i2c_slave_hw_t *hardware);
 void bvstk_i2c_slave_hw_shutdown(bvstk_i2c_slave_hw_t *hardware);
 bvstk_status_t bvstk_i2c_slave_hw_set_address(

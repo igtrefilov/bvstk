@@ -193,6 +193,9 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
         return BVSTK_OK;
     }
 
+    /* A new write phase replaces the previous pointer. Invalid frames and
+     * rejected writes must never leave an older read armed. */
+    service->read_armed[target] = 0U;
     if (frame == NULL || frame_size == 0U) {
         return BVSTK_ERR_MALFORMED;
     }
@@ -215,7 +218,7 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
         return BVSTK_ERR_RANGE;
     }
     service->register_pointer[target] = (uint8_t)reg;
-    service->read_armed[target] = 1U;
+    service->read_armed[target] = frame_size == 1U ? 1U : 0U;
     for (i = 1U; i < frame_size; ++i) {
         uint8_t current_reg = (uint8_t)(reg + i - 1U);
         if (reg + i - 1U >= device.reg_count) {
@@ -247,9 +250,6 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
             }
             return status;
         }
-    }
-    if (frame_size > 1U) {
-        service->read_armed[target] = 0U;
     }
     return BVSTK_OK;
 }

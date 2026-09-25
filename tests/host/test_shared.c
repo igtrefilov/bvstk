@@ -411,6 +411,15 @@ int main(void)
         CHECK(events.last.type == BVSTK_EVENT_SLAVE_POINTER &&
               events.last.source == BVSTK_EVENT_SOURCE_HOST && events.last.arg1 == 2U &&
               events.last.flags == BVSTK_EVENT_FLAG_NONE);
+        /* The PL closes the pointer-write phase on either STOP or repeated
+         * START. The following RD_REQUEST must still see the pointer armed. */
+        CHECK(!bvstk_i2c_slave_irq_ends_read(
+            BVSTK_I2C_SLV_IRQ_DATA_VALID | BVSTK_I2C_SLV_IRQ_FINAL_PACKET));
+        if (bvstk_i2c_slave_irq_ends_read(
+                BVSTK_I2C_SLV_IRQ_DATA_VALID | BVSTK_I2C_SLV_IRQ_FINAL_PACKET)) {
+            bvstk_i2c_slave_service_end_transaction(&i2c_slave_service);
+        }
+        CHECK(i2c_slave_service.read_armed[0] == 1U);
         CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                                                    NULL,
                                                    0U,
@@ -434,6 +443,51 @@ int main(void)
         CHECK(read_window_size == 0U);
         CHECK(events.last.type == BVSTK_EVENT_SLAVE_READ_REQUEST &&
               events.last.flags == BVSTK_EVENT_FLAG_NONE);
+        CHECK(!bvstk_i2c_slave_irq_ends_read(0U));
+        CHECK(!bvstk_i2c_slave_irq_ends_read(BVSTK_I2C_SLV_IRQ_RD_REQUEST));
+        CHECK(!bvstk_i2c_slave_irq_ends_read(
+            BVSTK_I2C_SLV_IRQ_DATA_VALID | BVSTK_I2C_SLV_IRQ_FINAL_PACKET |
+            BVSTK_I2C_SLV_IRQ_RD_REQUEST));
+        CHECK(bvstk_i2c_slave_irq_ends_read(BVSTK_I2C_SLV_IRQ_FINAL_PACKET));
+        CHECK(bvstk_i2c_slave_irq_ends_read(
+            BVSTK_I2C_SLV_IRQ_FINAL_PACKET | BVSTK_I2C_SLV_IRQ_RD_REQUEST));
+        CHECK(bvstk_i2c_slave_irq_ends_read(
+            BVSTK_I2C_SLV_IRQ_DATA_VALID | BVSTK_I2C_SLV_IRQ_FINAL_PACKET |
+            BVSTK_I2C_SLV_IRQ_ERR_ACK));
+        CHECK(bvstk_i2c_slave_irq_ends_read(
+            BVSTK_I2C_SLV_IRQ_DATA_VALID | BVSTK_I2C_SLV_IRQ_MEM_OVERFLOW));
+        {
+            uint8_t invalid_pointer[] = {16U};
+            uint8_t allowed_frame[] = {2U, 6U};
+            unsigned before = bus.writes;
+
+            CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                pointer_frame, sizeof(pointer_frame), 0, response, sizeof(response),
+                &read_window_size, 10U) == BVSTK_OK);
+            CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                invalid_pointer, sizeof(invalid_pointer), 0, response, sizeof(response),
+                &read_window_size, 10U) == BVSTK_ERR_RANGE);
+            CHECK(i2c_slave_service.read_armed[0] == 0U);
+            CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                NULL, 0, 1, response, sizeof(response), &read_window_size, 10U) == BVSTK_OK);
+            CHECK(read_window_size == 0U);
+
+            /* An allowed host write goes through policy/master, updates the
+             * cache and can be read back with a fresh register pointer. */
+            CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                allowed_frame, sizeof(allowed_frame), 0, response, sizeof(response),
+                &read_window_size, 10U) == BVSTK_OK);
+            CHECK(bus.writes == before + 1U && bus.i2c_value == 6U);
+            CHECK(i2c_slave_service.read_armed[0] == 0U);
+            CHECK(events.last.type == BVSTK_EVENT_REG_COMMIT);
+            CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                pointer_frame, sizeof(pointer_frame), 0, response, sizeof(response),
+                &read_window_size, 10U) == BVSTK_OK);
+            CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
+                NULL, 0, 1, response, sizeof(response), &read_window_size, 10U) == BVSTK_OK);
+            CHECK(read_window_size == 1U && response[0] == 6U);
+            bvstk_i2c_slave_service_end_transaction(&i2c_slave_service);
+        }
         {
             uint8_t denied_frame[] = {3U, 7U, 5U};
             unsigned before = bus.writes;
@@ -441,6 +495,7 @@ int main(void)
                 denied_frame, sizeof(denied_frame), 0, response, sizeof(response),
                 &read_window_size, 10U) == BVSTK_ERR_DENIED);
             CHECK(bus.writes == before);
+            CHECK(i2c_slave_service.read_armed[0] == 0U);
             CHECK(events.last.type == BVSTK_EVENT_FAULT &&
                 events.last.status == BVSTK_ERR_NOT_READY && events.last.arg1 == 4U);
         }

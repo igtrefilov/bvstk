@@ -59,6 +59,14 @@ static bvstk_status_t write_words(const bvstk_mmio_region_t *region,
     return BVSTK_OK;
 }
 
+int bvstk_i2c_slave_irq_ends_read(uint32_t irq_flags)
+{
+    return (irq_flags & (BVSTK_I2C_SLV_IRQ_ERR_ACK |
+                         BVSTK_I2C_SLV_IRQ_MEM_OVERFLOW)) != 0U ||
+           ((irq_flags & BVSTK_I2C_SLV_IRQ_FINAL_PACKET) != 0U &&
+            (irq_flags & BVSTK_I2C_SLV_IRQ_DATA_VALID) == 0U);
+}
+
 bvstk_status_t bvstk_i2c_slave_hw_init(bvstk_i2c_slave_hw_t *hardware)
 {
     if (hardware == NULL) {

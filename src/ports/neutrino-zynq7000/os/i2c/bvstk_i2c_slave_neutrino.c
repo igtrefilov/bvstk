@@ -155,15 +155,16 @@ static void *interrupt_thread(void *argument)
                                              sizeof(read_window));
             }
             if (status == BVSTK_OK &&
+                (irq_event.irq_flags & (BVSTK_I2C_SLV_IRQ_ERR_ACK |
+                                        BVSTK_I2C_SLV_IRQ_MEM_OVERFLOW)) == 0U &&
                 (irq_event.irq_flags & BVSTK_I2C_SLV_IRQ_RD_REQUEST) != 0U) {
                 status = process_read_event(adapter,
                                             &irq_event,
                                             read_window,
                                             sizeof(read_window));
             }
-            if ((irq_event.irq_flags &
-                 (BVSTK_I2C_SLV_IRQ_FINAL_PACKET |
-                  BVSTK_I2C_SLV_IRQ_ERR_ACK)) != 0U) {
+            if (status != BVSTK_OK ||
+                bvstk_i2c_slave_irq_ends_read(irq_event.irq_flags)) {
                 bvstk_i2c_slave_service_end_transaction(adapter->service);
             }
             (void)pthread_mutex_unlock(adapter->state_mutex);
