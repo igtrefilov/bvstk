@@ -6,6 +6,14 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 TEST_TMP="$(mktemp -d)"
 trap 'rm -rf "$TEST_TMP"' EXIT
 
+PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_image.py"
+cc -std=c11 -Wall -Wextra -Werror -pedantic \
+  -I"$SCRIPT_DIR/qspi_stubs" -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_qspi_flash.c" \
+  "$REPO_ROOT/src/ports/freertos-xilinx/storage/qspi-flash/qspi_flash.c" \
+  -o "$TEST_TMP/test_qspi_flash"
+"$TEST_TMP/test_qspi_flash"
+
 bash "$SCRIPT_DIR/run_http.sh" "$TEST_TMP"
 
 cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \

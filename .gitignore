@@ -24,6 +24,7 @@ src/apps/freertos/services/ssh/bvstk_ssh_generated.h
 # Top-level docs
 !README.md
 !build.sh
+!build_boot.sh
 !run.sh
 
 # VSCode project settings (for Xilinx/Vitis navigation setup)

@@ -10,24 +10,42 @@
 #define QSPI_TEST_ADDR           (QSPI_FLASH_SIZE_BYTES - QSPI_FLASH_SECTOR_SIZE)
 #define QSPI_STATUS_WIP_MASK     0x01U
 
-/* Flash opcodes for Winbond W25Q family (JEDEC common). */
+/* W25Q256 dedicated four-byte opcodes address all 32 MiB without changing
+ * the chip's address mode or bank register used by the Zynq BootROM/FSBL. */
 #define CMD_WRITE_ENABLE         0x06U
 #define CMD_READ_STATUS          0x05U
-#define CMD_PAGE_PROGRAM         0x02U
-#define CMD_READ_DATA            0x03U
-#define CMD_SECTOR_ERASE_4K      0x20U
+#define CMD_READ_ID              0x9FU
+#define CMD_PAGE_PROGRAM         0x12U
+#define CMD_READ_DATA            0x13U
+#define CMD_SECTOR_ERASE_4K       0x21U
+#define QSPI_ADDRESS_HEADER      5U
 
 static XQspiPs qspi;
 static int qspi_ready = 0;
 
-static u8 tx_buf[4 + QSPI_FLASH_PAGE_SIZE];
-static u8 tx_read_buf[4 + QSPI_FLASH_SECTOR_SIZE];
-static u8 rx_buf[4 + QSPI_FLASH_SECTOR_SIZE];
+static u8 tx_buf[8 + QSPI_FLASH_PAGE_SIZE];
+static u8 tx_read_buf[8 + QSPI_FLASH_SECTOR_SIZE];
+static u8 rx_buf[8 + QSPI_FLASH_SECTOR_SIZE];
 static u8 sector_backup[QSPI_FLASH_SECTOR_SIZE];
 static u8 test_pattern[QSPI_FLASH_PAGE_SIZE];
 static u8 verify_buf[QSPI_FLASH_PAGE_SIZE];
 
 static int qspi_flash_wait_ready(u32 timeout_ms);
+
+static int qspi_flash_range_valid(u32 address, u32 length)
+{
+    return length != 0U && address < QSPI_FLASH_SIZE_BYTES &&
+           length <= QSPI_FLASH_SIZE_BYTES - address;
+}
+
+static void qspi_flash_address(u8 *command, u8 opcode, u32 address)
+{
+    command[0] = opcode;
+    command[1] = (u8)(address >> 24);
+    command[2] = (u8)(address >> 16);
+    command[3] = (u8)(address >> 8);
+    command[4] = (u8)address;
+}
 
 int qspi_flash_init(void)
 {
@@ -49,6 +67,16 @@ int qspi_flash_init(void)
 
     XQspiPs_SetClkPrescaler(&qspi, XQSPIPS_CLK_PRESCALE_8);
     XQspiPs_SetSlaveSelect(&qspi); /* single slave wired to SS0 */
+
+    memset(tx_buf, 0, 4U);
+    tx_buf[0] = CMD_READ_ID;
+    status = XQspiPs_PolledTransfer(&qspi, tx_buf, rx_buf, 4U);
+    if (status != XST_SUCCESS) return status;
+    if (rx_buf[1] != 0xEFU || rx_buf[3] != 0x19U) {
+        xil_printf("QSPI: unsupported JEDEC ID %02x%02x%02x (expected W25Q256)\r\n",
+                   rx_buf[1], rx_buf[2], rx_buf[3]);
+        return XST_FAILURE;
+    }
 
     qspi_ready = 1;
     return XST_SUCCESS;
@@ -85,16 +113,14 @@ static int qspi_flash_wait_ready(u32 timeout_ms)
 
 int qspi_flash_erase_sector(u32 address)
 {
-    if (!qspi_ready) return XST_FAILURE;
+    if (!qspi_ready || address % QSPI_FLASH_SECTOR_SIZE != 0U ||
+        !qspi_flash_range_valid(address, QSPI_FLASH_SECTOR_SIZE)) return XST_FAILURE;
     int rc = qspi_flash_write_enable();
     if (rc != XST_SUCCESS) return rc;
 
-    tx_buf[0] = CMD_SECTOR_ERASE_4K;
-    tx_buf[1] = (address >> 16) & 0xFF;
-    tx_buf[2] = (address >> 8) & 0xFF;
-    tx_buf[3] = address & 0xFF;
+    qspi_flash_address(tx_buf, CMD_SECTOR_ERASE_4K, address);
 
-    rc = XQspiPs_PolledTransfer(&qspi, tx_buf, NULL, 4);
+    rc = XQspiPs_PolledTransfer(&qspi, tx_buf, NULL, QSPI_ADDRESS_HEADER);
     if (rc != XST_SUCCESS) return rc;
 
     return qspi_flash_wait_ready(5000);
@@ -102,7 +128,7 @@ int qspi_flash_erase_sector(u32 address)
 
 int qspi_flash_program(u32 address, const u8 *data, u32 length)
 {
-    if (!qspi_ready || !data || length == 0) return XST_FAILURE;
+    if (!qspi_ready || !data || !qspi_flash_range_valid(address, length)) return XST_FAILURE;
 
     u32 offset = 0;
     while (offset < length) {
@@ -113,14 +139,11 @@ int qspi_flash_program(u32 address, const u8 *data, u32 length)
         int rc = qspi_flash_write_enable();
         if (rc != XST_SUCCESS) return rc;
 
-        tx_buf[0] = CMD_PAGE_PROGRAM;
         u32 addr = address + offset;
-        tx_buf[1] = (addr >> 16) & 0xFF;
-        tx_buf[2] = (addr >> 8) & 0xFF;
-        tx_buf[3] = addr & 0xFF;
-        memcpy(&tx_buf[4], &data[offset], chunk);
+        qspi_flash_address(tx_buf, CMD_PAGE_PROGRAM, addr);
+        memcpy(&tx_buf[QSPI_ADDRESS_HEADER], &data[offset], chunk);
 
-        rc = XQspiPs_PolledTransfer(&qspi, tx_buf, NULL, 4 + chunk);
+        rc = XQspiPs_PolledTransfer(&qspi, tx_buf, NULL, QSPI_ADDRESS_HEADER + chunk);
         if (rc != XST_SUCCESS) return rc;
 
         rc = qspi_flash_wait_ready(5000);
@@ -134,7 +157,7 @@ int qspi_flash_program(u32 address, const u8 *data, u32 length)
 
 int qspi_flash_read(u32 address, u8 *data, u32 length)
 {
-    if (!qspi_ready || !data || length == 0) return XST_FAILURE;
+    if (!qspi_ready || !data || !qspi_flash_range_valid(address, length)) return XST_FAILURE;
 
     const u32 max_chunk = QSPI_FLASH_SECTOR_SIZE;
     u32 offset = 0;
@@ -142,16 +165,18 @@ int qspi_flash_read(u32 address, u8 *data, u32 length)
         u32 chunk = (length - offset > max_chunk) ? max_chunk : (length - offset);
         u32 addr = address + offset;
 
-        tx_read_buf[0] = CMD_READ_DATA;
-        tx_read_buf[1] = (addr >> 16) & 0xFF;
-        tx_read_buf[2] = (addr >> 8) & 0xFF;
-        tx_read_buf[3] = addr & 0xFF;
-        memset(&tx_read_buf[4], 0, chunk);
+        /* For opcodes absent from the BSP's instruction table, its polled
+         * RX path pads the first word if ByteCount is not a multiple of 4.
+         * Clock up to three extra bytes and keep only the requested data. */
+        u32 transfer_size = (QSPI_ADDRESS_HEADER + chunk + 3U) & ~3U;
+        qspi_flash_address(tx_read_buf, CMD_READ_DATA, addr);
+        memset(&tx_read_buf[QSPI_ADDRESS_HEADER], 0,
+               transfer_size - QSPI_ADDRESS_HEADER);
 
-        int rc = XQspiPs_PolledTransfer(&qspi, tx_read_buf, rx_buf, 4 + chunk);
+        int rc = XQspiPs_PolledTransfer(&qspi, tx_read_buf, rx_buf, transfer_size);
         if (rc != XST_SUCCESS) return rc;
 
-        memcpy(&data[offset], &rx_buf[4], chunk);
+        memcpy(&data[offset], &rx_buf[QSPI_ADDRESS_HEADER], chunk);
         offset += chunk;
     }
 
