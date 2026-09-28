@@ -24,6 +24,8 @@
 #include "apps/freertos/services/lan/bvstk_lan.h"
 #include "apps/freertos/storage/fs/fs_dcp2_backend.h"
 #include "protocols/dcp2/bvstk_dcp2_fs.h"
+#include "protocols/dcp2/bvstk_dcp2_cache.h"
+#include "shared/interfaces/bvstk_clock.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 enum {
@@ -44,6 +46,7 @@ enum {
     DCP2_SRV_UART = 0x05,
     DCP2_SRV_NOTIFY = 0x06,
     DCP2_SRV_FS = 0x07,
+    DCP2_SRV_CACHE = 0x08,
     DCP2_SRV_VENDOR = 0x7F,
 };
 
@@ -113,6 +116,7 @@ static uint8_t s_mem_read_buf[DCP2_MAX_PAYLOAD];
 /* The current server serves one TCP connection at a time. Keep bounded stream
  * state out of its task stack and destroy it on every disconnect. */
 static bvstk_dcp2_fs_session_t s_fs_session;
+static bvstk_dcp2_cache_session_t s_cache_session;
 static bvstk_journal_batch_t s_observations;
 
 static uint32_t dcp2_now_ms(void)
@@ -913,6 +917,13 @@ static int dcp2_dispatch_request(int fd,
         return dcp2_handle_ping(fd, srv, opcode, seq, body, body_len);
     case DCP2_SRV_MEM:
         return dcp2_handle_mem(fd, srv, opcode, seq, body, body_len);
+    case DCP2_SRV_CACHE: {
+        uint16_t response_size = 0;
+        uint16_t status = bvstk_dcp2_cache_request(&s_cache_session, opcode, body, body_len,
+            bvstk_platform_now_ms(), s_mem_read_buf, DCP2_MAX_PAYLOAD - 6U, &response_size);
+        return dcp2_send_response(fd, srv, opcode, seq, status,
+            status == 0 ? s_mem_read_buf : NULL, status == 0 ? response_size : 0);
+    }
     case DCP2_SRV_FS: {
         uint16_t response_size = 0;
         uint16_t status = bvstk_dcp2_fs_request(&s_fs_session, opcode, body, body_len,
@@ -992,6 +1003,7 @@ static void dcp2_handle_client(int fd)
 {
     dcp2_conn_state_t state;
     memset(&state, 0, sizeof(state));
+    bvstk_dcp2_cache_init(&s_cache_session, bvstk_runtime_cache_registry());
 
     for (;;) {
         uint8_t hdr[DCP2_HDR_LEN];
@@ -1002,6 +1014,12 @@ static void dcp2_handle_client(int fd)
         bvstk_dcp2_fs_expire(&s_fs_session, dcp2_now_ms());
         if (dcp2_drain_notify_events(fd, &state) < 0) return;
         if (dcp2_drain_stream_events(fd, &state) < 0) return;
+        for (unsigned n = 0; n < 32U; ++n) {
+            uint16_t size = bvstk_dcp2_cache_event(&s_cache_session, bvstk_platform_now_ms(),
+                s_mem_read_buf, DCP2_MAX_PAYLOAD - 4U);
+            if (!size) break;
+            if (dcp2_send_event(fd, DCP2_SRV_CACHE, BVSTK_DCP2_CACHE_SUBSCRIBE, s_mem_read_buf, size) < 0) return;
+        }
         ready = dcp2_wait_readable(fd, 100);
         if (ready < 0) return;
         if (ready == 0) continue;

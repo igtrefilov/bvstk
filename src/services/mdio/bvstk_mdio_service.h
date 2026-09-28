@@ -3,6 +3,7 @@
 #include "drivers/pl/mdio/bvstk_mdio_core.h"
 #include "shared/config/bvstk_mdio_config_codec.h"
 #include "shared/events/bvstk_event.h"
+#include "shared/interfaces/bvstk_cache_sink.h"
 
 typedef struct {
     void *context;
@@ -35,6 +36,8 @@ typedef struct {
     bvstk_mdio_core_t *core;
     bvstk_mdio_bus_ops_t bus;
     bvstk_event_sink_t events;
+    bvstk_cache_sink_t cache_sink;
+    void (*cache_config_changed)(void *, size_t, const mdio_phy_config_t *);
     /* Assign an OS mutex before sharing the initialized service with tasks. */
     bvstk_mutex_t mutex;
     mdio_phy_config_t devices[MDIO_CFG_MAX_DEVICES];

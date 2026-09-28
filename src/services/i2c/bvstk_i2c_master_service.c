@@ -21,13 +21,34 @@ static void record_response(bvstk_i2c_master_service_t *service,
                              bvstk_status_t status, int read)
 {
     bvstk_i2c_device_t current;
+    bvstk_cache_sink_enter(&service->cache->sink);
     if (bvstk_i2c_devices_get(service->devices, device_id, &current) != BVSTK_OK ||
-        current.addr_7b != address) return;
+        current.addr_7b != address) {
+        bvstk_cache_sink_leave(&service->cache->sink);
+        return;
+    }
     if (status == BVSTK_OK && read)
         service->presence[device_id] = BVSTK_I2C_PRESENCE_RESPONDING;
     else if (status == BVSTK_ERR_IO || status == BVSTK_ERR_TIMEOUT ||
              status == BVSTK_ERR_NOT_FOUND)
         service->presence[device_id] = BVSTK_I2C_PRESENCE_UNAVAILABLE;
+    bvstk_cache_sink_presence(&service->cache->sink, device_id, service->presence[device_id]);
+    bvstk_cache_sink_leave(&service->cache->sink);
+}
+
+static void cache_response(bvstk_i2c_master_service_t *service, size_t device_id,
+    const bvstk_i2c_device_t *target, uint8_t reg, uint8_t value, bvstk_status_t status)
+{
+    bvstk_i2c_device_t current;
+    bvstk_cache_sink_enter(&service->cache->sink);
+    /* A configuration change can complete while hardware I/O is waiting.
+     * Keep a reply for the old address out of the new device's cache. */
+    if (bvstk_i2c_devices_get(service->devices, device_id, &current) == BVSTK_OK &&
+        current.addr_7b == target->addr_7b && !strcmp(current.name, target->name) && reg < current.reg_count) {
+        if (status == BVSTK_OK) (void)bvstk_i2c_cache_write(service->cache, device_id, reg, value);
+        else (void)bvstk_i2c_cache_invalidate(service->cache, device_id, reg);
+    }
+    bvstk_cache_sink_leave(&service->cache->sink);
 }
 
 static void emit_flags(bvstk_i2c_master_service_t *service,
@@ -268,11 +289,7 @@ bvstk_status_t bvstk_i2c_master_service_read_from(
         BVSTK_EVENT_OP_READ, &device, reg, status == BVSTK_OK ? *value : 0,
         (was_present || status == BVSTK_OK) ? BVSTK_EVENT_FLAG_NONE :
             BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
-    if (status == BVSTK_OK) {
-        (void)bvstk_i2c_cache_write(service->cache, device_id, reg, *value);
-    } else {
-        (void)bvstk_i2c_cache_invalidate(service->cache, device_id, reg);
-    }
+    cache_response(service, device_id, &device, reg, status == BVSTK_OK ? *value : 0, status);
     return status;
 }
 
@@ -381,10 +398,10 @@ bvstk_status_t bvstk_i2c_master_service_write(
              &device,
              reg,
              value);
-        (void)bvstk_i2c_cache_invalidate(service->cache, device_id, reg);
+        cache_response(service, device_id, &device, reg, 0, status);
         return status;
     }
-    (void)bvstk_i2c_cache_write(service->cache, device_id, reg, value);
+    cache_response(service, device_id, &device, reg, value, BVSTK_OK);
     emit(service,
          BVSTK_EVENT_REG_COMMIT,
          0U,
@@ -443,13 +460,22 @@ bvstk_status_t bvstk_i2c_master_service_set_config(
     device.addr_7b = config->addr_7b;
     device.reg_count = config->reg_count;
     device.max_value_code = config->max_value_code;
+    bvstk_cache_sink_enter(&service->cache->sink);
     status = bvstk_i2c_devices_set(service->devices, device_id, &device);
     if (status != BVSTK_OK) {
+        bvstk_cache_sink_leave(&service->cache->sink);
         return status;
     }
-    if (previous.addr_7b != device.addr_7b)
+    if (previous.addr_7b != device.addr_7b || previous.reg_count != device.reg_count) {
         service->presence[device_id] = BVSTK_I2C_PRESENCE_UNKNOWN;
-    return bvstk_i2c_policy_set_config(service->policy, device_id, config);
+        for (unsigned r = 0; r < I2C_CFG_MAX_REG_COUNT; ++r)
+            (void)bvstk_i2c_cache_invalidate(service->cache, device_id, (uint8_t)r);
+    }
+    status = bvstk_i2c_policy_set_config(service->policy, device_id, config);
+    if (status == BVSTK_OK && service->cache_config_changed)
+        service->cache_config_changed(service->cache->sink.context, device_id, config);
+    bvstk_cache_sink_leave(&service->cache->sink);
+    return status;
 }
 
 bvstk_status_t bvstk_i2c_master_service_get_config(

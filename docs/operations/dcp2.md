@@ -1,9 +1,17 @@
-# Работа готовым клиентом DCP2
+# Работа с DCP2 и примеры обмена
 
 Скрипт [dcp2_client.py](../../scripts/dcp2/dcp2_client.py) выполняет
 одноразовые операции и принимает события. Команды ниже запускаются на
-компьютере из корня BVSTK. Форматы кадров и сервисов описаны только в
-[спецификации DCP2](../dcp2/dcp2.md); эта глава её не заменяет.
+компьютере из корня BVSTK. Форматы полей и правила обмена собраны в
+[спецификации DCP2](../dcp2/dcp2.md). Эта глава содержит команды, клиентский
+код и практические примеры.
+
+Для разработчика собственного клиента:
+
+- [Кэш устройства и показатели](#кэш-устройства-и-показатели).
+- [Использование CACHE из Python](#использование-из-python).
+- [Примеры кадров DCP2](#wire-examples).
+- [Примеры обмена FS](#fs-examples).
 
 ```sh
 python3 scripts/dcp2/dcp2_client.py --help
@@ -14,6 +22,117 @@ python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --ping
 завершается. Это проверка протокольного соединения, не файловой системы.
 Порт по умолчанию — `8889`, тайм-аут сокета — 5 секунд; их задают через
 `--port` и `--timeout`.
+
+## Кэш устройства и показатели
+
+Получить полный снимок кэша без обращения к физической шине:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --cache-get mdio lan8720
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --cache-get i2c axp15060
+```
+
+Подписаться на обновления:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --cache-watch mdio lan8720
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
+  --cache-watch i2c axp15060 --cache-duration 10
+```
+
+Клиент собирает все страницы начального снимка, затем применяет изменения.
+Каждая строка JSON содержит полный локальный снимок после очередного события.
+`--cache-duration` ограничивает время наблюдения в секундах; без него команда
+работает до Ctrl+C. Для Python-клиента достаточно стандартной библиотеки.
+
+В `resources` передаются ID ресурсов из профиля, разрядность, достоверность,
+происхождение и метка обновления. Значения выводятся шестнадцатеричными строками:
+это сохраняет точность 64-битных чисел при передаче JSON другим программам.
+
+Пример одной записи ресурса:
+
+```json
+{
+  "id": "reg_01",
+  "width_bits": 16,
+  "valid": true,
+  "source": "device",
+  "value": "0x0024",
+  "updated_ms": 12500
+}
+```
+
+`valid=false` означает отсутствие достоверного значения. `source=settings`
+указывает на начальные данные из настроек. Их нельзя использовать как
+подтверждение состояния физического устройства.
+
+При потере событий клиент выводит строку `kind=resync_required` с
+`synchronized=false` и автоматически запрашивает новый начальный снимок.
+Потребитель должен скрыть прежние показатели до появления согласованного
+снимка. При обрыве TCP команда завершается с ошибкой; новый запуск получает
+свежее состояние. Закрытие соединения освобождает подписки.
+
+### Расшифровка как во вкладке «Показатели»
+
+В комплекте есть [cache_indicators.mjs](../../scripts/dcp2/cache_indicators.mjs).
+Он использует локальные профиль и карту регистров, а также общий с web UI
+декодер. Для этого дополнительного шага нужен Node.js. Скрипт выводит
+человекочитаемые показатели и расшифрованные поля; браузерный `view.js`
+не исполняется.
+
+```sh
+set -o pipefail
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --cache-watch mdio lan8720 |
+  node scripts/dcp2/cache_indicators.mjs configs/mdio/lan8720/lan8720.json
+```
+
+Карта по умолчанию берётся из поля `register_map`, относительно папки профиля.
+Её можно указать вторым аргументом:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --cache-get i2c axp15060 |
+  node scripts/dcp2/cache_indicators.mjs \
+    configs/i2c/axp15060/axp15060.json \
+    configs/i2c/axp15060/register_map.json
+```
+
+Локальные файлы должны соответствовать рабочему профилю PS. Проверяются цель,
+набор ID ресурсов и разрядность; профиль другого устройства не принимается.
+Расшифровка поддерживает текущий формат карты регистров I²C и MDIO. Сам сервис
+CACHE и Python-клиент принимают имена любых зарегистрированных подсистем.
+
+### Использование из Python
+
+```python
+import socket
+import sys
+
+sys.path.insert(0, "scripts/dcp2")
+from dcp2_cache import CacheClient, CacheResyncRequired, apply_event
+
+with socket.create_connection(("192.168.0.10", 8889), timeout=5) as sock:
+    client = CacheClient(sock)
+    state = client.snapshot("mdio", "lan8720", subscribe=True)
+    print(state["resources"]["reg_01"])
+    while True:
+        try:
+            event = client.event(timeout=1)
+        except socket.timeout:
+            continue
+        try:
+            apply_event(state, event)
+        except CacheResyncRequired:
+            state = client.snapshot("mdio", "lan8720", subscribe=True)
+        print(state["revision"], state["resources"]["reg_01"])
+```
+
+Один `CacheClient` может обслуживать несколько подписок на одном сокете.
+Храните отдельный `state` для каждой и выбирайте его по `subscription_id`
+события. Запросы и приём событий выполняются последовательно в одном потоке.
+Данные, пришедшие во время запроса другого снимка, сохраняются в очереди клиента.
+
+Двоичный формат и ограничения описаны в [разделе CACHE спецификации DCP2](../dcp2/dcp2.md#cache-service).
+Обычные `READ`, `WRITE`, `NOTIFY` и `STREAM` сохраняют свои форматы.
 
 ## Сохранение настроек I²C
 
@@ -223,3 +342,220 @@ python3 scripts/dcp2/dcp2_client.py 192.168.0.10 \
 Запись проходит ниже политики I²C и может рассогласовать сервис с
 оборудованием. Адрес, допустимое значение и исключение конкурентного
 доступа проверяют по [контракту платы](../reference/board.md) и драйверу.
+
+<a id="wire-examples"></a>
+## Примеры кадров DCP2
+
+Ниже разобраны готовые кадры. Форматы полей определяет
+[спецификация DCP2](../dcp2/dcp2.md). Адреса и данные в примерах условные;
+выполнять эти MEM-запросы на оборудовании без проверки адресов нельзя.
+
+### Корреляция параллельных запросов
+
+Клиент отправляет три запроса: `MEM_READ(seq=0x0101)`, `I2C_READ_REG(seq=0x0102)`, `MDIO_READ(seq=0x0103)`. Сервер может вернуть ответы в другом порядке, например: `response(seq=0x0103)`, затем `response(seq=0x0101)`, затем `response(seq=0x0102)`. Клиент сопоставляет каждый ответ по `seq` с таблицей активных запросов, после чего соответствующий запрос помечается завершённым независимо от позиции ответа в потоке.
+
+<a id="wire-success"></a>
+### Корректный `request` с успешным ответом
+
+Пример: `srv=MEM`, `op=request/MEM_READ`, `seq=0x0101`.
+
+Кадр, обрабатываемый сервером (hex):
+
+```text
+44 43 50 32 | 00 02 | 00 0C | 01 | 00 | 01 01 | 00 20 40 00 00 00 00 02
+magic       | ver   | dcp_len|srv| op | seq   | MEM_READ_REQUEST
+```
+
+Семантика полей:
+
+| Поле                     | Значение                                    |
+| ------------------------ | ------------------------------------------- |
+| `DCP2_HDR.magic`         | `44 43 50 32` (`"DCP2"`)                    |
+| `DCP2_HDR.ver`           | `00 02`                                     |
+| `DCP2_HDR.dcp_len`       | `00 0C`                                     |
+| `DCP2_PAYLOAD.srv`       | `01` (`MEM`)                                |
+| `SRV_MESSAGE.op`         | `00` (`request`, `OPCODE=0x00`, `MEM_READ`) |
+| `SRV_MESSAGE.seq`        | `01 01` (`0x0101`)                          |
+| `MEM_READ_REQUEST.flags` | `00`                                        |
+| `MEM_READ_REQUEST.width` | `20` (`32` бита)                            |
+| `MEM_READ_REQUEST.addr`  | `40 00 00 00`                               |
+| `MEM_READ_REQUEST.count` | `00 02`                                     |
+
+Кадр, обрабатываемый клиентом (hex):
+
+```text
+44 43 50 32 | 00 02 | 00 0E | 01 | 80 | 01 01 | 00 00 | DE AD BE EF CA FE BA BE
+magic       | ver   | dcp_len|srv| op | seq   |status | data
+```
+
+Семантика полей:
+
+| Поле                     | Значение                                     |
+| ------------------------ | -------------------------------------------- |
+| `DCP2_HDR.magic`         | `44 43 50 32` (`"DCP2"`)                     |
+| `DCP2_HDR.ver`           | `00 02`                                      |
+| `DCP2_HDR.dcp_len`       | `00 0E`                                      |
+| `DCP2_PAYLOAD.srv`       | `01` (`MEM`)                                 |
+| `SRV_MESSAGE.op`         | `80` (`response`, `OPCODE=0x00`, `MEM_READ`) |
+| `SRV_MESSAGE.seq`        | `01 01` (`0x0101`)                           |
+| `SRV_RESPONSE.status`    | `00 00` (`OK`)                               |
+| `MEM_READ_RESPONSE.data` | `DE AD BE EF CA FE BA BE`                                |
+
+<a id="wire-unsupported"></a>
+### Неподдерживаемый сервис или операция
+
+Пример: `srv` не зарегистрирован или `opcode` не поддерживается для выбранного `srv`.
+
+Кадр, обрабатываемый сервером (hex):
+
+```text
+44 43 50 32 | 00 02 | 00 04 | 02 | 3F | 01 02
+magic       | ver   | dcp_len|srv| op | seq
+```
+
+Семантика полей:
+
+| Поле               | Значение                                                    |
+| ------------------ | ----------------------------------------------------------- |
+| `DCP2_HDR.magic`   | `44 43 50 32` (`"DCP2"`)                                    |
+| `DCP2_HDR.ver`     | `00 02`                                                     |
+| `DCP2_HDR.dcp_len` | `00 04`                                                     |
+| `DCP2_PAYLOAD.srv` | `02` (`I2C`)                                                |
+| `SRV_MESSAGE.op`   | `3F` (`request`, `OPCODE=0x3F`, операция не поддерживается) |
+| `SRV_MESSAGE.seq`  | `01 02` (`0x0102`)                                          |
+
+Кадр, обрабатываемый клиентом (hex):
+
+```text
+44 43 50 32 | 00 02 | 00 06 | 02 | BF | 01 02 | 00 02
+magic       | ver   | dcp_len|srv| op | seq   | status
+```
+
+Семантика полей:
+
+| Поле                  | Значение                         |
+| --------------------- | -------------------------------- |
+| `DCP2_HDR.magic`      | `44 43 50 32` (`"DCP2"`)         |
+| `DCP2_HDR.ver`        | `00 02`                          |
+| `DCP2_HDR.dcp_len`    | `00 06`                          |
+| `DCP2_PAYLOAD.srv`    | `02` (`I2C`)                     |
+| `SRV_MESSAGE.op`      | `BF` (`response`, `OPCODE=0x3F`) |
+| `SRV_MESSAGE.seq`     | `01 02` (`0x0102`)               |
+| `SRV_RESPONSE.status` | `00 02` (`ERR_UNSUPPORTED`)      |
+
+<a id="wire-malformed"></a>
+### Ошибка параметров запроса
+
+Пример: клиент отправил `MEM_WRITE` с `count=2`, `width=32`, но передал только 2 байта `data` вместо ожидаемых 8. Такая длина тела не соответствует формату `MEM_WRITE_REQUEST`, поэтому сервер должен отклонить запрос и вернуть `response` со статусом `ERR_MALFORMED`.
+
+Кадр, обрабатываемый сервером (hex):
+
+```text
+44 43 50 32 | 00 02 | 00 0E | 01 | 01 | 01 03 | 00 20 40 00 00 00 00 02 AA BB
+magic       | ver   | dcp_len|srv| op | seq   | MEM_WRITE_REQUEST (invalid data len)
+```
+
+Семантика полей:
+
+| Поле                      | Значение                                               |
+| ------------------------- | ------------------------------------------------------ |
+| `DCP2_HDR.magic`          | `44 43 50 32` (`"DCP2"`)                               |
+| `DCP2_HDR.ver`            | `00 02`                                                |
+| `DCP2_HDR.dcp_len`        | `00 0E`                                                |
+| `DCP2_PAYLOAD.srv`        | `01` (`MEM`)                                           |
+| `SRV_MESSAGE.op`          | `01` (`request`, `OPCODE=0x01`, `MEM_WRITE`)           |
+| `SRV_MESSAGE.seq`         | `01 03` (`0x0103`)                                     |
+| `MEM_WRITE_REQUEST.flags` | `00`                                                   |
+| `MEM_WRITE_REQUEST.width` | `20` (`32` бита)                                       |
+| `MEM_WRITE_REQUEST.addr`  | `40 00 00 00`                                          |
+| `MEM_WRITE_REQUEST.count` | `00 02`                                                |
+| `MEM_WRITE_REQUEST.data`  | `AA BB` (некорректная длина для `count=2`, `width=32`) |
+
+Кадр, обрабатываемый клиентом (hex):
+
+```text
+44 43 50 32 | 00 02 | 00 06 | 01 | 81 | 01 03 | 00 01
+magic       | ver   | dcp_len|srv| op | seq   | status
+```
+
+Семантика полей:
+
+| Поле                  | Значение                                      |
+| --------------------- | --------------------------------------------- |
+| `DCP2_HDR.magic`      | `44 43 50 32` (`"DCP2"`)                      |
+| `DCP2_HDR.ver`        | `00 02`                                       |
+| `DCP2_HDR.dcp_len`    | `00 06`                                       |
+| `DCP2_PAYLOAD.srv`    | `01` (`MEM`)                                  |
+| `SRV_MESSAGE.op`      | `81` (`response`, `OPCODE=0x01`, `MEM_WRITE`) |
+| `SRV_MESSAGE.seq`     | `01 03` (`0x0103`)                            |
+| `SRV_RESPONSE.status` | `00 01` (`ERR_MALFORMED`)                     |
+
+<a id="wire-event"></a>
+### Обработка входящего `event`
+
+Пример: `op=event/...`, `seq=0x0000`.
+
+Кадр, обрабатываемый клиентом (hex):
+
+```text
+44 43 50 32 | 00 02 | 00 0F | 02 | 50 | 00 00
+magic       | ver   | dcp_len|srv| op | seq
+
+00 | 00 00 00 00 | 00 04 | 11 22 33 44
+evf| lost_delta  | data_len | data
+```
+
+Семантика полей:
+
+| Поле                         | Значение                                        |
+| ---------------------------- | ----------------------------------------------- |
+| `DCP2_HDR.magic`             | `44 43 50 32` (`"DCP2"`)                        |
+| `DCP2_HDR.ver`               | `00 02`                                         |
+| `DCP2_HDR.dcp_len`           | `00 0F`                                         |
+| `DCP2_PAYLOAD.srv`           | `02` (`I2C`)                                    |
+| `SRV_MESSAGE.op`             | `50` (`event`, `OPCODE=0x10`, `STREAM`)         |
+| `SRV_MESSAGE.seq`            | `00 00` (`0x0000`, зарезервировано для событий) |
+| `PL_STREAM_EVENT.ev_flags`   | `00`                                            |
+| `PL_STREAM_EVENT.lost_delta` | `00 00 00 00`                                   |
+| `PL_STREAM_EVENT.data_len`   | `00 04`                                         |
+| `PL_STREAM_EVENT.data`       | `11 22 33 44`                                   |
+
+<a id="fs-examples"></a>
+## Примеры обмена FS
+
+Рекурсивное перечисление конфигурации:
+
+```text
+FS_INFO(seq=1) -> OK, fs_version=1, volumes=[sd, flash, sd-pl], limits...
+FS_OPEN(seq=2, open_id=1, kind=TREE, flags=RECURSIVE,
+        requested_block_size=3072, path="flash:/config/")
+  -> OK, handle=1, block_size=3072, total_size=UNKNOWN
+FS_READ(seq=3, handle=1, block_no=0) -> OK, data..., EOF=0
+FS_READ(seq=4, handle=1, block_no=1) -> OK, data..., EOF=1
+FS_CLOSE(seq=5, handle=1) -> OK
+```
+
+При повторе READ используется новый `seq`, но тот же `handle` и `block_no`.
+При потере ответа OPEN повторяются `open_id` и остальные параметры. Повтор CLOSE
+безопасен.
+
+Полный `FS_OPEN` frame для `seq=1`, `open_id=1`, `TREE|RECURSIVE`,
+`block_size=3072`, пути `flash:/config/`:
+
+```text
+44 43 50 32 00 02 00 1C  07 02 00 01
+00 00 00 01 02 01 0C 00  00 0E
+66 6C 61 73 68 3A 2F 63  6F 6E 66 69 67 2F
+```
+
+Пустой успешный FILE-блок для `handle=1`, `block_no=0`, `seq=2`:
+
+```text
+44 43 50 32 00 02 00 12  07 83 00 02 00 00
+00 00 00 01 00 00 00 00  01 00 00 00
+```
+
+Host-тесты дополнительно проверяют многоблочные файлы, пустые объекты,
+рекурсивный TREE с пересечением границ блоков, TAR/PAX, повторы OPEN/READ/CLOSE,
+timeout, изменение файла, лимиты дескрипторов и освобождение состояния при
+разрыве TCP.

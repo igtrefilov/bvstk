@@ -27,6 +27,8 @@ SRV_SPI = 0x04
 SRV_UART = 0x05
 SRV_NOTIFY = 0x06
 SRV_FS = 0x07
+SRV_CACHE = 0x08
+OP_CACHE_GET, OP_CACHE_SUBSCRIBE, OP_CACHE_UNSUBSCRIBE = 0x20, 0x21, 0x22
 
 OP_FS_INFO, OP_FS_STAT, OP_FS_OPEN, OP_FS_READ, OP_FS_CLOSE = range(5)
 FS_FILE, FS_TREE, FS_TAR = 1, 2, 3
@@ -92,6 +94,8 @@ STATUS_NAMES: Dict[int, str] = {
     0x0103: "ERR_FS_TYPE",
     0x0104: "ERR_FS_IO",
     0x0105: "ERR_FS_CHANGED",
+    0x0200: "ERR_CACHE_NOT_FOUND",
+    0x0201: "ERR_CACHE_STALE_SNAPSHOT",
 }
 
 NOTIFY_FLAG_WITH_TIMESTAMP = 1 << 0
@@ -992,13 +996,16 @@ def print_frame(frame: Frame, with_timestamp: bool) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "DCP2 client: monitor NOTIFY or PL streams, or execute one-shot "
+            "DCP2 client: monitor CACHE, NOTIFY or PL streams, or execute one-shot "
             "MEM/MDIO read/write or FS read/tree/TAR operations."
         )
     )
     parser.add_argument("host", help="device IP or hostname")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"DCP2 TCP port (default: {DEFAULT_PORT})")
     operation = parser.add_mutually_exclusive_group()
+    operation.add_argument("--cache-get", nargs=2, metavar=("SUBSYSTEM", "DEVICE"), help="read a coherent cache snapshot as JSON, without bus I/O")
+    operation.add_argument("--cache-watch", nargs=2, metavar=("SUBSYSTEM", "DEVICE"), help="watch cache snapshots and updates as JSON lines, without bus I/O")
+    parser.add_argument("--cache-duration", type=float, default=0, help="stop --cache-watch after N seconds (default: until Ctrl+C)")
     operation.add_argument("--mdio-read", nargs=2, metavar=("PHY", "REG"), help="read a PHY register through the MDIO service")
     operation.add_argument("--mdio-write", nargs=3, metavar=("PHY", "REG", "VALUE"), help="write through MDIO security policy (no automatic retry)")
     operation.add_argument(
@@ -1097,6 +1104,14 @@ def main() -> int:
     fs_operation = args.fs_info or args.fs_stat or args.fs_list or args.fs_read or args.fs_tar
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
+    if args.cache_duration < 0 or (args.cache_duration and not args.cache_watch):
+        parser.error("--cache-duration must be nonnegative and requires --cache-watch")
+    if args.cache_get or args.cache_watch:
+        if (args.count is not None or args.autoinc or args.width != 32 or args.recursive or args.output
+                or args.fs_verify_repeats or args.fs_block_size != 3072 or args.fs_retries != 2):
+            parser.error("CACHE operations cannot be combined with MEM or FS options")
+        from dcp2_cache import run_cache_operation
+        return run_cache_operation(args)
     if fs_operation:
         if args.count is not None or args.autoinc or args.width != 32:
             parser.error("FS operations cannot be combined with MEM options")

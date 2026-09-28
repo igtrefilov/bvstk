@@ -62,10 +62,13 @@ bvstk_status_t bvstk_i2c_cache_write(bvstk_i2c_cache_t *cache,
     if (status != BVSTK_OK) {
         return status;
     }
+    bvstk_cache_sink_enter(&cache->sink);
     cache->values[device_id][reg] = value;
     cache->valid[device_id][reg] = 1U;
     cache->seeded[device_id][reg] = 0U;
     cache->updated_ms[device_id][reg] = bvstk_platform_now_ms();
+    bvstk_cache_sink_entry(&cache->sink, device_id, reg, value, 1, 0, cache->updated_ms[device_id][reg]);
+    bvstk_cache_sink_leave(&cache->sink);
     return BVSTK_OK;
 }
 
@@ -78,10 +81,13 @@ bvstk_status_t bvstk_i2c_cache_seed(bvstk_i2c_cache_t *cache,
     if (status != BVSTK_OK) {
         return status;
     }
+    bvstk_cache_sink_enter(&cache->sink);
     cache->values[device_id][reg] = value;
     cache->valid[device_id][reg] = 1U;
     cache->seeded[device_id][reg] = 1U;
     cache->updated_ms[device_id][reg] = bvstk_platform_now_ms();
+    bvstk_cache_sink_entry(&cache->sink, device_id, reg, value, 1, 1, cache->updated_ms[device_id][reg]);
+    bvstk_cache_sink_leave(&cache->sink);
     return BVSTK_OK;
 }
 
@@ -93,9 +99,12 @@ bvstk_status_t bvstk_i2c_cache_invalidate(bvstk_i2c_cache_t *cache,
     if (status != BVSTK_OK) {
         return status;
     }
+    bvstk_cache_sink_enter(&cache->sink);
     cache->valid[device_id][reg] = 0U;
     cache->seeded[device_id][reg] = 0U;
     cache->updated_ms[device_id][reg] = 0U;
+    bvstk_cache_sink_entry(&cache->sink, device_id, reg, 0, 0, 0, 0);
+    bvstk_cache_sink_leave(&cache->sink);
     return BVSTK_OK;
 }
 
@@ -111,10 +120,12 @@ bvstk_status_t bvstk_i2c_cache_entry(const bvstk_i2c_cache_t *cache,
     if (entry == NULL) {
         return BVSTK_ERR_MALFORMED;
     }
+    bvstk_cache_sink_enter(&cache->sink);
     entry->value = cache->values[device_id][reg];
     entry->valid = cache->valid[device_id][reg];
     entry->seeded = cache->seeded[device_id][reg];
     entry->updated_ms = cache->updated_ms[device_id][reg];
+    bvstk_cache_sink_leave(&cache->sink);
     return BVSTK_OK;
 }
 

@@ -15,6 +15,20 @@
 #include "ports/freertos-xilinx/os/bvstk_sync_freertos.h"
 #include "ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.h"
 #include "ports/freertos-xilinx/os/mdio/bvstk_mdio_freertos.h"
+#include "services/cache/bvstk_cache_bridges.h"
+#include "xil_printf.h"
+
+static bvstk_cache_registry_t s_cache_registry;
+static bvstk_cache_i2c_bridge_t s_cache_i2c;
+static bvstk_cache_mdio_bridge_t s_cache_mdio;
+
+static void cache_enter(void *context) { (void)context; taskENTER_CRITICAL(); }
+static void cache_leave(void *context) { (void)context; taskEXIT_CRITICAL(); }
+
+bvstk_cache_registry_t *bvstk_runtime_cache_registry(void)
+{
+    return &s_cache_registry;
+}
 
 static bvstk_i2c_master_hw_t s_i2c_master_hw;
 static bvstk_i2c_slave_hw_t s_i2c_slave_hw;
@@ -105,6 +119,8 @@ static int initialize_i2c(const i2c_device_config_t *configs,
         return 0;
     }
 
+    if (bvstk_cache_attach_i2c(&s_cache_i2c, &s_cache_registry, &s_i2c_master_service, configs) != BVSTK_OK)
+        xil_printf("[cache] I2C catalog registration failed\r\n");
     s_i2c_ready = 1;
     if (config_count != 0U &&
         bvstk_i2c_master_service_device_info(&s_i2c_master_service,
@@ -187,6 +203,8 @@ static void runtime_task(void *argument)
                                        mdio_device_count,
                                        &events) == BVSTK_OK) {
                 s_mdio_service.mutex = s_mdio_service_mutex.public_mutex;
+                if (bvstk_cache_attach_mdio(&s_cache_mdio, &s_cache_registry, &s_mdio_service) != BVSTK_OK)
+                    xil_printf("[cache] MDIO catalog registration failed\r\n");
                 if (bvstk_mdio_freertos_start(&s_mdio_service) == BVSTK_OK) {
                     s_mdio_ready = 1;
                 } else {
@@ -214,6 +232,9 @@ static void runtime_task(void *argument)
 
 void bvstk_runtime_start(void)
 {
+    /* BSS is initially empty; install guards before any provider or reader. */
+    s_cache_registry.guard.enter = cache_enter;
+    s_cache_registry.guard.leave = cache_leave;
 #if !BVSTK_PL_RUNTIME_ENABLED
     return;
 #else

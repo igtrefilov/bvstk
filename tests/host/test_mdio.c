@@ -1,6 +1,7 @@
 #include "services/mdio/bvstk_mdio_service.h"
 #include "hardware/pl/mdio/bvstk_mdio_regs.h"
 #include "shared/cli/bvstk_mdio_completion.h"
+#include "services/cache/bvstk_cache_bridges.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +14,9 @@ static int pending, suppress_result, wrong_address, ack_armed;
 static unsigned writes, resets, depth, locks;
 static bvstk_mdio_core_t core;
 static bvstk_mdio_service_t service;
+static bvstk_cache_registry_t cache_registry;
+static bvstk_cache_mdio_bridge_t cache_bridge;
+static bvstk_cache_snapshot_t cache_snapshot;
 static mdio_phy_config_t config;
 static bvstk_event_t observed[256];
 static size_t observed_count;
@@ -201,10 +205,14 @@ static void service_tests(void)
     uint16_t v;
     unsigned count;
     size_t id;
+    uint16_t cache_handle;
+    uint64_t cache_cursor;
     assert(bvstk_mdio_config_parse(json, &config) == BVSTK_OK);
     const bvstk_event_sink_t sink = {.publish=observe};
     assert(bvstk_mdio_service_init(&service, &core, NULL, &config, 1, &sink) == BVSTK_OK);
     service.mutex = (bvstk_mutex_t){NULL, lock_service, unlock_service};
+    bvstk_cache_init(&cache_registry, NULL);
+    assert(bvstk_cache_attach_mdio(&cache_bridge, &cache_registry, &service) == BVSTK_OK);
     assert(host_read(0, 2) == 0xFFFFU && host_read(1, 2) == 0xFFFFU);
     assert(host_read(1, 17) == 55U);
     assert(bvstk_mdio_service_cache_entry(&service, 0, 17, &e) == BVSTK_OK && e.seeded);
@@ -263,7 +271,16 @@ static void service_tests(void)
     now += 20000U;
     phy[1][2] = phy[1][3] = 0xFFFFU;
     count = service.stats.errors;
+    assert(bvstk_cache_snapshot(&cache_registry, "mdio", "lan8720", &cache_snapshot,
+        &cache_handle, &cache_cursor, now) == BVSTK_OK);
     assert(bvstk_mdio_service_step(&service, now, 5) == BVSTK_ERR_NOT_READY);
+    {
+        bvstk_cache_change_t change;
+        int next;
+        while ((next = bvstk_cache_next(&cache_registry, cache_handle, cache_snapshot.generation, &cache_cursor, &change)) > 0)
+            assert(change.kind != BVSTK_CACHE_CHANGE || !change.entry.valid);
+        assert(next == 0); /* No transient FFFF "device" samples from a missing PHY. */
+    }
     assert(service.stats.errors == count);
     assert(!service.online[0] && host_read(1, 4) == 0xFFFFU);
     assert(bvstk_mdio_service_read_cached(&service, 0, 4, &v) == BVSTK_ERR_NOT_READY);

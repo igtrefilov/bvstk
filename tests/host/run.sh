@@ -54,6 +54,8 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
 cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_shared.c" \
+  "$REPO_ROOT/src/services/cache/bvstk_cache.c" \
+  "$REPO_ROOT/src/services/cache/bvstk_cache_bridges.c" \
   "$REPO_ROOT/src/hardware/boards/ax7020/bvstk_pl_regions.c" \
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c" \
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_slave.c" \
@@ -82,6 +84,8 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
 cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_mdio.c" \
+  "$REPO_ROOT/src/services/cache/bvstk_cache.c" \
+  "$REPO_ROOT/src/services/cache/bvstk_cache_bridges.c" \
   "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
   "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
   "$REPO_ROOT/src/drivers/pl/mdio/bvstk_mdio_core.c" \
@@ -92,6 +96,15 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
 
 "$TEST_TMP/test_mdio"
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_dcp2_mdio.py"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/dcp2_cache_server.c" \
+  "$REPO_ROOT/src/services/cache/bvstk_cache.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_cache.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
+  -o "$TEST_TMP/dcp2_cache_server"
+PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_dcp2_cache.py" "$TEST_TMP/dcp2_cache_server"
+node "$REPO_ROOT/tests/web/cache-indicators.mjs"
 
 cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic \
   -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \

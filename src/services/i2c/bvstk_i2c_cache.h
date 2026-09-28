@@ -6,8 +6,10 @@
 
 #include "shared/base/bvstk_status.h"
 #include "shared/config/bvstk_config_model.h"
+#include "shared/interfaces/bvstk_cache_sink.h"
 
 typedef struct {
+    bvstk_cache_sink_t sink;
     uint8_t values[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
     uint8_t valid[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
     uint8_t seeded[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];

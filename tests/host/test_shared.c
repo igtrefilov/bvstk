@@ -24,6 +24,14 @@
 #include "services/i2c/bvstk_i2c_slave_service.h"
 #include "services/mdio/bvstk_mdio_service.h"
 #include "services/control/bvstk_control_api.h"
+#include "services/cache/bvstk_cache_bridges.h"
+
+static bvstk_cache_registry_t cache_registry;
+static bvstk_cache_snapshot_t cache_snapshot;
+static bvstk_cache_i2c_bridge_t cache_i2c_bridge;
+static bvstk_cache_mdio_bridge_t cache_mdio_bridge;
+static bvstk_i2c_master_service_t *change_service;
+static i2c_device_config_t *change_config;
 
 #define CHECK(condition)                                                     \
     do {                                                                     \
@@ -63,6 +71,11 @@ static bvstk_status_t fake_i2c_read(void *context,
     (void)timeout_ms;
     bus->reads++;
     *value = bus->i2c_value;
+    if (change_service) {
+        bvstk_status_t st = bvstk_i2c_master_service_set_config(change_service, 0, change_config);
+        change_service = NULL;
+        if (st != BVSTK_OK) return st;
+    }
     return BVSTK_OK;
 }
 
@@ -302,6 +315,8 @@ int main(void)
     bvstk_dcp2_request_t request;
     bvstk_control_api_t control = {0};
     size_t response_size = 0U;
+    uint16_t cache_handle;
+    uint64_t cache_cursor;
 
     CHECK(test_i2c_config_codec() == 0);
     CHECK(strcmp(bvstk_status_string(BVSTK_ERR_TIMEOUT), "timeout") == 0);
@@ -342,12 +357,21 @@ int main(void)
                                         &i2c_cache,
                                         &i2c_policy,
                                         &event_sink) == BVSTK_OK);
+    bvstk_cache_init(&cache_registry, NULL);
+    CHECK(bvstk_cache_attach_i2c(&cache_i2c_bridge, &cache_registry, &i2c_service, &i2c_config) == BVSTK_OK);
     CHECK(bvstk_i2c_master_service_read(&i2c_service,
                                         0U,
                                         1U,
                                         &value8,
                                         10U) == BVSTK_OK);
     CHECK(value8 == 0x55U && bus.reads == 1U);
+    CHECK(bvstk_cache_snapshot(&cache_registry, "i2c", "sensor", &cache_snapshot,
+        &cache_handle, &cache_cursor, 1000) == BVSTK_OK);
+    CHECK(cache_snapshot.count == 16 && cache_snapshot.presence == BVSTK_CACHE_PRESENCE_READY);
+    CHECK(cache_snapshot.entries[1].value == value8 && cache_snapshot.entries[1].valid &&
+        cache_snapshot.entries[1].source == BVSTK_CACHE_SOURCE_DEVICE &&
+        cache_snapshot.entries[1].updated_ms == 1000 && !strcmp(cache_snapshot.entries[1].id, "reg_01"));
+    CHECK(bus.reads == 1U); /* CACHE snapshot itself performs no bus transaction. */
     CHECK(bvstk_i2c_master_service_write(&i2c_service,
                                          0U,
                                          3U,
@@ -361,6 +385,18 @@ int main(void)
                                          BVSTK_EVENT_SOURCE_DCP,
                                          10U) == BVSTK_OK);
     CHECK(bus.writes == 1U && events.last.source == BVSTK_EVENT_SOURCE_DCP);
+    CHECK(bvstk_cache_snapshot(&cache_registry, "i2c", "sensor", &cache_snapshot,
+        &cache_handle, &cache_cursor, 1000) == BVSTK_OK);
+    CHECK(cache_snapshot.entries[2].value == 5 && !cache_snapshot.entries[3].valid);
+    CHECK(bvstk_i2c_cache_seed(&i2c_cache, 0, 7, 9) == BVSTK_OK);
+    CHECK(bvstk_i2c_cache_invalidate(&i2c_cache, 0, 7) == BVSTK_OK);
+    {
+        bvstk_cache_change_t c;
+        CHECK(bvstk_cache_next(&cache_registry, cache_handle, cache_snapshot.generation, &cache_cursor, &c) == 1);
+        CHECK(c.entry.valid && c.entry.value == 9 && c.entry.source == BVSTK_CACHE_SOURCE_SETTINGS);
+        CHECK(bvstk_cache_next(&cache_registry, cache_handle, cache_snapshot.generation, &cache_cursor, &c) == 1);
+        CHECK(!c.entry.valid && !c.entry.value && !c.entry.updated_ms);
+    }
     CHECK(events.count == 6U && events.types[0] == BVSTK_EVENT_MASTER_READ &&
           events.types[2] == BVSTK_EVENT_REG_DENIED &&
           events.types[4] == BVSTK_EVENT_MASTER_WRITE && events.types[5] == BVSTK_EVENT_REG_COMMIT);
@@ -587,8 +623,13 @@ int main(void)
                                  &mdio_config,
                                  1U,
                                  NULL) == BVSTK_OK);
+    CHECK(bvstk_cache_attach_mdio(&cache_mdio_bridge, &cache_registry, &mdio_service) == BVSTK_OK);
     CHECK(bvstk_mdio_service_read(&mdio_service, 0U, 1U, &value16, 10U) == BVSTK_OK);
     CHECK(value16 == 0x1234U);
+    CHECK(bvstk_cache_snapshot(&cache_registry, "mdio", "phy", &cache_snapshot,
+        &cache_handle, &cache_cursor, 1000) == BVSTK_OK);
+    CHECK(cache_snapshot.count == 32 && cache_snapshot.entries[1].width_bits == 16 &&
+        cache_snapshot.entries[1].value == 0x1234 && cache_snapshot.entries[1].valid);
     CHECK(bvstk_mdio_service_write(&mdio_service,
                                   0U,
                                   4U,
@@ -602,6 +643,22 @@ int main(void)
                                   BVSTK_EVENT_SOURCE_CONSOLE,
                                   10U) == BVSTK_OK);
     CHECK(bus.mdio_value == 0x4321U);
+    CHECK(bvstk_cache_snapshot(&cache_registry, "mdio", "phy", &cache_snapshot,
+        &cache_handle, &cache_cursor, 1000) == BVSTK_OK);
+    CHECK(cache_snapshot.entries[2].value == 0x4321 && !cache_snapshot.entries[4].valid);
+    CHECK(bvstk_mdio_service_invalidate(&mdio_service, 0) == BVSTK_OK);
+    CHECK(bvstk_cache_snapshot(&cache_registry, "mdio", "phy", &cache_snapshot,
+        &cache_handle, &cache_cursor, 1000) == BVSTK_OK);
+    CHECK(!cache_snapshot.entries[2].valid && cache_snapshot.presence == BVSTK_CACHE_PRESENCE_UNAVAILABLE);
+    {
+        uint32_t generation = cache_snapshot.generation;
+        mdio_config.settings[0].reg = 17; mdio_config.settings[0].val = 55; mdio_config.settings_len = 1;
+        CHECK(bvstk_mdio_service_set_config(&mdio_service, 0, &mdio_config) == BVSTK_OK);
+        CHECK(bvstk_cache_snapshot(&cache_registry, "mdio", "phy", &cache_snapshot,
+            &cache_handle, &cache_cursor, 1000) == BVSTK_OK);
+        CHECK(cache_snapshot.generation != generation && cache_snapshot.entries[17].valid &&
+            cache_snapshot.entries[17].value == 55 && cache_snapshot.entries[17].source == BVSTK_CACHE_SOURCE_SETTINGS);
+    }
     bvstk_mdio_service_shutdown(&mdio_service);
 
     frame[0] = 'D'; frame[1] = 'C'; frame[2] = 'P'; frame[3] = '2';
@@ -633,6 +690,29 @@ int main(void)
                                      &response_size) == 0);
     CHECK(response_size == 15U && response[9] == BVSTK_DCP2_OP_RESPONSE &&
           bvstk_dcp2_read_be16(response + 12) == 0U && response[14] == 0xAAU);
+    {
+        bvstk_cache_change_t c;
+        uint32_t generation;
+        CHECK(bvstk_cache_snapshot(&cache_registry, "i2c", "sensor", &cache_snapshot,
+            &cache_handle, &cache_cursor, 1000) == BVSTK_OK);
+        generation = cache_snapshot.generation;
+        i2c_config.addr_7b = 0x51;
+        i2c_config.profile.version = 2;
+        i2c_config.profile.ids_size = 1;
+        for (unsigned r = 0; r < i2c_config.reg_count; ++r) {
+            unsigned pos = i2c_config.profile.ids_size;
+            int length = snprintf(i2c_config.profile.ids + pos, sizeof(i2c_config.profile.ids) - pos, "custom_%02x", r);
+            i2c_config.profile.id_offset[r] = (uint16_t)pos;
+            i2c_config.profile.ids_size += (uint16_t)(length + 1);
+        }
+        change_service = &i2c_service; change_config = &i2c_config;
+        CHECK(bvstk_i2c_master_service_read(&i2c_service, 0, 1, &value8, 10) == BVSTK_OK);
+        CHECK(bvstk_cache_next(&cache_registry, cache_handle, generation, &cache_cursor, &c) == -BVSTK_CACHE_RECONFIGURED);
+        CHECK(bvstk_cache_snapshot(&cache_registry, "i2c", "sensor", &cache_snapshot,
+            &cache_handle, &cache_cursor, 1000) == BVSTK_OK);
+        CHECK(!strcmp(cache_snapshot.entries[1].id, "custom_01"));
+        CHECK(!cache_snapshot.entries[1].valid && cache_snapshot.presence == BVSTK_CACHE_PRESENCE_UNKNOWN);
+    }
     bvstk_i2c_master_service_shutdown(&i2c_service);
     bvstk_i2c_policy_shutdown(&i2c_policy);
     bvstk_i2c_cache_shutdown(&i2c_cache);

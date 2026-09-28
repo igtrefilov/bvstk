@@ -7,9 +7,11 @@
 #include "services/i2c/bvstk_i2c_master_service.h"
 #include "services/i2c/bvstk_i2c_slave_service.h"
 #include "services/mdio/bvstk_mdio_service.h"
+#include "services/cache/bvstk_cache.h"
 
 /* Composition root for the portable services used by the FreeRTOS image. */
 void bvstk_runtime_start(void);
+bvstk_cache_registry_t *bvstk_runtime_cache_registry(void);
 bvstk_i2c_master_service_t *bvstk_runtime_i2c_master_service(void);
 bvstk_i2c_slave_service_t *bvstk_runtime_i2c_slave_service(void);
 int bvstk_runtime_i2c_ready(void);

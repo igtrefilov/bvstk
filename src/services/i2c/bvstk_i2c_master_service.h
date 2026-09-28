@@ -38,6 +38,8 @@ typedef struct {
     bvstk_i2c_cache_t *cache;
     bvstk_i2c_policy_t *policy;
     bvstk_event_sink_t events;
+    /* Optional catalog observer, synchronous and non-blocking. */
+    void (*cache_config_changed)(void *, size_t, const i2c_device_config_t *);
     /* Last physical-read result; configured/cached values are not evidence. */
     uint8_t presence[I2C_CFG_MAX_DEVICES];
     uint8_t initialized;
