@@ -1,203 +1,83 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   width="210mm"
-   height="180mm"
-   viewBox="0 0 210 180"
-   version="1.1"
-   id="os-levels"
-   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
-   sodipodi:docname="levels.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <title
-     id="title">Абстрактные уровни ОС L4–L0</title>
-  <desc
-     id="description">
-    Единая абстрактная модель функциональных уровней операционной системы
-    от прикладного уровня L4 до аппаратного уровня L0. Цвета и порядок
-    уровней задаётся единой палитрой проекта. Состав конкретного уровня
-    может отличаться между ОС; схема не задаёт обязательный маршрут вызовов.
-  </desc>
-  <sodipodi:namedview
-     id="namedview"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     inkscape:document-units="mm"
-     showgrid="false"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:deskcolor="#d1d1d1"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pagecheckerboard="0"
-     inkscape:zoom="1.5478125"
-     inkscape:cx="396.68888"
-     inkscape:cy="340.80355"
-     inkscape:window-width="2510"
-     inkscape:window-height="1371"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="levels" />
-  <defs
-     id="defs">
-    <style
-       id="style">
-      text { font-family: &quot;Noto Sans&quot;, &quot;DejaVu Sans&quot;, sans-serif; fill: #000000; stroke: none; text-anchor: middle; }
-      .title { font-size: 5px; font-weight: 700; }
-      .subtitle { font-size: 2.8px; font-weight: 400; }
-      .level-name { font-size: 4px; font-weight: 700; }
-      .level-content { font-size: 2.8px; font-weight: 400; }
-      .note { font-size: 2.35px; font-weight: 400; }
-      .frame { fill: none; stroke: #000000; stroke-width: 0.5; stroke-linejoin: round; }
-      .level { stroke-width: 0.45; stroke-linejoin: round; }
-      .arrow { fill: none; stroke: #000000; stroke-width: 0.28; marker-end: url(#arrow-head); }
-
-      /* Единая палитра уровней проекта. */
-      .level-l0 { fill: #e9eef3; stroke: #607487; }
-      .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
-      .level-l2 { fill: #ffd1c7; stroke: #c65b4e; }
-      .level-l3 { fill: #d9f0ea; stroke: #287f73; }
-      .level-l4 { fill: #d9ebff; stroke: #3f75ad; }
-    </style>
-    <marker
-       id="arrow-head"
-       viewBox="0 0 8 8"
-       refX="7.5"
-       refY="4"
-       markerWidth="1.8"
-       markerHeight="1.8"
-       markerUnits="userSpaceOnUse"
-       orient="auto">
-      <path
-         d="M 0,0 L 8,4 L 0,8 Z"
-         fill="#000000"
-         stroke="none"
-         id="path11735" />
-    </marker>
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="1330" viewBox="0 0 2800 1330" id="bvstk-levels-overview" role="img" aria-labelledby="title desc">
+  <title id="title">Уровни абстракции BVSTK</title>
+  <desc id="desc">Декларация пяти уровней абстракции BVSTK. L4 — приложения; L3 — сервисы и драйверы; L2 — ядро ОС; L1 — платформа; L0 — аппаратура. Каждая строка определяет область ответственности уровня. Порядок строк не задаёт порядок вызовов. Названия открывают соответствующие подробные схемы. Цвета совпадают со всем рядом архитектурных схем.</desc>
+  <defs>
+    <style>text{font-family:DejaVu Sans,sans-serif;fill:#233747;} a{cursor:pointer;} a:hover text{text-decoration:underline;} g:target&gt;rect{stroke-width:4;}</style>
   </defs>
-  <g
-     id="sheet"
-     inkscape:groupmode="layer"
-     inkscape:label="Уровни ОС">
-    <rect
-       id="frame"
-       class="frame"
-       x="7"
-       y="7"
-       width="196"
-       height="166" />
-    <text
-       id="title-label"
-       class="title"
-       x="105"
-       y="15">Уровни ОС</text>
-    <g
-       id="levels"
-       inkscape:label="L4–L0">
-      <rect
-         id="level-l4"
-         class="level level-l4"
-         x="20"
-         y="27"
-         width="170"
-         height="20" />
-      <text
-         id="level-l4-name"
-         class="level-name"
-         x="105"
-         y="35.5">L4 · Приложения</text>
-      <text
-         id="level-l4-content"
-         class="level-content"
-         x="105"
-         y="42.5">Пользовательская логика</text>
-      <path
-         id="arrow-l4-l3"
-         class="arrow"
-         d="M 105,47.5 V 50" />
-      <rect
-         id="level-l3"
-         class="level level-l3"
-         x="20"
-         y="50"
-         width="170"
-         height="22" />
-      <text
-         id="level-l3-name"
-         class="level-name"
-         x="105"
-         y="58.5">L3 · Системные сервисы и драйверы</text>
-      <text
-         id="level-l3-content"
-         class="level-content"
-         x="105"
-         y="66">Библиотеки · сеть · файловые системы · драйверы</text>
-      <path
-         id="arrow-l3-l2"
-         class="arrow"
-         d="M 105,72.5 V 75" />
-      <rect
-         id="level-l2"
-         class="level level-l2"
-         x="20"
-         y="75"
-         width="170"
-         height="27" />
-      <text
-         id="level-l2-name"
-         class="level-name"
-         x="105"
-         y="84">L2 · Ядро ОС</text>
-      <text
-         id="level-l2-content-1"
-         class="level-content"
-         x="105"
-         y="92">Логика ядра ОС</text>
-      <path
-         id="arrow-l2-l1"
-         class="arrow"
-         d="M 105,102.5 V 105" />
-      <rect
-         id="level-l1"
-         class="level level-l1"
-         x="20"
-         y="105"
-         width="170"
-         height="22" />
-      <text
-         id="level-l1-name"
-         class="level-name"
-         x="105"
-         y="113.5">L1 · OS-порт и BSP</text>
-      <text
-         id="level-l1-content"
-         class="level-content"
-         x="105"
-         y="121">Архитектурные механизмы · startup · таймеры · параметры платформы</text>
-      <path
-         id="arrow-l1-l0"
-         class="arrow"
-         d="M 105,127.5 V 130" />
-      <rect
-         id="level-l0"
-         class="level level-l0"
-         x="20"
-         y="130"
-         width="170"
-         height="26" />
-      <text
-         id="level-l0-name"
-         class="level-name"
-         x="105"
-         y="139">L0 · Аппаратура</text>
-      <text
-         id="level-l0-content-1"
-         class="level-content"
-         x="105"
-         y="147">CPU · память · системные и периферийные интерфейсы</text>
-    </g>
+  <rect id="page" x="0" y="0" width="2800" height="1330" fill="white" />
+  <text x="60" y="47" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+  <text x="60" y="98" font-size="40" font-weight="700" text-anchor="start" style="fill:#233747">Уровни абстракции BVSTK</text>
+  <text x="60" y="144" font-size="23" font-weight="400" text-anchor="start" style="fill:#576c7b">Принятое в проекте деление системы.</text>
+  <g id="series-navigation" data-kind="navigation">
+    <a data-navigation="sheet" xlink:href="levels.svg">
+      <rect x="2000" y="64" width="124" height="46" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="2062.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">Уровни</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_os.svg">
+      <rect x="2140" y="64" width="84" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2182.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">ОС</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l4.svg">
+      <rect x="2240" y="64" width="80" height="46" rx="8" fill="white" stroke="#3f75ad" stroke-width="1" />
+      <text x="2280.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#3f75ad">L4</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l3.svg">
+      <rect x="2336" y="64" width="80" height="46" rx="8" fill="white" stroke="#287f73" stroke-width="1" />
+      <text x="2376.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#287f73">L3</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l1.svg">
+      <rect x="2432" y="64" width="80" height="46" rx="8" fill="white" stroke="#b56b1d" stroke-width="1" />
+      <text x="2472.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#b56b1d">L1</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l0_l1.svg">
+      <rect x="2528" y="64" width="116" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2586.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0–L1</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
+      <rect x="2660" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
+    </a>
   </g>
+  <g id="level-l4" data-kind="layer-definition" data-layer="L4" data-label="Приложения">
+    <rect x="180" y="250" width="2440" height="146" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
+    <a data-navigation="level" xlink:href="architecture_bvstk_l4.svg">
+      <text x="228" y="338" font-size="40" font-weight="700" text-anchor="start" style="fill:#3f75ad">L4</text>
+      <text x="416" y="336" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Приложения</text>
+    </a>
+    <text x="1260" y="335" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Пользовательские функции и управление системой.</text>
+  </g>
+  <g id="level-l3" data-kind="layer-definition" data-layer="L3" data-label="Сервисы и драйверы">
+    <rect x="180" y="438" width="2440" height="146" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
+    <a data-navigation="level" xlink:href="architecture_bvstk_l3.svg">
+      <text x="228" y="526" font-size="40" font-weight="700" text-anchor="start" style="fill:#287f73">L3</text>
+      <text x="416" y="524" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Сервисы и драйверы</text>
+    </a>
+    <text x="1260" y="523" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Логика подсистем, протоколы, сеть и файловые системы.</text>
+  </g>
+  <g id="level-l2" data-kind="layer-definition" data-layer="L2" data-label="Ядро ОС">
+    <rect x="180" y="626" width="2440" height="146" rx="10" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
+    <a data-navigation="level" xlink:href="architecture_bvstk_os.svg#os-kernels">
+      <text x="228" y="714" font-size="40" font-weight="700" text-anchor="start" style="fill:#c65b4e">L2</text>
+      <text x="416" y="712" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Ядро ОС</text>
+    </a>
+    <text x="1260" y="711" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Планирование, синхронизация и обмен сообщениями.</text>
+  </g>
+  <g id="level-l1" data-kind="layer-definition" data-layer="L1" data-label="Платформа">
+    <rect x="180" y="814" width="2440" height="146" rx="10" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
+    <a data-navigation="level" xlink:href="architecture_bvstk_l1.svg">
+      <text x="228" y="902" font-size="40" font-weight="700" text-anchor="start" style="fill:#b56b1d">L1</text>
+      <text x="416" y="900" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Платформа</text>
+    </a>
+    <text x="1260" y="899" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Общие интерфейсы, порты ОС и BSP.</text>
+  </g>
+  <g id="level-l0" data-kind="layer-definition" data-layer="L0" data-label="Аппаратура">
+    <rect x="180" y="1002" width="2440" height="146" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="1.7" />
+    <a data-navigation="level" xlink:href="architecture_bvstk_l0_l1.svg#hardware-panel">
+      <text x="228" y="1090" font-size="40" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="416" y="1088" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Аппаратура</text>
+    </a>
+    <text x="1260" y="1087" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Процессор, память и периферия.</text>
+  </g>
+  <text x="180" y="1238" font-size="23" font-weight="400" text-anchor="start" style="fill:#576c7b">Названия слоёв открывают соответствующие схемы.</text>
 </svg>

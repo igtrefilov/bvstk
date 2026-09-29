@@ -1,66 +1,55 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="2530" viewBox="0 0 2800 2530" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="3330" viewBox="0 0 2800 3330" role="img" aria-labelledby="title desc">
   <title id="title">L4. Приложения и пользовательские команды</title>
-  <desc id="desc">Запуск, настройки, обработчики команд и обращение к сервисам. Слева показаны части FreeRTOS, справа — Нейтрино, в центре — общие исходники или аппаратура. Вложенные рамки раскрывают функцию до конкретных модулей. Цвет рамки и блока обозначает слой. Общие исходники включаются в выбранную сборку; состав подключённых модулей различается. Серые стрелки обозначают вызовы, коричневые — MMIO и настройку, синие — данные, красные пунктирные — прерывания и события. Соединение с рамкой относится к функции внутри неё. Заголовки ссылочных блоков открывают соответствующую схему.</desc>
+  <desc id="desc">Запуск, настройки, обработчики команд и обращение к сервисам. Слева показаны части FreeRTOS, справа — Нейтрино, в центре — общие исходники или аппаратура. Вложенные рамки раскрывают функцию до конкретных модулей. Цвет рамки и блока обозначает слой. Общие исходники включаются в выбранную сборку; состав подключённых модулей различается. Серые стрелки обозначают вызовы, коричневые — MMIO и настройку, синие — данные, красные пунктирные — прерывания и события. Соединение с рамкой относится к функции внутри неё. Заголовки ссылочных блоков открывают соответствующую схему.
+Одноимённые блоки на соседних схемах обозначают одну функцию. Ссылки ведут к конкретным блокам; выбранный блок выделяется рамкой. Тип стрелки и направление взаимодействия сохраняются при переходе.</desc>
   <defs>
     <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#788794" />
     </marker>
     <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
     <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b56b1d" />
     </marker>
     <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="2" fill="#b56b1d" />
     </marker>
     <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#3f75ad" />
     </marker>
     <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="2" fill="#3f75ad" />
     </marker>
     <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c65b4e" />
     </marker>
     <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="2" fill="#c65b4e" />
     </marker>
-    <style>text {font-family:DejaVu Sans,sans-serif;fill:#233747;} .code {font-family:DejaVu Sans Mono,monospace;} a {cursor:pointer;} .edge-label {paint-order:stroke;stroke:white;stroke-width:7px;stroke-linejoin:round;} </style>
+    <style>text {font-family:DejaVu Sans,sans-serif;fill:#233747;} .code {font-family:DejaVu Sans Mono,monospace;} a {cursor:pointer;} a:hover text {text-decoration:underline;} g:target &gt; rect {stroke-width:4;} .edge-label {paint-order:stroke;stroke:white;stroke-width:7px;stroke-linejoin:round;} </style>
   </defs>
-  <rect id="page" x="0" y="0" width="2800" height="2530" fill="white" />
+  <rect id="page" x="0" y="0" width="2800" height="3330" fill="white" />
   <text id="text-1" x="60" y="47" font-size="16" font-weight="700" text-anchor="start" data-max-width="500" style="fill:#3f75ad">BVSTK</text>
   <text id="text-2" x="60" y="98" font-size="40" font-weight="700" text-anchor="start" data-max-width="1950" style="fill:#233747">L4. Приложения и пользовательские команды</text>
   <text id="text-3" x="60" y="140" font-size="21" font-weight="400" text-anchor="start" data-max-width="2550" style="fill:#576c7b">Запуск, настройки, обработчики команд и обращение к сервисам.</text>
-  <a xlink:href="architecture_bvstk_l4.svg">
-    <rect x="2204" y="64" width="112" height="46" rx="8" fill="#d9ebff" stroke="#3f75ad" stroke-width="2" />
-    <text id="text-4" x="2260" y="94" font-size="21" font-weight="700" text-anchor="middle" data-max-width="94" style="fill:#3f75ad">L4</text>
-  </a>
-  <a xlink:href="architecture_bvstk_l3.svg">
-    <rect x="2340" y="64" width="112" height="46" rx="8" fill="white" stroke="#287f73" stroke-width="1" />
-    <text id="text-5" x="2396" y="94" font-size="21" font-weight="700" text-anchor="middle" data-max-width="94" style="fill:#287f73">L3</text>
-  </a>
-  <a xlink:href="architecture_bvstk_l1.svg">
-    <rect x="2476" y="64" width="112" height="46" rx="8" fill="white" stroke="#b56b1d" stroke-width="1" />
-    <text id="text-6" x="2532" y="94" font-size="21" font-weight="700" text-anchor="middle" data-max-width="94" style="fill:#b56b1d">L1</text>
-  </a>
-  <a xlink:href="architecture_bvstk_l0_l1.svg">
-    <rect x="2612" y="64" width="112" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-    <text id="text-7" x="2668" y="94" font-size="21" font-weight="700" text-anchor="middle" data-max-width="94" style="fill:#607487">L0–L1</text>
-  </a>
   <g id="freertos-region" data-kind="ownership-region" data-ownership="freertos">
-    <rect x="40" y="188" width="780" height="2112" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+    <rect x="40" y="188" width="780" height="2912" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
     <text id="text-8" x="68" y="230" font-size="25" font-weight="700" text-anchor="start" data-max-width="710" style="fill:#233747">FreeRTOS</text>
-    <g id="f-application-start" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-source="src/apps/freertos">
+    <g id="f-application-start" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-source="src/apps/freertos" data-label="Запуск приложения" data-entity="architecture_bvstk_l4.svg#f-application-start" data-entity-ownership="freertos" data-representation="definition">
       <title>Запуск приложения
 src/apps/freertos</title>
       <rect x="80" y="290" width="700" height="540" rx="10" fill="#f7fbff" stroke="#3f75ad" stroke-width="1.8" stroke-opacity="1" />
-      <text id="text-11" x="102" y="325" font-size="23" font-weight="700" text-anchor="start" data-max-width="656" style="fill:#233747">L4. Запуск приложения</text>
-      <g id="f-startup" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-application-start" data-source="">
+      <a xlink:href="architecture_bvstk_l1.svg#f-startup-caller" data-ref-node="f-application-start" data-navigation="return" aria-label="Вернуться к блоку «Запуск приложения» на соседней схеме">
+        <text id="text-11" x="102" y="325" font-size="23" font-weight="700" text-anchor="start" data-max-width="656" style="fill:#233747">L4. Запуск приложения</text>
+      </a>
+      <g id="f-startup" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-application-start" data-source="" data-label="Создание среды исполнения" data-entity="architecture_bvstk_l4.svg#f-startup" data-entity-ownership="freertos" data-representation="definition">
         <title>Создание среды исполнения</title>
         <rect x="108" y="352" width="644" height="178" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-12" x="130" y="387" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Создание среды исполнения</text>
+        <a xlink:href="architecture_bvstk_l3.svg#f-runtime-caller" data-ref-node="f-startup" data-navigation="return" aria-label="Вернуться к блоку «Создание среды исполнения» на соседней схеме">
+          <text id="text-12" x="130" y="387" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Создание среды исполнения</text>
+        </a>
         <g id="f-main" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-startup" data-source="src/apps/freertos/main.c;src/apps/freertos/main.h">
           <title>main
 src/apps/freertos/main.c
@@ -78,10 +67,12 @@ src/apps/freertos/runtime/bvstk_runtime.h</title>
           <text id="text-16" x="576.0" y="481.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="276" style="fill:#576c7b">Экземпляры сервисов</text>
         </g>
       </g>
-      <g id="f-configuration" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-application-start" data-source="">
+      <g id="f-configuration" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-application-start" data-source="" data-label="Хранение настроек" data-entity="architecture_bvstk_l4.svg#f-configuration" data-entity-ownership="freertos" data-representation="definition">
         <title>Хранение настроек</title>
         <rect x="108" y="584" width="644" height="218" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-17" x="130" y="619" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Хранение настроек</text>
+        <a xlink:href="architecture_bvstk_l3.svg#f-config-files-caller" data-ref-node="f-configuration" data-navigation="return" aria-label="Вернуться к блоку «Хранение настроек» на соседней схеме">
+          <text id="text-17" x="130" y="619" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Хранение настроек</text>
+        </a>
         <g id="f-config-store" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-configuration" data-source="src/apps/freertos/config/config_store.h;src/apps/freertos/config/config_store.c">
           <title>config_store
 src/apps/freertos/config/config_store.h
@@ -90,10 +81,10 @@ src/apps/freertos/config/config_store.c</title>
           <text id="text-18" x="286.0" y="704.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="278" class="code" style="fill:#233747">config_store</text>
           <text id="text-19" x="286.0" y="733.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="280" style="fill:#576c7b">Загрузка и сохранение</text>
         </g>
-        <g id="f-files" data-kind="component" data-layer="L3" data-ownership="freertos" data-parent="f-configuration" data-source="">
+        <g id="f-files" data-kind="component" data-layer="L3" data-ownership="freertos" data-parent="f-configuration" data-source="" data-label="Файловый стек" data-target="architecture_bvstk_l3.svg#f-system-services" data-entity="architecture_bvstk_l3.svg#f-system-services" data-entity-ownership="freertos" data-representation="reference">
           <title>L3. Файловый стек</title>
           <rect x="496" y="648" width="232" height="124" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <a xlink:href="architecture_bvstk_l3.svg#f-system-services">
+          <a xlink:href="architecture_bvstk_l3.svg#f-system-services" data-ref-node="f-files" aria-label="Открыть блок «Файловый стек» на схеме L3">
             <text id="text-20" x="612.0" y="690.5" font-size="18.42" font-weight="700" text-anchor="middle" data-max-width="202" style="fill:#233747">L3. Файловый стек</text>
           </a>
           <text id="text-21" x="612.0" y="719.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="204" style="fill:#576c7b">fs_devices</text>
@@ -101,143 +92,199 @@ src/apps/freertos/config/config_store.c</title>
         </g>
       </g>
     </g>
-    <g id="f-kernel" data-kind="component" data-layer="L2" data-ownership="freertos" data-source="">
+    <g id="f-kernel" data-kind="component" data-layer="L2" data-ownership="freertos" data-source="" data-label="Запуск задач" data-target="architecture_bvstk_l1.svg#f-task-start" data-entity="architecture_bvstk_l1.svg#f-task-start" data-entity-ownership="freertos" data-representation="reference">
       <title>L2. Запуск задач</title>
       <rect x="80" y="892" width="700" height="108" rx="7" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.4" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-kernel">
+      <a xlink:href="architecture_bvstk_l1.svg#f-task-start" data-ref-node="f-kernel" aria-label="Открыть блок «Запуск задач» на схеме L1">
         <text id="text-49" x="430.0" y="940.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L2. Запуск задач</text>
       </a>
       <text id="text-50" x="430.0" y="969.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">xTaskCreate, затем vTaskStartScheduler</text>
     </g>
-    <g id="f-application-operations" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-source="">
+    <g id="f-application-operations" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-source="" data-label="Пользовательские интерфейсы" data-entity="architecture_bvstk_l4.svg#f-application-operations" data-entity-ownership="freertos" data-representation="definition">
       <title>Пользовательские интерфейсы</title>
-      <rect x="80" y="1100" width="700" height="870" rx="10" fill="#f7fbff" stroke="#3f75ad" stroke-width="1.8" stroke-opacity="1" />
-      <text id="text-51" x="102" y="1135" font-size="23" font-weight="700" text-anchor="start" data-max-width="656" style="fill:#233747">L4. Пользовательские интерфейсы</text>
+      <rect x="80" y="1300.0" width="700" height="1478" rx="10" fill="#f7fbff" stroke="#3f75ad" stroke-width="1.8" stroke-opacity="1" />
+      <a xlink:href="architecture_bvstk_l3.svg#f-application-operations" data-ref-node="f-application-operations" data-navigation="return" aria-label="Вернуться к блоку «Пользовательские интерфейсы» на соседней схеме">
+        <text id="text-51" x="102" y="1335.0" font-size="23" font-weight="700" text-anchor="start" data-max-width="656" style="fill:#233747">L4. Пользовательские интерфейсы</text>
+      </a>
       <g id="f-console" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-application-operations" data-source="">
         <title>Командная консоль</title>
-        <rect x="108" y="1162" width="644" height="464" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-52" x="130" y="1197" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Командная консоль</text>
+        <rect x="108" y="1362.0" width="644" height="1072" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+        <text id="text-52" x="130" y="1397.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Командная консоль</text>
         <g id="f-console-dispatch" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-console" data-source="src/apps/freertos/console/console_dispatch.c">
           <title>console_dispatch
 src/apps/freertos/console/console_dispatch.c</title>
-          <rect x="132" y="1222" width="596" height="76" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-53" x="430.0" y="1254.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">console_dispatch</text>
-          <text id="text-54" x="430.0" y="1283.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Выбор обработчика команды</text>
+          <rect x="132" y="1422.0" width="596" height="76" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+          <text id="text-53" x="430.0" y="1454.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">console_dispatch</text>
+          <text id="text-54" x="430.0" y="1483.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Выбор обработчика команды</text>
         </g>
         <g id="f-command-handlers" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-console" data-source="">
           <title>Обработчики команд</title>
-          <rect x="132" y="1350" width="596" height="248" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-          <text id="text-55" x="154" y="1385" font-size="21" font-weight="700" text-anchor="start" data-max-width="552" style="fill:#233747">Обработчики команд</text>
-          <g id="f-command-i2c_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/i2c_shell.c;src/apps/freertos/console/i2c_shell.h">
-            <title>i2c_shell
+          <rect x="132" y="1550.0" width="596" height="856" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+          <text id="text-55" x="154" y="1585.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="552" style="fill:#233747">Обработчики команд</text>
+          <g id="f-device-commands" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="">
+            <title>Устройства</title>
+            <rect x="156" y="1612.0" width="252" height="458" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+            <text id="text-56" x="178" y="1647.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="208" style="fill:#233747">Устройства</text>
+            <g id="f-command-i2c_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-device-commands" data-source="src/apps/freertos/console/i2c_shell.c;src/apps/freertos/console/i2c_shell.h">
+              <title>i2c_shell
 src/apps/freertos/console/i2c_shell.c
 src/apps/freertos/console/i2c_shell.h</title>
-            <rect x="152" y="1410" width="174" height="40" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-56" x="239.0" y="1437.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="144" class="code" style="fill:#233747">i2c_shell</text>
-          </g>
-          <g id="f-command-mdio_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/mdio_shell.c;src/apps/freertos/console/mdio_shell.h">
-            <title>mdio_shell
+              <rect x="180" y="1674.0" width="204" height="52" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+              <text id="text-57" x="282.0" y="1707.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="174" class="code" style="fill:#233747">i2c_shell</text>
+            </g>
+            <g id="f-command-mdio_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-device-commands" data-source="src/apps/freertos/console/mdio_shell.c;src/apps/freertos/console/mdio_shell.h">
+              <title>mdio_shell
 src/apps/freertos/console/mdio_shell.c
 src/apps/freertos/console/mdio_shell.h</title>
-            <rect x="339" y="1410" width="174" height="40" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-57" x="426.0" y="1437.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="144" class="code" style="fill:#233747">mdio_shell</text>
-          </g>
-          <g id="f-command-spi_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/spi_shell.c;src/apps/freertos/console/spi_shell.h">
-            <title>spi_shell
+              <rect x="180" y="1754.0" width="204" height="52" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+              <text id="text-58" x="282.0" y="1787.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="174" class="code" style="fill:#233747">mdio_shell</text>
+            </g>
+            <g id="f-command-spi_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-device-commands" data-source="src/apps/freertos/console/spi_shell.c;src/apps/freertos/console/spi_shell.h">
+              <title>spi_shell
 src/apps/freertos/console/spi_shell.c
 src/apps/freertos/console/spi_shell.h</title>
-            <rect x="526" y="1410" width="174" height="40" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-58" x="613.0" y="1437.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="144" class="code" style="fill:#233747">spi_shell</text>
+              <rect x="180" y="1834.0" width="204" height="52" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+              <text id="text-59" x="282.0" y="1867.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="174" class="code" style="fill:#233747">spi_shell</text>
+            </g>
+            <g id="f-command-uart_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-device-commands" data-source="src/apps/freertos/console/uart_shell.h;src/apps/freertos/console/uart_shell.c">
+              <title>uart_shell
+src/apps/freertos/console/uart_shell.h
+src/apps/freertos/console/uart_shell.c</title>
+              <rect x="180" y="1914.0" width="204" height="52" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+              <text id="text-60" x="282.0" y="1947.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="174" class="code" style="fill:#233747">uart_shell</text>
+            </g>
+            <g id="f-command-sd_pl_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-device-commands" data-source="src/apps/freertos/console/sd_pl_shell.h;src/apps/freertos/console/sd_pl_shell.c">
+              <title>sd_pl_shell
+src/apps/freertos/console/sd_pl_shell.h
+src/apps/freertos/console/sd_pl_shell.c</title>
+              <rect x="180" y="1994.0" width="204" height="52" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+              <text id="text-61" x="282.0" y="2027.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="174" class="code" style="fill:#233747">sd_pl_shell</text>
+            </g>
           </g>
-          <g id="f-command-fs_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/fs_shell.c;src/apps/freertos/console/fs_shell.h">
-            <title>fs_shell
+          <g id="f-file-commands" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="" data-label="Файлы и архивы" data-entity="architecture_bvstk_l4.svg#f-file-commands" data-entity-ownership="freertos" data-representation="definition">
+            <title>Файлы и архивы</title>
+            <rect x="440" y="1612.0" width="264" height="208" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+            <a xlink:href="architecture_bvstk_l3.svg#f-file-commands-caller" data-ref-node="f-file-commands" data-navigation="return" aria-label="Вернуться к блоку «Файлы и архивы» на соседней схеме">
+              <text id="text-62" x="462" y="1647.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="220" style="fill:#233747">Файлы и архивы</text>
+            </a>
+            <g id="f-command-fs_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-file-commands" data-source="src/apps/freertos/console/fs_shell.c;src/apps/freertos/console/fs_shell.h">
+              <title>fs_shell
 src/apps/freertos/console/fs_shell.c
 src/apps/freertos/console/fs_shell.h</title>
-            <rect x="152" y="1466" width="174" height="40" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-59" x="239.0" y="1493.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="144" class="code" style="fill:#233747">fs_shell</text>
-          </g>
-          <g id="f-command-tar_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/tar_shell.h;src/apps/freertos/console/tar_shell.c">
-            <title>tar_shell
+              <rect x="464" y="1674.0" width="216" height="52" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+              <text id="text-63" x="572.0" y="1707.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="186" class="code" style="fill:#233747">fs_shell</text>
+            </g>
+            <g id="f-command-tar_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-file-commands" data-source="src/apps/freertos/console/tar_shell.h;src/apps/freertos/console/tar_shell.c">
+              <title>tar_shell
 src/apps/freertos/console/tar_shell.h
 src/apps/freertos/console/tar_shell.c</title>
-            <rect x="339" y="1466" width="174" height="40" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-60" x="426.0" y="1493.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="144" class="code" style="fill:#233747">tar_shell</text>
+              <rect x="464" y="1746.0" width="216" height="52" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+              <text id="text-64" x="572.0" y="1779.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="186" class="code" style="fill:#233747">tar_shell</text>
+            </g>
           </g>
-          <g id="f-command-ip_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/ip_shell.h;src/apps/freertos/console/ip_shell.c">
+          <g id="f-command-files" data-kind="component" data-layer="L3" data-ownership="freertos" data-parent="f-command-handlers" data-source="" data-label="Файловый стек" data-target="architecture_bvstk_l3.svg#f-system-services" data-entity="architecture_bvstk_l3.svg#f-system-services" data-entity-ownership="freertos" data-representation="reference">
+            <title>L3. Файловый стек</title>
+            <rect x="440" y="1876.0" width="264" height="86" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
+            <a xlink:href="architecture_bvstk_l3.svg#f-system-services" data-ref-node="f-command-files" aria-label="Открыть блок «Файловый стек» на схеме L3">
+              <text id="text-65" x="572.0" y="1913.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="234" style="fill:#233747">L3. Файловый стек</text>
+            </a>
+            <text id="text-66" x="572.0" y="1942.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="236" style="fill:#576c7b">fs_devices, FatFs</text>
+          </g>
+          <g id="f-command-ip_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/ip_shell.h;src/apps/freertos/console/ip_shell.c" data-label="ip_shell" data-entity="architecture_bvstk_l4.svg#f-command-ip_shell" data-entity-ownership="freertos" data-representation="definition">
             <title>ip_shell
 src/apps/freertos/console/ip_shell.h
 src/apps/freertos/console/ip_shell.c</title>
-            <rect x="526" y="1466" width="174" height="40" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-61" x="613.0" y="1493.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="144" class="code" style="fill:#233747">ip_shell</text>
+            <rect x="440" y="2010.0" width="264" height="84" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+            <a xlink:href="architecture_bvstk_l3.svg#f-ip-caller" data-ref-node="f-command-ip_shell" data-navigation="return" aria-label="Вернуться к блоку «ip_shell» на соседней схеме">
+              <text id="text-67" x="572.0" y="2046.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="234" class="code" style="fill:#233747">ip_shell</text>
+            </a>
+            <text id="text-68" x="572.0" y="2075.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="236" style="fill:#576c7b">Настройка сети</text>
           </g>
-          <g id="f-command-uart_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/uart_shell.h;src/apps/freertos/console/uart_shell.c">
-            <title>uart_shell
-src/apps/freertos/console/uart_shell.h
-src/apps/freertos/console/uart_shell.c</title>
-            <rect x="152" y="1522" width="174" height="40" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-62" x="239.0" y="1549.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="144" class="code" style="fill:#233747">uart_shell</text>
+          <g id="f-network-settings" data-kind="component" data-layer="L3" data-ownership="freertos" data-parent="f-command-handlers" data-source="" data-label="Сетевой стек" data-target="architecture_bvstk_l3.svg#f-network-stack" data-entity="architecture_bvstk_l3.svg#f-network-stack" data-entity-ownership="freertos" data-representation="reference">
+            <title>L3. Сетевой стек</title>
+            <rect x="156" y="2150.0" width="252" height="112" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
+            <a xlink:href="architecture_bvstk_l3.svg#f-network-stack" data-ref-node="f-network-settings" aria-label="Открыть блок «Сетевой стек» на схеме L3">
+              <text id="text-69" x="282.0" y="2200.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="222" style="fill:#233747">L3. Сетевой стек</text>
+            </a>
+            <text id="text-70" x="282.0" y="2229.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="224" style="fill:#576c7b">lwIP</text>
           </g>
-          <g id="f-command-sd_pl_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/sd_pl_shell.h;src/apps/freertos/console/sd_pl_shell.c">
-            <title>sd_pl_shell
-src/apps/freertos/console/sd_pl_shell.h
-src/apps/freertos/console/sd_pl_shell.c</title>
-            <rect x="339" y="1522" width="174" height="40" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-63" x="426.0" y="1549.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="144" class="code" style="fill:#233747">sd_pl_shell</text>
-          </g>
-          <g id="f-command-mem_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/mem_shell.c;src/apps/freertos/console/mem_shell.h">
+          <g id="f-command-mem_shell" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-command-handlers" data-source="src/apps/freertos/console/mem_shell.c;src/apps/freertos/console/mem_shell.h" data-label="mem_shell" data-entity="architecture_bvstk_l4.svg#f-command-mem_shell" data-entity-ownership="freertos" data-representation="definition">
             <title>mem_shell
 src/apps/freertos/console/mem_shell.c
 src/apps/freertos/console/mem_shell.h</title>
-            <rect x="526" y="1522" width="174" height="40" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-64" x="613.0" y="1549.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="144" class="code" style="fill:#233747">mem_shell</text>
+            <rect x="440" y="2142.0" width="264" height="84" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+            <a xlink:href="architecture_bvstk_l1.svg#f-application-operations" data-ref-node="f-command-mem_shell" data-navigation="return" aria-label="Вернуться к блоку «mem_shell» на соседней схеме">
+              <text id="text-71" x="572.0" y="2178.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="234" class="code" style="fill:#233747">mem_shell</text>
+            </a>
+            <text id="text-72" x="572.0" y="2207.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="236" style="fill:#576c7b">Память и регистры</text>
+          </g>
+          <g id="f-direct-mmio" data-kind="component" data-layer="L1" data-ownership="freertos" data-parent="f-command-handlers" data-source="" data-label="Операции Xilinx BSP" data-target="architecture_bvstk_l1.svg#f-mmio-bsp" data-entity="architecture_bvstk_l1.svg#f-mmio-bsp" data-entity-ownership="freertos" data-representation="reference">
+            <title>L1. Операции Xilinx BSP</title>
+            <rect x="440" y="2282.0" width="264" height="96" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
+            <a xlink:href="architecture_bvstk_l1.svg#f-mmio-bsp" data-ref-node="f-direct-mmio" aria-label="Открыть блок «Операции Xilinx BSP» на схеме L1">
+              <text id="text-73" x="572.0" y="2324.0" font-size="16.86" font-weight="700" text-anchor="middle" data-max-width="234" style="fill:#233747">L1. Операции Xilinx BSP</text>
+            </a>
+            <text id="text-74" x="572.0" y="2353.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="236" style="fill:#576c7b">Xil_In, Xil_Out</text>
           </g>
         </g>
       </g>
-      <g id="f-web" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-application-operations" data-source="">
+      <g id="f-web" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-application-operations" data-source="" data-label="Web UI" data-entity="architecture_bvstk_l4.svg#f-web" data-entity-ownership="freertos" data-representation="definition">
         <title>Web UI</title>
-        <rect x="108" y="1670" width="644" height="272" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-65" x="130" y="1705" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Web UI</text>
+        <rect x="108" y="2478.0" width="644" height="272" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+        <a xlink:href="architecture_bvstk_l3.svg#f-observation-ui" data-ref-node="f-web" data-navigation="return" aria-label="Вернуться к блоку «Web UI» на соседней схеме">
+          <text id="text-75" x="130" y="2513.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Web UI</text>
+        </a>
         <g id="f-web-assets" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-web" data-source="">
           <title>Web UI</title>
-          <rect x="132" y="1734" width="220" height="180" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-66" x="242.0" y="1804.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="190" style="fill:#233747">Web UI</text>
-          <text id="text-67" x="242.0" y="1833.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="192" style="fill:#576c7b">HTML</text>
-          <text id="text-68" x="242.0" y="1860.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="192" style="fill:#576c7b">JavaScript</text>
+          <rect x="132" y="2542.0" width="220" height="180" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+          <text id="text-76" x="242.0" y="2612.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="190" style="fill:#233747">Web UI</text>
+          <text id="text-77" x="242.0" y="2641.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="192" style="fill:#576c7b">HTML</text>
+          <text id="text-78" x="242.0" y="2668.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="192" style="fill:#576c7b">JavaScript</text>
         </g>
         <g id="f-http-commands" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-web" data-source="src/apps/freertos/services/http/http_ui.c;src/apps/freertos/services/http/http_ui.h">
           <title>http_ui
 src/apps/freertos/services/http/http_ui.c
 src/apps/freertos/services/http/http_ui.h</title>
-          <rect x="408" y="1734" width="320" height="180" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-69" x="568.0" y="1791.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="290" class="code" style="fill:#233747">http_ui</text>
-          <text id="text-70" x="568.0" y="1820.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="292" style="fill:#576c7b">http_ui_bus</text>
-          <text id="text-71" x="568.0" y="1847.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="292" style="fill:#576c7b">http_ui_files</text>
-          <text id="text-72" x="568.0" y="1874.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="292" style="fill:#576c7b">http_ui_observe</text>
+          <rect x="408" y="2542.0" width="320" height="180" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+          <text id="text-79" x="568.0" y="2599.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="290" class="code" style="fill:#233747">http_ui</text>
+          <text id="text-80" x="568.0" y="2628.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="292" style="fill:#576c7b">http_ui_bus</text>
+          <text id="text-81" x="568.0" y="2655.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="292" style="fill:#576c7b">http_ui_files</text>
+          <text id="text-82" x="568.0" y="2682.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="292" style="fill:#576c7b">http_ui_observe</text>
         </g>
       </g>
     </g>
-    <g id="f-input-transports" data-kind="component" data-layer="L3" data-ownership="freertos" data-source="">
-      <title>L3. Приём команд</title>
-      <rect x="80" y="2110" width="700" height="122" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-      <a xlink:href="architecture_bvstk_l3.svg#f-request-handlers">
-        <text id="text-108" x="430.0" y="2151.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L3. Приём команд</text>
+    <g id="f-observation" data-kind="component" data-layer="L3" data-ownership="freertos" data-source="" data-label="Наблюдение и уведомления" data-target="architecture_bvstk_l3.svg#f-observation" data-entity="architecture_bvstk_l3.svg#f-observation" data-entity-ownership="freertos" data-representation="reference">
+      <title>L3. Наблюдение и уведомления</title>
+      <rect x="80" y="2900.0" width="700" height="122" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
+      <a xlink:href="architecture_bvstk_l3.svg#f-observation" data-ref-node="f-observation" aria-label="Открыть блок «Наблюдение и уведомления» на схеме L3">
+        <text id="text-121" x="430.0" y="2955.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L3. Наблюдение и уведомления</text>
       </a>
-      <text id="text-109" x="430.0" y="2180.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">bvstk_uart_console, bvstk_tcp_server</text>
-      <text id="text-110" x="430.0" y="2207.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">bvstk_ssh_server, http_server</text>
+      <text id="text-122" x="430.0" y="2984.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">bvstk_observer, dcp2_notify</text>
+    </g>
+    <g id="f-input-transports" data-kind="component" data-layer="L3" data-ownership="freertos" data-source="" data-label="Входы и сетевые службы" data-target="architecture_bvstk_l3.svg#f-request-handlers" data-entity="architecture_bvstk_l3.svg#f-request-handlers" data-entity-ownership="freertos" data-representation="reference">
+      <title>L3. Входы и сетевые службы</title>
+      <rect x="80" y="1060" width="700" height="122" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
+      <a xlink:href="architecture_bvstk_l3.svg#f-request-handlers" data-ref-node="f-input-transports" aria-label="Открыть блок «Входы и сетевые службы» на схеме L3">
+        <text id="text-124" x="430.0" y="1101.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L3. Входы и сетевые службы</text>
+      </a>
+      <text id="text-125" x="430.0" y="1130.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">bvstk_uart_console, bvstk_tcp_server</text>
+      <text id="text-126" x="430.0" y="1157.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">bvstk_ssh_server, http_server</text>
     </g>
   </g>
   <g id="neutrino-region" data-kind="ownership-region" data-ownership="neutrino">
-    <rect x="1980" y="188" width="780" height="2112" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+    <rect x="1980" y="188" width="780" height="2912" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
     <text id="text-9" x="2008" y="230" font-size="25" font-weight="700" text-anchor="start" data-max-width="710" style="fill:#233747">Нейтрино</text>
     <g id="n-application-start" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-source="src/apps/neutrino">
       <title>Запуск приложения
 src/apps/neutrino</title>
       <rect x="2020" y="290" width="700" height="540" rx="10" fill="#f7fbff" stroke="#3f75ad" stroke-width="1.8" stroke-opacity="1" />
       <text id="text-23" x="2042" y="325" font-size="23" font-weight="700" text-anchor="start" data-max-width="656" style="fill:#233747">L4. Запуск приложения</text>
-      <g id="n-startup" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-parent="n-application-start" data-source="">
+      <g id="n-startup" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-parent="n-application-start" data-source="" data-label="Создание среды исполнения" data-entity="architecture_bvstk_l4.svg#n-startup" data-entity-ownership="neutrino" data-representation="definition">
         <title>Создание среды исполнения</title>
         <rect x="2048" y="352" width="644" height="178" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-24" x="2070" y="387" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Создание среды исполнения</text>
+        <a xlink:href="architecture_bvstk_l3.svg#n-runtime-caller" data-ref-node="n-startup" data-navigation="return" aria-label="Вернуться к блоку «Создание среды исполнения» на соседней схеме">
+          <text id="text-24" x="2070" y="387" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Создание среды исполнения</text>
+        </a>
         <g id="n-main" data-kind="component" data-layer="L4" data-ownership="neutrino" data-parent="n-startup" data-source="">
           <title>bvstkd</title>
           <rect x="2072" y="414" width="232" height="88" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
@@ -253,10 +300,12 @@ src/apps/neutrino/runtime/bvstk_i2c_runtime.h</title>
           <text id="text-28" x="2516.0" y="481.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="276" style="fill:#576c7b">Экземпляры сервисов</text>
         </g>
       </g>
-      <g id="n-configuration" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-parent="n-application-start" data-source="">
+      <g id="n-configuration" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-parent="n-application-start" data-source="" data-label="Хранение настроек" data-entity="architecture_bvstk_l4.svg#n-configuration" data-entity-ownership="neutrino" data-representation="definition">
         <title>Хранение настроек</title>
         <rect x="2048" y="584" width="644" height="218" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-29" x="2070" y="619" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Хранение настроек</text>
+        <a xlink:href="architecture_bvstk_l3.svg#n-file-callers" data-ref-node="n-configuration" data-navigation="return" aria-label="Вернуться к блоку «Хранение настроек» на соседней схеме">
+          <text id="text-29" x="2070" y="619" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Хранение настроек</text>
+        </a>
         <g id="n-config-store" data-kind="component" data-layer="L4" data-ownership="neutrino" data-parent="n-configuration" data-source="src/apps/neutrino/config/bvstk_i2c_config_store.c;src/apps/neutrino/config/bvstk_i2c_config_store.h">
           <title>bvstk_i2c_config_store
 src/apps/neutrino/config/bvstk_i2c_config_store.c
@@ -265,10 +314,10 @@ src/apps/neutrino/config/bvstk_i2c_config_store.h</title>
           <text id="text-30" x="2226.0" y="704.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="278" class="code" style="fill:#233747">bvstk_i2c_config_store</text>
           <text id="text-31" x="2226.0" y="733.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="280" style="fill:#576c7b">Загрузка и сохранение</text>
         </g>
-        <g id="n-files" data-kind="component" data-layer="L3" data-ownership="neutrino" data-parent="n-configuration" data-source="">
+        <g id="n-files" data-kind="component" data-layer="L3" data-ownership="neutrino" data-parent="n-configuration" data-source="" data-label="Файловый стек" data-target="architecture_bvstk_l3.svg#n-system-services" data-entity="architecture_bvstk_l3.svg#n-system-services" data-entity-ownership="neutrino" data-representation="reference">
           <title>L3. Файловый стек</title>
           <rect x="2436" y="648" width="232" height="124" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <a xlink:href="architecture_bvstk_l3.svg#n-system-services">
+          <a xlink:href="architecture_bvstk_l3.svg#n-system-services" data-ref-node="n-files" aria-label="Открыть блок «Файловый стек» на схеме L3">
             <text id="text-32" x="2552.0" y="690.5" font-size="18.42" font-weight="700" text-anchor="middle" data-max-width="202" style="fill:#233747">L3. Файловый стек</text>
           </a>
           <text id="text-33" x="2552.0" y="719.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="204" style="fill:#576c7b">POSIX-файлы</text>
@@ -276,69 +325,82 @@ src/apps/neutrino/config/bvstk_i2c_config_store.h</title>
         </g>
       </g>
     </g>
-    <g id="n-application-operations" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-source="">
+    <g id="n-application-operations" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-source="" data-label="Командные программы" data-entity="architecture_bvstk_l4.svg#n-application-operations" data-entity-ownership="neutrino" data-representation="definition">
       <title>Командные программы</title>
-      <rect x="2020" y="1100" width="700" height="696" rx="10" fill="#f7fbff" stroke="#3f75ad" stroke-width="1.8" stroke-opacity="1" />
-      <text id="text-85" x="2042" y="1135" font-size="23" font-weight="700" text-anchor="start" data-max-width="656" style="fill:#233747">L4. Командные программы</text>
+      <rect x="2020" y="1300.0" width="700" height="696" rx="10" fill="#f7fbff" stroke="#3f75ad" stroke-width="1.8" stroke-opacity="1" />
+      <a xlink:href="architecture_bvstk_l3.svg#n-application-operations" data-ref-node="n-application-operations" data-navigation="return" aria-label="Вернуться к блоку «Командные программы» на соседней схеме">
+        <text id="text-95" x="2042" y="1335.0" font-size="23" font-weight="700" text-anchor="start" data-max-width="656" style="fill:#233747">L4. Командные программы</text>
+      </a>
       <g id="n-shell" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-parent="n-application-operations" data-source="">
         <title>Оболочка</title>
-        <rect x="2048" y="1162" width="644" height="154" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-86" x="2070" y="1197" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Оболочка</text>
+        <rect x="2048" y="1362.0" width="644" height="154" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+        <text id="text-96" x="2070" y="1397.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Оболочка</text>
         <g id="n-shell-program" data-kind="component" data-layer="L4" data-ownership="neutrino" data-parent="n-shell" data-source="">
           <title>bvstk-shell</title>
-          <rect x="2072" y="1222" width="596" height="68" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-87" x="2370.0" y="1250.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">bvstk-shell</text>
-          <text id="text-88" x="2370.0" y="1279.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Редактор строки, запуск ksh</text>
+          <rect x="2072" y="1422.0" width="596" height="68" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+          <text id="text-97" x="2370.0" y="1450.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">bvstk-shell</text>
+          <text id="text-98" x="2370.0" y="1479.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Редактор строки, запуск ksh</text>
         </g>
       </g>
       <g id="n-clients" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-parent="n-application-operations" data-source="">
         <title>Команды</title>
-        <rect x="2048" y="1372" width="644" height="162" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-89" x="2070" y="1407" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Команды</text>
+        <rect x="2048" y="1572.0" width="644" height="162" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+        <text id="text-99" x="2070" y="1607.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="600" style="fill:#233747">Команды</text>
         <g id="n-i2c" data-kind="component" data-layer="L4" data-ownership="neutrino" data-parent="n-clients" data-source="">
           <title>i2c</title>
-          <rect x="2072" y="1432" width="280" height="74" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-90" x="2212.0" y="1476.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">i2c</text>
+          <rect x="2072" y="1632.0" width="280" height="74" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+          <text id="text-100" x="2212.0" y="1676.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">i2c</text>
         </g>
-        <g id="n-bvstkctl" data-kind="component" data-layer="L4" data-ownership="neutrino" data-parent="n-clients" data-source="">
+        <g id="n-bvstkctl" data-kind="component" data-layer="L4" data-ownership="neutrino" data-parent="n-clients" data-source="" data-label="bvstkctl" data-entity="architecture_bvstk_l4.svg#n-bvstkctl" data-entity-ownership="neutrino" data-representation="definition">
           <title>bvstkctl</title>
-          <rect x="2388" y="1432" width="280" height="74" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-91" x="2528.0" y="1476.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">bvstkctl</text>
+          <rect x="2388" y="1632.0" width="280" height="74" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+          <a xlink:href="architecture_bvstk_l1.svg#n-application-operations" data-ref-node="n-bvstkctl" data-navigation="return" aria-label="Вернуться к блоку «bvstkctl» на соседней схеме">
+            <text id="text-101" x="2528.0" y="1676.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">bvstkctl</text>
+          </a>
         </g>
       </g>
       <g id="n-ipc-client" data-kind="component" data-layer="L4" data-ownership="neutrino" data-parent="n-application-operations" data-source="src/apps/neutrino/i2c/bvstk_i2c_client.h;src/apps/neutrino/i2c/bvstk_i2c_client.c">
         <title>bvstk_i2c_client
 src/apps/neutrino/i2c/bvstk_i2c_client.h
 src/apps/neutrino/i2c/bvstk_i2c_client.c</title>
-        <rect x="2072" y="1590" width="596" height="82" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-        <text id="text-92" x="2370.0" y="1625.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">bvstk_i2c_client</text>
-        <text id="text-93" x="2370.0" y="1654.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Открытие устройства и devctl</text>
+        <rect x="2072" y="1790.0" width="282" height="106" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+        <text id="text-102" x="2213.0" y="1823.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="252" class="code" style="fill:#233747">bvstk_i2c_client</text>
+        <text id="text-103" x="2213.0" y="1852.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="254" style="fill:#576c7b">Открытие устройства</text>
+        <text id="text-104" x="2213.0" y="1879.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="254" style="fill:#576c7b">Запрос devctl</text>
+      </g>
+      <g id="n-direct-mmio" data-kind="component" data-layer="L1" data-ownership="neutrino" data-parent="n-application-operations" data-source="" data-label="Доступ к регистрам" data-target="architecture_bvstk_l1.svg#platform-access" data-entity="architecture_bvstk_l1.svg#platform-access" data-entity-ownership="common" data-representation="reference">
+        <title>L1. Доступ к регистрам</title>
+        <rect x="2420" y="1790.0" width="248" height="106" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
+        <a xlink:href="architecture_bvstk_l1.svg#platform-access" data-ref-node="n-direct-mmio" aria-label="Открыть блок «Доступ к регистрам» на схеме L1">
+          <text id="text-105" x="2544.0" y="1837.0" font-size="16.12" font-weight="700" text-anchor="middle" data-max-width="218" style="fill:#233747">L1. Доступ к регистрам</text>
+        </a>
+        <text id="text-106" x="2544.0" y="1866.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="220" style="fill:#576c7b">bvstk_pl_service</text>
       </g>
     </g>
-    <g id="n-kernel" data-kind="component" data-layer="L2" data-ownership="neutrino" data-source="">
+    <g id="n-kernel" data-kind="component" data-layer="L2" data-ownership="neutrino" data-source="" data-label="IPC" data-target="architecture_bvstk_l3.svg#n-kernel" data-entity="architecture_bvstk_l3.svg#n-kernel" data-entity-ownership="neutrino" data-representation="reference">
       <title>L2. IPC</title>
-      <rect x="2020" y="1882" width="700" height="118" rx="7" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.4" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-kernel">
-        <text id="text-95" x="2370.0" y="1935.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L2. IPC</text>
+      <rect x="2020" y="2082.0" width="700" height="118" rx="7" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.4" />
+      <a xlink:href="architecture_bvstk_l3.svg#n-kernel" data-ref-node="n-kernel" aria-label="Открыть блок «IPC» на схеме L3">
+        <text id="text-108" x="2370.0" y="2135.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L2. IPC</text>
       </a>
-      <text id="text-96" x="2370.0" y="1964.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">procnto: передача запроса менеджеру ресурсов</text>
+      <text id="text-109" x="2370.0" y="2164.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">procnto: передача запроса менеджеру ресурсов</text>
     </g>
-    <g id="n-request-handlers" data-kind="component" data-layer="L3" data-ownership="neutrino" data-source="">
+    <g id="n-request-handlers" data-kind="component" data-layer="L3" data-ownership="neutrino" data-source="" data-label="Менеджер ресурсов" data-target="architecture_bvstk_l3.svg#n-resource-manager" data-entity="architecture_bvstk_l3.svg#n-resource-manager" data-entity-ownership="neutrino" data-representation="reference">
       <title>L3. Менеджер ресурсов</title>
-      <rect x="2020" y="2100" width="700" height="146" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-      <a xlink:href="architecture_bvstk_l3.svg#n-request-handlers">
-        <text id="text-98" x="2370.0" y="2153.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L3. Менеджер ресурсов</text>
+      <rect x="2020" y="2300.0" width="700" height="146" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
+      <a xlink:href="architecture_bvstk_l3.svg#n-resource-manager" data-ref-node="n-request-handlers" aria-label="Открыть блок «Менеджер ресурсов» на схеме L3">
+        <text id="text-111" x="2370.0" y="2353.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L3. Менеджер ресурсов</text>
       </a>
-      <text id="text-99" x="2370.0" y="2182.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">bvstk_i2c_resmgr</text>
-      <text id="text-100" x="2370.0" y="2209.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">В процессе bvstkd</text>
+      <text id="text-112" x="2370.0" y="2382.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">bvstk_i2c_resmgr</text>
+      <text id="text-113" x="2370.0" y="2409.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">В процессе bvstkd</text>
     </g>
   </g>
   <g id="common-region" data-kind="ownership-region" data-ownership="common">
     <text id="text-10" x="1400" y="230" font-size="25" font-weight="700" text-anchor="middle" data-max-width="900" style="fill:#233747">Общие и переиспользуемые части</text>
-    <g id="created-services" data-kind="component" data-layer="L3" data-ownership="common" data-source="">
+    <g id="created-services" data-kind="component" data-layer="L3" data-ownership="common" data-source="" data-label="Сервисы подсистем" data-target="architecture_bvstk_l3.svg#subsystem-services" data-entity="architecture_bvstk_l3.svg#subsystem-services" data-entity-ownership="common" data-representation="reference">
       <title>L3. Сервисы подсистем</title>
       <rect x="1000" y="330" width="800" height="168" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-      <a xlink:href="architecture_bvstk_l3.svg#subsystem-services">
+      <a xlink:href="architecture_bvstk_l3.svg#subsystem-services" data-ref-node="created-services" aria-label="Открыть блок «Сервисы подсистем» на схеме L3">
         <text id="text-35" x="1400.0" y="394.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Сервисы подсистем</text>
       </a>
       <text id="text-36" x="1400.0" y="423.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Runtime создаёт и связывает экземпляры.</text>
@@ -376,92 +438,92 @@ src/shared/config/bvstk_mdio_config_codec.h</title>
     </g>
     <g id="input-processing" data-kind="functional-group" data-layer="L4" data-ownership="common" data-source="">
       <title>Обработка ввода</title>
-      <rect x="1000" y="1100" width="800" height="650" rx="10" fill="#f7fbff" stroke="#3f75ad" stroke-width="1.8" stroke-opacity="1" />
-      <text id="text-73" x="1022" y="1135" font-size="23" font-weight="700" text-anchor="start" data-max-width="756" style="fill:#233747">L4. Обработка ввода</text>
+      <rect x="1000" y="1300.0" width="800" height="650" rx="10" fill="#f7fbff" stroke="#3f75ad" stroke-width="1.8" stroke-opacity="1" />
+      <text id="text-83" x="1022" y="1335.0" font-size="23" font-weight="700" text-anchor="start" data-max-width="756" style="fill:#233747">L4. Обработка ввода</text>
       <g id="shared-cli" data-kind="functional-group" data-layer="L4" data-ownership="common" data-parent="input-processing" data-source="">
         <title>Командная строка</title>
-        <rect x="1028" y="1162" width="744" height="364" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-74" x="1050" y="1197" font-size="21" font-weight="700" text-anchor="start" data-max-width="700" style="fill:#233747">Командная строка</text>
+        <rect x="1028" y="1362.0" width="744" height="364" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+        <text id="text-84" x="1050" y="1397.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="700" style="fill:#233747">Командная строка</text>
         <g id="line-editor" data-kind="component" data-layer="L4" data-ownership="common" data-parent="shared-cli" data-source="src/shared/cli/bvstk_line_editor.c;src/shared/cli/bvstk_line_editor.h">
           <title>bvstk_line_editor
 src/shared/cli/bvstk_line_editor.c
 src/shared/cli/bvstk_line_editor.h</title>
-          <rect x="1052" y="1222" width="696" height="82" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-75" x="1400.0" y="1257.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_line_editor</text>
-          <text id="text-76" x="1400.0" y="1286.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">Редактирование строки</text>
+          <rect x="1052" y="1422.0" width="696" height="82" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+          <text id="text-85" x="1400.0" y="1457.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_line_editor</text>
+          <text id="text-86" x="1400.0" y="1486.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">Редактирование строки</text>
         </g>
         <g id="completion" data-kind="functional-group" data-layer="L4" data-ownership="common" data-parent="shared-cli" data-source="">
           <title>Дополнение команд</title>
-          <rect x="1052" y="1350" width="696" height="148" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-          <text id="text-77" x="1074" y="1385" font-size="21" font-weight="700" text-anchor="start" data-max-width="652" style="fill:#233747">Дополнение команд</text>
+          <rect x="1052" y="1550.0" width="696" height="148" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+          <text id="text-87" x="1074" y="1585.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="652" style="fill:#233747">Дополнение команд</text>
           <g id="i2c-completion" data-kind="component" data-layer="L4" data-ownership="common" data-parent="completion" data-source="src/shared/cli/bvstk_i2c_completion.h;src/shared/cli/bvstk_i2c_completion.c">
             <title>bvstk_i2c_completion
 src/shared/cli/bvstk_i2c_completion.h
 src/shared/cli/bvstk_i2c_completion.c</title>
-            <rect x="1076" y="1408" width="312" height="62" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-78" x="1232.0" y="1446.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="282" class="code" style="fill:#233747">bvstk_i2c_completion</text>
+            <rect x="1076" y="1608.0" width="312" height="62" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+            <text id="text-88" x="1232.0" y="1646.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="282" class="code" style="fill:#233747">bvstk_i2c_completion</text>
           </g>
           <g id="mdio-completion" data-kind="component" data-layer="L4" data-ownership="common" data-parent="completion" data-source="src/shared/cli/bvstk_mdio_completion.h;src/shared/cli/bvstk_mdio_completion.c">
             <title>bvstk_mdio_completion
 src/shared/cli/bvstk_mdio_completion.h
 src/shared/cli/bvstk_mdio_completion.c</title>
-            <rect x="1412" y="1408" width="312" height="62" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-            <text id="text-79" x="1568.0" y="1446.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="282" class="code" style="fill:#233747">bvstk_mdio_completion</text>
+            <rect x="1412" y="1608.0" width="312" height="62" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+            <text id="text-89" x="1568.0" y="1646.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="282" class="code" style="fill:#233747">bvstk_mdio_completion</text>
           </g>
         </g>
       </g>
       <g id="input-values" data-kind="functional-group" data-layer="L4" data-ownership="common" data-parent="input-processing" data-source="">
         <title>Проверка значений</title>
-        <rect x="1028" y="1570" width="744" height="152" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
-        <text id="text-80" x="1050" y="1605" font-size="21" font-weight="700" text-anchor="start" data-max-width="700" style="fill:#233747">Проверка значений</text>
+        <rect x="1028" y="1770.0" width="744" height="152" rx="10" fill="white" stroke="#3f75ad" stroke-width="1.15" stroke-opacity="0.72" />
+        <text id="text-90" x="1050" y="1805.0" font-size="21" font-weight="700" text-anchor="start" data-max-width="700" style="fill:#233747">Проверка значений</text>
         <g id="parse" data-kind="component" data-layer="L4" data-ownership="common" data-parent="input-values" data-source="src/shared/base/bvstk_parse.h;src/shared/base/bvstk_parse.c">
           <title>bvstk_parse
 src/shared/base/bvstk_parse.h
 src/shared/base/bvstk_parse.c</title>
-          <rect x="1052" y="1630" width="336" height="64" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-81" x="1220.0" y="1669.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="306" class="code" style="fill:#233747">bvstk_parse</text>
+          <rect x="1052" y="1830.0" width="336" height="64" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+          <text id="text-91" x="1220.0" y="1869.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="306" class="code" style="fill:#233747">bvstk_parse</text>
         </g>
         <g id="http-input" data-kind="component" data-layer="L4" data-ownership="common" data-parent="input-values" data-source="src/shared/protocols/http/bvstk_http_input.h;src/shared/protocols/http/bvstk_http_input.c">
           <title>bvstk_http_input
 src/shared/protocols/http/bvstk_http_input.h
 src/shared/protocols/http/bvstk_http_input.c</title>
-          <rect x="1412" y="1630" width="336" height="64" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-82" x="1580.0" y="1669.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="306" class="code" style="fill:#233747">bvstk_http_input</text>
+          <rect x="1412" y="1830.0" width="336" height="64" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
+          <text id="text-92" x="1580.0" y="1869.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="306" class="code" style="fill:#233747">bvstk_http_input</text>
         </g>
       </g>
     </g>
-    <g id="subsystem-services" data-kind="component" data-layer="L3" data-ownership="common" data-source="">
+    <g id="subsystem-services" data-kind="component" data-layer="L3" data-ownership="common" data-source="" data-label="Сервисы подсистем" data-target="architecture_bvstk_l3.svg#subsystem-services" data-entity="architecture_bvstk_l3.svg#subsystem-services" data-entity-ownership="common" data-representation="reference">
       <title>L3. Сервисы подсистем</title>
-      <rect x="1000" y="2100" width="800" height="146" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-      <a xlink:href="architecture_bvstk_l3.svg#subsystem-services">
-        <text id="text-102" x="1400.0" y="2153.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Сервисы подсистем</text>
+      <rect x="1000" y="2300.0" width="800" height="146" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
+      <a xlink:href="architecture_bvstk_l3.svg#subsystem-services" data-ref-node="subsystem-services" aria-label="Открыть блок «Сервисы подсистем» на схеме L3">
+        <text id="text-115" x="1400.0" y="2353.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Сервисы подсистем</text>
       </a>
-      <text id="text-103" x="1400.0" y="2182.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Операции, состояние и правила доступа.</text>
-      <text id="text-104" x="1400.0" y="2209.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Конкретные сервисы раскрыты на L3.</text>
+      <text id="text-116" x="1400.0" y="2382.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Операции, состояние и правила доступа.</text>
+      <text id="text-117" x="1400.0" y="2409.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Конкретные сервисы раскрыты на L3.</text>
     </g>
   </g>
-  <line x1="60" y1="2324" x2="2740" y2="2324" stroke="#ccd5dc" />
-  <text id="text-112" x="144" y="2368" font-size="19" font-weight="400" text-anchor="start" data-max-width="520" style="fill:#576c7b">Вызов</text>
-  <text id="text-113" x="829" y="2368" font-size="19" font-weight="400" text-anchor="start" data-max-width="520" style="fill:#576c7b">MMIO и настройка</text>
-  <text id="text-114" x="1514" y="2368" font-size="19" font-weight="400" text-anchor="start" data-max-width="520" style="fill:#576c7b">Передача данных</text>
-  <text id="text-115" x="2199" y="2368" font-size="19" font-weight="400" text-anchor="start" data-max-width="520" style="fill:#576c7b">IRQ и событие</text>
-  <rect x="60" y="2402" width="49" height="31" rx="5" fill="#e9eef3" stroke="#607487" />
-  <text id="text-116" x="84.5" y="2425" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#607487">L0</text>
-  <text id="text-117" x="125" y="2425" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Аппаратура</text>
-  <rect x="590" y="2402" width="49" height="31" rx="5" fill="#fff0d6" stroke="#b56b1d" />
-  <text id="text-118" x="614.5" y="2425" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#b56b1d">L1</text>
-  <text id="text-119" x="655" y="2425" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Платформа</text>
-  <rect x="1120" y="2402" width="49" height="31" rx="5" fill="#ffd1c7" stroke="#c65b4e" />
-  <text id="text-120" x="1144.5" y="2425" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#c65b4e">L2</text>
-  <text id="text-121" x="1185" y="2425" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Ядро ОС</text>
-  <rect x="1650" y="2402" width="49" height="31" rx="5" fill="#d9f0ea" stroke="#287f73" />
-  <text id="text-122" x="1674.5" y="2425" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#287f73">L3</text>
-  <text id="text-123" x="1715" y="2425" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Сервисы</text>
-  <rect x="2180" y="2402" width="49" height="31" rx="5" fill="#d9ebff" stroke="#3f75ad" />
-  <text id="text-124" x="2204.5" y="2425" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#3f75ad">L4</text>
-  <text id="text-125" x="2245" y="2425" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Приложения</text>
-  <text id="text-126" x="60" y="2473" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">Вложенность показывает состав. Стрелка к рамке относится к функции внутри неё. Цвет обозначает уровень.</text>
-  <text id="text-127" x="60" y="2502" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">В центре — исходники для повторного использования. Каждая сборка выбирает свой набор модулей и создаёт свои экземпляры.</text>
+  <line x1="60" y1="3124" x2="2740" y2="3124" stroke="#ccd5dc" />
+  <text id="text-128" x="144" y="3168" font-size="19" font-weight="400" text-anchor="start" data-max-width="520" style="fill:#576c7b">Вызов</text>
+  <text id="text-129" x="829" y="3168" font-size="19" font-weight="400" text-anchor="start" data-max-width="520" style="fill:#576c7b">MMIO и настройка</text>
+  <text id="text-130" x="1514" y="3168" font-size="19" font-weight="400" text-anchor="start" data-max-width="520" style="fill:#576c7b">Передача данных</text>
+  <text id="text-131" x="2199" y="3168" font-size="19" font-weight="400" text-anchor="start" data-max-width="520" style="fill:#576c7b">IRQ и событие</text>
+  <rect x="60" y="3202" width="49" height="31" rx="5" fill="#e9eef3" stroke="#607487" />
+  <text id="text-132" x="84.5" y="3225" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#607487">L0</text>
+  <text id="text-133" x="125" y="3225" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Аппаратура</text>
+  <rect x="590" y="3202" width="49" height="31" rx="5" fill="#fff0d6" stroke="#b56b1d" />
+  <text id="text-134" x="614.5" y="3225" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#b56b1d">L1</text>
+  <text id="text-135" x="655" y="3225" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Платформа</text>
+  <rect x="1120" y="3202" width="49" height="31" rx="5" fill="#ffd1c7" stroke="#c65b4e" />
+  <text id="text-136" x="1144.5" y="3225" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#c65b4e">L2</text>
+  <text id="text-137" x="1185" y="3225" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Ядро ОС</text>
+  <rect x="1650" y="3202" width="49" height="31" rx="5" fill="#d9f0ea" stroke="#287f73" />
+  <text id="text-138" x="1674.5" y="3225" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#287f73">L3</text>
+  <text id="text-139" x="1715" y="3225" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Сервисы</text>
+  <rect x="2180" y="3202" width="49" height="31" rx="5" fill="#d9ebff" stroke="#3f75ad" />
+  <text id="text-140" x="2204.5" y="3225" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#3f75ad">L4</text>
+  <text id="text-141" x="2245" y="3225" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Приложения</text>
+  <text id="text-142" x="60" y="3273" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">Вложенность показывает состав. Заголовок ссылочного блока открывает одноимённый блок соседней схемы.</text>
+  <text id="text-143" x="60" y="3302" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">В центре — исходники для повторного использования. Каждая сборка выбирает свой набор модулей и создаёт свои экземпляры.</text>
   <g id="interactions" data-kind="interactions">
     <g id="f-starts-runtime" data-kind="interaction" data-interaction="call" data-from="f-main" data-to="f-runtime">
       <path d="M 364 458 L 424 458" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
@@ -513,78 +575,445 @@ src/shared/protocols/http/bvstk_http_input.c</title>
       <path d="M 430 830 L 430 892" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
       <path d="M 430 830 L 430 892" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
+    <g id="f-file-commands-to-stack" data-kind="interaction" data-interaction="data" data-from="f-file-commands" data-to="f-command-files">
+      <path d="M 572 1820 L 572 1876" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
+      <path d="M 572 1820 L 572 1876" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+    </g>
+    <g id="f-ip-calls-network" data-kind="interaction" data-interaction="call" data-from="f-command-ip_shell" data-to="f-network-settings">
+      <path d="M 572 2094 L 572 2109 Q 572 2118 563 2118 L 291 2118 Q 282 2118 282 2127 L 282 2150" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 572 2094 L 572 2109 Q 572 2118 563 2118 L 291 2118 Q 282 2118 282 2127 L 282 2150" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g id="f-mem-calls-bsp" data-kind="interaction" data-interaction="call" data-from="f-command-mem_shell" data-to="f-direct-mmio">
+      <path d="M 572 2226 L 572 2282" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 572 2226 L 572 2282" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
     <g id="f-dispatches-command" data-kind="interaction" data-interaction="call" data-from="f-console-dispatch" data-to="f-command-handlers">
-      <path d="M 430 1298 L 430 1350" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 430 1298 L 430 1350" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <path d="M 430 1498 L 430 1550" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 430 1498 L 430 1550" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
     <g id="f-web-requests" data-kind="interaction" data-interaction="data" data-from="f-web-assets" data-to="f-http-commands">
-      <path d="M 352 1824 L 408 1824" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
-      <path d="M 352 1824 L 408 1824" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+      <path d="M 352 2632 L 408 2632" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
+      <path d="M 352 2632 L 408 2632" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
     </g>
     <g id="f-console-edits" data-kind="interaction" data-interaction="call" data-from="f-console" data-to="shared-cli">
-      <path d="M 780 1263 L 1000 1263" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 780 1263 L 1000 1263" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-      <text id="text-83" x="890" y="1244" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#788794">Строка ввода</text>
+      <path d="M 780 1463 L 1000 1463" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 780 1463 L 1000 1463" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <text id="text-93" x="890" y="1444.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#788794">Строка ввода</text>
     </g>
     <g id="f-http-parses" data-kind="interaction" data-interaction="call" data-from="f-web" data-to="input-values">
-      <path d="M 780 1800 L 881.0 1800.0 Q 890 1800 890.0 1791.0 L 890.0 1671.0 Q 890 1662 899.0 1662.0 L 1000 1662" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 780 1800 L 881.0 1800.0 Q 890 1800 890.0 1791.0 L 890.0 1671.0 Q 890 1662 899.0 1662.0 L 1000 1662" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-      <text id="text-84" x="886" y="1643" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#788794">HTTP-ввод</text>
+      <path d="M 780 2608 L 881 2608 Q 890 2608 890 2599 L 890 1871 Q 890 1862 899 1862 L 1000 1862" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 780 2608 L 881 2608 Q 890 2608 890 2599 L 890 1871 Q 890 1862 899 1862 L 1000 1862" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <text id="text-94" x="886" y="1843.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#788794">HTTP-ввод</text>
     </g>
     <g id="n-shell-starts-programs" data-kind="interaction" data-interaction="call" data-from="n-shell" data-to="n-clients">
-      <path d="M 2370 1316 L 2370 1372" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 2370 1316 L 2370 1372" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <path d="M 2370 1516 L 2370 1572" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 2370 1516 L 2370 1572" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
-    <g id="n-uses-ipc-client" data-kind="interaction" data-interaction="call" data-from="n-clients" data-to="n-ipc-client">
-      <path d="M 2370 1534 L 2370 1590" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 2370 1534 L 2370 1590" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    <g id="n-i2c-uses-client" data-kind="interaction" data-interaction="call" data-from="n-i2c" data-to="n-ipc-client">
+      <path d="M 2212 1706 L 2212 1790" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 2212 1706 L 2212 1790" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g id="n-bvstkctl-uses-client" data-kind="interaction" data-interaction="call" data-from="n-bvstkctl" data-to="n-ipc-client">
+      <path d="M 2450 1706 L 2450 1745 Q 2450 1754 2441 1754 L 2289 1754 Q 2280 1754 2280 1763 L 2280 1790" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 2450 1706 L 2450 1745 Q 2450 1754 2441 1754 L 2289 1754 Q 2280 1754 2280 1763 L 2280 1790" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g id="n-bvstkctl-uses-registers" data-kind="interaction" data-interaction="call" data-from="n-bvstkctl" data-to="n-direct-mmio">
+      <path d="M 2570 1706 L 2570 1790" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 2570 1706 L 2570 1790" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
     <g id="n-shell-edits" data-kind="interaction" data-interaction="call" data-from="n-shell" data-to="shared-cli">
-      <path d="M 2020 1263 L 1800 1263" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 2020 1263 L 1800 1263" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-      <text id="text-94" x="1910" y="1244" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#788794">Строка ввода</text>
+      <path d="M 2020 1463 L 1800 1463" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 2020 1463 L 1800 1463" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <text id="text-107" x="1910" y="1444.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#788794">Строка ввода</text>
     </g>
     <g id="n-sends-request" data-kind="interaction" data-interaction="data" data-from="n-ipc-client" data-to="n-kernel">
-      <path d="M 2370 1672 L 2370 1882" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
-      <path d="M 2370 1672 L 2370 1882" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-      <text id="text-97" x="2420" y="1830" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#3f75ad">devctl</text>
+      <path d="M 2212 1896 L 2212 1951 Q 2212 1960 2221 1960 L 2361 1960 Q 2370 1960 2370 1969 L 2370 2082" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
+      <path d="M 2212 1896 L 2212 1951 Q 2212 1960 2221 1960 L 2361 1960 Q 2370 1960 2370 1969 L 2370 2082" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+      <text id="text-110" x="2420" y="2030.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#3f75ad">devctl</text>
     </g>
     <g id="n-delivers-request" data-kind="interaction" data-interaction="data" data-from="n-kernel" data-to="n-request-handlers">
-      <path d="M 2370 2000 L 2370 2100" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
-      <path d="M 2370 2000 L 2370 2100" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-      <text id="text-101" x="2400" y="2056" font-size="18" font-weight="400" text-anchor="start" data-max-width="560" class="edge-label" style="fill:#3f75ad">Запрос</text>
+      <path d="M 2370 2200 L 2370 2300" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
+      <path d="M 2370 2200 L 2370 2300" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+      <text id="text-114" x="2400" y="2256.0" font-size="18" font-weight="400" text-anchor="start" data-max-width="560" class="edge-label" style="fill:#3f75ad">Запрос</text>
     </g>
     <g id="f-calls-services" data-kind="interaction" data-interaction="call" data-from="f-application-operations" data-to="subsystem-services">
-      <path d="M 780 1900 L 921.0 1900.0 Q 930 1900 930.0 1909.0 L 930.0 2164.0 Q 930 2173 939.0 2173.0 L 1000 2173" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 780 1900 L 921.0 1900.0 Q 930 1900 930.0 1909.0 L 930.0 2164.0 Q 930 2173 939.0 2173.0 L 1000 2173" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-      <text id="text-105" x="880" y="2060" font-size="18" font-weight="400" text-anchor="middle" data-max-width="205" class="edge-label" style="fill:#788794">Вызов</text>
-      <text id="text-106" x="880" y="2087" font-size="18" font-weight="400" text-anchor="middle" data-max-width="205" class="edge-label" style="fill:#788794">сервиса</text>
+      <path d="M 780 2681 L 931 2681 Q 940 2681 940 2672 L 940 2382 Q 940 2373 949 2373 L 1000 2373" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 780 2681 L 931 2681 Q 940 2681 940 2672 L 940 2382 Q 940 2373 949 2373 L 1000 2373" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <text id="text-118" x="966" y="2550.0" font-size="18" font-weight="400" text-anchor="start" data-max-width="205" class="edge-label" style="fill:#788794">Вызов</text>
+      <text id="text-119" x="966" y="2577.0" font-size="18" font-weight="400" text-anchor="start" data-max-width="205" class="edge-label" style="fill:#788794">сервиса</text>
     </g>
     <g id="n-calls-services" data-kind="interaction" data-interaction="call" data-from="n-request-handlers" data-to="subsystem-services">
-      <path d="M 2020 2173 L 1800 2173" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 2020 2173 L 1800 2173" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-      <text id="text-107" x="1910" y="2154" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#788794">Операция</text>
+      <path d="M 2020 2373 L 1800 2373" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 2020 2373 L 1800 2373" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <text id="text-120" x="1910" y="2354.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="560" class="edge-label" style="fill:#788794">Операция</text>
+    </g>
+    <g id="f-observation-to-web" data-kind="interaction" data-interaction="data" data-from="f-observation" data-to="f-web">
+      <path d="M 430 2900 L 430 2750" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
+      <path d="M 430 2900 L 430 2750" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+      <text id="text-123" x="458" y="2840.0" font-size="18" font-weight="400" text-anchor="start" data-max-width="560" class="edge-label" style="fill:#3f75ad">Снимки</text>
     </g>
     <g id="f-delivers-input" data-kind="interaction" data-interaction="data" data-from="f-input-transports" data-to="f-application-operations">
-      <path d="M 430 2110 L 430 1970" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
-      <path d="M 430 2110 L 430 1970" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-      <text id="text-111" x="458" y="2044" font-size="18" font-weight="400" text-anchor="start" data-max-width="560" class="edge-label" style="fill:#3f75ad">Команды</text>
+      <path d="M 430 1182 L 430 1300" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
+      <path d="M 430 1182 L 430 1300" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+      <text id="text-127" x="458" y="1246" font-size="18" font-weight="400" text-anchor="start" data-max-width="560" class="edge-label" style="fill:#3f75ad">Команды</text>
     </g>
     <g id="legend-call" data-kind="interaction" data-interaction="call" data-from="" data-to="">
-      <path d="M 60 2362 L 125 2362" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 60 2362 L 125 2362" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <path d="M 60 3162 L 125 3162" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 60 3162 L 125 3162" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
     <g id="legend-mmio" data-kind="interaction" data-interaction="mmio" data-from="" data-to="">
-      <path d="M 745 2362 L 810 2362" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 745 2362 L 810 2362" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-arrow)" marker-end="url(#mmio-arrow)" />
+      <path d="M 745 3162 L 810 3162" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 745 3162 L 810 3162" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-arrow)" marker-end="url(#mmio-arrow)" />
     </g>
     <g id="legend-data" data-kind="interaction" data-interaction="data" data-from="" data-to="">
-      <path d="M 1430 2362 L 1495 2362" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
-      <path d="M 1430 2362 L 1495 2362" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+      <path d="M 1430 3162 L 1495 3162" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
+      <path d="M 1430 3162 L 1495 3162" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
     </g>
     <g id="legend-irq" data-kind="interaction" data-interaction="irq" data-from="" data-to="">
-      <path d="M 2115 2362 L 2180 2362" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
-      <path d="M 2115 2362 L 2180 2362" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+      <path d="M 2115 3162 L 2180 3162" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
+      <path d="M 2115 3162 L 2180 3162" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
     </g>
+  </g>
+  <metadata id="cross-sheet-links">[
+  {
+    "block": "f-files",
+    "target": "architecture_bvstk_l3.svg#f-system-services",
+    "label": "Файловый стек",
+    "layer": "L3"
+  },
+  {
+    "block": "f-kernel",
+    "target": "architecture_bvstk_l1.svg#f-task-start",
+    "label": "Запуск задач",
+    "layer": "L2"
+  },
+  {
+    "block": "f-command-files",
+    "target": "architecture_bvstk_l3.svg#f-system-services",
+    "label": "Файловый стек",
+    "layer": "L3"
+  },
+  {
+    "block": "f-network-settings",
+    "target": "architecture_bvstk_l3.svg#f-network-stack",
+    "label": "Сетевой стек",
+    "layer": "L3"
+  },
+  {
+    "block": "f-direct-mmio",
+    "target": "architecture_bvstk_l1.svg#f-mmio-bsp",
+    "label": "Операции Xilinx BSP",
+    "layer": "L1"
+  },
+  {
+    "block": "f-observation",
+    "target": "architecture_bvstk_l3.svg#f-observation",
+    "label": "Наблюдение и уведомления",
+    "layer": "L3"
+  },
+  {
+    "block": "f-input-transports",
+    "target": "architecture_bvstk_l3.svg#f-request-handlers",
+    "label": "Входы и сетевые службы",
+    "layer": "L3"
+  },
+  {
+    "block": "n-files",
+    "target": "architecture_bvstk_l3.svg#n-system-services",
+    "label": "Файловый стек",
+    "layer": "L3"
+  },
+  {
+    "block": "n-direct-mmio",
+    "target": "architecture_bvstk_l1.svg#platform-access",
+    "label": "Доступ к регистрам",
+    "layer": "L1"
+  },
+  {
+    "block": "n-kernel",
+    "target": "architecture_bvstk_l3.svg#n-kernel",
+    "label": "IPC",
+    "layer": "L2"
+  },
+  {
+    "block": "n-request-handlers",
+    "target": "architecture_bvstk_l3.svg#n-resource-manager",
+    "label": "Менеджер ресурсов",
+    "layer": "L3"
+  },
+  {
+    "block": "created-services",
+    "target": "architecture_bvstk_l3.svg#subsystem-services",
+    "label": "Сервисы подсистем",
+    "layer": "L3"
+  },
+  {
+    "block": "subsystem-services",
+    "target": "architecture_bvstk_l3.svg#subsystem-services",
+    "label": "Сервисы подсистем",
+    "layer": "L3"
+  },
+  {
+    "block": "f-command-ip_shell",
+    "target": "architecture_bvstk_l3.svg#f-ip-caller",
+    "label": "ip_shell",
+    "layer": "L4"
+  },
+  {
+    "block": "f-application-operations",
+    "target": "architecture_bvstk_l3.svg#f-application-operations",
+    "label": "Пользовательские интерфейсы",
+    "layer": "L4"
+  },
+  {
+    "block": "f-startup",
+    "target": "architecture_bvstk_l3.svg#f-runtime-caller",
+    "label": "Создание среды исполнения",
+    "layer": "L4"
+  },
+  {
+    "block": "f-web",
+    "target": "architecture_bvstk_l3.svg#f-observation-ui",
+    "label": "Web UI",
+    "layer": "L4"
+  },
+  {
+    "block": "f-configuration",
+    "target": "architecture_bvstk_l3.svg#f-config-files-caller",
+    "label": "Хранение настроек",
+    "layer": "L4"
+  },
+  {
+    "block": "f-file-commands",
+    "target": "architecture_bvstk_l3.svg#f-file-commands-caller",
+    "label": "Файлы и архивы",
+    "layer": "L4"
+  },
+  {
+    "block": "n-application-operations",
+    "target": "architecture_bvstk_l3.svg#n-application-operations",
+    "label": "Командные программы",
+    "layer": "L4"
+  },
+  {
+    "block": "n-startup",
+    "target": "architecture_bvstk_l3.svg#n-runtime-caller",
+    "label": "Создание среды исполнения",
+    "layer": "L4"
+  },
+  {
+    "block": "n-configuration",
+    "target": "architecture_bvstk_l3.svg#n-file-callers",
+    "label": "Хранение настроек",
+    "layer": "L4"
+  },
+  {
+    "block": "f-application-start",
+    "target": "architecture_bvstk_l1.svg#f-startup-caller",
+    "label": "Запуск приложения",
+    "layer": "L4"
+  },
+  {
+    "block": "f-command-mem_shell",
+    "target": "architecture_bvstk_l1.svg#f-application-operations",
+    "label": "mem_shell",
+    "layer": "L4"
+  },
+  {
+    "block": "n-bvstkctl",
+    "target": "architecture_bvstk_l1.svg#n-application-operations",
+    "label": "bvstkctl",
+    "layer": "L4"
+  },
+  {
+    "block": "f-application-start",
+    "target": "architecture_bvstk_os.svg#f-apps",
+    "label": "L4. Приложение",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "f-main",
+    "target": "architecture_bvstk_os.svg#f-apps",
+    "label": "L4. Приложение",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "f-runtime",
+    "target": "architecture_bvstk_os.svg#f-apps",
+    "label": "L4. Приложение",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "n-application-start",
+    "target": "architecture_bvstk_os.svg#n-apps",
+    "label": "L4. Прикладные процессы",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "n-main",
+    "target": "architecture_bvstk_os.svg#n-apps",
+    "label": "L4. Прикладные процессы",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "n-runtime",
+    "target": "architecture_bvstk_os.svg#n-apps",
+    "label": "L4. Прикладные процессы",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "configuration",
+    "target": "architecture_bvstk_os.svg#common-app",
+    "label": "L4. Общая прикладная логика",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "f-application-operations",
+    "target": "architecture_bvstk_os.svg#f-apps",
+    "label": "L4. Приложение",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "f-console",
+    "target": "architecture_bvstk_os.svg#f-apps",
+    "label": "L4. Приложение",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "f-web",
+    "target": "architecture_bvstk_os.svg#f-apps",
+    "label": "L4. Приложение",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "n-application-operations",
+    "target": "architecture_bvstk_os.svg#n-apps",
+    "label": "L4. Прикладные процессы",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "n-shell-program",
+    "target": "architecture_bvstk_os.svg#n-apps",
+    "label": "L4. Прикладные процессы",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "n-bvstkctl",
+    "target": "architecture_bvstk_os.svg#n-apps",
+    "label": "L4. Прикладные процессы",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "input-processing",
+    "target": "architecture_bvstk_os.svg#common-app",
+    "label": "L4. Общая прикладная логика",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "f-configuration",
+    "target": "architecture_bvstk_os.svg#f-apps",
+    "label": "L4. Приложение",
+    "layer": "L4",
+    "relation": "overview"
+  },
+  {
+    "block": "n-configuration",
+    "target": "architecture_bvstk_os.svg#n-apps",
+    "label": "L4. Прикладные процессы",
+    "layer": "L4",
+    "relation": "overview"
+  }
+]</metadata>
+  <a id="overview-return-f-application-start" data-navigation="overview" data-ref-node="f-application-start" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
+    <text x="768.0" y="305.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-f-main" data-navigation="overview" data-ref-node="f-main" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
+    <text x="352.0" y="429.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-f-runtime" data-navigation="overview" data-ref-node="f-runtime" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
+    <text x="716.0" y="429.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-n-application-start" data-navigation="overview" data-ref-node="n-application-start" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
+    <text x="2708.0" y="305.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-n-main" data-navigation="overview" data-ref-node="n-main" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
+    <text x="2292.0" y="429.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-n-runtime" data-navigation="overview" data-ref-node="n-runtime" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
+    <text x="2656.0" y="429.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-configuration" data-navigation="overview" data-ref-node="configuration" xlink:href="architecture_bvstk_os.svg#common-app" aria-label="Открыть раздел «L4. Общая прикладная логика» в обзоре ОС">
+    <text x="1788.0" y="599.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-f-application-operations" data-navigation="overview" data-ref-node="f-application-operations" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
+    <text x="768.0" y="1315.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-f-console" data-navigation="overview" data-ref-node="f-console" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
+    <text x="740.0" y="1377.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-f-web" data-navigation="overview" data-ref-node="f-web" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
+    <text x="740.0" y="2493.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-n-application-operations" data-navigation="overview" data-ref-node="n-application-operations" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
+    <text x="2708.0" y="1315.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-n-shell-program" data-navigation="overview" data-ref-node="n-shell-program" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
+    <text x="2656.0" y="1437.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-n-bvstkctl" data-navigation="overview" data-ref-node="n-bvstkctl" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
+    <text x="2656.0" y="1647.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-input-processing" data-navigation="overview" data-ref-node="input-processing" xlink:href="architecture_bvstk_os.svg#common-app" aria-label="Открыть раздел «L4. Общая прикладная логика» в обзоре ОС">
+    <text x="1788.0" y="1315.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-f-configuration" data-navigation="overview" data-ref-node="f-configuration" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
+    <text x="740.0" y="599.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-n-configuration" data-navigation="overview" data-ref-node="n-configuration" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
+    <text x="2680.0" y="599.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <g id="series-navigation" data-kind="navigation">
+    <a data-navigation="sheet" xlink:href="levels.svg">
+      <rect x="2000.0" y="64" width="124" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2062.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">Уровни</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_os.svg">
+      <rect x="2140.0" y="64" width="84" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2182.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">ОС</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l4.svg">
+      <rect x="2240.0" y="64" width="80" height="46" rx="8" fill="#d9ebff" stroke="#3f75ad" stroke-width="2" />
+      <text x="2280.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#3f75ad">L4</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l3.svg">
+      <rect x="2336.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#287f73" stroke-width="1" />
+      <text x="2376.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#287f73">L3</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l1.svg">
+      <rect x="2432.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#b56b1d" stroke-width="1" />
+      <text x="2472.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#b56b1d">L1</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l0_l1.svg">
+      <rect x="2528.0" y="64" width="116" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2586.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0–L1</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
+      <rect x="2660.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
+    </a>
   </g>
 </svg>

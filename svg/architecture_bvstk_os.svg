@@ -1,186 +1,232 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   width="360mm"
-   height="210mm"
-   viewBox="0 0 360 210"
-   version="1.1"
-   id="bvstk-os-architecture"
-   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
-   sodipodi:docname="architecture_bvstk_os.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <title id="title">BVSTK · общие части и реализации для FreeRTOS и Нейтрино</title>
-  <desc id="description">
-    Самостоятельная схема структуры проекта BVSTK. Слева показаны части,
-    зависящие от FreeRTOS и Xilinx-порта, справа — части, зависящие от
-    Нейтрино и Zynq-порта, а в центре — функциональные группы общего кода,
-    переиспользуемые в обеих альтернативных сборках. Цвет каждого блока
-    обозначает уровень абстракции: L4 приложения, L3 сервисы и драйверы,
-    L2 ядро ОС, L1 OS-порт и BSP, L0 аппаратный контракт и железо.
-    Общие модули входят в отдельные образы через соответствующий порт;
-    две ОС не запускаются одновременно. Сплошная рамка обозначает нативный
-    компонент ОС, штриховая — добавленный BVSTK, точечная — адаптер BVSTK.
-  </desc>
-  <sodipodi:namedview
-     id="namedview"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     inkscape:document-units="mm"
-     showgrid="false"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:showpageshadow="2" />
-  <defs id="defs">
-    <style id="style">
-      text { font-family: &quot;Noto Sans&quot;, &quot;DejaVu Sans&quot;, sans-serif; fill: #172a3a; stroke: none; text-anchor: middle; }
-      .panel-title { font-size: 4.7px; font-weight: 700; }
-      .panel-subtitle { font-size: 2.55px; font-weight: 400; }
-      .module-title { font-size: 3.25px; font-weight: 700; }
-      .module-text { font-size: 2.75px; font-weight: 500; }
-      .module-small { font-size: 2.5px; font-weight: 500; }
-      .note { font-size: 2.65px; font-weight: 400; }
-      .origin { font-size: 2.05px; font-weight: 700; text-anchor: end; letter-spacing: 0.05px; }
-      .muted { fill: #536473; }
-      .left { text-anchor: start; }
-      .frame { fill: #ffffff; stroke: #536473; stroke-width: 0.55; stroke-linejoin: round; }
-      .os-panel { fill: #ffffff; stroke: #536473; stroke-width: 0.6; stroke-linejoin: round; }
-      .common-panel { fill: #fbfdfb; stroke: #36794c; stroke-width: 0.65; stroke-dasharray: 2.8 1.6; stroke-linejoin: round; }
-      .module { stroke-width: 0.42; stroke-linejoin: round; }
-      .native { stroke-dasharray: none; }
-      .bvstk { stroke-width: 0.55; stroke-dasharray: 2 1.2; }
-      .adapter { stroke-width: 0.65; stroke-dasharray: 0.75 0.9; }
-      .origin-os { fill: #536473; }
-      .origin-bvstk { fill: #287f73; }
-      .origin-adapter { fill: #b56b1d; }
-      .empty-module { fill: #ffffff; stroke: #7a8996; stroke-width: 0.4; stroke-dasharray: 1.8 1.1; stroke-linejoin: round; }
-      /* Единая палитра уровней из levels.svg и interaction-схем. */
-      .level-l0 { fill: #e9eef3; stroke: #607487; }
-      .level-l1 { fill: #fff0d6; stroke: #b56b1d; }
-      .level-l2 { fill: #ffd1c7; stroke: #c65b4e; }
-      .level-l3 { fill: #d9f0ea; stroke: #287f73; }
-      .level-l4 { fill: #d9ebff; stroke: #3f75ad; }
-    </style>
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="1630" viewBox="0 0 2800 1630" id="bvstk-os-overview" role="img" aria-labelledby="title desc">
+  <title id="title">BVSTK в двух ОС</title>
+  <desc id="desc">Структура двух альтернативных сборок BVSTK. FreeRTOS находится слева, Нейтрино справа, общий код — в центре. Пунктирные рамки обозначают принадлежность к ОС, цвет — уровень абстракции. Показаны приложения, системные службы, ядра и реализации платформы. Общий код включает прикладную логику, логику подсистем и интерфейсы платформы; он входит в каждую сборку отдельно. Аппаратура общая. Положение блоков показывает их место в структуре. Подробности раскрываются по ссылкам в заголовках.</desc>
+  <defs>
+    <style>text{font-family:DejaVu Sans,sans-serif;fill:#233747;} a{cursor:pointer;} a:hover text{text-decoration:underline;} g:target&gt;rect{stroke-width:4;}</style>
   </defs>
-
-  <g id="sheet" inkscape:groupmode="layer" inkscape:label="BVSTK · общие и OS-зависимые части">
-    <rect id="frame" class="frame" x="5" y="5" width="350" height="200" rx="1" />
-
-    <g id="columns" inkscape:label="Три зоны BVSTK" transform="translate(0,-18)">
-      <rect id="freertos-panel" class="os-panel" x="10" y="36" width="103" height="167" rx="2" />
-      <rect id="common-panel" class="common-panel" x="118" y="36" width="124" height="167" rx="2" />
-      <rect id="neutrino-panel" class="os-panel" x="247" y="36" width="103" height="167" rx="2" />
-
-      <text id="freertos-title" class="panel-title" x="61.5" y="43">FreeRTOS</text>
-      <text id="freertos-subtitle" class="panel-subtitle muted" x="61.5" y="48">OS-зависимые части: приложение и порт</text>
-      <text id="common-title" class="panel-title" x="180" y="43">Общие части BVSTK</text>
-      <text id="common-subtitle" class="panel-subtitle muted" x="180" y="48">переиспользуются в обеих сборках</text>
-      <text id="neutrino-title" class="panel-title" x="298.5" y="43">ЗОСРВ «Нейтрино»</text>
-      <text id="neutrino-subtitle" class="panel-subtitle muted" x="298.5" y="48">OS-зависимые части: процессы и порт</text>
-
-      <!-- L4 -->
-      <rect id="f-l4-app" class="module level-l4 bvstk" x="14" y="54" width="95" height="21" rx="1" />
-      <text id="f-l4-app-title" class="module-title" x="61.5" y="63">Прикладная логика</text>
-      <text id="f-l4-app-text" class="module-text" x="61.5" y="69.5">командные и сетевые входы</text>
-      <text id="f-l4-app-origin" class="origin origin-bvstk" x="107" y="58">BVSTK</text>
-
-      <rect id="c-l4-model" class="module level-l4 bvstk" x="122" y="54" width="56" height="21" rx="1" />
-      <text id="c-l4-model-title" class="module-title" x="150" y="63">Модель управления</text>
-      <text id="c-l4-model-text" class="module-text" x="150" y="69.5">команды и состояния</text>
-      <text id="c-l4-model-origin" class="origin origin-bvstk" x="176" y="58">BVSTK</text>
-      <rect id="c-l4-config" class="module level-l4 bvstk" x="181" y="54" width="57" height="21" rx="1" />
-      <text id="c-l4-config-title" class="module-title" x="209.5" y="63">Конфигурация</text>
-      <text id="c-l4-config-text" class="module-text" x="209.5" y="69.5">модель и кодирование</text>
-      <text id="c-l4-config-origin" class="origin origin-bvstk" x="236" y="58">BVSTK</text>
-
-      <rect id="n-l4-app" class="module level-l4 bvstk" x="251" y="54" width="95" height="21" rx="1" />
-      <text id="n-l4-app-title" class="module-title" x="298.5" y="63">Прикладные процессы</text>
-      <text id="n-l4-app-text" class="module-text" x="298.5" y="69.5">команды и диагностика</text>
-      <text id="n-l4-app-origin" class="origin origin-bvstk" x="344" y="58">BVSTK</text>
-
-      <!-- L3 -->
-      <rect id="f-l3-services" class="module level-l3 bvstk" x="14" y="82" width="95" height="10" rx="1" />
-      <text id="f-l3-services-label" class="module-text" x="61.5" y="88.5">Системные службы</text>
-      <text id="f-l3-services-origin" class="origin origin-bvstk" x="107" y="86">BVSTK</text>
-      <rect id="f-l3-network" class="module level-l3 native" x="14" y="94" width="46.5" height="15" rx="1" />
-      <text id="f-l3-network-label" class="module-text" x="37.25" y="103">Сетевой стек</text>
-      <text id="f-l3-network-origin" class="origin origin-os" x="58.5" y="98">ОС</text>
-      <rect id="f-l3-files" class="module level-l3 native" x="62.5" y="94" width="46.5" height="15" rx="1" />
-      <text id="f-l3-files-label" class="module-text" x="85.75" y="103">Файловый стек</text>
-      <text id="f-l3-files-origin" class="origin origin-os" x="107" y="98">ОС</text>
-
-      <rect id="c-l3-protocols" class="module level-l3 bvstk" x="122" y="82" width="36" height="27" rx="1" />
-      <text id="c-l3-protocols-title" class="module-title" x="140" y="91">Протоколы</text>
-      <text id="c-l3-protocols-text" class="module-small" x="140" y="98">разбор</text>
-      <text id="c-l3-protocols-text-2" class="module-small" x="140" y="103.5">и ответы</text>
-      <text id="c-l3-protocols-origin" class="origin origin-bvstk" x="155" y="86">BVSTK</text>
-      <rect id="c-l3-services" class="module level-l3 bvstk" x="161" y="82" width="37" height="27" rx="1" />
-      <text id="c-l3-services-title" class="module-title" x="179.5" y="91">Сервисы</text>
-      <text id="c-l3-services-text" class="module-small" x="179.5" y="98">состояние</text>
-      <text id="c-l3-services-text-2" class="module-small" x="179.5" y="103.5">и правила</text>
-      <text id="c-l3-services-origin" class="origin origin-bvstk" x="195" y="86">BVSTK</text>
-      <rect id="c-l3-drivers" class="module level-l3 bvstk" x="201" y="82" width="37" height="27" rx="1" />
-      <text id="c-l3-drivers-title" class="module-title" x="219.5" y="91">Драйверы PL</text>
-      <text id="c-l3-drivers-text" class="module-small" x="219.5" y="98">транзакции</text>
-      <text id="c-l3-drivers-text-2" class="module-small" x="219.5" y="103.5">и регистры</text>
-      <text id="c-l3-drivers-origin" class="origin origin-bvstk" x="235" y="86">BVSTK</text>
-
-      <rect id="n-l3-services" class="module level-l3 native" x="251" y="82" width="95" height="10" rx="1" />
-      <text id="n-l3-services-label" class="module-text" x="298.5" y="88.5">Системные стеки</text>
-      <text id="n-l3-services-origin" class="origin origin-os" x="344" y="86">ОС</text>
-      <rect id="n-l3-resource" class="module level-l3 bvstk" x="251" y="94" width="46.5" height="15" rx="1" />
-      <text id="n-l3-resource-label" class="module-text" x="274.25" y="103">Сервис устройств</text>
-      <text id="n-l3-resource-origin" class="origin origin-bvstk" x="294.5" y="98">BVSTK</text>
-      <rect id="n-l3-files" class="module level-l3 native" x="299.5" y="94" width="46.5" height="15" rx="1" />
-      <text id="n-l3-files-label" class="module-text" x="322.75" y="103">Файловый стек</text>
-      <text id="n-l3-files-origin" class="origin origin-os" x="344" y="98">ОС</text>
-
-      <!-- L2 -->
-      <rect id="f-l2-kernel" class="module level-l2 native" x="14" y="118" width="95" height="21" rx="1" />
-      <text id="f-l2-kernel-title" class="module-title" x="61.5" y="127">Ядро FreeRTOS</text>
-      <text id="f-l2-kernel-text" class="module-text" x="61.5" y="133.5">планировщик · задачи · очереди</text>
-      <text id="f-l2-kernel-origin" class="origin origin-os" x="107" y="122">ОС</text>
-
-      <rect id="c-l2-empty" class="empty-module" x="122" y="118" width="116" height="21" rx="1" />
-      <text id="c-l2-empty-title" class="module-title muted" x="180" y="127">Общего ядра BVSTK нет</text>
-      <text id="c-l2-empty-text" class="module-text muted" x="180" y="133.5">ядро выбирается в целевой ОС</text>
-
-      <rect id="n-l2-kernel" class="module level-l2 native" x="251" y="118" width="95" height="21" rx="1" />
-      <text id="n-l2-kernel-title" class="module-title" x="298.5" y="127">procnto-smp</text>
-      <text id="n-l2-kernel-text" class="module-text" x="298.5" y="133.5">микроядро · IPC · планирование</text>
-      <text id="n-l2-kernel-origin" class="origin origin-os" x="344" y="122">ОС</text>
-
-      <!-- L1 -->
-      <rect id="f-l1-port" class="module level-l1 adapter" x="14" y="145" width="46.5" height="26" rx="1" />
-      <text id="f-l1-port-title" class="module-title" x="37.25" y="155">OS-порт</text>
-      <text id="f-l1-port-text" class="module-text" x="37.25" y="161.5">MMIO · tick · mutex</text>
-      <text id="f-l1-port-origin" class="origin origin-adapter" x="58.5" y="149">адаптер</text>
-      <rect id="f-l1-bsp" class="module level-l1 native" x="62.5" y="145" width="46.5" height="26" rx="1" />
-      <text id="f-l1-bsp-title" class="module-title" x="85.75" y="155">BSP</text>
-      <text id="f-l1-bsp-text" class="module-text" x="85.75" y="161.5">CPU · IRQ · timers</text>
-      <text id="f-l1-bsp-origin" class="origin origin-os" x="107" y="149">ОС</text>
-
-      <rect id="c-l1-interfaces" class="module level-l1 bvstk" x="122" y="145" width="56" height="26" rx="1" />
-      <text id="c-l1-interfaces-title" class="module-title" x="150" y="155">Интерфейсы ОС</text>
-      <text id="c-l1-interfaces-text" class="module-text" x="150" y="161.5">MMIO · время · mutex</text>
-      <text id="c-l1-interfaces-origin" class="origin origin-bvstk" x="176" y="149">BVSTK</text>
-      <rect id="c-l1-events" class="module level-l1 bvstk" x="181" y="145" width="57" height="26" rx="1" />
-      <text id="c-l1-events-title" class="module-title" x="209.5" y="155">Системные события</text>
-      <text id="c-l1-events-text" class="module-text" x="209.5" y="161.5">IRQ · ожидание · вывод</text>
-      <text id="c-l1-events-origin" class="origin origin-bvstk" x="236" y="149">BVSTK</text>
-
-      <rect id="n-l1-port" class="module level-l1 adapter" x="251" y="145" width="46.5" height="26" rx="1" />
-      <text id="n-l1-port-title" class="module-title" x="274.25" y="155">OS-порт</text>
-      <text id="n-l1-port-text" class="module-text" x="274.25" y="161.5">MMIO · sync · IPC</text>
-      <text id="n-l1-port-origin" class="origin origin-adapter" x="294.5" y="149">адаптер</text>
-      <rect id="n-l1-bsp" class="module level-l1 native" x="299.5" y="145" width="46.5" height="26" rx="1" />
-      <text id="n-l1-bsp-title" class="module-title" x="322.75" y="155">BSP</text>
-      <text id="n-l1-bsp-text" class="module-text" x="322.75" y="161.5">startup · CPU · timers</text>
-      <text id="n-l1-bsp-origin" class="origin origin-os" x="344" y="149">ОС</text>
-
-      <!-- L0 -->
+  <rect id="page" x="0" y="0" width="2800" height="1630" fill="white" />
+  <text x="60" y="47" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+  <text x="60" y="98" font-size="40" font-weight="700" text-anchor="start" style="fill:#233747">BVSTK в двух ОС</text>
+  <text x="60" y="144" font-size="23" font-weight="400" text-anchor="start" style="fill:#576c7b">Состав сборок и общая часть проекта.</text>
+  <g id="series-navigation" data-kind="navigation">
+    <a data-navigation="sheet" xlink:href="levels.svg">
+      <rect x="2000" y="64" width="124" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2062.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">Уровни</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_os.svg">
+      <rect x="2140" y="64" width="84" height="46" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="2182.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">ОС</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l4.svg">
+      <rect x="2240" y="64" width="80" height="46" rx="8" fill="white" stroke="#3f75ad" stroke-width="1" />
+      <text x="2280.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#3f75ad">L4</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l3.svg">
+      <rect x="2336" y="64" width="80" height="46" rx="8" fill="white" stroke="#287f73" stroke-width="1" />
+      <text x="2376.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#287f73">L3</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l1.svg">
+      <rect x="2432" y="64" width="80" height="46" rx="8" fill="white" stroke="#b56b1d" stroke-width="1" />
+      <text x="2472.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#b56b1d">L1</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l0_l1.svg">
+      <rect x="2528" y="64" width="116" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2586.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0–L1</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
+      <rect x="2660" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
+    </a>
+  </g>
+  <g id="freertos-region" data-kind="ownership-region" data-ownership="freertos">
+    <rect x="60" y="240" width="760" height="1010" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.8" stroke-dasharray="10 8" />
+    <text x="90" y="293" font-size="32" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+    <g id="f-apps" data-kind="layer-summary" data-layer="L4" data-ownership="freertos" data-label="L4. Приложение" data-target="architecture_bvstk_l4.svg#freertos-region">
+      <title>L4. Приложение</title>
+      <rect x="100" y="350" width="680" height="140" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="f-apps" xlink:href="architecture_bvstk_l4.svg#freertos-region">
+        <text x="440.0" y="422.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L4. Приложение</text>
+      </a>
+      <text x="440.0" y="460.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Запуск и пользовательские функции</text>
+    </g>
+    <g id="f-services" data-kind="layer-summary" data-layer="L3" data-ownership="freertos" data-label="L3. Системные службы" data-target="architecture_bvstk_l3.svg#freertos-region">
+      <title>L3. Системные службы</title>
+      <rect x="100" y="580" width="680" height="140" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="f-services" xlink:href="architecture_bvstk_l3.svg#freertos-region">
+        <text x="440.0" y="652.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L3. Системные службы</text>
+      </a>
+      <text x="440.0" y="690.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Ввод, сеть и файлы</text>
+    </g>
+    <g id="f-kernel" data-kind="layer-summary" data-layer="L2" data-ownership="freertos" data-label="L2. Ядро ОС" data-target="architecture_bvstk_l1.svg#f-kernel">
+      <title>L2. Ядро ОС</title>
+      <rect x="100" y="810" width="680" height="110" rx="10" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="f-kernel" xlink:href="architecture_bvstk_l1.svg#f-kernel">
+        <text x="440.0" y="875.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L2. Ядро ОС</text>
+      </a>
+    </g>
+    <g id="f-port" data-kind="layer-summary" data-layer="L1" data-ownership="freertos" data-label="L1. Порт и BSP" data-target="architecture_bvstk_l1.svg#freertos-region">
+      <title>L1. Порт и BSP</title>
+      <rect x="100" y="1010" width="680" height="140" rx="10" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="f-port" xlink:href="architecture_bvstk_l1.svg#freertos-region">
+        <text x="440.0" y="1090.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L1. Порт и BSP</text>
+      </a>
     </g>
   </g>
+  <g id="neutrino-region" data-kind="ownership-region" data-ownership="neutrino">
+    <rect x="1980" y="240" width="760" height="1010" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.8" stroke-dasharray="10 8" />
+    <text x="2010" y="293" font-size="32" font-weight="700" text-anchor="start" style="fill:#233747">Нейтрино</text>
+    <g id="n-apps" data-kind="layer-summary" data-layer="L4" data-ownership="neutrino" data-label="L4. Прикладные процессы" data-target="architecture_bvstk_l4.svg#neutrino-region">
+      <title>L4. Прикладные процессы</title>
+      <rect x="2020" y="350" width="680" height="140" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="n-apps" xlink:href="architecture_bvstk_l4.svg#neutrino-region">
+        <text x="2360.0" y="422.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L4. Прикладные процессы</text>
+      </a>
+      <text x="2360.0" y="460.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Сервис и командные программы</text>
+    </g>
+    <g id="n-services" data-kind="layer-summary" data-layer="L3" data-ownership="neutrino" data-label="L3. Службы и менеджеры" data-target="architecture_bvstk_l3.svg#neutrino-region">
+      <title>L3. Службы и менеджеры</title>
+      <rect x="2020" y="580" width="680" height="140" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="n-services" xlink:href="architecture_bvstk_l3.svg#neutrino-region">
+        <text x="2360.0" y="652.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L3. Службы и менеджеры</text>
+      </a>
+      <text x="2360.0" y="690.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Сеть, файлы и обслуживание устройств</text>
+    </g>
+    <g id="n-kernel" data-kind="layer-summary" data-layer="L2" data-ownership="neutrino" data-label="L2. Ядро ОС" data-target="architecture_bvstk_l1.svg#n-kernel">
+      <title>L2. Ядро ОС</title>
+      <rect x="2020" y="810" width="680" height="110" rx="10" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="n-kernel" xlink:href="architecture_bvstk_l1.svg#n-kernel">
+        <text x="2360.0" y="875.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L2. Ядро ОС</text>
+      </a>
+    </g>
+    <g id="n-port" data-kind="layer-summary" data-layer="L1" data-ownership="neutrino" data-label="L1. Порт и BSP" data-target="architecture_bvstk_l1.svg#neutrino-region">
+      <title>L1. Порт и BSP</title>
+      <rect x="2020" y="1010" width="680" height="140" rx="10" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="n-port" xlink:href="architecture_bvstk_l1.svg#neutrino-region">
+        <text x="2360.0" y="1090.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L1. Порт и BSP</text>
+      </a>
+    </g>
+  </g>
+  <g id="common-region" data-kind="ownership-region" data-ownership="common">
+    <text x="1400" y="293" font-size="32" font-weight="700" text-anchor="middle" style="fill:#233747">Общий код</text>
+    <g id="common-app" data-kind="layer-summary" data-layer="L4" data-ownership="common" data-label="L4. Общая прикладная логика" data-target="architecture_bvstk_l4.svg#common-region">
+      <title>L4. Общая прикладная логика</title>
+      <rect x="1020" y="350" width="760" height="140" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="common-app" xlink:href="architecture_bvstk_l4.svg#common-region">
+        <text x="1400.0" y="422.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L4. Общая прикладная логика</text>
+      </a>
+      <text x="1400.0" y="460.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Настройки и обработка ввода</text>
+    </g>
+    <g id="common-services" data-kind="layer-summary" data-layer="L3" data-ownership="common" data-label="L3. Логика подсистем" data-target="architecture_bvstk_l3.svg#common-region">
+      <title>L3. Логика подсистем</title>
+      <rect x="1020" y="580" width="760" height="140" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="common-services" xlink:href="architecture_bvstk_l3.svg#common-region">
+        <text x="1400.0" y="652.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L3. Логика подсистем</text>
+      </a>
+      <text x="1400.0" y="690.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Протоколы, сервисы и драйверы</text>
+    </g>
+    <g id="common-platform" data-kind="layer-summary" data-layer="L1" data-ownership="common" data-label="L1. Интерфейсы платформы" data-target="architecture_bvstk_l1.svg#common-region">
+      <title>L1. Интерфейсы платформы</title>
+      <rect x="1020" y="1010" width="760" height="140" rx="10" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="common-platform" xlink:href="architecture_bvstk_l1.svg#common-region">
+        <text x="1400.0" y="1090.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L1. Интерфейсы платформы</text>
+      </a>
+    </g>
+    <g id="hardware" data-kind="layer-summary" data-layer="L0" data-ownership="common" data-label="L0. Аппаратура" data-target="architecture_bvstk_l0_l1.svg#hardware-panel">
+      <title>L0. Аппаратура</title>
+      <rect x="100" y="1330" width="2600" height="140" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="1.7" />
+      <a data-navigation="detail" data-ref-node="hardware" xlink:href="architecture_bvstk_l0_l1.svg#hardware-panel">
+        <text x="1400.0" y="1402.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L0. Аппаратура</text>
+      </a>
+      <text x="1400.0" y="1440.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Процессорная система PS и программируемая логика PL</text>
+    </g>
+  </g>
+  <view id="os-kernels" viewBox="60 750 2680 230" />
+  <text x="100" y="1550" font-size="23" font-weight="400" text-anchor="start" style="fill:#576c7b">Общий код входит в каждую сборку отдельно. Цвет блока обозначает уровень, пунктирная рамка — ОС.</text>
+  <metadata id="cross-sheet-links">[
+  {
+    "block": "f-apps",
+    "target": "architecture_bvstk_l4.svg#freertos-region",
+    "label": "L4. Приложение",
+    "layer": "L4",
+    "relation": "summary"
+  },
+  {
+    "block": "n-apps",
+    "target": "architecture_bvstk_l4.svg#neutrino-region",
+    "label": "L4. Прикладные процессы",
+    "layer": "L4",
+    "relation": "summary"
+  },
+  {
+    "block": "common-app",
+    "target": "architecture_bvstk_l4.svg#common-region",
+    "label": "L4. Общая прикладная логика",
+    "layer": "L4",
+    "relation": "summary"
+  },
+  {
+    "block": "f-services",
+    "target": "architecture_bvstk_l3.svg#freertos-region",
+    "label": "L3. Системные службы",
+    "layer": "L3",
+    "relation": "summary"
+  },
+  {
+    "block": "n-services",
+    "target": "architecture_bvstk_l3.svg#neutrino-region",
+    "label": "L3. Службы и менеджеры",
+    "layer": "L3",
+    "relation": "summary"
+  },
+  {
+    "block": "common-services",
+    "target": "architecture_bvstk_l3.svg#common-region",
+    "label": "L3. Логика подсистем",
+    "layer": "L3",
+    "relation": "summary"
+  },
+  {
+    "block": "f-kernel",
+    "target": "architecture_bvstk_l1.svg#f-kernel",
+    "label": "L2. Ядро ОС",
+    "layer": "L2",
+    "relation": "summary"
+  },
+  {
+    "block": "n-kernel",
+    "target": "architecture_bvstk_l1.svg#n-kernel",
+    "label": "L2. Ядро ОС",
+    "layer": "L2",
+    "relation": "summary"
+  },
+  {
+    "block": "f-port",
+    "target": "architecture_bvstk_l1.svg#freertos-region",
+    "label": "L1. Порт и BSP",
+    "layer": "L1",
+    "relation": "summary"
+  },
+  {
+    "block": "n-port",
+    "target": "architecture_bvstk_l1.svg#neutrino-region",
+    "label": "L1. Порт и BSP",
+    "layer": "L1",
+    "relation": "summary"
+  },
+  {
+    "block": "common-platform",
+    "target": "architecture_bvstk_l1.svg#common-region",
+    "label": "L1. Интерфейсы платформы",
+    "layer": "L1",
+    "relation": "summary"
+  },
+  {
+    "block": "hardware",
+    "target": "architecture_bvstk_l0_l1.svg#hardware-panel",
+    "label": "L0. Аппаратура",
+    "layer": "L0",
+    "relation": "summary"
+  }
+]</metadata>
 </svg>

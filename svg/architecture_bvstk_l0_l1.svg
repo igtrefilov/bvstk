@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" width="2300" height="3558" viewBox="0 0 2300 3558" version="1.1" id="bvstk-l0-l1-architecture">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" width="2300" height="3810" viewBox="0 0 2300 3810" version="1.1" id="bvstk-l0-l1-architecture">
   <title>BVSTK. L0–L1. Аппаратные пути платформы</title>
   <desc>Аппаратная детализация платформы L1. Слева размещён код FreeRTOS, справа — код Нейтрино, в центре — общая логика доступа и аппаратура Zynq. Вложенные группы показывают состав пути. Цвет блока обозначает уровень; фиолетовый цвет уточняет область PL внутри L0.
 
-Прикладные команды mem_shell и bvstkctl обращаются к bvstk_pl_service. Каталог bvstk_pl_regions задаёт базы и размеры регионов. Порт FreeRTOS использует физические адреса и функции Xilinx BSP; порт Нейтрино получает отображение через mmap_device_memory и затем читает и записывает память напрямую. Обращение к ядру при отображении выделено цветом L2.
+Команды bvstkctl pl обращаются к bvstk_pl_service. Прямой путь mem_shell к Xilinx BSP раскрыт на L4 и L1. Каталог bvstk_pl_regions задаёт базы и размеры регионов. Порт FreeRTOS использует физические адреса и функции Xilinx BSP; порт Нейтрино получает отображение через mmap_device_memory и затем читает и записывает память напрямую. Обращение к ядру при отображении выделено цветом L2.
 
 Серые стрелки обозначают вызовы. Коричневые линии показывают MMIO и настройку устройств, синие — AXI и передачу данных, красные пунктирные — IRQ и события. В коротких линиях к периферии PS промежуточный доступ CPU не повторяется.
 
@@ -11,7 +11,10 @@ PS SD в FreeRTOS использует ADMA2; текущий raw-порт Ней
 
 Группа PL DMA раскрывает соединения SPI, двух AXI DMA, адресного interconnect, BRAM и порта S_AXI_HP0. SPI master используется текущим FreeRTOS-кодом PL SD; буферы этого обмена размещены в BRAM. Соединение HP0 с DDR является аппаратным адресным путём. Повторённый M_AXI_GP0 обозначает тот же порт процессорной системы.
 
-IRQ показан отдельно от передачи данных. Ведомый путь FreeRTOS захватывает состояние в ISR и передаёт событие задаче через очередь L2. Нейтрино доставляет SIGEV_INTR через ядро L2 в ожидающий поток. Завершение PS SD опрашивается; остальные программные обработчики IRQ здесь не перечислены. Заголовки ссылочных блоков ведут к соответствующим частям L1 и L4.</desc>
+IRQ показан отдельно от передачи данных. Ведомый путь FreeRTOS захватывает состояние в ISR и передаёт событие задаче через очередь L2. Нейтрино доставляет SIGEV_INTR через ядро L2 в ожидающий поток. Завершение PS SD опрашивается; остальные программные обработчики IRQ здесь не перечислены. Заголовки ссылочных блоков ведут к соответствующим частям L1 и L4.
+После доставки IRQ задача FreeRTOS или поток Нейтрино вызывает сервис L3. Путь продолжается в одноимённом блоке схемы сервисов.
+Одноимённые блоки на соседних схемах обозначают одну функцию. Ссылки ведут к конкретным блокам; выбранный блок выделяется рамкой. Тип стрелки и направление взаимодействия сохраняются при переходе.
+Схема L0 «Взаимодействие PS и PL» раскрывает группы PS и AXI к PL, PL: AXI DMA, источники IRQ и GIC. Фиолетовые блоки принадлежат PL внутри L0. Коричневые стрелки к регистрам направлены от инициатора. Аппаратная часть показывает все источники PL; ветви ОС ниже раскрывают обработку ведомого I2C и системного таймера.</desc>
   <metadata id="sources">Software layer: svg/architecture_bvstk_l1.svg
 Applications: src/apps/freertos/console/mem_shell.c; src/apps/neutrino/bvstkctl/main.c
 Shared access: src/shared/pl/access/bvstk_pl_service.c; src/hardware/boards/ax7020/bvstk_pl_regions.c
@@ -47,11 +50,11 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
 .node { stroke-width:1.7; }
 .l1 { fill:#fff0d6; stroke:#b56b1d; }
 .l0 { fill:#e9eef3; stroke:#607487; }
-.pl-node { fill:#e6d8f6; stroke:#7554a3; }
-.pl-core { fill:#f0e7fa; stroke:#8061a8; stroke-width:1.5; }
+.pl-node {fill:#e6dcf5;stroke:#8760ba;}
+.pl-core {fill:#e6dcf5;stroke:#8760ba;}
 .pl-inactive-group { fill:#f4effb; stroke:#7554a3; stroke-width:1.5; stroke-dasharray:8 5; }
-.data-node { fill:#e9f1fa; stroke:#3f75ad; }
-.stream-node { fill:#eee6fa; stroke:#7655a5; }
+.data-node {fill:#e6dcf5;stroke:#8760ba;}
+.stream-node {fill:#e6dcf5;stroke:#8760ba;}
 .link { fill:none; stroke-width:2.7; stroke-linejoin:round; }
 .call { stroke:#788794; marker-start:url(#call-source); marker-end:url(#call-arrow); }
 .mmio { stroke:#b56b1d; marker-start:url(#mmio-arrow); marker-end:url(#mmio-arrow); }
@@ -67,6 +70,8 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
 .legend-hardware { fill:none; stroke:#536473; stroke-width:3; stroke-linecap:round; }
 .legend-os-panel { fill:none; stroke:#536473; stroke-width:1.8; stroke-linecap:round; }
 .legend-divider { stroke:#c4ccd3; stroke-width:1.2; }
+
+.group {stroke:#b56b1d;} a:hover text {text-decoration:underline;} g:target &gt; rect, rect:target {stroke-width:4;}
 </style>
     <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 Z" fill="#788794" />
@@ -94,302 +99,268 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     </marker>
   </defs>
   <g id="sheet" ns1:groupmode="layer" ns1:label="L1 ↔ L0: MMIO, AXI, DMA, IRQ">
-    <rect id="page" class="page" x="0" y="0" width="2300" height="3558" rx="0" />
+    <rect id="page" class="page" x="0" y="0" width="2300" height="3810" rx="0" />
     <style>.page{fill:#fff;stroke:none;}</style>
-    <rect id="freertos-panel" class="os-panel" x="20" y="188" width="470" height="3140" rx="12" stroke-dasharray="10 7" data-kind="ownership-region" data-ownership="freertos" />
-    <rect id="hardware-panel" class="hardware-panel" x="610" y="690.0" width="1080" height="2638" rx="12" data-layer="L0" data-ownership="common" />
-    <rect id="neutrino-panel" class="os-panel" x="1810" y="188" width="470" height="3140" rx="12" stroke-dasharray="10 7" data-kind="ownership-region" data-ownership="neutrino" />
+    <rect id="freertos-panel" class="os-panel" x="20" y="188" width="470" height="3392" rx="12" stroke-dasharray="10 7" data-kind="ownership-region" data-ownership="freertos" />
+    <rect id="hardware-panel" class="hardware-panel" x="610" y="690.0" width="1080" height="2638" rx="12" data-layer="L0" data-ownership="common" data-label="Регистры и память Zynq" data-entity="architecture_bvstk_l0_l1.svg#hardware-panel" data-entity-ownership="common" data-representation="definition" />
+    <rect id="neutrino-panel" class="os-panel" x="1810" y="188" width="470" height="3392" rx="12" stroke-dasharray="10 7" data-kind="ownership-region" data-ownership="neutrino" />
     <text id="freertos-title" class="panel-title" x="255" y="231" text-anchor="middle">FreeRTOS</text>
-    <text id="hardware-title" class="panel-title" x="1150" y="735.0" text-anchor="middle">Zynq</text>
+    <a xlink:href="architecture_bvstk_l1.svg#hardware" data-ref-node="hardware-panel" data-navigation="return" aria-label="Вернуться к блоку «Регистры и память Zynq» на соседней схеме">
+      <text id="hardware-title" class="panel-title" x="1150" y="735.0" text-anchor="middle">L0. Регистры и память Zynq</text>
+    </a>
     <text id="neutrino-title" class="panel-title" x="2045" y="231" text-anchor="middle">Нейтрино</text>
-    <g id="f-mmio-group-group" data-l1-ref="f-port--mmio">
+    <g id="f-mmio-group-group" data-l1-ref="f-port" data-layer="L1" data-ownership="freertos" data-label="Реализация MMIO" data-target="architecture_bvstk_l1.svg#f-port" data-entity="architecture_bvstk_l1.svg#f-port" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-mmio-group" class="group" x="38" y="760.0" width="434" height="330" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port--mmio">
-        <text id="f-mmio-group-title" class="group-title" x="56" y="791.0" text-anchor="start">Реализация MMIO</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-port" data-ref-node="f-mmio-group-group" aria-label="Открыть блок «Реализация MMIO» на схеме L1">
+        <text id="f-mmio-group-title" class="group-title" x="56" y="791.0" text-anchor="start">L1. Реализация MMIO</text>
       </a>
     </g>
-    <g id="f-region-group" data-l1-ref="f-port--mmio">
+    <g id="f-region-group" data-l1-ref="f-port--mmio" data-layer="L1" data-ownership="freertos" data-label="bvstk_platform_freertos" data-target="architecture_bvstk_l1.svg#f-port--mmio" data-entity="architecture_bvstk_l1.svg#f-port--mmio" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-region" class="node l1" x="54" y="830.0" width="400" height="85" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port--mmio">
+      <a xlink:href="architecture_bvstk_l1.svg#f-port--mmio" data-ref-node="f-region-group" aria-label="Открыть блок «bvstk_platform_freertos» на схеме L1">
         <text id="f-region-title" class="node-title" x="254" y="869.0" text-anchor="middle" font-size="19">bvstk_platform_freertos</text>
       </a>
     </g>
-    <g id="f-mmio-node-group" data-l1-ref="f-bsp">
+    <g id="f-mmio-node-group" data-l1-ref="f-mmio-bsp" data-layer="L1" data-ownership="freertos" data-label="Операции Xilinx BSP" data-target="architecture_bvstk_l1.svg#f-mmio-bsp" data-entity="architecture_bvstk_l1.svg#f-mmio-bsp" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-mmio" class="node l1" x="54" y="970.0" width="400" height="88" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-bsp">
-        <text id="f-mmio-title" class="node-title" x="254" y="1010.5" text-anchor="middle">BSP: MMIO</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-mmio-bsp" data-ref-node="f-mmio-node-group" aria-label="Открыть блок «Операции Xilinx BSP» на схеме L1">
+        <text id="f-mmio-title" class="node-title" x="254" y="1010.5" text-anchor="middle">Операции Xilinx BSP</text>
       </a>
     </g>
     <path id="f-region-mmio" class="link call" d="M 254 915 V 970" data-from="f-region" data-to="f-mmio" />
-    <g id="f-ps-group-group" data-l1-ref="f-bsp">
+    <g id="f-ps-group-group">
       <rect id="f-ps-group" class="group" x="38" y="1230.0" width="434" height="286" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-bsp">
-        <text id="f-ps-group-title" class="group-title" x="56" y="1261.0" text-anchor="start">PS: BSP</text>
-      </a>
+      <text id="f-ps-group-title" class="group-title" x="56" y="1261.0" text-anchor="start">Периферия PS</text>
     </g>
-    <g id="f-uart-group" data-l1-ref="platform-access--output">
+    <g id="f-uart-group" data-l1-ref="f-uart" data-layer="L1" data-ownership="freertos" data-label="UART" data-target="architecture_bvstk_l1.svg#f-uart" data-entity="architecture_bvstk_l1.svg#f-uart" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-uart" class="node l1" x="54" y="1344.0" width="400" height="60" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#platform-access--output">
+      <a xlink:href="architecture_bvstk_l1.svg#f-uart" data-ref-node="f-uart-group" aria-label="Открыть блок «UART» на схеме L1">
         <text id="f-uart-title" class="node-title" x="254" y="1370.5" text-anchor="middle">UART</text>
       </a>
     </g>
-    <g id="f-qspi-group" data-l1-ref="f-port">
+    <g id="f-qspi-group" data-l1-ref="f-media-qspi" data-layer="L1" data-ownership="freertos" data-label="qspi_flash" data-target="architecture_bvstk_l1.svg#f-media-qspi" data-entity="architecture_bvstk_l1.svg#f-media-qspi" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-qspi" class="node l1" x="54" y="1438.0" width="400" height="60" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
-        <text id="f-qspi-title" class="node-title" x="254" y="1464.5" text-anchor="middle">QSPI</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-media-qspi" data-ref-node="f-qspi-group" aria-label="Открыть блок «qspi_flash» на схеме L1">
+        <text id="f-qspi-title" class="node-title" x="254" y="1464.5" text-anchor="middle">qspi_flash</text>
       </a>
     </g>
-    <g id="f-sd-group-group" data-l1-ref="f-port">
+    <g id="f-sd-group-group" data-l1-ref="f-media-access" data-layer="L1" data-ownership="freertos" data-label="Доступ к носителям" data-target="architecture_bvstk_l1.svg#f-media-access" data-entity="architecture_bvstk_l1.svg#f-media-access" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-sd-group" class="group" x="38" y="1546.0" width="434" height="197" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
-        <text id="f-sd-group-title" class="group-title" x="56" y="1577.0" text-anchor="start">SD</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-media-access" data-ref-node="f-sd-group-group" aria-label="Открыть блок «Доступ к носителям» на схеме L1">
+        <text id="f-sd-group-title" class="group-title" x="56" y="1577.0" text-anchor="start">Доступ к носителям</text>
       </a>
     </g>
-    <g id="f-sd-map-group" data-l1-ref="f-port">
+    <g id="f-sd-map-group" data-l1-ref="f-media-sd" data-layer="L1" data-ownership="freertos" data-label="diskio" data-target="architecture_bvstk_l1.svg#f-media-sd" data-entity="architecture_bvstk_l1.svg#f-media-sd" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-sd-map" class="node l1" x="54" y="1586.0" width="400" height="57" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
-        <text id="f-sd-map-title" class="node-title" x="254" y="1611.0" text-anchor="middle">SD-адаптер</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-media-sd" data-ref-node="f-sd-map-group" aria-label="Открыть блок «diskio» на схеме L1">
+        <text id="f-sd-map-title" class="node-title" x="254" y="1611.0" text-anchor="middle">diskio</text>
       </a>
     </g>
-    <g id="f-sd-control-group" data-l1-ref="f-port">
+    <g id="f-sd-control-group">
       <rect id="f-sd-control" class="node l1" x="54" y="1679.0" width="400" height="56" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
-        <text id="f-sd-control-title" class="node-title" x="254" y="1703.5" text-anchor="middle">ADMA2</text>
-      </a>
+      <text id="f-sd-control-title" class="node-title" x="254" y="1703.5" text-anchor="middle">ADMA2</text>
     </g>
     <path id="f-sd-request" class="link call" d="M 254 1643 V 1679" data-from="f-sd-map" data-to="f-sd-control" />
-    <g id="f-dma-memory-group-group" data-l1-ref="f-port">
+    <g id="f-dma-memory-group-group">
       <rect id="f-dma-memory-group" class="group" x="38" y="1774.0" width="434" height="165" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
-        <text id="f-dma-memory-group-title" class="group-title" x="56" y="1805.0" text-anchor="start">DMA и кэш</text>
-      </a>
+      <text id="f-dma-memory-group-title" class="group-title" x="56" y="1805.0" text-anchor="start">DMA и кэш</text>
     </g>
-    <g id="f-dma-addresses-group" data-l1-ref="f-port">
+    <g id="f-dma-addresses-group">
       <rect id="f-dma-addresses" class="node l1" x="54" y="1824.0" width="186" height="93" rx="8" data-layer="L1" />
       <text id="f-dma-addresses-text-0" class="body" x="147" y="1881.5" text-anchor="middle">SD и Ethernet</text>
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
-        <text id="f-dma-addresses-title" class="node-title" x="147" y="1855.5" text-anchor="middle">Буферы</text>
-      </a>
+      <text id="f-dma-addresses-title" class="node-title" x="147" y="1855.5" text-anchor="middle">Буферы</text>
     </g>
-    <g id="f-dma-cache-group" data-l1-ref="f-port">
+    <g id="f-dma-cache-group">
       <rect id="f-dma-cache" class="node l1" x="266" y="1824.0" width="188" height="93" rx="8" data-layer="L1" />
       <text id="f-dma-cache-text-0" class="body" x="360" y="1881.5" text-anchor="middle">Flush, invalidate</text>
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
-        <text id="f-dma-cache-title" class="node-title" x="360" y="1855.5" text-anchor="middle">Кэш CPU</text>
-      </a>
+      <text id="f-dma-cache-title" class="node-title" x="360" y="1855.5" text-anchor="middle">Кэш CPU</text>
     </g>
-    <g id="f-ethernet-group-group" data-l1-ref="f-port">
+    <g id="f-ethernet-group-group" data-l1-ref="f-ethernet" data-layer="L1" data-ownership="freertos" data-label="Ethernet" data-target="architecture_bvstk_l1.svg#f-ethernet" data-entity="architecture_bvstk_l1.svg#f-ethernet" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-ethernet-group" class="group" x="38" y="1964.0" width="434" height="214" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+      <a xlink:href="architecture_bvstk_l1.svg#f-ethernet" data-ref-node="f-ethernet-group-group" aria-label="Открыть блок «Ethernet» на схеме L1">
         <text id="f-ethernet-group-title" class="group-title" x="56" y="1995.0" text-anchor="start">Ethernet</text>
       </a>
     </g>
-    <g id="f-ethernet-rings-group" data-l1-ref="f-port">
+    <g id="f-ethernet-rings-group">
       <rect id="f-ethernet-rings" class="node l1" x="54" y="2012.0" width="400" height="58" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
-        <text id="f-ethernet-rings-title" class="node-title" x="254" y="2037.5" text-anchor="middle">Кольца TX и RX</text>
-      </a>
+      <text id="f-ethernet-rings-title" class="node-title" x="254" y="2037.5" text-anchor="middle">Кольца TX и RX</text>
     </g>
-    <g id="f-ethernet-control-group" data-l1-ref="f-port">
+    <g id="f-ethernet-control-group">
       <rect id="f-ethernet-control" class="node l1" x="54" y="2110.0" width="400" height="56" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-port">
-        <text id="f-ethernet-control-title" class="node-title" x="254" y="2134.5" text-anchor="middle">Управление MAC</text>
-      </a>
+      <text id="f-ethernet-control-title" class="node-title" x="254" y="2134.5" text-anchor="middle">Управление MAC</text>
     </g>
     <path id="f-ethernet-start" class="link call" d="M 254 2070 V 2110" data-from="f-ethernet-rings" data-to="f-ethernet-control" />
-    <g id="f-irq-group-group" data-l1-ref="f-interrupt-processing">
+    <g id="f-irq-group-group" data-l1-ref="f-interrupt-processing" data-layer="L1" data-ownership="freertos" data-label="Доставка прерываний" data-target="architecture_bvstk_l1.svg#f-interrupt-processing" data-entity="architecture_bvstk_l1.svg#f-interrupt-processing" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-irq-group" class="group" x="38" y="2214.0" width="434" height="1072" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing">
-        <text id="f-irq-group-title" class="group-title" x="56" y="2245.0" text-anchor="start">IRQ</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing" data-ref-node="f-irq-group-group" aria-label="Открыть блок «Доставка прерываний» на схеме L1">
+        <text id="f-irq-group-title" class="group-title" x="56" y="2245.0" text-anchor="start">Доставка прерываний</text>
       </a>
     </g>
-    <g id="f-irq-attach-group" data-l1-ref="f-interrupt-processing">
+    <g id="f-irq-attach-group">
       <rect id="f-irq-attach" class="node l1" x="54" y="2274.0" width="400" height="90" rx="8" data-layer="L1" />
       <text id="f-irq-attach-text-0" class="body" x="254" y="2353.0" text-anchor="middle">ISR + PL Slave</text>
-      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing">
-        <text id="f-irq-attach-title" class="node-title" x="254" y="2304.0" text-anchor="middle">Подключение IRQ</text>
-      </a>
+      <text id="f-irq-attach-title" class="node-title" x="254" y="2304.0" text-anchor="middle">Подключение IRQ</text>
     </g>
-    <g id="f-irq-api-group" data-l1-ref="f-bsp--cpu">
+    <g id="f-irq-api-group" data-l1-ref="f-bsp--cpu" data-layer="L1" data-ownership="freertos" data-label="Порт Cortex-A9" data-target="architecture_bvstk_l1.svg#f-bsp--cpu" data-entity="architecture_bvstk_l1.svg#f-bsp--cpu" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-irq-api" class="node l1" x="54" y="2414.0" width="400" height="90" rx="8" data-layer="L1" />
       <text id="f-irq-api-text-0" class="body" x="254" y="2481.5" text-anchor="middle">ISR + маска</text>
-      <a xlink:href="architecture_bvstk_l1.svg#f-bsp--cpu">
-        <text id="f-irq-api-title" class="node-title" x="254" y="2455.5" text-anchor="middle">Порт FreeRTOS</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-bsp--cpu" data-ref-node="f-irq-api-group" aria-label="Открыть блок «Порт Cortex-A9» на схеме L1">
+        <text id="f-irq-api-title" class="node-title" x="254" y="2455.5" text-anchor="middle">Порт Cortex-A9</text>
       </a>
     </g>
-    <g id="f-gic-bsp-group" data-l1-ref="f-bsp--gic">
+    <g id="f-gic-bsp-group" data-l1-ref="f-bsp--gic" data-layer="L1" data-ownership="freertos" data-label="XScuGic" data-target="architecture_bvstk_l1.svg#f-bsp--gic" data-entity="architecture_bvstk_l1.svg#f-bsp--gic" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-gic-bsp" class="node l1" x="54" y="2554.0" width="400" height="90" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-bsp--gic">
-        <text id="f-gic-bsp-title" class="node-title" x="254" y="2595.5" text-anchor="middle">BSP: GIC</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-bsp--gic" data-ref-node="f-gic-bsp-group" aria-label="Открыть блок «XScuGic» на схеме L1">
+        <text id="f-gic-bsp-title" class="node-title" x="254" y="2595.5" text-anchor="middle">XScuGic</text>
       </a>
     </g>
     <path id="f-irq-attach-api" class="link call" d="M 254 2364 V 2414" data-from="f-irq-attach" data-to="f-irq-api" />
     <path id="f-irq-api-bsp" class="link call" d="M 254 2504 V 2554" data-from="f-irq-api" data-to="f-gic-bsp" />
-    <g id="f-timer-port-group" data-l1-ref="f-bsp--cpu">
+    <g id="f-timer-port-group">
       <rect id="f-timer-port" class="node l1" x="54" y="2694.0" width="400" height="90" rx="8" data-layer="L1" />
       <text id="f-timer-port-text-0" class="body" x="254" y="2762.0" text-anchor="middle">tick + IRQ</text>
-      <a xlink:href="architecture_bvstk_l1.svg#f-bsp--cpu">
-        <text id="f-timer-port-title" class="node-title" x="254" y="2724.0" text-anchor="middle">Таймерный порт</text>
-      </a>
+      <text id="f-timer-port-title" class="node-title" x="254" y="2724.0" text-anchor="middle">Таймерный порт</text>
     </g>
-    <g id="f-irq-entry-group" data-l1-ref="f-interrupt-processing--attach">
+    <g id="f-irq-entry-group" data-l1-ref="f-interrupt-processing--attach" data-layer="L1" data-ownership="freertos" data-label="ISR: захват состояния" data-target="architecture_bvstk_l1.svg#f-interrupt-processing--attach" data-entity="architecture_bvstk_l1.svg#f-interrupt-processing--attach" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-irq-entry" class="node l1" x="54" y="2934.0" width="400" height="90" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing--attach">
+      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing--attach" data-ref-node="f-irq-entry-group" aria-label="Открыть блок «ISR: захват состояния» на схеме L1">
         <text id="f-irq-entry-title" class="node-title" x="254" y="2975.5" text-anchor="middle">ISR: захват состояния</text>
       </a>
     </g>
-    <g id="f-irq-handler-group" data-l1-ref="f-interrupt-processing--worker">
+    <g id="f-irq-handler-group" data-l1-ref="f-interrupt-processing--worker" data-layer="L1" data-ownership="freertos" data-label="Задача обслуживания" data-target="architecture_bvstk_l1.svg#f-interrupt-processing--worker" data-entity="architecture_bvstk_l1.svg#f-interrupt-processing--worker" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-irq-handler" class="node l1" x="54" y="3192.0" width="400" height="62" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing--worker">
+      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing--worker" data-ref-node="f-irq-handler-group" aria-label="Открыть блок «Задача обслуживания» на схеме L1">
         <text id="f-irq-handler-title" class="node-title" x="254" y="3219.5" text-anchor="middle">Задача обслуживания</text>
       </a>
     </g>
-    <g id="n-mmio-group-group" data-l1-ref="n-port--mapping">
+    <g id="n-mmio-group-group" data-l1-ref="n-port" data-layer="L1" data-ownership="neutrino" data-label="Реализация MMIO" data-target="architecture_bvstk_l1.svg#n-port" data-entity="architecture_bvstk_l1.svg#n-port" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-mmio-group" class="group" x="1828" y="760.0" width="434" height="464" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port--mapping">
-        <text id="n-mmio-group-title" class="group-title" x="1846" y="791.0" text-anchor="start">Реализация MMIO</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-port" data-ref-node="n-mmio-group-group" aria-label="Открыть блок «Реализация MMIO» на схеме L1">
+        <text id="n-mmio-group-title" class="group-title" x="1846" y="791.0" text-anchor="start">L1. Реализация MMIO</text>
       </a>
     </g>
-    <g id="n-region-group" data-l1-ref="n-port--mapping">
+    <g id="n-region-group" data-l1-ref="n-port--mapping" data-layer="L1" data-ownership="neutrino" data-label="bvstk_platform_neutrino" data-target="architecture_bvstk_l1.svg#n-port--mapping" data-entity="architecture_bvstk_l1.svg#n-port--mapping" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-region" class="node l1" x="1844" y="830.0" width="400" height="85" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port--mapping">
+      <a xlink:href="architecture_bvstk_l1.svg#n-port--mapping" data-ref-node="n-region-group" aria-label="Открыть блок «bvstk_platform_neutrino» на схеме L1">
         <text id="n-region-title" class="node-title" x="2044" y="869.0" text-anchor="middle" font-size="19">bvstk_platform_neutrino</text>
       </a>
     </g>
-    <g id="n-mmio-node-group" data-l1-ref="n-port--registers">
+    <g id="n-mmio-node-group" data-l1-ref="n-port--registers" data-layer="L1" data-ownership="neutrino" data-label="Доступ к отображённой памяти" data-target="architecture_bvstk_l1.svg#n-port--registers" data-entity="architecture_bvstk_l1.svg#n-port--registers" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-mmio" class="node l1" x="1844" y="1104.0" width="400" height="88" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port--registers">
-        <text id="n-mmio-title" class="node-title" x="2044" y="1144.5" text-anchor="middle">MMIO</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-port--registers" data-ref-node="n-mmio-node-group" aria-label="Открыть блок «Доступ к отображённой памяти» на схеме L1">
+        <text id="n-mmio-title" class="node-title" x="2044" y="1144.5" text-anchor="middle" style="font-size:19px">Доступ к отображённой памяти</text>
       </a>
       <text id="n-direct-memory-body" x="2044" y="1170.5" class="body" text-anchor="middle">volatile и барьеры</text>
     </g>
     <path id="n-region-mmio" class="link call" d="M 2044 915 V 970" data-from="n-region" data-to="n-memory-kernel" />
-    <g id="n-ps-group-group" data-l1-ref="n-bsp">
+    <g id="n-ps-group-group">
       <rect id="n-ps-group" class="group" x="1828" y="1260" width="434" height="256" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-bsp">
-        <text id="n-ps-group-title" class="group-title" x="1846" y="1291" text-anchor="start">PS: BSP</text>
-      </a>
+      <text id="n-ps-group-title" class="group-title" x="1846" y="1291" text-anchor="start">Периферия PS</text>
     </g>
-    <g id="n-uart-group" data-l1-ref="n-bsp">
+    <g id="n-uart-group" data-l1-ref="n-uart" data-layer="L1" data-ownership="neutrino" data-label="UART" data-target="architecture_bvstk_l1.svg#n-uart" data-entity="architecture_bvstk_l1.svg#n-uart" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-uart" class="node l1" x="1844" y="1344.0" width="400" height="60" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-bsp">
+      <a xlink:href="architecture_bvstk_l1.svg#n-uart" data-ref-node="n-uart-group" aria-label="Открыть блок «UART» на схеме L1">
         <text id="n-uart-title" class="node-title" x="2044" y="1370.5" text-anchor="middle">UART</text>
       </a>
     </g>
-    <g id="n-qspi-group" data-l1-ref="n-port">
+    <g id="n-qspi-group" data-l1-ref="n-media-qspi" data-layer="L1" data-ownership="neutrino" data-label="bvstk_qspi_raw" data-target="architecture_bvstk_l1.svg#n-media-qspi" data-entity="architecture_bvstk_l1.svg#n-media-qspi" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-qspi" class="node l1" x="1844" y="1438.0" width="400" height="60" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
-        <text id="n-qspi-title" class="node-title" x="2044" y="1464.5" text-anchor="middle">QSPI</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-media-qspi" data-ref-node="n-qspi-group" aria-label="Открыть блок «bvstk_qspi_raw» на схеме L1">
+        <text id="n-qspi-title" class="node-title" x="2044" y="1464.5" text-anchor="middle">bvstk_qspi_raw</text>
       </a>
     </g>
-    <g id="n-sd-group-group" data-l1-ref="n-port">
+    <g id="n-sd-group-group" data-l1-ref="n-media-access" data-layer="L1" data-ownership="neutrino" data-label="Доступ к носителям" data-target="architecture_bvstk_l1.svg#n-media-access" data-entity="architecture_bvstk_l1.svg#n-media-access" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-sd-group" class="group" x="1828" y="1546.0" width="434" height="197" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
-        <text id="n-sd-group-title" class="group-title" x="1846" y="1577.0" text-anchor="start">SD</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-media-access" data-ref-node="n-sd-group-group" aria-label="Открыть блок «Доступ к носителям» на схеме L1">
+        <text id="n-sd-group-title" class="group-title" x="1846" y="1577.0" text-anchor="start">Доступ к носителям</text>
       </a>
     </g>
-    <g id="n-sd-map-group" data-l1-ref="n-port">
+    <g id="n-sd-map-group" data-l1-ref="n-media-sd" data-layer="L1" data-ownership="neutrino" data-label="bvstk_sd_raw" data-target="architecture_bvstk_l1.svg#n-media-sd" data-entity="architecture_bvstk_l1.svg#n-media-sd" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-sd-map" class="node l1" x="1844" y="1586.0" width="400" height="57" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
-        <text id="n-sd-map-title" class="node-title" x="2044" y="1611.0" text-anchor="middle">SD raw map</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-media-sd" data-ref-node="n-sd-map-group" aria-label="Открыть блок «bvstk_sd_raw» на схеме L1">
+        <text id="n-sd-map-title" class="node-title" x="2044" y="1611.0" text-anchor="middle">bvstk_sd_raw</text>
       </a>
     </g>
-    <g id="n-sd-control-group" data-l1-ref="n-port">
+    <g id="n-sd-control-group">
       <rect id="n-sd-control" class="node l1" x="1844" y="1679.0" width="400" height="56" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
-        <text id="n-sd-control-title" class="node-title" x="2044" y="1703.5" text-anchor="middle">PIO</text>
-      </a>
+      <text id="n-sd-control-title" class="node-title" x="2044" y="1703.5" text-anchor="middle">PIO</text>
     </g>
     <path id="n-sd-request" class="link call" d="M 2044 1643 V 1679" data-from="n-sd-map" data-to="n-sd-control" />
-    <g id="n-dma-memory-group-group" data-l1-ref="n-port">
+    <g id="n-dma-memory-group-group">
       <rect id="n-dma-memory-group" class="group" x="1828" y="1774.0" width="434" height="165" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
-        <text id="n-dma-memory-group-title" class="group-title" x="1846" y="1805.0" text-anchor="start">DMA и кэш</text>
-      </a>
+      <text id="n-dma-memory-group-title" class="group-title" x="1846" y="1805.0" text-anchor="start">DMA и кэш</text>
     </g>
-    <g id="n-dma-addresses-group" data-l1-ref="n-port">
+    <g id="n-dma-addresses-group">
       <rect id="n-dma-addresses" class="node l1" x="1844" y="1824.0" width="186" height="93" rx="8" data-layer="L1" />
       <text id="n-dma-addresses-text-0" class="body" x="1937" y="1881.5" text-anchor="middle">Ethernet</text>
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
-        <text id="n-dma-addresses-title" class="node-title" x="1937" y="1855.5" text-anchor="middle">Буферы</text>
-      </a>
+      <text id="n-dma-addresses-title" class="node-title" x="1937" y="1855.5" text-anchor="middle">Буферы</text>
     </g>
-    <g id="n-dma-cache-group" data-l1-ref="n-port">
+    <g id="n-dma-cache-group">
       <rect id="n-dma-cache" class="node l1" x="2056" y="1824.0" width="188" height="93" rx="8" data-layer="L1" />
       <text id="n-dma-cache-text-0" class="body" x="2150" y="1881.5" text-anchor="middle">Атрибуты памяти</text>
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
-        <text id="n-dma-cache-title" class="node-title" x="2150" y="1855.5" text-anchor="middle">Кэш CPU</text>
-      </a>
+      <text id="n-dma-cache-title" class="node-title" x="2150" y="1855.5" text-anchor="middle">Кэш CPU</text>
     </g>
-    <g id="n-ethernet-group-group" data-l1-ref="n-port">
+    <g id="n-ethernet-group-group" data-l1-ref="n-ethernet" data-layer="L1" data-ownership="neutrino" data-label="Ethernet" data-target="architecture_bvstk_l1.svg#n-ethernet" data-entity="architecture_bvstk_l1.svg#n-ethernet" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-ethernet-group" class="group" x="1828" y="1964.0" width="434" height="214" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+      <a xlink:href="architecture_bvstk_l1.svg#n-ethernet" data-ref-node="n-ethernet-group-group" aria-label="Открыть блок «Ethernet» на схеме L1">
         <text id="n-ethernet-group-title" class="group-title" x="1846" y="1995.0" text-anchor="start">Ethernet</text>
       </a>
     </g>
-    <g id="n-ethernet-rings-group" data-l1-ref="n-port">
+    <g id="n-ethernet-rings-group">
       <rect id="n-ethernet-rings" class="node l1" x="1844" y="2012.0" width="400" height="58" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
-        <text id="n-ethernet-rings-title" class="node-title" x="2044" y="2037.5" text-anchor="middle">Кольца TX и RX</text>
-      </a>
+      <text id="n-ethernet-rings-title" class="node-title" x="2044" y="2037.5" text-anchor="middle">Кольца TX и RX</text>
     </g>
-    <g id="n-ethernet-control-group" data-l1-ref="n-port">
+    <g id="n-ethernet-control-group">
       <rect id="n-ethernet-control" class="node l1" x="1844" y="2110.0" width="400" height="56" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-port">
-        <text id="n-ethernet-control-title" class="node-title" x="2044" y="2134.5" text-anchor="middle">Управление MAC</text>
-      </a>
+      <text id="n-ethernet-control-title" class="node-title" x="2044" y="2134.5" text-anchor="middle">Управление MAC</text>
     </g>
     <path id="n-ethernet-start" class="link call" d="M 2044 2070 V 2110" data-from="n-ethernet-rings" data-to="n-ethernet-control" />
-    <g id="n-irq-group-group" data-l1-ref="n-interrupt-processing">
+    <g id="n-irq-group-group" data-l1-ref="n-interrupt-processing" data-layer="L1" data-ownership="neutrino" data-label="Доставка прерываний" data-target="architecture_bvstk_l1.svg#n-interrupt-processing" data-entity="architecture_bvstk_l1.svg#n-interrupt-processing" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-irq-group" class="group" x="1828" y="2214.0" width="434" height="976" rx="10" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing">
-        <text id="n-irq-group-title" class="group-title" x="1846" y="2245.0" text-anchor="start">IRQ</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing" data-ref-node="n-irq-group-group" aria-label="Открыть блок «Доставка прерываний» на схеме L1">
+        <text id="n-irq-group-title" class="group-title" x="1846" y="2245.0" text-anchor="start">Доставка прерываний</text>
       </a>
     </g>
-    <g id="n-irq-attach-group" data-l1-ref="n-interrupt-processing">
+    <g id="n-irq-attach-group">
       <rect id="n-irq-attach" class="node l1" x="1844" y="2274.0" width="400" height="90" rx="8" data-layer="L1" />
       <text id="n-irq-attach-text-0" class="body" x="2044" y="2353.0" text-anchor="middle">PL Slave event</text>
-      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing">
-        <text id="n-irq-attach-title" class="node-title" x="2044" y="2304.0" text-anchor="middle">Подключение IRQ</text>
-      </a>
+      <text id="n-irq-attach-title" class="node-title" x="2044" y="2304.0" text-anchor="middle">Подключение IRQ</text>
     </g>
-    <g id="n-irq-api-group" data-l1-ref="n-interrupt-processing">
+    <g id="n-irq-api-group" data-l1-ref="n-interrupt-processing--attach" data-layer="L1" data-ownership="neutrino" data-label="Подключение события IRQ" data-target="architecture_bvstk_l1.svg#n-interrupt-processing--attach" data-entity="architecture_bvstk_l1.svg#n-interrupt-processing--attach" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-irq-api" class="node l1" x="1844" y="2414.0" width="400" height="90" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing">
-        <text id="n-irq-api-title" class="node-title" x="2044" y="2455.5" text-anchor="middle">Системный IRQ-интерфейс</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing--attach" data-ref-node="n-irq-api-group" aria-label="Открыть блок «Подключение события IRQ» на схеме L1">
+        <text id="n-irq-api-title" class="node-title" x="2044" y="2455.5" text-anchor="middle">Подключение события IRQ</text>
       </a>
     </g>
-    <g id="n-gic-bsp-group" data-l1-ref="n-bsp--gic">
+    <g id="n-gic-bsp-group" data-l1-ref="n-bsp--gic" data-layer="L1" data-ownership="neutrino" data-label="BSP GIC" data-target="architecture_bvstk_l1.svg#n-bsp--gic" data-entity="architecture_bvstk_l1.svg#n-bsp--gic" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-gic-bsp" class="node l1" x="1844" y="2554.0" width="400" height="90" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-bsp--gic">
-        <text id="n-gic-bsp-title" class="node-title" x="2044" y="2595.5" text-anchor="middle">BSP: GIC</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-bsp--gic" data-ref-node="n-gic-bsp-group" aria-label="Открыть блок «BSP GIC» на схеме L1">
+        <text id="n-gic-bsp-title" class="node-title" x="2044" y="2595.5" text-anchor="middle">BSP GIC</text>
       </a>
     </g>
     <path id="n-irq-attach-api" class="link call" d="M 2044 2364 V 2414" data-from="n-irq-attach" data-to="n-irq-api" />
     <path id="n-irq-api-bsp" class="link call" d="M 2044 2504 V 2554" data-from="n-irq-api" data-to="n-gic-bsp" />
-    <g id="n-timer-port-group" data-l1-ref="n-bsp">
+    <g id="n-timer-port-group">
       <rect id="n-timer-port" class="node l1" x="1844" y="2694.0" width="400" height="90" rx="8" data-layer="L1" />
       <text id="n-timer-port-text-0" class="body" x="2044" y="2762.0" text-anchor="middle">tick + IRQ</text>
-      <a xlink:href="architecture_bvstk_l1.svg#n-bsp">
-        <text id="n-timer-port-title" class="node-title" x="2044" y="2724.0" text-anchor="middle">Таймерный порт</text>
-      </a>
+      <text id="n-timer-port-title" class="node-title" x="2044" y="2724.0" text-anchor="middle">Таймерный порт</text>
     </g>
-    <g id="n-irq-entry-group" data-l1-ref="n-interrupt-processing--worker">
+    <g id="n-irq-entry-group">
       <rect id="n-irq-entry" class="node l1" x="1844" y="2950.0" width="400" height="90" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing--worker">
-        <text id="n-irq-entry-title" class="node-title" x="2044" y="2991.5" text-anchor="middle">Ожидание IRQ-события</text>
-      </a>
+      <text id="n-irq-entry-title" class="node-title" x="2044" y="2991.5" text-anchor="middle">Ожидание IRQ-события</text>
     </g>
-    <g id="n-irq-handler-group" data-l1-ref="n-interrupt-processing--worker">
+    <g id="n-irq-handler-group" data-l1-ref="n-interrupt-processing--worker" data-layer="L1" data-ownership="neutrino" data-label="Поток обслуживания" data-target="architecture_bvstk_l1.svg#n-interrupt-processing--worker" data-entity="architecture_bvstk_l1.svg#n-interrupt-processing--worker" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-irq-handler" class="node l1" x="1844" y="3106.0" width="400" height="62" rx="8" data-layer="L1" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing--worker">
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing--worker" data-ref-node="n-irq-handler-group" aria-label="Открыть блок «Поток обслуживания» на схеме L1">
         <text id="n-irq-handler-title" class="node-title" x="2044" y="3133.5" text-anchor="middle">Поток обслуживания</text>
       </a>
     </g>
     <path id="n-irq-deliver" class="link call" d="M 2044 3040 V 3106" data-from="n-irq-entry" data-to="n-irq-handler" />
     <g id="h-mmio-group-group">
-      <rect id="h-mmio-group" class="hw-group" x="640" y="760.0" width="1020" height="540" rx="10" />
-      <text id="h-mmio-group-title" class="group-title" x="658" y="791.0" text-anchor="start">PS и AXI к PL</text>
+      <rect id="h-mmio-group" class="hw-group" x="640" y="760.0" width="1020" height="540" rx="10" data-layer="L0" data-ownership="common" data-label="PS и AXI к PL" data-entity="architecture_bvstk_ps_pl.svg#ps-axi" data-entity-ownership="common" data-representation="reference" data-target="architecture_bvstk_ps_pl.svg#ps-axi" />
+      <a xlink:href="architecture_bvstk_ps_pl.svg#ps-axi" data-ref-node="h-mmio-group" aria-label="Открыть блок «PS и AXI к PL» на соседней схеме">
+        <text id="h-mmio-group-title" class="group-title" x="658" y="791.0" text-anchor="start">PS и AXI к PL</text>
+      </a>
     </g>
     <g id="h-cpu-group">
       <rect id="h-cpu" class="node l0" x="660" y="805.0" width="980" height="135" rx="8" data-layer="L0" />
@@ -404,17 +375,21 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
       <text id="h-cache-title" class="node-title" x="1380.5" y="882.5" text-anchor="middle">Кэш и барьеры</text>
     </g>
     <g id="h-gp0-group">
-      <rect id="h-gp0" class="node l0" x="1030" y="965.0" width="240" height="68" rx="8" data-layer="L0" />
-      <text id="h-gp0-title" class="node-title" x="1150" y="995.5" text-anchor="middle">M_AXI_GP0</text>
+      <rect id="h-gp0" class="node l0" x="1030" y="965.0" width="240" height="68" rx="8" data-layer="L0" data-ownership="common" data-label="M_AXI_GP0" data-entity="architecture_bvstk_ps_pl.svg#gp0" data-entity-ownership="common" data-representation="reference" data-target="architecture_bvstk_ps_pl.svg#gp0" />
+      <a xlink:href="architecture_bvstk_ps_pl.svg#gp0" data-ref-node="h-gp0" aria-label="Открыть блок «M_AXI_GP0» на соседней схеме">
+        <text id="h-gp0-title" class="node-title" x="1150" y="995.5" text-anchor="middle">M_AXI_GP0</text>
+      </a>
     </g>
-    <path id="h-cpu-gp0" class="link axi" d="M 1150 940 V 965" data-from="h-cpu" data-to="h-gp0" />
-    <text id="h-gp0-data-0" class="axi-label" x="1310" y="1004.0" text-anchor="middle">AXI</text>
+    <path id="h-cpu-gp0" class="link config" d="M 1150 940 V 965" data-from="h-cpu" data-to="h-gp0" data-interaction="mmio" />
+    <text id="h-gp0-data-0" class="mmio-label" x="1310" y="1004.0" text-anchor="middle">AXI</text>
     <g id="h-mmio-interconnect-group">
-      <rect id="h-mmio-interconnect" class="node pl-node" x="970" y="1072.0" width="560" height="88" rx="8" data-layer="L0" />
-      <text id="h-mmio-interconnect-title" class="node-title" x="1250" y="1112.5" text-anchor="middle">AXI control</text>
+      <rect id="h-mmio-interconnect" class="node pl-node" x="970" y="1072.0" width="560" height="88" rx="8" data-layer="L0" data-ownership="common" data-label="AXI control" data-entity="architecture_bvstk_ps_pl.svg#axi-control" data-entity-ownership="common" data-representation="reference" data-target="architecture_bvstk_ps_pl.svg#axi-control" />
+      <a xlink:href="architecture_bvstk_ps_pl.svg#axi-control" data-ref-node="h-mmio-interconnect" aria-label="Открыть блок «AXI control» на соседней схеме">
+        <text id="h-mmio-interconnect-title" class="node-title" x="1250" y="1112.5" text-anchor="middle">AXI control</text>
+      </a>
       <text id="h-mmio-interconnect-text-0" class="body" x="1250" y="1138.5" text-anchor="middle">S_AXI → M_AXI</text>
     </g>
-    <path id="h-gp0-interconnect" class="link axi" d="M 1150 1033 V 1072" data-from="h-gp0" data-to="h-mmio-interconnect" />
+    <path id="h-gp0-interconnect" class="link config" d="M 1150 1033 V 1072" data-from="h-gp0" data-to="h-mmio-interconnect" data-interaction="mmio" />
     <g id="h-pl-registers-group">
       <rect id="h-pl-registers" class="node pl-node" x="790" y="1209.0" width="480" height="60" rx="8" data-layer="L0" />
       <text id="h-pl-registers-title" class="node-title" x="1030" y="1235.5" text-anchor="middle">Регистры PL</text>
@@ -428,16 +403,18 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
       <rect id="h-bram" class="node data-node" x="1500" y="1209.0" width="140" height="60" rx="8" data-layer="L0" />
       <text id="h-bram-title" class="node-title" x="1570" y="1235.5" text-anchor="middle">BRAM</text>
     </g>
-    <path id="h-axi-registers" class="link axi" d="M 1060 1160 V 1209" data-from="h-mmio-interconnect" data-to="h-pl-registers" />
-    <path id="h-axi-bram" class="link axi" d="M 1390 1160 V 1209" data-from="h-mmio-interconnect" data-to="h-bram-controller" />
-    <path id="h-bram-memory" class="link axi" d="M 1466 1239 H 1500" data-from="h-bram-controller" data-to="h-bram" />
+    <path id="h-axi-registers" class="link config" d="M 1060 1160 V 1209" data-from="h-mmio-interconnect" data-to="h-pl-registers" data-interaction="mmio" />
+    <path id="h-axi-bram" class="link data" d="M 1390 1160 V 1209" data-from="h-mmio-interconnect" data-to="h-bram-controller" />
+    <path id="h-bram-memory" class="link data" d="M 1466 1239 H 1500" data-from="h-bram-controller" data-to="h-bram" />
     <path id="f-mmio-cpu" class="link mmio" d="M 454 1014 H 630 V 910 H 660" data-from="f-mmio" data-to="h-cpu" />
     <path id="n-mmio-cpu" class="link mmio" d="M 1844 1148 H 1740 V 910 H 1640" data-from="n-mmio" data-to="h-cpu" />
     <text id="f-mmio-label-0" class="mmio-label" x="550" y="990" text-anchor="middle">MMIO</text>
     <text id="n-mmio-label-0" class="mmio-label" x="1750" y="1128" text-anchor="middle">MMIO</text>
     <g id="h-uart-group">
-      <rect id="h-uart" class="node l0" x="660" y="1344.0" width="980" height="60" rx="8" data-layer="L0" />
-      <text id="h-uart-title" class="node-title" x="1150" y="1370.5" text-anchor="middle">UART</text>
+      <rect id="h-uart" class="node l0" x="660" y="1344.0" width="980" height="60" rx="8" data-layer="L0" data-ownership="common" data-label="UART" data-entity="architecture_bvstk_l0_l1.svg#h-uart" data-entity-ownership="common" data-representation="definition" />
+      <a xlink:href="architecture_bvstk_l1.svg#uart-hardware" data-ref-node="h-uart" data-navigation="return" aria-label="Вернуться к блоку «UART» на соседней схеме">
+        <text id="h-uart-title" class="node-title" x="1150" y="1370.5" text-anchor="middle">L0. UART</text>
+      </a>
     </g>
     <g id="h-qspi-group">
       <rect id="h-qspi" class="node l0" x="660" y="1438.0" width="980" height="60" rx="8" data-layer="L0" />
@@ -485,13 +462,15 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     </g>
     <path id="h-sd-ddr" class="link data" d="M 900 1716 V 1759 H 1080 V 1834" data-from="h-sd-adma" data-to="h-ddr-buffers" />
     <text id="h-sd-ddr-label-0" class="axi-label" x="985" y="1781.0" text-anchor="middle">ADMA</text>
-    <path id="f-dma-memory" class="link axi" d="M 454 1879 H 660" data-from="f-dma-cache" data-to="h-ddr-buffers" />
-    <path id="n-dma-memory" class="link axi" d="M 1844 1879 H 1640" data-from="n-dma-addresses" data-to="h-ddr-descriptors" />
+    <path id="f-dma-memory" class="link data" d="M 454 1879 H 660" data-from="f-dma-cache" data-to="h-ddr-buffers" />
+    <path id="n-dma-memory" class="link data" d="M 1844 1879 H 1640" data-from="n-dma-addresses" data-to="h-ddr-descriptors" />
     <text id="f-dma-memory-label-0" class="axi-label" x="550" y="1859" text-anchor="middle">CPU</text>
     <text id="n-dma-memory-label-0" class="axi-label" x="1750" y="1859" text-anchor="middle">CPU</text>
     <g id="h-ethernet-group-group">
-      <rect id="h-ethernet-group" class="hw-group" x="640" y="2054.0" width="1020" height="124" rx="10" />
-      <text id="h-ethernet-group-title" class="group-title" x="658" y="2085.0" text-anchor="start">Ethernet</text>
+      <rect id="h-ethernet-group" class="hw-group" x="640" y="2054.0" width="1020" height="124" rx="10" data-layer="L0" data-ownership="common" data-label="Ethernet" data-entity="architecture_bvstk_l0_l1.svg#h-ethernet-group" data-entity-ownership="common" data-representation="definition" />
+      <a xlink:href="architecture_bvstk_l1.svg#ethernet-hardware" data-ref-node="h-ethernet-group" data-navigation="return" aria-label="Вернуться к блоку «Ethernet» на соседней схеме">
+        <text id="h-ethernet-group-title" class="group-title" x="658" y="2085.0" text-anchor="start">L0. Ethernet</text>
+      </a>
     </g>
     <g id="h-mac-control-group">
       <rect id="h-mac-control" class="node l0" x="660" y="2099.0" width="465" height="66" rx="8" data-layer="L0" />
@@ -508,19 +487,23 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     <path id="h-mac-ddr" class="link data" d="M 1400 2099 V 1919" data-from="h-mac-dma" data-to="h-ddr-descriptors" />
     <text id="h-mac-ddr-label-0" class="axi-label" x="1495" y="1984.0" text-anchor="middle">DMA</text>
     <g id="h-pl-dma-detail-group">
-      <rect id="h-pl-dma-detail" class="pl-group" x="640" y="2214.0" width="1020" height="322" rx="10" style="fill:#fcfaff;stroke:#8760ba;stroke-width:1.5" />
-      <text id="h-pl-dma-detail-title" class="group-title" x="658" y="2245.0" text-anchor="start">PL: AXI DMA</text>
+      <rect id="h-pl-dma-detail" class="pl-group" x="640" y="2214.0" width="1020" height="322" rx="10" style="fill:#fcfaff;stroke:#8760ba;stroke-width:1.5" data-layer="L0" data-ownership="common" data-label="PL: AXI DMA" data-entity="architecture_bvstk_ps_pl.svg#pl-dma" data-entity-ownership="common" data-representation="reference" data-target="architecture_bvstk_ps_pl.svg#pl-dma" />
+      <a xlink:href="architecture_bvstk_ps_pl.svg#pl-dma" data-ref-node="h-pl-dma-detail" aria-label="Открыть блок «PL: AXI DMA» на соседней схеме">
+        <text id="h-pl-dma-detail-title" class="group-title" x="658" y="2245.0" text-anchor="start">PL: AXI DMA</text>
+      </a>
     </g>
     <g id="h-pl-dma-gp0-group">
-      <rect id="h-pl-dma-gp0" class="node l0" x="660" y="2304.0" width="210" height="76" rx="8" data-layer="L0" />
-      <text id="h-pl-dma-gp0-title" class="node-title" x="765" y="2332.0" text-anchor="middle">M_AXI_GP0</text>
+      <rect id="h-pl-dma-gp0" class="node l0" x="660" y="2304.0" width="210" height="76" rx="8" data-layer="L0" data-ownership="common" data-label="M_AXI_GP0" data-entity="architecture_bvstk_ps_pl.svg#gp0" data-entity-ownership="common" data-representation="reference" data-target="architecture_bvstk_ps_pl.svg#gp0" />
+      <a xlink:href="architecture_bvstk_ps_pl.svg#gp0" data-ref-node="h-pl-dma-gp0" aria-label="Открыть блок «M_AXI_GP0» на соседней схеме">
+        <text id="h-pl-dma-gp0-title" class="node-title" x="765" y="2332.0" text-anchor="middle">M_AXI_GP0</text>
+      </a>
       <text id="h-pl-dma-gp0-text-0" class="body" x="765" y="2362.0" text-anchor="middle">PS control</text>
     </g>
     <g id="h-pl-dma-control-bus-group">
       <rect id="h-pl-dma-control-bus" class="node pl-node" x="936" y="2304.0" width="340" height="58" rx="8" data-layer="L0" />
       <text id="h-pl-dma-control-bus-title" class="node-title" x="1106" y="2329.5" text-anchor="middle">AXI Interconnect</text>
     </g>
-    <path id="h-pl-dma-control-gp0" class="link axi" d="M 870 2333 H 936" data-from="h-pl-dma-gp0" data-to="h-pl-dma-control-bus" />
+    <path id="h-pl-dma-control-gp0" class="link config" d="M 870 2333 H 936" data-from="h-pl-dma-gp0" data-to="h-pl-dma-control-bus" data-interaction="mmio" />
     <g id="h-spi-streams-group">
       <rect id="h-spi-streams" class="node stream-node" x="660" y="2424.0" width="178" height="87" rx="8" data-layer="L0" />
       <text id="h-spi-streams-title" class="node-title" x="749" y="2464.0" text-anchor="middle">SPI-потоки</text>
@@ -537,25 +520,31 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
       <text id="h-pl-data-bus-text-0" class="body" x="1320" y="2490.0" text-anchor="middle">AXI data</text>
     </g>
     <g id="h-pl-hp0-ddr-group">
-      <rect id="h-pl-hp0-ddr" class="node l0" x="1500" y="2424.0" width="140" height="87" rx="8" data-layer="L0" />
-      <text id="h-pl-hp0-ddr-title" class="node-title" x="1570" y="2464.0" text-anchor="middle">S_AXI_HP0</text>
+      <rect id="h-pl-hp0-ddr" class="node l0" x="1500" y="2424.0" width="140" height="87" rx="8" data-layer="L0" data-ownership="common" data-label="S_AXI_HP0" data-entity="architecture_bvstk_ps_pl.svg#hp0" data-entity-ownership="common" data-representation="reference" data-target="architecture_bvstk_ps_pl.svg#hp0" />
+      <a xlink:href="architecture_bvstk_ps_pl.svg#hp0" data-ref-node="h-pl-hp0-ddr" aria-label="Открыть блок «S_AXI_HP0» на соседней схеме">
+        <text id="h-pl-hp0-ddr-title" class="node-title" x="1570" y="2464.0" text-anchor="middle">S_AXI_HP0</text>
+      </a>
       <text id="h-pl-hp0-ddr-text-0" class="body" x="1570" y="2490.0" text-anchor="middle">PL → DDR</text>
     </g>
-    <path id="h-pl-dma-config" class="link axi" d="M 1106 2362 V 2389 H 1032 V 2424" data-from="h-pl-dma-control-bus" data-to="h-pl-dma" />
-    <text id="h-pl-dma-config-label-0" class="axi-label" x="1200" y="2401.0" text-anchor="middle">S_AXI_LITE</text>
-    <path id="h-stream-dma" class="link axi" d="M 838 2468 H 930" data-from="h-spi-streams" data-to="h-pl-dma" />
-    <path id="h-dma-data-bus" class="link axi" d="M 1135 2468 H 1225" data-from="h-pl-dma" data-to="h-pl-data-bus" />
+    <path id="h-pl-dma-config" class="link config" d="M 1106 2362 V 2389 H 1032 V 2424" data-from="h-pl-dma-control-bus" data-to="h-pl-dma" data-interaction="mmio" />
+    <text id="h-pl-dma-config-label-0" class="mmio-label" x="1200" y="2401.0" text-anchor="middle">S_AXI_LITE</text>
+    <path id="h-stream-dma" class="link data" d="M 838 2468 H 930" data-from="h-spi-streams" data-to="h-pl-dma" />
+    <path id="h-dma-data-bus" class="link data" d="M 1135 2468 H 1225" data-from="h-pl-dma" data-to="h-pl-data-bus" />
     <text id="h-dma-data-label-0" class="axi-label" x="1180" y="2449.0" text-anchor="middle">M_AXI</text>
-    <path id="h-dma-hp0" class="link axi" d="M 1415 2468 H 1500" data-from="h-pl-data-bus" data-to="h-pl-hp0-ddr" />
+    <path id="h-dma-hp0" class="link data" d="M 1415 2468 H 1500" data-from="h-pl-data-bus" data-to="h-pl-hp0-ddr" />
     <text id="h-dma-hp0-label-0" class="axi-label" x="1456" y="2448" text-anchor="middle">AXI</text>
     <g id="h-irq-group-group">
-      <rect id="h-irq-group" class="hw-group" x="640" y="2574.0" width="1020" height="734" rx="10" />
-      <text id="h-irq-group-title" class="group-title" x="658" y="2605.0" text-anchor="start">IRQ</text>
+      <rect id="h-irq-group" class="hw-group" x="640" y="2574.0" width="1020" height="734" rx="10" data-layer="L0" data-ownership="common" data-label="Источники IRQ и GIC" data-entity="architecture_bvstk_l0_l1.svg#h-irq-group" data-entity-ownership="common" data-representation="definition" />
+      <a xlink:href="architecture_bvstk_l1.svg#hardware-irq" data-ref-node="h-irq-group" data-navigation="return" aria-label="Вернуться к блоку «Источники IRQ и GIC» на соседней схеме">
+        <text id="h-irq-group-title" class="group-title" x="658" y="2605.0" text-anchor="start">L0. Источники IRQ и GIC</text>
+      </a>
     </g>
     <g id="h-i2c-irq-group">
-      <rect id="h-i2c-irq" class="node pl-core" x="660" y="2634.0" width="280" height="80" rx="8" data-layer="L0" />
-      <text id="h-i2c-irq-title" class="node-title" x="800" y="2670.5" text-anchor="middle">PL Slave</text>
-      <text id="h-i2c-irq-text-0" class="body" x="800" y="2696.5" text-anchor="middle">PL: IRQ_F2P</text>
+      <rect id="h-i2c-irq" class="node pl-core" x="660" y="2634.0" width="280" height="80" rx="8" data-layer="L0" data-ownership="common" data-label="Источники PL" data-entity="architecture_bvstk_ps_pl.svg#irq-sources" data-entity-ownership="common" data-representation="reference" data-target="architecture_bvstk_ps_pl.svg#irq-sources" />
+      <a xlink:href="architecture_bvstk_ps_pl.svg#irq-sources" data-ref-node="h-i2c-irq" aria-label="Открыть блок «Источники PL» на соседней схеме">
+        <text id="h-i2c-irq-title" class="node-title" x="800" y="2670.5" text-anchor="middle">Источники PL</text>
+      </a>
+      <text id="h-i2c-irq-text-0" class="body" x="800" y="2696.5" text-anchor="middle">Контроллеры и DMA</text>
     </g>
     <g id="h-timer-irq-group">
       <rect id="h-timer-irq" class="node l0" x="990" y="2634.0" width="280" height="80" rx="8" data-layer="L0" />
@@ -568,8 +557,10 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
       <text id="h-mac-irq-text-0" class="body" x="1480" y="2696.5" text-anchor="middle">PS done</text>
     </g>
     <g id="h-gic-group">
-      <rect id="h-gic" class="node l0" x="1000" y="2804.0" width="300" height="90" rx="8" data-layer="L0" />
-      <text id="h-gic-title" class="node-title" x="1150" y="2845.5" text-anchor="middle">GIC</text>
+      <rect id="h-gic" class="node l0" x="1000" y="2804.0" width="300" height="90" rx="8" data-layer="L0" data-ownership="common" data-label="GIC" data-entity="architecture_bvstk_ps_pl.svg#gic" data-entity-ownership="common" data-representation="reference" data-target="architecture_bvstk_ps_pl.svg#gic" />
+      <a xlink:href="architecture_bvstk_ps_pl.svg#gic" data-ref-node="h-gic" aria-label="Открыть блок «GIC» на соседней схеме">
+        <text id="h-gic-title" class="node-title" x="1150" y="2845.5" text-anchor="middle">GIC</text>
+      </a>
     </g>
     <path id="h-i2c-gic" class="link irq" d="M 800 2714 V 2774 H 1060 V 2804" data-from="h-i2c-irq" data-to="h-gic" />
     <path id="h-timer-gic" class="link irq" d="M 1130 2714 V 2804" data-from="h-timer-irq" data-to="h-gic" />
@@ -589,24 +580,24 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
       <text id="sheet-subtitle" x="42" y="123" class="body" text-anchor="start">Детализация платформы L1: MMIO, память, DMA и доставка IRQ.</text>
     </a>
     <text id="common-title" x="1150" y="231" class="group-title" text-anchor="middle">Общие части и аппаратура</text>
-    <g id="n-memory-kernel" data-kind="component" data-layer="L2" data-ownership="neutrino" data-source="src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c">
+    <g id="n-memory-kernel" data-kind="component" data-layer="L2" data-ownership="neutrino" data-source="src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c" data-label="Отображение памяти" data-target="architecture_bvstk_l1.svg#n-memory-api" data-entity="architecture_bvstk_l1.svg#n-memory-api" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-memory-kernel-box" x="1844" y="970.0" width="400" height="72" rx="8" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-kernel">
+      <a xlink:href="architecture_bvstk_l1.svg#n-memory-api" data-ref-node="n-memory-kernel" aria-label="Открыть блок «Отображение памяти» на схеме L1">
         <text id="n-memory-kernel-title" x="2044.0" y="999.0" class="node-title" text-anchor="middle">L2. Отображение памяти</text>
       </a>
       <text id="n-memory-kernel-text" x="2044.0" y="1025.0" class="body" text-anchor="middle">mmap_device_memory</text>
     </g>
-    <g id="n-irq-kernel" data-kind="component" data-layer="L2" data-ownership="neutrino" data-source="src/ports/neutrino-zynq7000/os/i2c/bvstk_i2c_slave_neutrino.c">
+    <g id="n-irq-kernel" data-kind="component" data-layer="L2" data-ownership="neutrino" data-source="src/ports/neutrino-zynq7000/os/i2c/bvstk_i2c_slave_neutrino.c" data-label="Доставка IRQ" data-target="architecture_bvstk_l1.svg#n-interrupt-processing--event" data-entity="architecture_bvstk_l1.svg#n-interrupt-processing--event" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-irq-kernel-box" x="1844" y="2824.0" width="400" height="76" rx="8" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
-      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing--event">
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing--event" data-ref-node="n-irq-kernel" aria-label="Открыть блок «Доставка IRQ» на схеме L1">
         <text id="n-irq-kernel-title" x="2044.0" y="2853.0" class="node-title" text-anchor="middle">L2. Доставка IRQ</text>
       </a>
       <text id="n-irq-kernel-text" x="2044.0" y="2879.0" class="body" text-anchor="middle">SIGEV_INTR</text>
     </g>
     <path id="n-kernel-signals-waiter" class="link irq" data-from="n-irq-kernel" data-to="n-irq-entry" data-interaction="event" d="M 2044 2900 V 2950" style="marker-start:url(#irq-source);marker-end:url(#irq-arrow)" />
-    <g id="f-irq-queue" data-kind="component" data-layer="L2" data-ownership="freertos" data-source="src/ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.c">
+    <g id="f-irq-queue" data-kind="component" data-layer="L2" data-ownership="freertos" data-source="src/ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.c" data-label="Очередь событий" data-target="architecture_bvstk_l1.svg#f-interrupt-processing--event" data-entity="architecture_bvstk_l1.svg#f-interrupt-processing--event" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-irq-queue-box" x="54" y="3072.0" width="400" height="70" rx="8" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
-      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing--event">
+      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing--event" data-ref-node="f-irq-queue" aria-label="Открыть блок «Очередь событий» на схеме L1">
         <text id="f-irq-queue-title" x="254.0" y="3101.0" class="node-title" text-anchor="middle">L2. Очередь событий</text>
       </a>
       <text id="f-irq-queue-text" x="254.0" y="3127.0" class="body" text-anchor="middle">xQueueSendFromISR</text>
@@ -615,91 +606,432 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     <path id="f-queue-wakes-worker" class="link irq" data-from="f-irq-queue" data-to="f-irq-handler" data-interaction="event" d="M 254 3142 V 3192" style="marker-start:url(#irq-source);marker-end:url(#irq-arrow)" />
     <text id="pl-dma-status" x="658" y="2272.0" class="small" text-anchor="start">SPI master используется для PL SD. Буферы обмена находятся в BRAM.</text>
     <g id="legend" aria-label="Обозначения">
-      <line x1="42" y1="3358.0" x2="2258" y2="3358.0" stroke="#c4ccd3" />
-      <path d="M 42 3396 H 100" class="link call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-      <text id="legend-link-call" x="120" y="3402.0" class="legend-text" text-anchor="start">Вызов</text>
-      <path d="M 602 3396 H 660" class="link config" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
-      <text id="legend-link-config" x="680" y="3402.0" class="legend-text" text-anchor="start">MMIO и настройка</text>
-      <path d="M 1162 3396 H 1220" class="link data" marker-start="url(#axi-source)" marker-end="url(#axi-arrow)" />
-      <text id="legend-link-data" x="1240" y="3402.0" class="legend-text" text-anchor="start">AXI и передача данных</text>
-      <path d="M 1722 3396 H 1780" class="link irq" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
-      <text id="legend-link-irq" x="1800" y="3402.0" class="legend-text" text-anchor="start">IRQ и событие</text>
-      <rect x="42" y="3434.0" width="48" height="30" rx="5" fill="#e9eef3" stroke="#607487" />
-      <text id="legend-L0" x="66" y="3455.0" class="legend-text" text-anchor="middle">L0</text>
-      <text id="legend-label-L0" x="104" y="3455.0" class="legend-text" text-anchor="start">Аппаратура</text>
-      <rect x="452" y="3434.0" width="48" height="30" rx="5" fill="#fff0d6" stroke="#b56b1d" />
-      <text id="legend-L1" x="476" y="3455.0" class="legend-text" text-anchor="middle">L1</text>
-      <text id="legend-label-L1" x="514" y="3455.0" class="legend-text" text-anchor="start">Платформа</text>
-      <rect x="862" y="3434.0" width="48" height="30" rx="5" fill="#ffd1c7" stroke="#c65b4e" />
-      <text id="legend-L2" x="886" y="3455.0" class="legend-text" text-anchor="middle">L2</text>
-      <text id="legend-label-L2" x="924" y="3455.0" class="legend-text" text-anchor="start">Ядро ОС</text>
-      <rect x="1272" y="3434.0" width="48" height="30" rx="5" class="pl-node" />
-      <text id="legend-pl" x="1296" y="3455.0" class="legend-text" text-anchor="middle">PL</text>
-      <text id="legend-pl-label" x="1334" y="3455.0" class="legend-text" text-anchor="start">Программируемая логика, часть L0</text>
-      <text id="legend-note" x="42" y="3502.0" class="legend-text" text-anchor="start">Общие модули находятся в центре. Заголовки блоков связывают аппаратные пути со схемами платформы и приложений.</text>
-      <rect x="1740" y="3434.0" width="48" height="30" rx="5" fill="#d9ebff" stroke="#3f75ad" />
-      <text id="legend-l4" x="1764" y="3455.0" class="legend-text" text-anchor="middle">L4</text>
-      <text id="legend-l4-label" x="1804" y="3455.0" class="legend-text" text-anchor="start">Приложения</text>
+      <line x1="42" y1="3610" x2="2258" y2="3610" stroke="#c4ccd3" />
+      <path d="M 42 3648 H 100" class="link call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <text id="legend-link-call" x="120" y="3654" class="legend-text" text-anchor="start">Вызов</text>
+      <path d="M 602 3648 H 660" class="link config" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+      <text id="legend-link-config" x="680" y="3654" class="legend-text" text-anchor="start">MMIO и настройка</text>
+      <path d="M 1162 3648 H 1220" class="link data" marker-start="url(#axi-source)" marker-end="url(#axi-arrow)" />
+      <text id="legend-link-data" x="1240" y="3654" class="legend-text" text-anchor="start">AXI и передача данных</text>
+      <path d="M 1722 3648 H 1780" class="link irq" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+      <text id="legend-link-irq" x="1800" y="3654" class="legend-text" text-anchor="start">IRQ и событие</text>
+      <text id="legend-note" x="42" y="3754" class="legend-text" text-anchor="start">Одноимённые блоки продолжают связь на соседней схеме. Заголовки ссылочных блоков открывают её продолжение.</text>
+      <rect x="42" y="3686" width="48" height="30" rx="5" fill="#e9eef3" stroke="#607487" />
+      <text id="legend-layer-L0" x="66" y="3707" class="legend-text" text-anchor="middle">L0</text>
+      <text id="legend-layer-label-L0" x="104" y="3707" class="legend-text" text-anchor="start">Аппаратура</text>
+      <rect x="412" y="3686" width="48" height="30" rx="5" fill="#e6dcf5" stroke="#8760ba" />
+      <text id="legend-layer-PL" x="436" y="3707" class="legend-text" text-anchor="middle">PL</text>
+      <text id="legend-layer-label-PL" x="474" y="3707" class="legend-text" text-anchor="start">Логика PL в L0</text>
+      <rect x="782" y="3686" width="48" height="30" rx="5" fill="#fff0d6" stroke="#b56b1d" />
+      <text id="legend-layer-L1" x="806" y="3707" class="legend-text" text-anchor="middle">L1</text>
+      <text id="legend-layer-label-L1" x="844" y="3707" class="legend-text" text-anchor="start">Платформа</text>
+      <rect x="1152" y="3686" width="48" height="30" rx="5" fill="#ffd1c7" stroke="#c65b4e" />
+      <text id="legend-layer-L2" x="1176" y="3707" class="legend-text" text-anchor="middle">L2</text>
+      <text id="legend-layer-label-L2" x="1214" y="3707" class="legend-text" text-anchor="start">Ядро ОС</text>
+      <rect x="1522" y="3686" width="48" height="30" rx="5" fill="#d9f0ea" stroke="#287f73" />
+      <text id="legend-layer-L3" x="1546" y="3707" class="legend-text" text-anchor="middle">L3</text>
+      <text id="legend-layer-label-L3" x="1584" y="3707" class="legend-text" text-anchor="start">Сервисы</text>
+      <rect x="1892" y="3686" width="48" height="30" rx="5" fill="#d9ebff" stroke="#3f75ad" />
+      <text id="legend-layer-L4" x="1916" y="3707" class="legend-text" text-anchor="middle">L4</text>
+      <text id="legend-layer-label-L4" x="1954" y="3707" class="legend-text" text-anchor="start">Приложения</text>
     </g>
-    <g id="common-platform-access" data-kind="functional-group" data-layer="L1" data-ownership="common">
+    <g id="common-platform-access" data-kind="functional-group" data-layer="L1" data-ownership="common" data-label="Доступ к регистрам" data-target="architecture_bvstk_l1.svg#platform-access" data-entity="architecture_bvstk_l1.svg#platform-access" data-entity-ownership="common" data-representation="reference">
       <rect x="640" y="270" width="1020" height="318" rx="10" fill="#fffdf8" stroke="#b56b1d" stroke-width="1.5" />
-      <a xlink:href="architecture_bvstk_l1.svg#platform-access">
+      <a xlink:href="architecture_bvstk_l1.svg#platform-access" data-ref-node="common-platform-access" aria-label="Открыть блок «Доступ к регистрам» на схеме L1">
         <text id="common-platform-title" x="662" y="306" class="group-title" text-anchor="start">L1. Доступ к регистрам</text>
       </a>
-      <g id="common-region-catalog" data-kind="component" data-layer="L1" data-ownership="common">
+      <g id="common-region-catalog" data-kind="component" data-layer="L1" data-ownership="common" data-label="bvstk_pl_regions" data-target="architecture_bvstk_l1.svg#platform-access--catalog" data-entity="architecture_bvstk_l1.svg#platform-access--catalog" data-entity-ownership="common" data-representation="reference">
         <rect x="960" y="330" width="380" height="64" rx="8" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
-        <a xlink:href="architecture_bvstk_l1.svg#platform-access--catalog">
+        <a xlink:href="architecture_bvstk_l1.svg#platform-access--catalog" data-ref-node="common-region-catalog" aria-label="Открыть блок «bvstk_pl_regions» на схеме L1">
           <text id="common-region-catalog-title" x="1150.0" y="361" class="node-title" text-anchor="middle">bvstk_pl_regions</text>
         </a>
       </g>
-      <g id="common-pl-access" data-kind="component" data-layer="L1" data-ownership="common">
+      <g id="common-pl-access" data-kind="component" data-layer="L1" data-ownership="common" data-label="bvstk_pl_service" data-target="architecture_bvstk_l1.svg#platform-access--pl-access" data-entity="architecture_bvstk_l1.svg#platform-access--pl-access" data-entity-ownership="common" data-representation="reference">
         <rect x="870" y="444" width="560" height="116" rx="8" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
-        <a xlink:href="architecture_bvstk_l1.svg#platform-access--pl-access">
+        <a xlink:href="architecture_bvstk_l1.svg#platform-access--pl-access" data-ref-node="common-pl-access" aria-label="Открыть блок «bvstk_pl_service» на схеме L1">
           <text id="common-pl-access-title" x="1150.0" y="475" class="node-title" text-anchor="middle">bvstk_pl_service</text>
         </a>
         <text id="common-pl-access-body" x="1150.0" y="505" class="body" text-anchor="middle">Поиск региона и доступ по смещению</text>
       </g>
     </g>
-    <g id="f-platform-reference" data-kind="component" data-layer="L4" data-ownership="freertos">
-      <rect x="38" y="444" width="434" height="116" rx="8" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
-      <a xlink:href="architecture_bvstk_l4.svg#f-command-mem_shell">
-        <text id="f-platform-reference-title" x="255.0" y="475" class="node-title" text-anchor="middle">L4. mem_shell</text>
-      </a>
-      <text id="f-platform-reference-body" x="255.0" y="505" class="body" text-anchor="middle">Операции с памятью и регистрами</text>
-    </g>
-    <g id="n-platform-reference" data-kind="component" data-layer="L4" data-ownership="neutrino">
+    <g id="n-platform-reference" data-kind="component" data-layer="L4" data-ownership="neutrino" data-label="bvstkctl" data-target="architecture_bvstk_l4.svg#n-bvstkctl" data-entity="architecture_bvstk_l4.svg#n-bvstkctl" data-entity-ownership="neutrino" data-representation="reference">
       <rect x="1828" y="444" width="434" height="116" rx="8" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
-      <a xlink:href="architecture_bvstk_l4.svg#n-bvstkctl">
+      <a xlink:href="architecture_bvstk_l4.svg#n-bvstkctl" data-ref-node="n-platform-reference" aria-label="Открыть блок «bvstkctl» на схеме L4">
         <text id="n-platform-reference-title" x="2045.0" y="475" class="node-title" text-anchor="middle">L4. bvstkctl</text>
       </a>
       <text id="n-platform-reference-body" x="2045.0" y="505" class="body" text-anchor="middle">Операции с регионами PL</text>
     </g>
     <path id="catalog-supplies-region" d="M 1150 394 V 444" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" data-kind="interaction" data-from="common-region-catalog" data-to="common-pl-access" data-interaction="data" marker-start="url(#axi-source)" marker-end="url(#axi-arrow)" />
-    <path id="f-uses-common-access" d="M 472 502 H 870" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="f-platform-reference" data-to="common-pl-access" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     <path id="n-uses-common-access" d="M 1828 502 H 1430" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="n-platform-reference" data-to="common-pl-access" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     <path id="common-selects-f-region" d="M 1000 560 V 628 H 560 V 872 H 454" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="common-pl-access" data-to="f-region" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     <path id="common-selects-n-region" d="M 1300 560 V 628 H 1740 V 872 H 1844" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="common-pl-access" data-to="n-region" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     <g id="h-pl-dma-bram-group" data-kind="component" data-layer="L0" data-ownership="common">
-      <rect id="h-pl-dma-bram" x="1340" y="2304.0" width="300" height="66" rx="7" class="node pl-node" />
-      <text id="h-pl-dma-bram-title" x="1490" y="2344.0" class="node-title" text-anchor="middle">BRAM обмена</text>
+      <rect id="h-pl-dma-bram" x="1340" y="2304.0" width="300" height="66" rx="7" class="node pl-node" data-layer="L0" data-ownership="common" data-label="BRAM обмена" data-entity="architecture_bvstk_ps_pl.svg#spi-memory" data-entity-ownership="common" data-representation="reference" data-target="architecture_bvstk_ps_pl.svg#spi-memory" />
+      <a xlink:href="architecture_bvstk_ps_pl.svg#spi-memory" data-ref-node="h-pl-dma-bram" aria-label="Открыть блок «BRAM обмена» на соседней схеме">
+        <text id="h-pl-dma-bram-title" x="1490" y="2344.0" class="node-title" text-anchor="middle">BRAM обмена</text>
+      </a>
     </g>
     <path id="h-data-bus-bram" d="M 1380 2424 V 2370" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" data-kind="interaction" data-from="h-pl-data-bus" data-to="h-pl-dma-bram" data-interaction="data" marker-start="url(#axi-arrow)" marker-end="url(#axi-arrow)" />
-    <a xlink:href="architecture_bvstk_l4.svg">
-      <rect x="1770" y="54" width="100" height="44" rx="7" fill="white" stroke="#3f75ad" />
-      <text id="nav-L4" x="1820" y="84" class="node-title" text-anchor="middle" style="fill:#3f75ad">L4</text>
-    </a>
-    <a xlink:href="architecture_bvstk_l3.svg">
-      <rect x="1892" y="54" width="100" height="44" rx="7" fill="white" stroke="#287f73" />
-      <text id="nav-L3" x="1942" y="84" class="node-title" text-anchor="middle" style="fill:#287f73">L3</text>
-    </a>
-    <a xlink:href="architecture_bvstk_l1.svg">
-      <rect x="2014" y="54" width="100" height="44" rx="7" fill="white" stroke="#b56b1d" />
-      <text id="nav-L1" x="2064" y="84" class="node-title" text-anchor="middle" style="fill:#b56b1d">L1</text>
-    </a>
-    <a xlink:href="architecture_bvstk_l0_l1.svg">
-      <rect x="2136" y="54" width="100" height="44" rx="7" fill="#e9eef3" stroke="#607487" />
-      <text id="nav-L0" x="2186" y="84" class="node-title" text-anchor="middle" style="fill:#607487">L0–L1</text>
-    </a>
     <path id="n-mapping-to-mmio" d="M 2044 1042 V 1104" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" data-kind="interaction" data-from="n-memory-kernel" data-to="n-mmio" data-interaction="data" marker-start="url(#axi-source)" marker-end="url(#axi-arrow)" />
+    <g id="subsystem-services" data-kind="component" data-layer="L3" data-ownership="common" data-label="Сервисы подсистем" data-target="architecture_bvstk_l3.svg#subsystem-services" data-entity="architecture_bvstk_l3.svg#subsystem-services" data-entity-ownership="common" data-representation="reference">
+      <rect x="760" y="3400" width="780" height="112" rx="8" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
+      <a xlink:href="architecture_bvstk_l3.svg#subsystem-services" data-ref-node="subsystem-services" aria-label="Открыть блок «Сервисы подсистем» на схеме L3">
+        <text id="subsystem-services-title" x="1150.0" y="3431" class="node-title" text-anchor="middle">L3. Сервисы подсистем</text>
+      </a>
+      <text id="subsystem-services-body" x="1150.0" y="3461" class="body" text-anchor="middle">Обработка запроса устройства</text>
+    </g>
+    <path id="f-worker-to-services" d="M 254 3254 V 3456 H 760" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="f-irq-handler" data-to="subsystem-services" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    <path id="n-worker-to-services" d="M 2044 3168 V 3456 H 1540" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="n-irq-handler" data-to="subsystem-services" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    <text id="f-service-call-label" x="520" y="3436" class="body" text-anchor="middle" style="fill:#788794">Вызов сервиса</text>
+    <text id="n-service-call-label" x="1780" y="3436" class="body" text-anchor="middle" style="fill:#788794">Вызов сервиса</text>
+  </g>
+  <metadata id="cross-sheet-links">[
+  {
+    "block": "f-mmio-group-group",
+    "target": "architecture_bvstk_l1.svg#f-port",
+    "label": "Реализация MMIO",
+    "layer": "L1"
+  },
+  {
+    "block": "f-region-group",
+    "target": "architecture_bvstk_l1.svg#f-port--mmio",
+    "label": "bvstk_platform_freertos",
+    "layer": "L1"
+  },
+  {
+    "block": "f-mmio-node-group",
+    "target": "architecture_bvstk_l1.svg#f-mmio-bsp",
+    "label": "Операции Xilinx BSP",
+    "layer": "L1"
+  },
+  {
+    "block": "f-uart-group",
+    "target": "architecture_bvstk_l1.svg#f-uart",
+    "label": "UART",
+    "layer": "L1"
+  },
+  {
+    "block": "f-qspi-group",
+    "target": "architecture_bvstk_l1.svg#f-media-qspi",
+    "label": "qspi_flash",
+    "layer": "L1"
+  },
+  {
+    "block": "f-sd-group-group",
+    "target": "architecture_bvstk_l1.svg#f-media-access",
+    "label": "Доступ к носителям",
+    "layer": "L1"
+  },
+  {
+    "block": "f-sd-map-group",
+    "target": "architecture_bvstk_l1.svg#f-media-sd",
+    "label": "diskio",
+    "layer": "L1"
+  },
+  {
+    "block": "f-ethernet-group-group",
+    "target": "architecture_bvstk_l1.svg#f-ethernet",
+    "label": "Ethernet",
+    "layer": "L1"
+  },
+  {
+    "block": "f-irq-group-group",
+    "target": "architecture_bvstk_l1.svg#f-interrupt-processing",
+    "label": "Доставка прерываний",
+    "layer": "L1"
+  },
+  {
+    "block": "f-irq-api-group",
+    "target": "architecture_bvstk_l1.svg#f-bsp--cpu",
+    "label": "Порт Cortex-A9",
+    "layer": "L1"
+  },
+  {
+    "block": "f-gic-bsp-group",
+    "target": "architecture_bvstk_l1.svg#f-bsp--gic",
+    "label": "XScuGic",
+    "layer": "L1"
+  },
+  {
+    "block": "f-irq-entry-group",
+    "target": "architecture_bvstk_l1.svg#f-interrupt-processing--attach",
+    "label": "ISR: захват состояния",
+    "layer": "L1"
+  },
+  {
+    "block": "f-irq-handler-group",
+    "target": "architecture_bvstk_l1.svg#f-interrupt-processing--worker",
+    "label": "Задача обслуживания",
+    "layer": "L1"
+  },
+  {
+    "block": "n-mmio-group-group",
+    "target": "architecture_bvstk_l1.svg#n-port",
+    "label": "Реализация MMIO",
+    "layer": "L1"
+  },
+  {
+    "block": "n-region-group",
+    "target": "architecture_bvstk_l1.svg#n-port--mapping",
+    "label": "bvstk_platform_neutrino",
+    "layer": "L1"
+  },
+  {
+    "block": "n-mmio-node-group",
+    "target": "architecture_bvstk_l1.svg#n-port--registers",
+    "label": "Доступ к отображённой памяти",
+    "layer": "L1"
+  },
+  {
+    "block": "n-uart-group",
+    "target": "architecture_bvstk_l1.svg#n-uart",
+    "label": "UART",
+    "layer": "L1"
+  },
+  {
+    "block": "n-qspi-group",
+    "target": "architecture_bvstk_l1.svg#n-media-qspi",
+    "label": "bvstk_qspi_raw",
+    "layer": "L1"
+  },
+  {
+    "block": "n-sd-group-group",
+    "target": "architecture_bvstk_l1.svg#n-media-access",
+    "label": "Доступ к носителям",
+    "layer": "L1"
+  },
+  {
+    "block": "n-sd-map-group",
+    "target": "architecture_bvstk_l1.svg#n-media-sd",
+    "label": "bvstk_sd_raw",
+    "layer": "L1"
+  },
+  {
+    "block": "n-ethernet-group-group",
+    "target": "architecture_bvstk_l1.svg#n-ethernet",
+    "label": "Ethernet",
+    "layer": "L1"
+  },
+  {
+    "block": "n-irq-group-group",
+    "target": "architecture_bvstk_l1.svg#n-interrupt-processing",
+    "label": "Доставка прерываний",
+    "layer": "L1"
+  },
+  {
+    "block": "n-irq-api-group",
+    "target": "architecture_bvstk_l1.svg#n-interrupt-processing--attach",
+    "label": "Подключение события IRQ",
+    "layer": "L1"
+  },
+  {
+    "block": "n-gic-bsp-group",
+    "target": "architecture_bvstk_l1.svg#n-bsp--gic",
+    "label": "BSP GIC",
+    "layer": "L1"
+  },
+  {
+    "block": "n-irq-handler-group",
+    "target": "architecture_bvstk_l1.svg#n-interrupt-processing--worker",
+    "label": "Поток обслуживания",
+    "layer": "L1"
+  },
+  {
+    "block": "n-memory-kernel",
+    "target": "architecture_bvstk_l1.svg#n-memory-api",
+    "label": "Отображение памяти",
+    "layer": "L2"
+  },
+  {
+    "block": "n-irq-kernel",
+    "target": "architecture_bvstk_l1.svg#n-interrupt-processing--event",
+    "label": "Доставка IRQ",
+    "layer": "L2"
+  },
+  {
+    "block": "f-irq-queue",
+    "target": "architecture_bvstk_l1.svg#f-interrupt-processing--event",
+    "label": "Очередь событий",
+    "layer": "L2"
+  },
+  {
+    "block": "common-platform-access",
+    "target": "architecture_bvstk_l1.svg#platform-access",
+    "label": "Доступ к регистрам",
+    "layer": "L1"
+  },
+  {
+    "block": "common-region-catalog",
+    "target": "architecture_bvstk_l1.svg#platform-access--catalog",
+    "label": "bvstk_pl_regions",
+    "layer": "L1"
+  },
+  {
+    "block": "common-pl-access",
+    "target": "architecture_bvstk_l1.svg#platform-access--pl-access",
+    "label": "bvstk_pl_service",
+    "layer": "L1"
+  },
+  {
+    "block": "n-platform-reference",
+    "target": "architecture_bvstk_l4.svg#n-bvstkctl",
+    "label": "bvstkctl",
+    "layer": "L4"
+  },
+  {
+    "block": "subsystem-services",
+    "target": "architecture_bvstk_l3.svg#subsystem-services",
+    "label": "Сервисы подсистем",
+    "layer": "L3"
+  },
+  {
+    "block": "hardware-panel",
+    "target": "architecture_bvstk_l1.svg#hardware",
+    "label": "Регистры и память Zynq",
+    "layer": "L0"
+  },
+  {
+    "block": "h-irq-group",
+    "target": "architecture_bvstk_l1.svg#hardware-irq",
+    "label": "Источники IRQ и GIC",
+    "layer": "L0"
+  },
+  {
+    "block": "h-ethernet-group",
+    "target": "architecture_bvstk_l1.svg#ethernet-hardware",
+    "label": "Ethernet",
+    "layer": "L0"
+  },
+  {
+    "block": "h-uart",
+    "target": "architecture_bvstk_l1.svg#uart-hardware",
+    "label": "UART",
+    "layer": "L0"
+  },
+  {
+    "block": "h-mmio-group",
+    "target": "architecture_bvstk_ps_pl.svg#ps-axi",
+    "label": "PS и AXI к PL",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "h-gp0",
+    "target": "architecture_bvstk_ps_pl.svg#gp0",
+    "label": "M_AXI_GP0",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "h-pl-dma-gp0",
+    "target": "architecture_bvstk_ps_pl.svg#gp0",
+    "label": "M_AXI_GP0",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "h-mmio-interconnect",
+    "target": "architecture_bvstk_ps_pl.svg#axi-control",
+    "label": "AXI control",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "h-pl-dma-detail",
+    "target": "architecture_bvstk_ps_pl.svg#pl-dma",
+    "label": "PL: AXI DMA",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "h-pl-hp0-ddr",
+    "target": "architecture_bvstk_ps_pl.svg#hp0",
+    "label": "S_AXI_HP0",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "h-pl-dma-bram",
+    "target": "architecture_bvstk_ps_pl.svg#spi-memory",
+    "label": "BRAM обмена",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "h-irq-group",
+    "target": "architecture_bvstk_ps_pl.svg#irq-path",
+    "label": "Источники IRQ и GIC",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "h-i2c-irq",
+    "target": "architecture_bvstk_ps_pl.svg#irq-sources",
+    "label": "Источники PL",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "h-gic",
+    "target": "architecture_bvstk_ps_pl.svg#gic",
+    "label": "GIC",
+    "layer": "L0",
+    "relation": "detail"
+  },
+  {
+    "block": "hardware-panel",
+    "target": "architecture_bvstk_os.svg#hardware",
+    "label": "L0. Аппаратура",
+    "layer": "L0",
+    "relation": "overview"
+  },
+  {
+    "block": "h-irq-group",
+    "target": "architecture_bvstk_os.svg#hardware",
+    "label": "L0. Аппаратура",
+    "layer": "L0",
+    "relation": "overview"
+  }
+]</metadata>
+  <g id="h-irq-group-detail-link">
+    <a data-navigation="detail" data-ref-node="h-irq-group" xlink:href="architecture_bvstk_ps_pl.svg#irq-path" aria-label="Раскрыть блок «Источники IRQ и GIC» на схеме L0">
+      <text x="1636.0" y="2605.0" font-size="17" font-weight="700" text-anchor="end" style="fill:#607487">Детали L0 →</text>
+    </a>
+  </g>
+  <a id="overview-return-hardware-panel" data-navigation="overview" data-ref-node="hardware-panel" xlink:href="architecture_bvstk_os.svg#hardware" aria-label="Открыть раздел «L0. Аппаратура» в обзоре ОС">
+    <text x="1678.0" y="705.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <a id="overview-return-h-irq-group" data-navigation="overview" data-ref-node="h-irq-group" xlink:href="architecture_bvstk_os.svg#hardware" aria-label="Открыть раздел «L0. Аппаратура» в обзоре ОС">
+    <text x="1648.0" y="2589.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
+  </a>
+  <g id="series-navigation" data-kind="navigation">
+    <a data-navigation="sheet" xlink:href="levels.svg">
+      <rect x="1500.0" y="64" width="124" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="1562.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">Уровни</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_os.svg">
+      <rect x="1640.0" y="64" width="84" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="1682.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">ОС</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l4.svg">
+      <rect x="1740.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#3f75ad" stroke-width="1" />
+      <text x="1780.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#3f75ad">L4</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l3.svg">
+      <rect x="1836.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#287f73" stroke-width="1" />
+      <text x="1876.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#287f73">L3</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l1.svg">
+      <rect x="1932.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#b56b1d" stroke-width="1" />
+      <text x="1972.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#b56b1d">L1</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_l0_l1.svg">
+      <rect x="2028.0" y="64" width="116" height="46" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="2086.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0–L1</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
+      <rect x="2160.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
+      <text x="2200.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
+    </a>
   </g>
 </svg>
