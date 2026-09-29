@@ -1,73 +1,29 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg"
- xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
- width="2300" height="2570" viewBox="0 0 2300 2570"
- version="1.1" id="bvstk-l0-l1-architecture">
-<title>Компоненты L1 и аппаратура Zynq: MMIO, AXI, DMA и IRQ</title>
-<desc>
-Сравнение альтернативных сборок FreeRTOS и Нейтрино. Слева и справа —
-аппаратные части OS-портов, BSP и адаптеров; в центре — аппаратура AX7020/Zynq.
-Общая логика PL-доступа повторена в двух сборках, отдельного столбца BVSTK нет.
-Цвета L1 и L0 сохранены. data-l1-ref связывает группы с сущностями
-architecture_bvstk_l1.svg. Это функциональное представление путей доступа,
-а не полная электрическая схема или граф всех программных вызовов.
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" width="2300" height="3558" viewBox="0 0 2300 3558" version="1.1" id="bvstk-l0-l1-architecture">
+  <title>BVSTK. L0–L1. Аппаратные пути платформы</title>
+  <desc>Аппаратная детализация платформы L1. Слева размещён код FreeRTOS, справа — код Нейтрино, в центре — общая логика доступа и аппаратура Zynq. Вложенные группы показывают состав пути. Цвет блока обозначает уровень; фиолетовый цвет уточняет область PL внутри L0.
 
-PL MMIO: код OS-порта выполняется CPU; адреса проходят MMU и преобразуются
-в аппаратные обращения. M_AXI_GP0 — исходящий Master-порт PS.
-AXI Interconnect принимает обращение на Slave-порту, выбирает адресата и
-передаёт его через Master-порт к Slave-интерфейсу регистров или контроллера BRAM.
-PL Master и PL Slave в схеме обозначают абстрактные роли ядер программируемой
-логики. Протокол I²C может обслуживаться таким ядром, но не определяет его имя
-в архитектурной схеме. Внутренние AXI Master-пути PL-ядер к BRAM здесь не детализированы.
-Системный вызов отображения памяти Нейтрино подготавливает MMIO, а последующие
-чтения и записи выполняются напрямую. Стрелки UART, QSPI, SD и Ethernet
-сокращают CPU и внутренние межсоединения PS, явно помечая MMIO через CPU.
+Прикладные команды mem_shell и bvstkctl обращаются к bvstk_pl_service. Каталог bvstk_pl_regions задаёт базы и размеры регионов. Порт FreeRTOS использует физические адреса и функции Xilinx BSP; порт Нейтрино получает отображение через mmap_device_memory и затем читает и записывает память напрямую. Обращение к ядру при отображении выделено цветом L2.
 
-DMA в используемых программных путях: FreeRTOS diskio вызывает XSdPs,
-который создаёт ADMA2-дескрипторы, обслуживает кэш и опрашивает завершение.
-Текущий SD raw-порт Нейтрино использует PIO и polling, без DMA.
-Аппаратная часть Ethernet двух сборок использует кольца дескрипторов и DMA.
-Нативные сетевые и файловые сервисы целиком относятся к L3; здесь выделены
-только их аппаратный доступ, буферы, кэш и доставка завершения.
-DMA-обмен SD и Ethernet с DDR проходит внутри PS, а не через PL-порт S_AXI_HP0.
-Связи CPU с памятью показывают подготовку и получение буферов; линии DMA —
-самостоятельную передачу данных аппаратурой.
+Серые стрелки обозначают вызовы. Коричневые линии показывают MMIO и настройку устройств, синие — AXI и передачу данных, красные пунктирные — IRQ и события. В коротких линиях к периферии PS промежуточный доступ CPU не повторяется.
 
-Отдельная вложенная группа раскрывает PL DMA из локального XSA: AXI4-Lite
-управляет двумя IP AXI DMA, AXI4-Stream передаёт потоки SPI, адресный AXI-путь
-идёт через data interconnect к S_AXI_HP0 и DDR. Один IP имеет S2MM, второй
-MM2S и S2MM; двунаправленная линия потоков суммирует эти отдельные каналы.
-Этот программный тракт не подключён текущими портами BVSTK. Повторённые
-M_AXI_GP0, interconnect и DDR в этой группе — детали того же аппаратного
-экспорта, а не дополнительные процессорные порты или отдельная память.
-XSA от 2026-08-26 не считается подтверждением совместимости со всеми более
-новыми программными контрактами SD PL. Неактивные SMI/SPI-сервисы не показаны
-как работающие части приложения.
+PS SD в FreeRTOS использует ADMA2; текущий raw-порт Нейтрино использует PIO и опрос завершения. Ethernet передаёт данные через DMA и кольца дескрипторов. Эти пути к DDR проходят внутри PS.
 
-IRQ доставляется отдельными линиями в GIC. Orange API-связи показывают
-настройку прерывания, красные — доставку события. Нейтрино использует ядро L2
-между GIC/BSP и ожидающим потоком; ядро не переклассифицировано в L1.
-SD завершение в текущих двух путях опрашивается и не добавлено в IRQ-источники.
-IRQ уведомляет о событии, данные и статусы читаются через MMIO или из буферов.
-</desc>
-<metadata id="sources">
-L1 decomposition: svg/architecture_bvstk_l1.svg
-MMIO: src/ports/{freertos-xilinx,neutrino-zynq7000}/os/bvstk_platform_*.c
-PL access: src/shared/pl/access/bvstk_pl_service.c
-PL regions: src/hardware/boards/ax7020/bvstk_pl_regions.c
-SD ports: src/ports/freertos-xilinx/fs-fatfs/diskio.c; src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c
-FreeRTOS BSP: vitis_ws/plat_bvstk/ps7_cortexa9_0/freertos10_xilinx_domain/bsp/ps7_cortexa9_0/libsrc/
-DMA evidence: sdps_v3_13/src/xsdps_host.c; sdps_v3_13/src/xsdps.c; lwip211_v1_6/src/contrib/ports/xilinx/netif/xemacpsif_dma.c
-Neutrino BSP: UserManual.pdf pp.35–38; native Ethernet module imports/descriptors/cache helpers; images/zynq7000-ax7020-ssh.build
-IRQ adapters: src/ports/{freertos-xilinx,neutrino-zynq7000}/os/i2c/bvstk_i2c_slave_*.c
-Hardware export: artifacts/fpga/design.xsa / burevestnik.hwh, timestamp 2026-08-26
-XSA SHA256: af4a9f948f867813439a2251a9ac5f34dd3897674ed4821c7368e0f60e7833a1
+Группа PL DMA раскрывает соединения SPI, двух AXI DMA, адресного interconnect, BRAM и порта S_AXI_HP0. SPI master используется текущим FreeRTOS-кодом PL SD; буферы этого обмена размещены в BRAM. Соединение HP0 с DDR является аппаратным адресным путём. Повторённый M_AXI_GP0 обозначает тот же порт процессорной системы.
+
+IRQ показан отдельно от передачи данных. Ведомый путь FreeRTOS захватывает состояние в ISR и передаёт событие задаче через очередь L2. Нейтрино доставляет SIGEV_INTR через ядро L2 в ожидающий поток. Завершение PS SD опрашивается; остальные программные обработчики IRQ здесь не перечислены. Заголовки ссылочных блоков ведут к соответствующим частям L1 и L4.</desc>
+  <metadata id="sources">Software layer: svg/architecture_bvstk_l1.svg
+Applications: src/apps/freertos/console/mem_shell.c; src/apps/neutrino/bvstkctl/main.c
+Shared access: src/shared/pl/access/bvstk_pl_service.c; src/hardware/boards/ax7020/bvstk_pl_regions.c
+MMIO ports: src/ports/freertos-xilinx/os/bvstk_platform_freertos.c; src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c
+PS SD: src/ports/freertos-xilinx/fs-fatfs/diskio.c; src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c
+PL SD: src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.c; src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_master_freertos.c; src/drivers/pl/sd/bvstk_sd_master.c
+IRQ: src/ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.c; src/ports/neutrino-zynq7000/os/i2c/bvstk_i2c_slave_neutrino.c
 Hardware wiring: /home/ilya/Zynq/hw_platform/fpga/Burevestnik_21.tcl
-AXI/HP reference: https://docs.amd.com/r/en-US/ug585-zynq-7000-SoC-TRM/PL-DMA-via-AXI-High-Performance-HP-Interface
-AXI reference: https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/IHI0022H_amba_axi_protocol_spec.pdf
-</metadata>
-<defs>
-<style>
+BSP DMA: sdps_v3_13/src/xsdps_host.c; lwip211_v1_6/src/contrib/ports/xilinx/netif/xemacpsif_dma.c
+Native services: third_party/neutrino/bsp/ax7020/images/zynq7000-ax7020-ssh.build</metadata>
+  <defs>
+    <style>
 text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:none; }
 .panel-title { font-size:32px; font-weight:700; }
 .group-title { font-size:23px; font-weight:700; }
@@ -112,458 +68,638 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
 .legend-os-panel { fill:none; stroke:#536473; stroke-width:1.8; stroke-linecap:round; }
 .legend-divider { stroke:#c4ccd3; stroke-width:1.2; }
 </style>
-<marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#788794" /></marker>
-<marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse"><circle cx="2" cy="2" r="2" fill="#788794" /></marker>
-<marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#b56b1d" /></marker>
-<marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse"><circle cx="2" cy="2" r="2" fill="#b56b1d" /></marker>
-<marker id="axi-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#3f75ad" /></marker>
-<marker id="axi-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse"><circle cx="2" cy="2" r="2" fill="#3f75ad" /></marker>
-<marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#c65b4e" /></marker>
-<marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse"><circle cx="2" cy="2" r="2" fill="#c65b4e" /></marker>
-</defs><g id="sheet" inkscape:groupmode="layer" inkscape:label="L1 ↔ L0: MMIO, AXI, DMA, IRQ">
-<rect id="page" class="page" x="0" y="0" width="2300" height="2570" rx="0" />
-<style>.page{fill:#fff;stroke:none;}</style>
-<rect id="freertos-panel" class="os-panel" x="20" y="20" width="470" height="2420" rx="12" />
-<rect id="hardware-panel" class="hardware-panel" x="610" y="20" width="1080" height="2420" rx="12" />
-<rect id="neutrino-panel" class="os-panel" x="1810" y="20" width="470" height="2420" rx="12" />
-<text id="freertos-title" class="panel-title" x="255" y="65" text-anchor="middle">FreeRTOS</text>
-<text id="hardware-title" class="panel-title" x="1150" y="65" text-anchor="middle">Zynq</text>
-<text id="neutrino-title" class="panel-title" x="2045" y="65" text-anchor="middle">Нейтрино</text>
-<g id="f-mmio-group-group" data-l1-ref="f-platform-mmio">
-<rect id="f-mmio-group" class="group" x="38" y="100" width="434" height="430" rx="10" />
-<text id="f-mmio-group-title" class="group-title" x="56" y="131" text-anchor="start">PL-доступ и MMIO</text>
-</g>
-<g id="f-catalog-group" data-l1-ref="c-region-catalog">
-<rect id="f-catalog" class="node l1" x="54" y="150" width="182" height="68" rx="8" />
-<text id="f-catalog-title" class="node-title" x="145" y="180.5" text-anchor="middle">Каталог PL</text>
-</g>
-<g id="f-pl-access-group" data-l1-ref="c-region-service">
-<rect id="f-pl-access" class="node l1" x="264" y="150" width="190" height="68" rx="8" />
-<text id="f-pl-access-title" class="node-title" x="359" y="180.5" text-anchor="middle">PL-доступ</text>
-</g>
-<g id="f-region-group" data-l1-ref="f-platform-mmio">
-<rect id="f-region" class="node l1" x="54" y="270" width="400" height="85" rx="8" />
-<text id="f-region-title" class="node-title" x="254" y="309" text-anchor="middle">Адресный регион</text>
-</g>
-<g id="f-mmio-node-group" data-l1-ref="f-xilinx-bsp">
-<rect id="f-mmio" class="node l1" x="54" y="400" width="400" height="88" rx="8" />
-<text id="f-mmio-title" class="node-title" x="254" y="440.5" text-anchor="middle">BSP: MMIO</text>
-</g>
-<path id="f-catalog-access" class="link call" d="M 236,184 H 264" data-from="f-catalog" data-to="f-pl-access" />
-<path id="f-access-region" class="link call" d="M 359,218 V 241 H 254 V 270" data-from="f-pl-access" data-to="f-region" />
-<path id="f-region-mmio" class="link call" d="M 254,355 V 400" data-from="f-region" data-to="f-mmio" />
-<g id="f-ps-group-group" data-l1-ref="f-xilinx-bsp">
-<rect id="f-ps-group" class="group" x="38" y="570" width="434" height="222" rx="10" />
-<text id="f-ps-group-title" class="group-title" x="56" y="601" text-anchor="start">PS: BSP</text>
-</g>
-<g id="f-uart-group" data-l1-ref="f-output">
-<rect id="f-uart" class="node l1" x="54" y="620" width="400" height="60" rx="8" />
-<text id="f-uart-title" class="node-title" x="254" y="646.5" text-anchor="middle">UART</text>
-</g>
-<g id="f-qspi-group" data-l1-ref="f-media-context">
-<rect id="f-qspi" class="node l1" x="54" y="714" width="400" height="60" rx="8" />
-<text id="f-qspi-title" class="node-title" x="254" y="740.5" text-anchor="middle">QSPI</text>
-</g>
-<g id="f-sd-group-group" data-l1-ref="f-media-context">
-<rect id="f-sd-group" class="group" x="38" y="822" width="434" height="197" rx="10" />
-<text id="f-sd-group-title" class="group-title" x="56" y="853" text-anchor="start">SD</text>
-</g>
-<g id="f-sd-map-group" data-l1-ref="f-media-context">
-<rect id="f-sd-map" class="node l1" x="54" y="862" width="400" height="57" rx="8" />
-<text id="f-sd-map-title" class="node-title" x="254" y="887" text-anchor="middle">SD-адаптер</text>
-</g>
-<g id="f-sd-control-group" data-l1-ref="f-media-context">
-<rect id="f-sd-control" class="node l1" x="54" y="955" width="400" height="56" rx="8" />
-<text id="f-sd-control-title" class="node-title" x="254" y="979.5" text-anchor="middle">ADMA2</text>
-</g>
-<path id="f-sd-request" class="link call" d="M 254,919 V 955" data-from="f-sd-map" data-to="f-sd-control" />
-<g id="f-dma-memory-group-group" data-l1-ref="f-media-context">
-<rect id="f-dma-memory-group" class="group" x="38" y="1050" width="434" height="165" rx="10" />
-<text id="f-dma-memory-group-title" class="group-title" x="56" y="1081" text-anchor="start">DMA и кэш</text>
-</g>
-<g id="f-dma-addresses-group" data-l1-ref="f-media-context">
-<rect id="f-dma-addresses" class="node l1" x="54" y="1100" width="186" height="93" rx="8" />
-<text id="f-dma-addresses-title" class="node-title" x="147" y="1131.5" text-anchor="middle">Буферы</text>
-<text id="f-dma-addresses-text-0" class="body" x="147" y="1157.5" text-anchor="middle">SD и Ethernet</text>
-</g>
-<g id="f-dma-cache-group" data-l1-ref="f-media-context">
-<rect id="f-dma-cache" class="node l1" x="266" y="1100" width="188" height="93" rx="8" />
-<text id="f-dma-cache-title" class="node-title" x="360" y="1131.5" text-anchor="middle">Кэш CPU</text>
-<text id="f-dma-cache-text-0" class="body" x="360" y="1157.5" text-anchor="middle">Flush + invalidate</text>
-</g>
-<g id="f-ethernet-group-group" data-l1-ref="f-media-context">
-<rect id="f-ethernet-group" class="group" x="38" y="1240" width="434" height="214" rx="10" />
-<text id="f-ethernet-group-title" class="group-title" x="56" y="1271" text-anchor="start">Ethernet</text>
-</g>
-<g id="f-ethernet-rings-group" data-l1-ref="f-media-context">
-<rect id="f-ethernet-rings" class="node l1" x="54" y="1288" width="400" height="58" rx="8" />
-<text id="f-ethernet-rings-title" class="node-title" x="254" y="1313.5" text-anchor="middle">Кольца TX и RX</text>
-</g>
-<g id="f-ethernet-control-group" data-l1-ref="f-media-context">
-<rect id="f-ethernet-control" class="node l1" x="54" y="1386" width="400" height="56" rx="8" />
-<text id="f-ethernet-control-title" class="node-title" x="254" y="1410.5" text-anchor="middle">Управление MAC</text>
-</g>
-<path id="f-ethernet-start" class="link call" d="M 254,1346 V 1386" data-from="f-ethernet-rings" data-to="f-ethernet-control" />
-<g id="f-irq-group-group" data-l1-ref="f-irq-output">
-<rect id="f-irq-group" class="group" x="38" y="1490" width="434" height="928" rx="10" />
-<text id="f-irq-group-title" class="group-title" x="56" y="1521" text-anchor="start">IRQ</text>
-</g>
-<g id="f-irq-attach-group" data-l1-ref="f-irq-output">
-<rect id="f-irq-attach" class="node l1" x="54" y="1550" width="400" height="90" rx="8" />
-<text id="f-irq-attach-title" class="node-title" x="254" y="1580" text-anchor="middle">Подключение IRQ</text>
-<text id="f-irq-attach-text-0" class="body" x="254" y="1629" text-anchor="middle">ISR + PL Slave</text>
-</g>
-<g id="f-irq-api-group" data-l1-ref="f-rtos-port">
-<rect id="f-irq-api" class="node l1" x="54" y="1690" width="400" height="90" rx="8" />
-<text id="f-irq-api-title" class="node-title" x="254" y="1731.5" text-anchor="middle">Порт FreeRTOS</text>
-<text id="f-irq-api-text-0" class="body" x="254" y="1757.5" text-anchor="middle">ISR + маска</text>
-</g>
-<g id="f-gic-bsp-group" data-l1-ref="f-xilinx-bsp">
-<rect id="f-gic-bsp" class="node l1" x="54" y="1830" width="400" height="90" rx="8" />
-<text id="f-gic-bsp-title" class="node-title" x="254" y="1871.5" text-anchor="middle">BSP: GIC</text>
-</g>
-<path id="f-irq-attach-api" class="link call" d="M 254,1640 V 1690" data-from="f-irq-attach" data-to="f-irq-api" />
-<path id="f-irq-api-bsp" class="link call" d="M 254,1780 V 1830" data-from="f-irq-api" data-to="f-gic-bsp" />
-<g id="f-timer-port-group" data-l1-ref="f-rtos-port">
-<rect id="f-timer-port" class="node l1" x="54" y="1970" width="400" height="90" rx="8" />
-<text id="f-timer-port-title" class="node-title" x="254" y="2000" text-anchor="middle">Таймерный порт</text>
-<text id="f-timer-port-text-0" class="body" x="254" y="2038" text-anchor="middle">tick + IRQ</text>
-</g>
-<g id="f-irq-entry-group" data-l1-ref="f-i2c-context">
-<rect id="f-irq-entry" class="node l1" x="54" y="2210" width="400" height="90" rx="8" />
-<text id="f-irq-entry-title" class="node-title" x="254" y="2251.5" text-anchor="middle">ISR: захват состояния</text>
-</g>
-<g id="f-irq-handler-group" data-l1-ref="f-i2c-context">
-<rect id="f-irq-handler" class="node l1" x="54" y="2342" width="400" height="62" rx="8" />
-<text id="f-irq-handler-title" class="node-title" x="254" y="2369.5" text-anchor="middle">PL Slave</text>
-</g>
-<path id="f-irq-deliver" class="link call" d="M 254,2300 V 2342" data-from="f-irq-entry" data-to="f-irq-handler" />
-<g id="n-mmio-group-group" data-l1-ref="n-platform-mmio">
-<rect id="n-mmio-group" class="group" x="1828" y="100" width="434" height="430" rx="10" />
-<text id="n-mmio-group-title" class="group-title" x="1846" y="131" text-anchor="start">PL-доступ и MMIO</text>
-</g>
-<g id="n-catalog-group" data-l1-ref="c-region-catalog">
-<rect id="n-catalog" class="node l1" x="1844" y="150" width="182" height="68" rx="8" />
-<text id="n-catalog-title" class="node-title" x="1935" y="180.5" text-anchor="middle">Каталог PL</text>
-</g>
-<g id="n-pl-access-group" data-l1-ref="c-region-service">
-<rect id="n-pl-access" class="node l1" x="2054" y="150" width="190" height="68" rx="8" />
-<text id="n-pl-access-title" class="node-title" x="2149" y="180.5" text-anchor="middle">PL-доступ</text>
-</g>
-<g id="n-region-group" data-l1-ref="n-platform-mmio">
-<rect id="n-region" class="node l1" x="1844" y="270" width="400" height="85" rx="8" />
-<text id="n-region-title" class="node-title" x="2044" y="309" text-anchor="middle">Отображение региона</text>
-</g>
-<g id="n-mmio-node-group" data-l1-ref="n-platform-mmio">
-<rect id="n-mmio" class="node l1" x="1844" y="400" width="400" height="88" rx="8" />
-<text id="n-mmio-title" class="node-title" x="2044" y="440.5" text-anchor="middle">MMIO</text>
-</g>
-<path id="n-catalog-access" class="link call" d="M 2026,184 H 2054" data-from="n-catalog" data-to="n-pl-access" />
-<path id="n-access-region" class="link call" d="M 2149,218 V 241 H 2044 V 270" data-from="n-pl-access" data-to="n-region" />
-<path id="n-region-mmio" class="link call" d="M 2044,355 V 400" data-from="n-region" data-to="n-mmio" />
-<g id="n-ps-group-group" data-l1-ref="n-zynq-bsp">
-<rect id="n-ps-group" class="group" x="1828" y="570" width="434" height="222" rx="10" />
-<text id="n-ps-group-title" class="group-title" x="1846" y="601" text-anchor="start">PS: BSP</text>
-</g>
-<g id="n-uart-group" data-l1-ref="n-zynq-bsp,n-output">
-<rect id="n-uart" class="node l1" x="1844" y="620" width="400" height="60" rx="8" />
-<text id="n-uart-title" class="node-title" x="2044" y="646.5" text-anchor="middle">UART</text>
-</g>
-<g id="n-qspi-group" data-l1-ref="n-media-context">
-<rect id="n-qspi" class="node l1" x="1844" y="714" width="400" height="60" rx="8" />
-<text id="n-qspi-title" class="node-title" x="2044" y="740.5" text-anchor="middle">QSPI</text>
-</g>
-<g id="n-sd-group-group" data-l1-ref="n-media-context">
-<rect id="n-sd-group" class="group" x="1828" y="822" width="434" height="197" rx="10" />
-<text id="n-sd-group-title" class="group-title" x="1846" y="853" text-anchor="start">SD</text>
-</g>
-<g id="n-sd-map-group" data-l1-ref="n-media-context">
-<rect id="n-sd-map" class="node l1" x="1844" y="862" width="400" height="57" rx="8" />
-<text id="n-sd-map-title" class="node-title" x="2044" y="887" text-anchor="middle">SD raw map</text>
-</g>
-<g id="n-sd-control-group" data-l1-ref="n-media-context">
-<rect id="n-sd-control" class="node l1" x="1844" y="955" width="400" height="56" rx="8" />
-<text id="n-sd-control-title" class="node-title" x="2044" y="979.5" text-anchor="middle">PIO</text>
-</g>
-<path id="n-sd-request" class="link call" d="M 2044,919 V 955" data-from="n-sd-map" data-to="n-sd-control" />
-<g id="n-dma-memory-group-group" data-l1-ref="n-media-context">
-<rect id="n-dma-memory-group" class="group" x="1828" y="1050" width="434" height="165" rx="10" />
-<text id="n-dma-memory-group-title" class="group-title" x="1846" y="1081" text-anchor="start">DMA и кэш</text>
-</g>
-<g id="n-dma-addresses-group" data-l1-ref="n-media-context">
-<rect id="n-dma-addresses" class="node l1" x="1844" y="1100" width="186" height="93" rx="8" />
-<text id="n-dma-addresses-title" class="node-title" x="1937" y="1131.5" text-anchor="middle">Буферы</text>
-<text id="n-dma-addresses-text-0" class="body" x="1937" y="1157.5" text-anchor="middle">Адреса + дескрипторы</text>
-</g>
-<g id="n-dma-cache-group" data-l1-ref="n-media-context">
-<rect id="n-dma-cache" class="node l1" x="2056" y="1100" width="188" height="93" rx="8" />
-<text id="n-dma-cache-title" class="node-title" x="2150" y="1131.5" text-anchor="middle">Кэш CPU</text>
-<text id="n-dma-cache-text-0" class="body" x="2150" y="1157.5" text-anchor="middle">Атрибуты памяти</text>
-</g>
-<g id="n-ethernet-group-group" data-l1-ref="n-media-context">
-<rect id="n-ethernet-group" class="group" x="1828" y="1240" width="434" height="214" rx="10" />
-<text id="n-ethernet-group-title" class="group-title" x="1846" y="1271" text-anchor="start">Ethernet</text>
-</g>
-<g id="n-ethernet-rings-group" data-l1-ref="n-media-context">
-<rect id="n-ethernet-rings" class="node l1" x="1844" y="1288" width="400" height="58" rx="8" />
-<text id="n-ethernet-rings-title" class="node-title" x="2044" y="1313.5" text-anchor="middle">Кольца TX и RX</text>
-</g>
-<g id="n-ethernet-control-group" data-l1-ref="n-media-context">
-<rect id="n-ethernet-control" class="node l1" x="1844" y="1386" width="400" height="56" rx="8" />
-<text id="n-ethernet-control-title" class="node-title" x="2044" y="1410.5" text-anchor="middle">Управление MAC</text>
-</g>
-<path id="n-ethernet-start" class="link call" d="M 2044,1346 V 1386" data-from="n-ethernet-rings" data-to="n-ethernet-control" />
-<g id="n-irq-group-group" data-l1-ref="n-irq-output">
-<rect id="n-irq-group" class="group" x="1828" y="1490" width="434" height="928" rx="10" />
-<text id="n-irq-group-title" class="group-title" x="1846" y="1521" text-anchor="start">IRQ</text>
-</g>
-<g id="n-irq-attach-group" data-l1-ref="n-irq-output">
-<rect id="n-irq-attach" class="node l1" x="1844" y="1550" width="400" height="90" rx="8" />
-<text id="n-irq-attach-title" class="node-title" x="2044" y="1580" text-anchor="middle">Подключение IRQ</text>
-<text id="n-irq-attach-text-0" class="body" x="2044" y="1629" text-anchor="middle">PL Slave event</text>
-</g>
-<g id="n-irq-api-group" data-l1-ref="n-irq-output">
-<rect id="n-irq-api" class="node l1" x="1844" y="1690" width="400" height="90" rx="8" />
-<text id="n-irq-api-title" class="node-title" x="2044" y="1731.5" text-anchor="middle">Системный IRQ-интерфейс</text>
-</g>
-<g id="n-gic-bsp-group" data-l1-ref="n-zynq-bsp">
-<rect id="n-gic-bsp" class="node l1" x="1844" y="1830" width="400" height="90" rx="8" />
-<text id="n-gic-bsp-title" class="node-title" x="2044" y="1871.5" text-anchor="middle">BSP: GIC</text>
-</g>
-<path id="n-irq-attach-api" class="link call" d="M 2044,1640 V 1690" data-from="n-irq-attach" data-to="n-irq-api" />
-<path id="n-irq-api-bsp" class="link call" d="M 2044,1780 V 1830" data-from="n-irq-api" data-to="n-gic-bsp" />
-<g id="n-timer-port-group" data-l1-ref="n-zynq-bsp">
-<rect id="n-timer-port" class="node l1" x="1844" y="1970" width="400" height="90" rx="8" />
-<text id="n-timer-port-title" class="node-title" x="2044" y="2000" text-anchor="middle">Таймерный порт</text>
-<text id="n-timer-port-text-0" class="body" x="2044" y="2038" text-anchor="middle">tick + IRQ</text>
-</g>
-<g id="n-irq-entry-group" data-l1-ref="n-i2c-context">
-<rect id="n-irq-entry" class="node l1" x="1844" y="2210" width="400" height="90" rx="8" />
-<text id="n-irq-entry-title" class="node-title" x="2044" y="2251.5" text-anchor="middle">Ожидание IRQ-события</text>
-</g>
-<g id="n-irq-handler-group" data-l1-ref="n-i2c-context">
-<rect id="n-irq-handler" class="node l1" x="1844" y="2342" width="400" height="62" rx="8" />
-<text id="n-irq-handler-title" class="node-title" x="2044" y="2369.5" text-anchor="middle">PL Slave IRQ-поток</text>
-</g>
-<path id="n-irq-deliver" class="link call" d="M 2044,2300 V 2342" data-from="n-irq-entry" data-to="n-irq-handler" />
-<g id="h-mmio-group-group">
-<rect id="h-mmio-group" class="hw-group" x="640" y="100" width="1020" height="508" rx="10" />
-<text id="h-mmio-group-title" class="group-title" x="658" y="131" text-anchor="start">PS и AXI к PL</text>
-</g>
-<g id="h-cpu-group">
-<rect id="h-cpu" class="node l0" x="660" y="145" width="980" height="135" rx="8" />
-<text id="h-cpu-title" class="node-title" x="1150" y="176.5" text-anchor="middle">Cortex-A9</text>
-</g>
-<g id="h-mmu-group">
-<rect id="h-mmu" class="node l0" x="684" y="195" width="435" height="62" rx="8" />
-<text id="h-mmu-title" class="node-title" x="901.5" y="222.5" text-anchor="middle">MMU</text>
-</g>
-<g id="h-cache-group">
-<rect id="h-cache" class="node l0" x="1145" y="195" width="471" height="62" rx="8" />
-<text id="h-cache-title" class="node-title" x="1380.5" y="222.5" text-anchor="middle">Кэш и барьеры</text>
-</g>
-<g id="h-gp0-group">
-<rect id="h-gp0" class="node l0" x="1030" y="305" width="240" height="68" rx="8" />
-<text id="h-gp0-title" class="node-title" x="1150" y="335.5" text-anchor="middle">M_AXI_GP0</text>
-</g>
-<path id="h-cpu-gp0" class="link axi" d="M 1150,280 V 305" data-from="h-cpu" data-to="h-gp0" />
-<text id="h-gp0-data-0" class="axi-label" x="1310" y="344" text-anchor="middle">AXI</text>
-<g id="h-mmio-interconnect-group">
-<rect id="h-mmio-interconnect" class="node pl-node" x="970" y="412" width="560" height="88" rx="8" />
-<text id="h-mmio-interconnect-title" class="node-title" x="1250" y="452.5" text-anchor="middle">AXI control</text>
-<text id="h-mmio-interconnect-text-0" class="body" x="1250" y="478.5" text-anchor="middle">S_AXI → M_AXI</text>
-</g>
-<path id="h-gp0-interconnect" class="link axi" d="M 1150,373 V 412" data-from="h-gp0" data-to="h-mmio-interconnect" />
-<g id="h-pl-registers-group">
-<rect id="h-pl-registers" class="node pl-node" x="790" y="549" width="480" height="60" rx="8" />
-<text id="h-pl-registers-title" class="node-title" x="1030" y="575.5" text-anchor="middle">Регистры PL</text>
-<text id="h-pl-registers-text-0" class="body" x="1030" y="601.5" text-anchor="middle">AXI4-Lite</text>
-</g>
-<g id="h-bram-controller-group">
-<rect id="h-bram-controller" class="node data-node" x="1320" y="549" width="146" height="60" rx="8" />
-<text id="h-bram-controller-title" class="node-title" x="1393" y="575.5" text-anchor="middle">AXI–BRAM</text>
-</g>
-<g id="h-bram-group">
-<rect id="h-bram" class="node data-node" x="1500" y="549" width="140" height="60" rx="8" />
-<text id="h-bram-title" class="node-title" x="1570" y="575.5" text-anchor="middle">BRAM</text>
-</g>
-<path id="h-axi-registers" class="link axi" d="M 1060,500 V 549" data-from="h-mmio-interconnect" data-to="h-pl-registers" />
-<path id="h-axi-bram" class="link axi" d="M 1390,500 V 549" data-from="h-mmio-interconnect" data-to="h-bram-controller" />
-<path id="h-bram-memory" class="link axi" d="M 1466,579 H 1500" data-from="h-bram-controller" data-to="h-bram" />
-<path id="f-mmio-cpu" class="link mmio" d="M 454,444 H 630 V 250 H 660" data-from="f-mmio" data-to="h-cpu" />
-<path id="n-mmio-cpu" class="link mmio" d="M 1844,444 H 1670 V 250 H 1640" data-from="n-mmio" data-to="h-cpu" />
-<text id="f-mmio-label-0" class="mmio-label" x="550" y="427" text-anchor="middle">MMIO</text>
-<text id="n-mmio-label-0" class="mmio-label" x="1750" y="427" text-anchor="middle">MMIO</text>
-<g id="h-uart-group">
-<rect id="h-uart" class="node l0" x="660" y="620" width="980" height="60" rx="8" />
-<text id="h-uart-title" class="node-title" x="1150" y="646.5" text-anchor="middle">UART</text>
-</g>
-<g id="h-qspi-group">
-<rect id="h-qspi" class="node l0" x="660" y="714" width="980" height="60" rx="8" />
-<text id="h-qspi-title" class="node-title" x="1150" y="740.5" text-anchor="middle">QSPI</text>
-</g>
-<path id="f-uart-mmio" class="link mmio" d="M 454,650 H 660" data-from="f-uart" data-to="h-uart" />
-<path id="n-uart-mmio" class="link mmio" d="M 1844,650 H 1640" data-from="n-uart" data-to="h-uart" />
-<text id="f-uart-label-0" class="mmio-label" x="550" y="616" text-anchor="middle">MMIO</text>
-<text id="n-uart-label-0" class="mmio-label" x="1750" y="616" text-anchor="middle">MMIO</text>
-<path id="f-qspi-mmio" class="link mmio" d="M 454,744 H 660" data-from="f-qspi" data-to="h-qspi" />
-<path id="n-qspi-mmio" class="link mmio" d="M 1844,744 H 1640" data-from="n-qspi" data-to="h-qspi" />
-<text id="f-qspi-label-0" class="mmio-label" x="550" y="710" text-anchor="middle">MMIO</text>
-<text id="n-qspi-label-0" class="mmio-label" x="1750" y="710" text-anchor="middle">MMIO</text>
-<g id="h-sd-group-group">
-<rect id="h-sd-group" class="hw-group" x="640" y="822" width="1020" height="195" rx="10" />
-<text id="h-sd-group-title" class="group-title" x="658" y="853" text-anchor="start">SD</text>
-</g>
-<g id="h-sd-adma-group">
-<rect id="h-sd-adma" class="node l0" x="660" y="877" width="465" height="115" rx="8" />
-<text id="h-sd-adma-title" class="node-title" x="892.5" y="919.5" text-anchor="middle">ADMA2</text>
-<text id="h-sd-adma-text-0" class="body" x="892.5" y="945.5" text-anchor="middle">DMA</text>
-</g>
-<g id="h-sd-pio-group">
-<rect id="h-sd-pio" class="node l0" x="1175" y="877" width="465" height="115" rx="8" />
-<text id="h-sd-pio-title" class="node-title" x="1407.5" y="919.5" text-anchor="middle">FIFO</text>
-<text id="h-sd-pio-text-0" class="body" x="1407.5" y="945.5" text-anchor="middle">PIO</text>
-</g>
-<path id="f-sd-mmio" class="link mmio" d="M 454,983 H 660" data-from="f-sd-control" data-to="h-sd-adma" />
-<path id="n-sd-pio" class="link mmio" d="M 1844,983 H 1640" data-from="n-sd-control" data-to="h-sd-pio" />
-<text id="f-sd-mmio-label-0" class="mmio-label" x="550" y="949" text-anchor="middle">MMIO</text>
-<text id="n-sd-mmio-label-0" class="mmio-label" x="1750" y="949" text-anchor="middle">MMIO и PIO</text>
-<g id="h-ddr-group-group">
-<rect id="h-ddr-group" class="hw-group" x="640" y="1065" width="1020" height="150" rx="10" />
-<text id="h-ddr-group-title" class="group-title" x="658" y="1096" text-anchor="start">DDR</text>
-</g>
-<g id="h-ddr-buffers-group">
-<rect id="h-ddr-buffers" class="node l0" x="660" y="1110" width="465" height="85" rx="8" />
-<text id="h-ddr-buffers-title" class="node-title" x="892.5" y="1149" text-anchor="middle">Буферы данных</text>
-<text id="h-ddr-buffers-text-0" class="body" x="892.5" y="1175" text-anchor="middle">SD и Ethernet</text>
-</g>
-<g id="h-ddr-descriptors-group">
-<rect id="h-ddr-descriptors" class="node l0" x="1175" y="1110" width="465" height="85" rx="8" />
-<text id="h-ddr-descriptors-title" class="node-title" x="1407.5" y="1149" text-anchor="middle">Дескрипторы</text>
-<text id="h-ddr-descriptors-text-0" class="body" x="1407.5" y="1175" text-anchor="middle">Адреса + состояние</text>
-</g>
-<path id="h-sd-ddr" class="link data" d="M 900,992 V 1035 H 1080 V 1110" data-from="h-sd-adma" data-to="h-ddr-buffers" />
-<text id="h-sd-ddr-label-0" class="axi-label" x="985" y="1057" text-anchor="middle">ADMA</text>
-<path id="f-dma-memory" class="link axi" d="M 454,1155 H 660" data-from="f-dma-cache" data-to="h-ddr-buffers" />
-<path id="n-dma-memory" class="link axi" d="M 1844,1155 H 1640" data-from="n-dma-addresses" data-to="h-ddr-descriptors" />
-<text id="f-dma-memory-label-0" class="axi-label" x="550" y="1121" text-anchor="middle">CPU</text>
-<text id="n-dma-memory-label-0" class="axi-label" x="1750" y="1121" text-anchor="middle">CPU</text>
-<g id="h-ethernet-group-group">
-<rect id="h-ethernet-group" class="hw-group" x="640" y="1330" width="1020" height="124" rx="10" />
-<text id="h-ethernet-group-title" class="group-title" x="658" y="1361" text-anchor="start">Ethernet</text>
-</g>
-<g id="h-mac-control-group">
-<rect id="h-mac-control" class="node l0" x="660" y="1375" width="465" height="66" rx="8" />
-<text id="h-mac-control-title" class="node-title" x="892.5" y="1404.5" text-anchor="middle">Регистры MAC</text>
-</g>
-<g id="h-mac-dma-group">
-<rect id="h-mac-dma" class="node l0" x="1175" y="1375" width="465" height="66" rx="8" />
-<text id="h-mac-dma-title" class="node-title" x="1407.5" y="1404.5" text-anchor="middle">DMA Ethernet</text>
-</g>
-<path id="f-mac-mmio" class="link mmio" d="M 454,1414 H 660" data-from="f-ethernet-control" data-to="h-mac-control" />
-<path id="n-mac-mmio" class="link mmio" d="M 1844,1414 H 1640" data-from="n-ethernet-control" data-to="h-mac-dma" />
-<text id="f-mac-label-0" class="mmio-label" x="550" y="1380" text-anchor="middle">MMIO</text>
-<text id="n-mac-label-0" class="mmio-label" x="1750" y="1380" text-anchor="middle">MMIO</text>
-<path id="h-mac-ddr" class="link data" d="M 1400,1375 V 1195" data-from="h-mac-dma" data-to="h-ddr-descriptors" />
-<text id="h-mac-ddr-label-0" class="axi-label" x="1495" y="1260" text-anchor="middle">DMA</text>
-<g id="h-pl-dma-detail-group">
-<rect id="h-pl-dma-detail" class="pl-inactive-group" x="640" y="1490" width="1020" height="322" rx="10" />
-<text id="h-pl-dma-detail-title" class="group-title" x="658" y="1521" text-anchor="start">PL: AXI DMA</text>
-</g>
-<g id="h-pl-dma-gp0-group">
-<rect id="h-pl-dma-gp0" class="node l0" x="660" y="1580" width="210" height="58" rx="8" />
-<text id="h-pl-dma-gp0-title" class="node-title" x="765" y="1605.5" text-anchor="middle">M_AXI_GP0</text>
-<text id="h-pl-dma-gp0-text-0" class="body" x="765" y="1631.5" text-anchor="middle">PS control</text>
-</g>
-<g id="h-pl-dma-control-bus-group">
-<rect id="h-pl-dma-control-bus" class="node pl-node" x="936" y="1580" width="340" height="58" rx="8" />
-<text id="h-pl-dma-control-bus-title" class="node-title" x="1106" y="1605.5" text-anchor="middle">AXI Interconnect</text>
-</g>
-<path id="h-pl-dma-control-gp0" class="link axi" d="M 870,1609 H 936" data-from="h-pl-dma-gp0" data-to="h-pl-dma-control-bus" />
-<g id="h-spi-streams-group">
-<rect id="h-spi-streams" class="node stream-node" x="660" y="1700" width="178" height="87" rx="8" />
-<text id="h-spi-streams-title" class="node-title" x="749" y="1740" text-anchor="middle">SPI-потоки</text>
-</g>
-<g id="h-pl-dma-group">
-<rect id="h-pl-dma" class="node data-node" x="930" y="1700" width="205" height="87" rx="8" />
-<text id="h-pl-dma-title" class="node-title" x="1032.5" y="1740" text-anchor="middle">AXI DMA ×2</text>
-<text id="h-pl-dma-text-0" class="body" x="1032.5" y="1766" text-anchor="middle">S2MM и MM2S</text>
-</g>
-<g id="h-pl-data-bus-group">
-<rect id="h-pl-data-bus" class="node data-node" x="1225" y="1700" width="190" height="87" rx="8" />
-<text id="h-pl-data-bus-title" class="node-title" x="1320" y="1740" text-anchor="middle">Interconnect</text>
-<text id="h-pl-data-bus-text-0" class="body" x="1320" y="1766" text-anchor="middle">AXI data</text>
-</g>
-<g id="h-pl-hp0-ddr-group">
-<rect id="h-pl-hp0-ddr" class="node l0" x="1500" y="1700" width="140" height="87" rx="8" />
-<text id="h-pl-hp0-ddr-title" class="node-title" x="1570" y="1740" text-anchor="middle">S_AXI_HP0</text>
-<text id="h-pl-hp0-ddr-text-0" class="body" x="1570" y="1766" text-anchor="middle">PL → DDR</text>
-</g>
-<path id="h-pl-dma-config" class="link axi" d="M 1106,1638 V 1665 H 1032 V 1700" data-from="h-pl-dma-control-bus" data-to="h-pl-dma" />
-<text id="h-pl-dma-config-label-0" class="axi-label" x="1200" y="1677" text-anchor="middle">S_AXI_LITE</text>
-<path id="h-stream-dma" class="link axi" d="M 838,1744 H 930" data-from="h-spi-streams" data-to="h-pl-dma" />
-<text id="h-stream-label-0" class="axi-label" x="884" y="1660" text-anchor="middle">AXI-Stream</text>
-<path id="h-dma-data-bus" class="link axi" d="M 1135,1744 H 1225" data-from="h-pl-dma" data-to="h-pl-data-bus" />
-<text id="h-dma-data-label-0" class="axi-label" x="1180" y="1725" text-anchor="middle">M_AXI</text>
-<path id="h-dma-hp0" class="link axi" d="M 1415,1744 H 1500" data-from="h-pl-data-bus" data-to="h-pl-hp0-ddr" />
-<text id="h-dma-hp0-label-0" class="axi-label" x="1456" y="1660" text-anchor="middle">AXI</text>
-<g id="h-irq-group-group">
-<rect id="h-irq-group" class="hw-group" x="640" y="1850" width="1020" height="540" rx="10" />
-<text id="h-irq-group-title" class="group-title" x="658" y="1881" text-anchor="start">IRQ</text>
-</g>
-<g id="h-i2c-irq-group">
-<rect id="h-i2c-irq" class="node pl-core" x="660" y="1910" width="280" height="80" rx="8" />
-<text id="h-i2c-irq-title" class="node-title" x="800" y="1946.5" text-anchor="middle">PL Slave</text>
-<text id="h-i2c-irq-text-0" class="body" x="800" y="1972.5" text-anchor="middle">PL: IRQ_F2P</text>
-</g>
-<g id="h-timer-irq-group">
-<rect id="h-timer-irq" class="node l0" x="990" y="1910" width="280" height="80" rx="8" />
-<text id="h-timer-irq-title" class="node-title" x="1130" y="1946.5" text-anchor="middle">Таймер</text>
-<text id="h-timer-irq-text-0" class="body" x="1130" y="1972.5" text-anchor="middle">PS tick</text>
-</g>
-<g id="h-mac-irq-group">
-<rect id="h-mac-irq" class="node l0" x="1320" y="1910" width="320" height="80" rx="8" />
-<text id="h-mac-irq-title" class="node-title" x="1480" y="1946.5" text-anchor="middle">Ethernet DMA</text>
-<text id="h-mac-irq-text-0" class="body" x="1480" y="1972.5" text-anchor="middle">PS done</text>
-</g>
-<g id="h-gic-group">
-<rect id="h-gic" class="node l0" x="1000" y="2080" width="300" height="90" rx="8" />
-<text id="h-gic-title" class="node-title" x="1150" y="2121.5" text-anchor="middle">GIC</text>
-</g>
-<path id="h-i2c-gic" class="link irq" d="M 800,1990 V 2050 H 1060 V 2080" data-from="h-i2c-irq" data-to="h-gic" />
-<path id="h-timer-gic" class="link irq" d="M 1130,1990 V 2080" data-from="h-timer-irq" data-to="h-gic" />
-<path id="h-mac-gic" class="link irq" d="M 1480,1990 V 2050 H 1240 V 2080" data-from="h-mac-irq" data-to="h-gic" />
-<path id="f-gic-config" class="link config" d="M 454,1875 H 550 V 2105 H 1000" data-from="f-gic-bsp" data-to="h-gic" />
-<path id="n-gic-config" class="link config" d="M 1844,1875 H 1750 V 2105 H 1300" data-from="n-gic-bsp" data-to="h-gic" />
-<text id="f-gic-config-label-0" class="mmio-label" x="740" y="2090" text-anchor="middle">GIC</text>
-<text id="n-gic-config-label-0" class="mmio-label" x="1515" y="2090" text-anchor="middle">GIC</text>
-<path id="h-gic-f-isr" class="link irq" d="M 1000,2140 H 600 V 2255 H 454" data-from="h-gic" data-to="f-irq-entry" />
-<path id="h-gic-n-event" class="link irq" d="M 1300,2140 H 1700 V 2255 H 1844" data-from="h-gic" data-to="n-irq-entry" />
-<text id="f-irq-entry-label-0" class="irq-label" x="785" y="2234" text-anchor="middle">ISR</text>
-<text id="n-irq-entry-label-0" class="irq-label" x="1490" y="2234" text-anchor="middle">ядро → событие</text>
-<path id="h-gic-f-timer-port" class="link irq" d="M 1000,2160 H 520 V 2015 H 454" data-from="h-gic" data-to="f-timer-port" />
-<path id="h-gic-n-timer-port" class="link irq" d="M 1300,2160 H 1780 V 2015 H 1844" data-from="h-gic" data-to="n-timer-port" />
-<g id="legend" aria-label="Обозначения">
-<rect class="legend-swatch l0" x="42" y="2477" width="50" height="26" rx="5" />
-<text class="legend-text legend-label" x="67" y="2494">L0</text>
-<text class="legend-text" x="102" y="2497" text-anchor="start">PS и железо</text>
-<rect class="legend-swatch l1" x="220" y="2477" width="50" height="26" rx="5" />
-<text class="legend-text legend-label" x="245" y="2494">L1</text>
-<text class="legend-text" x="280" y="2497" text-anchor="start">адаптация</text>
-<rect class="legend-swatch pl-node" x="420" y="2477" width="50" height="26" rx="5" />
-<text class="legend-text legend-label" x="445" y="2494">PL</text>
-<text class="legend-text" x="480" y="2497" text-anchor="start">FPGA</text>
-<line class="legend-hardware" x1="560" y1="2490" x2="620" y2="2490" />
-<text class="legend-text" x="635" y="2497" text-anchor="start">граница аппаратной части</text>
-<line class="legend-os-panel" x1="880" y1="2490" x2="940" y2="2490" />
-<text class="legend-text" x="955" y="2497" text-anchor="start">граница ОС</text>
-<line class="legend-line mmio" x1="1090" y1="2490" x2="1150" y2="2490" />
-<text class="legend-text" x="1165" y="2497" text-anchor="start">MMIO и настройка</text>
-<line class="legend-line axi" x1="1360" y1="2490" x2="1420" y2="2490" />
-<text class="legend-text" x="1435" y="2497" text-anchor="start">AXI и данные</text>
-<line class="legend-line irq" x1="1590" y1="2490" x2="1650" y2="2490" />
-<text class="legend-text" x="1665" y="2497" text-anchor="start">IRQ и событие</text>
-<line class="legend-line call" x1="1825" y1="2490" x2="1885" y2="2490" />
-<text class="legend-text" x="1900" y="2497" text-anchor="start">внутренняя связь</text>
-</g>
-</g></svg>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="axi-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="axi-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+  </defs>
+  <g id="sheet" ns1:groupmode="layer" ns1:label="L1 ↔ L0: MMIO, AXI, DMA, IRQ">
+    <rect id="page" class="page" x="0" y="0" width="2300" height="3558" rx="0" />
+    <style>.page{fill:#fff;stroke:none;}</style>
+    <rect id="freertos-panel" class="os-panel" x="20" y="188" width="470" height="3140" rx="12" stroke-dasharray="10 7" data-kind="ownership-region" data-ownership="freertos" />
+    <rect id="hardware-panel" class="hardware-panel" x="610" y="690.0" width="1080" height="2638" rx="12" data-layer="L0" data-ownership="common" />
+    <rect id="neutrino-panel" class="os-panel" x="1810" y="188" width="470" height="3140" rx="12" stroke-dasharray="10 7" data-kind="ownership-region" data-ownership="neutrino" />
+    <text id="freertos-title" class="panel-title" x="255" y="231" text-anchor="middle">FreeRTOS</text>
+    <text id="hardware-title" class="panel-title" x="1150" y="735.0" text-anchor="middle">Zynq</text>
+    <text id="neutrino-title" class="panel-title" x="2045" y="231" text-anchor="middle">Нейтрино</text>
+    <g id="f-mmio-group-group" data-l1-ref="f-port--mmio">
+      <rect id="f-mmio-group" class="group" x="38" y="760.0" width="434" height="330" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port--mmio">
+        <text id="f-mmio-group-title" class="group-title" x="56" y="791.0" text-anchor="start">Реализация MMIO</text>
+      </a>
+    </g>
+    <g id="f-region-group" data-l1-ref="f-port--mmio">
+      <rect id="f-region" class="node l1" x="54" y="830.0" width="400" height="85" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port--mmio">
+        <text id="f-region-title" class="node-title" x="254" y="869.0" text-anchor="middle" font-size="19">bvstk_platform_freertos</text>
+      </a>
+    </g>
+    <g id="f-mmio-node-group" data-l1-ref="f-bsp">
+      <rect id="f-mmio" class="node l1" x="54" y="970.0" width="400" height="88" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-bsp">
+        <text id="f-mmio-title" class="node-title" x="254" y="1010.5" text-anchor="middle">BSP: MMIO</text>
+      </a>
+    </g>
+    <path id="f-region-mmio" class="link call" d="M 254 915 V 970" data-from="f-region" data-to="f-mmio" />
+    <g id="f-ps-group-group" data-l1-ref="f-bsp">
+      <rect id="f-ps-group" class="group" x="38" y="1230.0" width="434" height="286" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-bsp">
+        <text id="f-ps-group-title" class="group-title" x="56" y="1261.0" text-anchor="start">PS: BSP</text>
+      </a>
+    </g>
+    <g id="f-uart-group" data-l1-ref="platform-access--output">
+      <rect id="f-uart" class="node l1" x="54" y="1344.0" width="400" height="60" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#platform-access--output">
+        <text id="f-uart-title" class="node-title" x="254" y="1370.5" text-anchor="middle">UART</text>
+      </a>
+    </g>
+    <g id="f-qspi-group" data-l1-ref="f-port">
+      <rect id="f-qspi" class="node l1" x="54" y="1438.0" width="400" height="60" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-qspi-title" class="node-title" x="254" y="1464.5" text-anchor="middle">QSPI</text>
+      </a>
+    </g>
+    <g id="f-sd-group-group" data-l1-ref="f-port">
+      <rect id="f-sd-group" class="group" x="38" y="1546.0" width="434" height="197" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-sd-group-title" class="group-title" x="56" y="1577.0" text-anchor="start">SD</text>
+      </a>
+    </g>
+    <g id="f-sd-map-group" data-l1-ref="f-port">
+      <rect id="f-sd-map" class="node l1" x="54" y="1586.0" width="400" height="57" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-sd-map-title" class="node-title" x="254" y="1611.0" text-anchor="middle">SD-адаптер</text>
+      </a>
+    </g>
+    <g id="f-sd-control-group" data-l1-ref="f-port">
+      <rect id="f-sd-control" class="node l1" x="54" y="1679.0" width="400" height="56" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-sd-control-title" class="node-title" x="254" y="1703.5" text-anchor="middle">ADMA2</text>
+      </a>
+    </g>
+    <path id="f-sd-request" class="link call" d="M 254 1643 V 1679" data-from="f-sd-map" data-to="f-sd-control" />
+    <g id="f-dma-memory-group-group" data-l1-ref="f-port">
+      <rect id="f-dma-memory-group" class="group" x="38" y="1774.0" width="434" height="165" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-dma-memory-group-title" class="group-title" x="56" y="1805.0" text-anchor="start">DMA и кэш</text>
+      </a>
+    </g>
+    <g id="f-dma-addresses-group" data-l1-ref="f-port">
+      <rect id="f-dma-addresses" class="node l1" x="54" y="1824.0" width="186" height="93" rx="8" data-layer="L1" />
+      <text id="f-dma-addresses-text-0" class="body" x="147" y="1881.5" text-anchor="middle">SD и Ethernet</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-dma-addresses-title" class="node-title" x="147" y="1855.5" text-anchor="middle">Буферы</text>
+      </a>
+    </g>
+    <g id="f-dma-cache-group" data-l1-ref="f-port">
+      <rect id="f-dma-cache" class="node l1" x="266" y="1824.0" width="188" height="93" rx="8" data-layer="L1" />
+      <text id="f-dma-cache-text-0" class="body" x="360" y="1881.5" text-anchor="middle">Flush, invalidate</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-dma-cache-title" class="node-title" x="360" y="1855.5" text-anchor="middle">Кэш CPU</text>
+      </a>
+    </g>
+    <g id="f-ethernet-group-group" data-l1-ref="f-port">
+      <rect id="f-ethernet-group" class="group" x="38" y="1964.0" width="434" height="214" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-ethernet-group-title" class="group-title" x="56" y="1995.0" text-anchor="start">Ethernet</text>
+      </a>
+    </g>
+    <g id="f-ethernet-rings-group" data-l1-ref="f-port">
+      <rect id="f-ethernet-rings" class="node l1" x="54" y="2012.0" width="400" height="58" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-ethernet-rings-title" class="node-title" x="254" y="2037.5" text-anchor="middle">Кольца TX и RX</text>
+      </a>
+    </g>
+    <g id="f-ethernet-control-group" data-l1-ref="f-port">
+      <rect id="f-ethernet-control" class="node l1" x="54" y="2110.0" width="400" height="56" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-port">
+        <text id="f-ethernet-control-title" class="node-title" x="254" y="2134.5" text-anchor="middle">Управление MAC</text>
+      </a>
+    </g>
+    <path id="f-ethernet-start" class="link call" d="M 254 2070 V 2110" data-from="f-ethernet-rings" data-to="f-ethernet-control" />
+    <g id="f-irq-group-group" data-l1-ref="f-interrupt-processing">
+      <rect id="f-irq-group" class="group" x="38" y="2214.0" width="434" height="1072" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing">
+        <text id="f-irq-group-title" class="group-title" x="56" y="2245.0" text-anchor="start">IRQ</text>
+      </a>
+    </g>
+    <g id="f-irq-attach-group" data-l1-ref="f-interrupt-processing">
+      <rect id="f-irq-attach" class="node l1" x="54" y="2274.0" width="400" height="90" rx="8" data-layer="L1" />
+      <text id="f-irq-attach-text-0" class="body" x="254" y="2353.0" text-anchor="middle">ISR + PL Slave</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing">
+        <text id="f-irq-attach-title" class="node-title" x="254" y="2304.0" text-anchor="middle">Подключение IRQ</text>
+      </a>
+    </g>
+    <g id="f-irq-api-group" data-l1-ref="f-bsp--cpu">
+      <rect id="f-irq-api" class="node l1" x="54" y="2414.0" width="400" height="90" rx="8" data-layer="L1" />
+      <text id="f-irq-api-text-0" class="body" x="254" y="2481.5" text-anchor="middle">ISR + маска</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-bsp--cpu">
+        <text id="f-irq-api-title" class="node-title" x="254" y="2455.5" text-anchor="middle">Порт FreeRTOS</text>
+      </a>
+    </g>
+    <g id="f-gic-bsp-group" data-l1-ref="f-bsp--gic">
+      <rect id="f-gic-bsp" class="node l1" x="54" y="2554.0" width="400" height="90" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-bsp--gic">
+        <text id="f-gic-bsp-title" class="node-title" x="254" y="2595.5" text-anchor="middle">BSP: GIC</text>
+      </a>
+    </g>
+    <path id="f-irq-attach-api" class="link call" d="M 254 2364 V 2414" data-from="f-irq-attach" data-to="f-irq-api" />
+    <path id="f-irq-api-bsp" class="link call" d="M 254 2504 V 2554" data-from="f-irq-api" data-to="f-gic-bsp" />
+    <g id="f-timer-port-group" data-l1-ref="f-bsp--cpu">
+      <rect id="f-timer-port" class="node l1" x="54" y="2694.0" width="400" height="90" rx="8" data-layer="L1" />
+      <text id="f-timer-port-text-0" class="body" x="254" y="2762.0" text-anchor="middle">tick + IRQ</text>
+      <a xlink:href="architecture_bvstk_l1.svg#f-bsp--cpu">
+        <text id="f-timer-port-title" class="node-title" x="254" y="2724.0" text-anchor="middle">Таймерный порт</text>
+      </a>
+    </g>
+    <g id="f-irq-entry-group" data-l1-ref="f-interrupt-processing--attach">
+      <rect id="f-irq-entry" class="node l1" x="54" y="2934.0" width="400" height="90" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing--attach">
+        <text id="f-irq-entry-title" class="node-title" x="254" y="2975.5" text-anchor="middle">ISR: захват состояния</text>
+      </a>
+    </g>
+    <g id="f-irq-handler-group" data-l1-ref="f-interrupt-processing--worker">
+      <rect id="f-irq-handler" class="node l1" x="54" y="3192.0" width="400" height="62" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing--worker">
+        <text id="f-irq-handler-title" class="node-title" x="254" y="3219.5" text-anchor="middle">Задача обслуживания</text>
+      </a>
+    </g>
+    <g id="n-mmio-group-group" data-l1-ref="n-port--mapping">
+      <rect id="n-mmio-group" class="group" x="1828" y="760.0" width="434" height="464" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port--mapping">
+        <text id="n-mmio-group-title" class="group-title" x="1846" y="791.0" text-anchor="start">Реализация MMIO</text>
+      </a>
+    </g>
+    <g id="n-region-group" data-l1-ref="n-port--mapping">
+      <rect id="n-region" class="node l1" x="1844" y="830.0" width="400" height="85" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port--mapping">
+        <text id="n-region-title" class="node-title" x="2044" y="869.0" text-anchor="middle" font-size="19">bvstk_platform_neutrino</text>
+      </a>
+    </g>
+    <g id="n-mmio-node-group" data-l1-ref="n-port--registers">
+      <rect id="n-mmio" class="node l1" x="1844" y="1104.0" width="400" height="88" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port--registers">
+        <text id="n-mmio-title" class="node-title" x="2044" y="1144.5" text-anchor="middle">MMIO</text>
+      </a>
+      <text id="n-direct-memory-body" x="2044" y="1170.5" class="body" text-anchor="middle">volatile и барьеры</text>
+    </g>
+    <path id="n-region-mmio" class="link call" d="M 2044 915 V 970" data-from="n-region" data-to="n-memory-kernel" />
+    <g id="n-ps-group-group" data-l1-ref="n-bsp">
+      <rect id="n-ps-group" class="group" x="1828" y="1260" width="434" height="256" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-bsp">
+        <text id="n-ps-group-title" class="group-title" x="1846" y="1291" text-anchor="start">PS: BSP</text>
+      </a>
+    </g>
+    <g id="n-uart-group" data-l1-ref="n-bsp">
+      <rect id="n-uart" class="node l1" x="1844" y="1344.0" width="400" height="60" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-bsp">
+        <text id="n-uart-title" class="node-title" x="2044" y="1370.5" text-anchor="middle">UART</text>
+      </a>
+    </g>
+    <g id="n-qspi-group" data-l1-ref="n-port">
+      <rect id="n-qspi" class="node l1" x="1844" y="1438.0" width="400" height="60" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-qspi-title" class="node-title" x="2044" y="1464.5" text-anchor="middle">QSPI</text>
+      </a>
+    </g>
+    <g id="n-sd-group-group" data-l1-ref="n-port">
+      <rect id="n-sd-group" class="group" x="1828" y="1546.0" width="434" height="197" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-sd-group-title" class="group-title" x="1846" y="1577.0" text-anchor="start">SD</text>
+      </a>
+    </g>
+    <g id="n-sd-map-group" data-l1-ref="n-port">
+      <rect id="n-sd-map" class="node l1" x="1844" y="1586.0" width="400" height="57" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-sd-map-title" class="node-title" x="2044" y="1611.0" text-anchor="middle">SD raw map</text>
+      </a>
+    </g>
+    <g id="n-sd-control-group" data-l1-ref="n-port">
+      <rect id="n-sd-control" class="node l1" x="1844" y="1679.0" width="400" height="56" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-sd-control-title" class="node-title" x="2044" y="1703.5" text-anchor="middle">PIO</text>
+      </a>
+    </g>
+    <path id="n-sd-request" class="link call" d="M 2044 1643 V 1679" data-from="n-sd-map" data-to="n-sd-control" />
+    <g id="n-dma-memory-group-group" data-l1-ref="n-port">
+      <rect id="n-dma-memory-group" class="group" x="1828" y="1774.0" width="434" height="165" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-dma-memory-group-title" class="group-title" x="1846" y="1805.0" text-anchor="start">DMA и кэш</text>
+      </a>
+    </g>
+    <g id="n-dma-addresses-group" data-l1-ref="n-port">
+      <rect id="n-dma-addresses" class="node l1" x="1844" y="1824.0" width="186" height="93" rx="8" data-layer="L1" />
+      <text id="n-dma-addresses-text-0" class="body" x="1937" y="1881.5" text-anchor="middle">Ethernet</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-dma-addresses-title" class="node-title" x="1937" y="1855.5" text-anchor="middle">Буферы</text>
+      </a>
+    </g>
+    <g id="n-dma-cache-group" data-l1-ref="n-port">
+      <rect id="n-dma-cache" class="node l1" x="2056" y="1824.0" width="188" height="93" rx="8" data-layer="L1" />
+      <text id="n-dma-cache-text-0" class="body" x="2150" y="1881.5" text-anchor="middle">Атрибуты памяти</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-dma-cache-title" class="node-title" x="2150" y="1855.5" text-anchor="middle">Кэш CPU</text>
+      </a>
+    </g>
+    <g id="n-ethernet-group-group" data-l1-ref="n-port">
+      <rect id="n-ethernet-group" class="group" x="1828" y="1964.0" width="434" height="214" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-ethernet-group-title" class="group-title" x="1846" y="1995.0" text-anchor="start">Ethernet</text>
+      </a>
+    </g>
+    <g id="n-ethernet-rings-group" data-l1-ref="n-port">
+      <rect id="n-ethernet-rings" class="node l1" x="1844" y="2012.0" width="400" height="58" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-ethernet-rings-title" class="node-title" x="2044" y="2037.5" text-anchor="middle">Кольца TX и RX</text>
+      </a>
+    </g>
+    <g id="n-ethernet-control-group" data-l1-ref="n-port">
+      <rect id="n-ethernet-control" class="node l1" x="1844" y="2110.0" width="400" height="56" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-port">
+        <text id="n-ethernet-control-title" class="node-title" x="2044" y="2134.5" text-anchor="middle">Управление MAC</text>
+      </a>
+    </g>
+    <path id="n-ethernet-start" class="link call" d="M 2044 2070 V 2110" data-from="n-ethernet-rings" data-to="n-ethernet-control" />
+    <g id="n-irq-group-group" data-l1-ref="n-interrupt-processing">
+      <rect id="n-irq-group" class="group" x="1828" y="2214.0" width="434" height="976" rx="10" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing">
+        <text id="n-irq-group-title" class="group-title" x="1846" y="2245.0" text-anchor="start">IRQ</text>
+      </a>
+    </g>
+    <g id="n-irq-attach-group" data-l1-ref="n-interrupt-processing">
+      <rect id="n-irq-attach" class="node l1" x="1844" y="2274.0" width="400" height="90" rx="8" data-layer="L1" />
+      <text id="n-irq-attach-text-0" class="body" x="2044" y="2353.0" text-anchor="middle">PL Slave event</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing">
+        <text id="n-irq-attach-title" class="node-title" x="2044" y="2304.0" text-anchor="middle">Подключение IRQ</text>
+      </a>
+    </g>
+    <g id="n-irq-api-group" data-l1-ref="n-interrupt-processing">
+      <rect id="n-irq-api" class="node l1" x="1844" y="2414.0" width="400" height="90" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing">
+        <text id="n-irq-api-title" class="node-title" x="2044" y="2455.5" text-anchor="middle">Системный IRQ-интерфейс</text>
+      </a>
+    </g>
+    <g id="n-gic-bsp-group" data-l1-ref="n-bsp--gic">
+      <rect id="n-gic-bsp" class="node l1" x="1844" y="2554.0" width="400" height="90" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-bsp--gic">
+        <text id="n-gic-bsp-title" class="node-title" x="2044" y="2595.5" text-anchor="middle">BSP: GIC</text>
+      </a>
+    </g>
+    <path id="n-irq-attach-api" class="link call" d="M 2044 2364 V 2414" data-from="n-irq-attach" data-to="n-irq-api" />
+    <path id="n-irq-api-bsp" class="link call" d="M 2044 2504 V 2554" data-from="n-irq-api" data-to="n-gic-bsp" />
+    <g id="n-timer-port-group" data-l1-ref="n-bsp">
+      <rect id="n-timer-port" class="node l1" x="1844" y="2694.0" width="400" height="90" rx="8" data-layer="L1" />
+      <text id="n-timer-port-text-0" class="body" x="2044" y="2762.0" text-anchor="middle">tick + IRQ</text>
+      <a xlink:href="architecture_bvstk_l1.svg#n-bsp">
+        <text id="n-timer-port-title" class="node-title" x="2044" y="2724.0" text-anchor="middle">Таймерный порт</text>
+      </a>
+    </g>
+    <g id="n-irq-entry-group" data-l1-ref="n-interrupt-processing--worker">
+      <rect id="n-irq-entry" class="node l1" x="1844" y="2950.0" width="400" height="90" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing--worker">
+        <text id="n-irq-entry-title" class="node-title" x="2044" y="2991.5" text-anchor="middle">Ожидание IRQ-события</text>
+      </a>
+    </g>
+    <g id="n-irq-handler-group" data-l1-ref="n-interrupt-processing--worker">
+      <rect id="n-irq-handler" class="node l1" x="1844" y="3106.0" width="400" height="62" rx="8" data-layer="L1" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing--worker">
+        <text id="n-irq-handler-title" class="node-title" x="2044" y="3133.5" text-anchor="middle">Поток обслуживания</text>
+      </a>
+    </g>
+    <path id="n-irq-deliver" class="link call" d="M 2044 3040 V 3106" data-from="n-irq-entry" data-to="n-irq-handler" />
+    <g id="h-mmio-group-group">
+      <rect id="h-mmio-group" class="hw-group" x="640" y="760.0" width="1020" height="540" rx="10" />
+      <text id="h-mmio-group-title" class="group-title" x="658" y="791.0" text-anchor="start">PS и AXI к PL</text>
+    </g>
+    <g id="h-cpu-group">
+      <rect id="h-cpu" class="node l0" x="660" y="805.0" width="980" height="135" rx="8" data-layer="L0" />
+      <text id="h-cpu-title" class="node-title" x="1150" y="836.5" text-anchor="middle">Cortex-A9</text>
+    </g>
+    <g id="h-mmu-group">
+      <rect id="h-mmu" class="node l0" x="684" y="855.0" width="435" height="62" rx="8" data-layer="L0" />
+      <text id="h-mmu-title" class="node-title" x="901.5" y="882.5" text-anchor="middle">MMU</text>
+    </g>
+    <g id="h-cache-group">
+      <rect id="h-cache" class="node l0" x="1145" y="855.0" width="471" height="62" rx="8" data-layer="L0" />
+      <text id="h-cache-title" class="node-title" x="1380.5" y="882.5" text-anchor="middle">Кэш и барьеры</text>
+    </g>
+    <g id="h-gp0-group">
+      <rect id="h-gp0" class="node l0" x="1030" y="965.0" width="240" height="68" rx="8" data-layer="L0" />
+      <text id="h-gp0-title" class="node-title" x="1150" y="995.5" text-anchor="middle">M_AXI_GP0</text>
+    </g>
+    <path id="h-cpu-gp0" class="link axi" d="M 1150 940 V 965" data-from="h-cpu" data-to="h-gp0" />
+    <text id="h-gp0-data-0" class="axi-label" x="1310" y="1004.0" text-anchor="middle">AXI</text>
+    <g id="h-mmio-interconnect-group">
+      <rect id="h-mmio-interconnect" class="node pl-node" x="970" y="1072.0" width="560" height="88" rx="8" data-layer="L0" />
+      <text id="h-mmio-interconnect-title" class="node-title" x="1250" y="1112.5" text-anchor="middle">AXI control</text>
+      <text id="h-mmio-interconnect-text-0" class="body" x="1250" y="1138.5" text-anchor="middle">S_AXI → M_AXI</text>
+    </g>
+    <path id="h-gp0-interconnect" class="link axi" d="M 1150 1033 V 1072" data-from="h-gp0" data-to="h-mmio-interconnect" />
+    <g id="h-pl-registers-group">
+      <rect id="h-pl-registers" class="node pl-node" x="790" y="1209.0" width="480" height="60" rx="8" data-layer="L0" />
+      <text id="h-pl-registers-title" class="node-title" x="1030" y="1235.5" text-anchor="middle">Регистры PL</text>
+      <text id="h-pl-registers-text-0" class="body" x="1030" y="1261.5" text-anchor="middle">AXI4-Lite</text>
+    </g>
+    <g id="h-bram-controller-group">
+      <rect id="h-bram-controller" class="node data-node" x="1320" y="1209.0" width="146" height="60" rx="8" data-layer="L0" />
+      <text id="h-bram-controller-title" class="node-title" x="1393" y="1235.5" text-anchor="middle">AXI–BRAM</text>
+    </g>
+    <g id="h-bram-group">
+      <rect id="h-bram" class="node data-node" x="1500" y="1209.0" width="140" height="60" rx="8" data-layer="L0" />
+      <text id="h-bram-title" class="node-title" x="1570" y="1235.5" text-anchor="middle">BRAM</text>
+    </g>
+    <path id="h-axi-registers" class="link axi" d="M 1060 1160 V 1209" data-from="h-mmio-interconnect" data-to="h-pl-registers" />
+    <path id="h-axi-bram" class="link axi" d="M 1390 1160 V 1209" data-from="h-mmio-interconnect" data-to="h-bram-controller" />
+    <path id="h-bram-memory" class="link axi" d="M 1466 1239 H 1500" data-from="h-bram-controller" data-to="h-bram" />
+    <path id="f-mmio-cpu" class="link mmio" d="M 454 1014 H 630 V 910 H 660" data-from="f-mmio" data-to="h-cpu" />
+    <path id="n-mmio-cpu" class="link mmio" d="M 1844 1148 H 1740 V 910 H 1640" data-from="n-mmio" data-to="h-cpu" />
+    <text id="f-mmio-label-0" class="mmio-label" x="550" y="990" text-anchor="middle">MMIO</text>
+    <text id="n-mmio-label-0" class="mmio-label" x="1750" y="1128" text-anchor="middle">MMIO</text>
+    <g id="h-uart-group">
+      <rect id="h-uart" class="node l0" x="660" y="1344.0" width="980" height="60" rx="8" data-layer="L0" />
+      <text id="h-uart-title" class="node-title" x="1150" y="1370.5" text-anchor="middle">UART</text>
+    </g>
+    <g id="h-qspi-group">
+      <rect id="h-qspi" class="node l0" x="660" y="1438.0" width="980" height="60" rx="8" data-layer="L0" />
+      <text id="h-qspi-title" class="node-title" x="1150" y="1464.5" text-anchor="middle">QSPI</text>
+    </g>
+    <path id="f-uart-mmio" class="link mmio" d="M 454 1374 H 660" data-from="f-uart" data-to="h-uart" />
+    <path id="n-uart-mmio" class="link mmio" d="M 1844 1374 H 1640" data-from="n-uart" data-to="h-uart" />
+    <text id="f-uart-label-0" class="mmio-label" x="550" y="1354" text-anchor="middle">MMIO</text>
+    <text id="n-uart-label-0" class="mmio-label" x="1750" y="1354" text-anchor="middle">MMIO</text>
+    <path id="f-qspi-mmio" class="link mmio" d="M 454 1468 H 660" data-from="f-qspi" data-to="h-qspi" />
+    <path id="n-qspi-mmio" class="link mmio" d="M 1844 1468 H 1640" data-from="n-qspi" data-to="h-qspi" />
+    <text id="f-qspi-label-0" class="mmio-label" x="550" y="1448" text-anchor="middle">MMIO</text>
+    <text id="n-qspi-label-0" class="mmio-label" x="1750" y="1448" text-anchor="middle">MMIO</text>
+    <g id="h-sd-group-group">
+      <rect id="h-sd-group" class="hw-group" x="640" y="1546.0" width="1020" height="195" rx="10" />
+      <text id="h-sd-group-title" class="group-title" x="658" y="1577.0" text-anchor="start">SD</text>
+    </g>
+    <g id="h-sd-adma-group">
+      <rect id="h-sd-adma" class="node l0" x="660" y="1601.0" width="465" height="115" rx="8" data-layer="L0" />
+      <text id="h-sd-adma-title" class="node-title" x="892.5" y="1643.5" text-anchor="middle">ADMA2</text>
+      <text id="h-sd-adma-text-0" class="body" x="892.5" y="1669.5" text-anchor="middle">DMA</text>
+    </g>
+    <g id="h-sd-pio-group">
+      <rect id="h-sd-pio" class="node l0" x="1175" y="1601.0" width="465" height="115" rx="8" data-layer="L0" />
+      <text id="h-sd-pio-title" class="node-title" x="1407.5" y="1643.5" text-anchor="middle">FIFO</text>
+      <text id="h-sd-pio-text-0" class="body" x="1407.5" y="1669.5" text-anchor="middle">PIO</text>
+    </g>
+    <path id="f-sd-mmio" class="link mmio" d="M 454 1707 H 660" data-from="f-sd-control" data-to="h-sd-adma" />
+    <path id="n-sd-pio" class="link mmio" d="M 1844 1707 H 1640" data-from="n-sd-control" data-to="h-sd-pio" />
+    <text id="f-sd-mmio-label-0" class="mmio-label" x="550" y="1687" text-anchor="middle">MMIO</text>
+    <text id="n-sd-mmio-label-0" class="mmio-label" x="1750" y="1687" text-anchor="middle">MMIO и PIO</text>
+    <g id="h-ddr-group-group">
+      <rect id="h-ddr-group" class="hw-group" x="640" y="1789.0" width="1020" height="150" rx="10" />
+      <text id="h-ddr-group-title" class="group-title" x="658" y="1820.0" text-anchor="start">DDR</text>
+    </g>
+    <g id="h-ddr-buffers-group">
+      <rect id="h-ddr-buffers" class="node l0" x="660" y="1834.0" width="465" height="85" rx="8" data-layer="L0" />
+      <text id="h-ddr-buffers-title" class="node-title" x="892.5" y="1873.0" text-anchor="middle">Буферы данных</text>
+      <text id="h-ddr-buffers-text-0" class="body" x="892.5" y="1899.0" text-anchor="middle">SD и Ethernet</text>
+    </g>
+    <g id="h-ddr-descriptors-group">
+      <rect id="h-ddr-descriptors" class="node l0" x="1175" y="1834.0" width="465" height="85" rx="8" data-layer="L0" />
+      <text id="h-ddr-descriptors-title" class="node-title" x="1407.5" y="1873.0" text-anchor="middle">Дескрипторы</text>
+      <text id="h-ddr-descriptors-text-0" class="body" x="1407.5" y="1899.0" text-anchor="middle">Адреса + состояние</text>
+    </g>
+    <path id="h-sd-ddr" class="link data" d="M 900 1716 V 1759 H 1080 V 1834" data-from="h-sd-adma" data-to="h-ddr-buffers" />
+    <text id="h-sd-ddr-label-0" class="axi-label" x="985" y="1781.0" text-anchor="middle">ADMA</text>
+    <path id="f-dma-memory" class="link axi" d="M 454 1879 H 660" data-from="f-dma-cache" data-to="h-ddr-buffers" />
+    <path id="n-dma-memory" class="link axi" d="M 1844 1879 H 1640" data-from="n-dma-addresses" data-to="h-ddr-descriptors" />
+    <text id="f-dma-memory-label-0" class="axi-label" x="550" y="1859" text-anchor="middle">CPU</text>
+    <text id="n-dma-memory-label-0" class="axi-label" x="1750" y="1859" text-anchor="middle">CPU</text>
+    <g id="h-ethernet-group-group">
+      <rect id="h-ethernet-group" class="hw-group" x="640" y="2054.0" width="1020" height="124" rx="10" />
+      <text id="h-ethernet-group-title" class="group-title" x="658" y="2085.0" text-anchor="start">Ethernet</text>
+    </g>
+    <g id="h-mac-control-group">
+      <rect id="h-mac-control" class="node l0" x="660" y="2099.0" width="465" height="66" rx="8" data-layer="L0" />
+      <text id="h-mac-control-title" class="node-title" x="892.5" y="2128.5" text-anchor="middle">Регистры MAC</text>
+    </g>
+    <g id="h-mac-dma-group">
+      <rect id="h-mac-dma" class="node l0" x="1175" y="2099.0" width="465" height="66" rx="8" data-layer="L0" />
+      <text id="h-mac-dma-title" class="node-title" x="1407.5" y="2128.5" text-anchor="middle">DMA Ethernet</text>
+    </g>
+    <path id="f-mac-mmio" class="link mmio" d="M 454 2138 H 660" data-from="f-ethernet-control" data-to="h-mac-control" />
+    <path id="n-mac-mmio" class="link mmio" d="M 1844 2138 H 1640" data-from="n-ethernet-control" data-to="h-mac-dma" />
+    <text id="f-mac-label-0" class="mmio-label" x="550" y="2118" text-anchor="middle">MMIO</text>
+    <text id="n-mac-label-0" class="mmio-label" x="1750" y="2118" text-anchor="middle">MMIO</text>
+    <path id="h-mac-ddr" class="link data" d="M 1400 2099 V 1919" data-from="h-mac-dma" data-to="h-ddr-descriptors" />
+    <text id="h-mac-ddr-label-0" class="axi-label" x="1495" y="1984.0" text-anchor="middle">DMA</text>
+    <g id="h-pl-dma-detail-group">
+      <rect id="h-pl-dma-detail" class="pl-group" x="640" y="2214.0" width="1020" height="322" rx="10" style="fill:#fcfaff;stroke:#8760ba;stroke-width:1.5" />
+      <text id="h-pl-dma-detail-title" class="group-title" x="658" y="2245.0" text-anchor="start">PL: AXI DMA</text>
+    </g>
+    <g id="h-pl-dma-gp0-group">
+      <rect id="h-pl-dma-gp0" class="node l0" x="660" y="2304.0" width="210" height="76" rx="8" data-layer="L0" />
+      <text id="h-pl-dma-gp0-title" class="node-title" x="765" y="2332.0" text-anchor="middle">M_AXI_GP0</text>
+      <text id="h-pl-dma-gp0-text-0" class="body" x="765" y="2362.0" text-anchor="middle">PS control</text>
+    </g>
+    <g id="h-pl-dma-control-bus-group">
+      <rect id="h-pl-dma-control-bus" class="node pl-node" x="936" y="2304.0" width="340" height="58" rx="8" data-layer="L0" />
+      <text id="h-pl-dma-control-bus-title" class="node-title" x="1106" y="2329.5" text-anchor="middle">AXI Interconnect</text>
+    </g>
+    <path id="h-pl-dma-control-gp0" class="link axi" d="M 870 2333 H 936" data-from="h-pl-dma-gp0" data-to="h-pl-dma-control-bus" />
+    <g id="h-spi-streams-group">
+      <rect id="h-spi-streams" class="node stream-node" x="660" y="2424.0" width="178" height="87" rx="8" data-layer="L0" />
+      <text id="h-spi-streams-title" class="node-title" x="749" y="2464.0" text-anchor="middle">SPI-потоки</text>
+      <text id="h-spi-streams-body" x="749" y="2490" class="small" text-anchor="middle">AXI-Stream</text>
+    </g>
+    <g id="h-pl-dma-group">
+      <rect id="h-pl-dma" class="node data-node" x="930" y="2424.0" width="205" height="87" rx="8" data-layer="L0" />
+      <text id="h-pl-dma-title" class="node-title" x="1032.5" y="2464.0" text-anchor="middle">AXI DMA ×2</text>
+      <text id="h-pl-dma-text-0" class="body" x="1032.5" y="2490.0" text-anchor="middle">S2MM и MM2S</text>
+    </g>
+    <g id="h-pl-data-bus-group">
+      <rect id="h-pl-data-bus" class="node data-node" x="1225" y="2424.0" width="190" height="87" rx="8" data-layer="L0" />
+      <text id="h-pl-data-bus-title" class="node-title" x="1320" y="2464.0" text-anchor="middle">Interconnect</text>
+      <text id="h-pl-data-bus-text-0" class="body" x="1320" y="2490.0" text-anchor="middle">AXI data</text>
+    </g>
+    <g id="h-pl-hp0-ddr-group">
+      <rect id="h-pl-hp0-ddr" class="node l0" x="1500" y="2424.0" width="140" height="87" rx="8" data-layer="L0" />
+      <text id="h-pl-hp0-ddr-title" class="node-title" x="1570" y="2464.0" text-anchor="middle">S_AXI_HP0</text>
+      <text id="h-pl-hp0-ddr-text-0" class="body" x="1570" y="2490.0" text-anchor="middle">PL → DDR</text>
+    </g>
+    <path id="h-pl-dma-config" class="link axi" d="M 1106 2362 V 2389 H 1032 V 2424" data-from="h-pl-dma-control-bus" data-to="h-pl-dma" />
+    <text id="h-pl-dma-config-label-0" class="axi-label" x="1200" y="2401.0" text-anchor="middle">S_AXI_LITE</text>
+    <path id="h-stream-dma" class="link axi" d="M 838 2468 H 930" data-from="h-spi-streams" data-to="h-pl-dma" />
+    <path id="h-dma-data-bus" class="link axi" d="M 1135 2468 H 1225" data-from="h-pl-dma" data-to="h-pl-data-bus" />
+    <text id="h-dma-data-label-0" class="axi-label" x="1180" y="2449.0" text-anchor="middle">M_AXI</text>
+    <path id="h-dma-hp0" class="link axi" d="M 1415 2468 H 1500" data-from="h-pl-data-bus" data-to="h-pl-hp0-ddr" />
+    <text id="h-dma-hp0-label-0" class="axi-label" x="1456" y="2448" text-anchor="middle">AXI</text>
+    <g id="h-irq-group-group">
+      <rect id="h-irq-group" class="hw-group" x="640" y="2574.0" width="1020" height="734" rx="10" />
+      <text id="h-irq-group-title" class="group-title" x="658" y="2605.0" text-anchor="start">IRQ</text>
+    </g>
+    <g id="h-i2c-irq-group">
+      <rect id="h-i2c-irq" class="node pl-core" x="660" y="2634.0" width="280" height="80" rx="8" data-layer="L0" />
+      <text id="h-i2c-irq-title" class="node-title" x="800" y="2670.5" text-anchor="middle">PL Slave</text>
+      <text id="h-i2c-irq-text-0" class="body" x="800" y="2696.5" text-anchor="middle">PL: IRQ_F2P</text>
+    </g>
+    <g id="h-timer-irq-group">
+      <rect id="h-timer-irq" class="node l0" x="990" y="2634.0" width="280" height="80" rx="8" data-layer="L0" />
+      <text id="h-timer-irq-title" class="node-title" x="1130" y="2670.5" text-anchor="middle">Таймер</text>
+      <text id="h-timer-irq-text-0" class="body" x="1130" y="2696.5" text-anchor="middle">PS tick</text>
+    </g>
+    <g id="h-mac-irq-group">
+      <rect id="h-mac-irq" class="node l0" x="1320" y="2634.0" width="320" height="80" rx="8" data-layer="L0" />
+      <text id="h-mac-irq-title" class="node-title" x="1480" y="2670.5" text-anchor="middle">Ethernet DMA</text>
+      <text id="h-mac-irq-text-0" class="body" x="1480" y="2696.5" text-anchor="middle">PS done</text>
+    </g>
+    <g id="h-gic-group">
+      <rect id="h-gic" class="node l0" x="1000" y="2804.0" width="300" height="90" rx="8" data-layer="L0" />
+      <text id="h-gic-title" class="node-title" x="1150" y="2845.5" text-anchor="middle">GIC</text>
+    </g>
+    <path id="h-i2c-gic" class="link irq" d="M 800 2714 V 2774 H 1060 V 2804" data-from="h-i2c-irq" data-to="h-gic" />
+    <path id="h-timer-gic" class="link irq" d="M 1130 2714 V 2804" data-from="h-timer-irq" data-to="h-gic" />
+    <path id="h-mac-gic" class="link irq" d="M 1480 2714 V 2774 H 1240 V 2804" data-from="h-mac-irq" data-to="h-gic" />
+    <path id="f-gic-config" class="link config" d="M 454 2599 H 550 V 2829 H 1000" data-from="f-gic-bsp" data-to="h-gic" />
+    <path id="n-gic-config" class="link config" d="M 1844 2599 H 1750 V 2829 H 1300" data-from="n-gic-bsp" data-to="h-gic" />
+    <text id="f-gic-config-label-0" class="mmio-label" x="740" y="2814.0" text-anchor="middle">GIC</text>
+    <text id="n-gic-config-label-0" class="mmio-label" x="1515" y="2814.0" text-anchor="middle">GIC</text>
+    <path id="h-gic-f-isr" class="link irq" d="M 1000 2864 H 600 V 2979 H 454" data-from="h-gic" data-to="f-irq-entry" />
+    <path id="h-gic-n-event" class="link irq" d="M 1300 2864 H 1844" data-from="h-gic" data-to="n-irq-kernel" />
+    <text id="f-irq-entry-label-0" class="irq-label" x="785" y="2958.0" text-anchor="middle">ISR</text>
+    <text id="n-irq-entry-label-0" class="irq-label" x="1740" y="2846.0" text-anchor="middle">IRQ</text>
+    <path id="h-gic-f-timer-port" class="link irq" d="M 1000 2884 H 520 V 2739 H 454" data-from="h-gic" data-to="f-timer-port" />
+    <path id="h-gic-n-timer-port" class="link irq" d="M 1300 2884 H 1780 V 2739 H 1844" data-from="h-gic" data-to="n-timer-port" />
+    <text id="sheet-title" x="42" y="81" class="panel-title" text-anchor="start">L0–L1. Аппаратные пути платформы</text>
+    <a xlink:href="architecture_bvstk_l1.svg">
+      <text id="sheet-subtitle" x="42" y="123" class="body" text-anchor="start">Детализация платформы L1: MMIO, память, DMA и доставка IRQ.</text>
+    </a>
+    <text id="common-title" x="1150" y="231" class="group-title" text-anchor="middle">Общие части и аппаратура</text>
+    <g id="n-memory-kernel" data-kind="component" data-layer="L2" data-ownership="neutrino" data-source="src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c">
+      <rect id="n-memory-kernel-box" x="1844" y="970.0" width="400" height="72" rx="8" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-kernel">
+        <text id="n-memory-kernel-title" x="2044.0" y="999.0" class="node-title" text-anchor="middle">L2. Отображение памяти</text>
+      </a>
+      <text id="n-memory-kernel-text" x="2044.0" y="1025.0" class="body" text-anchor="middle">mmap_device_memory</text>
+    </g>
+    <g id="n-irq-kernel" data-kind="component" data-layer="L2" data-ownership="neutrino" data-source="src/ports/neutrino-zynq7000/os/i2c/bvstk_i2c_slave_neutrino.c">
+      <rect id="n-irq-kernel-box" x="1844" y="2824.0" width="400" height="76" rx="8" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
+      <a xlink:href="architecture_bvstk_l1.svg#n-interrupt-processing--event">
+        <text id="n-irq-kernel-title" x="2044.0" y="2853.0" class="node-title" text-anchor="middle">L2. Доставка IRQ</text>
+      </a>
+      <text id="n-irq-kernel-text" x="2044.0" y="2879.0" class="body" text-anchor="middle">SIGEV_INTR</text>
+    </g>
+    <path id="n-kernel-signals-waiter" class="link irq" data-from="n-irq-kernel" data-to="n-irq-entry" data-interaction="event" d="M 2044 2900 V 2950" style="marker-start:url(#irq-source);marker-end:url(#irq-arrow)" />
+    <g id="f-irq-queue" data-kind="component" data-layer="L2" data-ownership="freertos" data-source="src/ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.c">
+      <rect id="f-irq-queue-box" x="54" y="3072.0" width="400" height="70" rx="8" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
+      <a xlink:href="architecture_bvstk_l1.svg#f-interrupt-processing--event">
+        <text id="f-irq-queue-title" x="254.0" y="3101.0" class="node-title" text-anchor="middle">L2. Очередь событий</text>
+      </a>
+      <text id="f-irq-queue-text" x="254.0" y="3127.0" class="body" text-anchor="middle">xQueueSendFromISR</text>
+    </g>
+    <path id="f-isr-enqueues-event" class="link irq" data-from="f-irq-entry" data-to="f-irq-queue" data-interaction="event" d="M 254 3024 V 3072" style="marker-start:url(#irq-source);marker-end:url(#irq-arrow)" />
+    <path id="f-queue-wakes-worker" class="link irq" data-from="f-irq-queue" data-to="f-irq-handler" data-interaction="event" d="M 254 3142 V 3192" style="marker-start:url(#irq-source);marker-end:url(#irq-arrow)" />
+    <text id="pl-dma-status" x="658" y="2272.0" class="small" text-anchor="start">SPI master используется для PL SD. Буферы обмена находятся в BRAM.</text>
+    <g id="legend" aria-label="Обозначения">
+      <line x1="42" y1="3358.0" x2="2258" y2="3358.0" stroke="#c4ccd3" />
+      <path d="M 42 3396 H 100" class="link call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <text id="legend-link-call" x="120" y="3402.0" class="legend-text" text-anchor="start">Вызов</text>
+      <path d="M 602 3396 H 660" class="link config" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+      <text id="legend-link-config" x="680" y="3402.0" class="legend-text" text-anchor="start">MMIO и настройка</text>
+      <path d="M 1162 3396 H 1220" class="link data" marker-start="url(#axi-source)" marker-end="url(#axi-arrow)" />
+      <text id="legend-link-data" x="1240" y="3402.0" class="legend-text" text-anchor="start">AXI и передача данных</text>
+      <path d="M 1722 3396 H 1780" class="link irq" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+      <text id="legend-link-irq" x="1800" y="3402.0" class="legend-text" text-anchor="start">IRQ и событие</text>
+      <rect x="42" y="3434.0" width="48" height="30" rx="5" fill="#e9eef3" stroke="#607487" />
+      <text id="legend-L0" x="66" y="3455.0" class="legend-text" text-anchor="middle">L0</text>
+      <text id="legend-label-L0" x="104" y="3455.0" class="legend-text" text-anchor="start">Аппаратура</text>
+      <rect x="452" y="3434.0" width="48" height="30" rx="5" fill="#fff0d6" stroke="#b56b1d" />
+      <text id="legend-L1" x="476" y="3455.0" class="legend-text" text-anchor="middle">L1</text>
+      <text id="legend-label-L1" x="514" y="3455.0" class="legend-text" text-anchor="start">Платформа</text>
+      <rect x="862" y="3434.0" width="48" height="30" rx="5" fill="#ffd1c7" stroke="#c65b4e" />
+      <text id="legend-L2" x="886" y="3455.0" class="legend-text" text-anchor="middle">L2</text>
+      <text id="legend-label-L2" x="924" y="3455.0" class="legend-text" text-anchor="start">Ядро ОС</text>
+      <rect x="1272" y="3434.0" width="48" height="30" rx="5" class="pl-node" />
+      <text id="legend-pl" x="1296" y="3455.0" class="legend-text" text-anchor="middle">PL</text>
+      <text id="legend-pl-label" x="1334" y="3455.0" class="legend-text" text-anchor="start">Программируемая логика, часть L0</text>
+      <text id="legend-note" x="42" y="3502.0" class="legend-text" text-anchor="start">Общие модули находятся в центре. Заголовки блоков связывают аппаратные пути со схемами платформы и приложений.</text>
+      <rect x="1740" y="3434.0" width="48" height="30" rx="5" fill="#d9ebff" stroke="#3f75ad" />
+      <text id="legend-l4" x="1764" y="3455.0" class="legend-text" text-anchor="middle">L4</text>
+      <text id="legend-l4-label" x="1804" y="3455.0" class="legend-text" text-anchor="start">Приложения</text>
+    </g>
+    <g id="common-platform-access" data-kind="functional-group" data-layer="L1" data-ownership="common">
+      <rect x="640" y="270" width="1020" height="318" rx="10" fill="#fffdf8" stroke="#b56b1d" stroke-width="1.5" />
+      <a xlink:href="architecture_bvstk_l1.svg#platform-access">
+        <text id="common-platform-title" x="662" y="306" class="group-title" text-anchor="start">L1. Доступ к регистрам</text>
+      </a>
+      <g id="common-region-catalog" data-kind="component" data-layer="L1" data-ownership="common">
+        <rect x="960" y="330" width="380" height="64" rx="8" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
+        <a xlink:href="architecture_bvstk_l1.svg#platform-access--catalog">
+          <text id="common-region-catalog-title" x="1150.0" y="361" class="node-title" text-anchor="middle">bvstk_pl_regions</text>
+        </a>
+      </g>
+      <g id="common-pl-access" data-kind="component" data-layer="L1" data-ownership="common">
+        <rect x="870" y="444" width="560" height="116" rx="8" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
+        <a xlink:href="architecture_bvstk_l1.svg#platform-access--pl-access">
+          <text id="common-pl-access-title" x="1150.0" y="475" class="node-title" text-anchor="middle">bvstk_pl_service</text>
+        </a>
+        <text id="common-pl-access-body" x="1150.0" y="505" class="body" text-anchor="middle">Поиск региона и доступ по смещению</text>
+      </g>
+    </g>
+    <g id="f-platform-reference" data-kind="component" data-layer="L4" data-ownership="freertos">
+      <rect x="38" y="444" width="434" height="116" rx="8" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
+      <a xlink:href="architecture_bvstk_l4.svg#f-command-mem_shell">
+        <text id="f-platform-reference-title" x="255.0" y="475" class="node-title" text-anchor="middle">L4. mem_shell</text>
+      </a>
+      <text id="f-platform-reference-body" x="255.0" y="505" class="body" text-anchor="middle">Операции с памятью и регистрами</text>
+    </g>
+    <g id="n-platform-reference" data-kind="component" data-layer="L4" data-ownership="neutrino">
+      <rect x="1828" y="444" width="434" height="116" rx="8" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
+      <a xlink:href="architecture_bvstk_l4.svg#n-bvstkctl">
+        <text id="n-platform-reference-title" x="2045.0" y="475" class="node-title" text-anchor="middle">L4. bvstkctl</text>
+      </a>
+      <text id="n-platform-reference-body" x="2045.0" y="505" class="body" text-anchor="middle">Операции с регионами PL</text>
+    </g>
+    <path id="catalog-supplies-region" d="M 1150 394 V 444" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" data-kind="interaction" data-from="common-region-catalog" data-to="common-pl-access" data-interaction="data" marker-start="url(#axi-source)" marker-end="url(#axi-arrow)" />
+    <path id="f-uses-common-access" d="M 472 502 H 870" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="f-platform-reference" data-to="common-pl-access" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    <path id="n-uses-common-access" d="M 1828 502 H 1430" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="n-platform-reference" data-to="common-pl-access" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    <path id="common-selects-f-region" d="M 1000 560 V 628 H 560 V 872 H 454" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="common-pl-access" data-to="f-region" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    <path id="common-selects-n-region" d="M 1300 560 V 628 H 1740 V 872 H 1844" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="common-pl-access" data-to="n-region" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    <g id="h-pl-dma-bram-group" data-kind="component" data-layer="L0" data-ownership="common">
+      <rect id="h-pl-dma-bram" x="1340" y="2304.0" width="300" height="66" rx="7" class="node pl-node" />
+      <text id="h-pl-dma-bram-title" x="1490" y="2344.0" class="node-title" text-anchor="middle">BRAM обмена</text>
+    </g>
+    <path id="h-data-bus-bram" d="M 1380 2424 V 2370" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" data-kind="interaction" data-from="h-pl-data-bus" data-to="h-pl-dma-bram" data-interaction="data" marker-start="url(#axi-arrow)" marker-end="url(#axi-arrow)" />
+    <a xlink:href="architecture_bvstk_l4.svg">
+      <rect x="1770" y="54" width="100" height="44" rx="7" fill="white" stroke="#3f75ad" />
+      <text id="nav-L4" x="1820" y="84" class="node-title" text-anchor="middle" style="fill:#3f75ad">L4</text>
+    </a>
+    <a xlink:href="architecture_bvstk_l3.svg">
+      <rect x="1892" y="54" width="100" height="44" rx="7" fill="white" stroke="#287f73" />
+      <text id="nav-L3" x="1942" y="84" class="node-title" text-anchor="middle" style="fill:#287f73">L3</text>
+    </a>
+    <a xlink:href="architecture_bvstk_l1.svg">
+      <rect x="2014" y="54" width="100" height="44" rx="7" fill="white" stroke="#b56b1d" />
+      <text id="nav-L1" x="2064" y="84" class="node-title" text-anchor="middle" style="fill:#b56b1d">L1</text>
+    </a>
+    <a xlink:href="architecture_bvstk_l0_l1.svg">
+      <rect x="2136" y="54" width="100" height="44" rx="7" fill="#e9eef3" stroke="#607487" />
+      <text id="nav-L0" x="2186" y="84" class="node-title" text-anchor="middle" style="fill:#607487">L0–L1</text>
+    </a>
+    <path id="n-mapping-to-mmio" d="M 2044 1042 V 1104" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" data-kind="interaction" data-from="n-memory-kernel" data-to="n-mmio" data-interaction="data" marker-start="url(#axi-source)" marker-end="url(#axi-arrow)" />
+  </g>
+</svg>
