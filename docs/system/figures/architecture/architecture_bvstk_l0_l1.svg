@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" width="2300" height="3810" viewBox="0 0 2300 3810" version="1.1" id="bvstk-l0-l1-architecture">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" width="2300" height="3952" viewBox="0 0 2300 3952" version="1.1" id="bvstk-l0-l1-architecture" data-pl-original-height="3810">
   <title>BVSTK. L0–L1. Аппаратные пути платформы</title>
   <desc>Аппаратная детализация платформы L1. Слева размещён код FreeRTOS, справа — код Нейтрино, в центре — общая логика доступа и аппаратура Zynq. Вложенные группы показывают состав пути. Цвет блока обозначает уровень; фиолетовый цвет уточняет область PL внутри L0.
 
@@ -15,7 +15,7 @@ IRQ показан отдельно от передачи данных. Ведо
 После доставки IRQ задача FreeRTOS или поток Нейтрино вызывает сервис L3. Путь продолжается в одноимённом блоке схемы сервисов.
 Одноимённые блоки на соседних схемах обозначают одну функцию. Ссылки ведут к конкретным блокам; выбранный блок выделяется рамкой. Тип стрелки и направление взаимодействия сохраняются при переходе.
 Схема L0 «Взаимодействие PS и PL» раскрывает группы PS и AXI к PL, PL: AXI DMA, источники IRQ и GIC. Фиолетовые блоки принадлежат PL внутри L0. Коричневые стрелки к регистрам направлены от инициатора. Аппаратная часть показывает все источники PL; ветви ОС ниже раскрывают обработку ведомого I2C и системного таймера.</desc>
-  <metadata id="sources">Software layer: svg/architecture_bvstk_l1.svg
+  <metadata id="sources">Software layer: docs/system/figures/architecture/architecture_bvstk_l1.svg
 Applications: src/apps/freertos/console/mem_shell.c; src/apps/neutrino/bvstkctl/main.c
 Shared access: src/shared/pl/access/bvstk_pl_service.c; src/hardware/boards/ax7020/bvstk_pl_regions.c
 MMIO ports: src/ports/freertos-xilinx/os/bvstk_platform_freertos.c; src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c
@@ -1032,6 +1032,21 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
       <rect x="2160.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
       <text x="2200.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
+    </a>
+  </g>
+  <g id="pl-subsystem-navigation" data-kind="navigation">
+    <rect x="0" y="3810.0" width="2300.0" height="142.0" fill="white" />
+    <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
+      <text x="60" y="3850.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/reference/memory-map.svg">
+      <text x="60.0" y="3902.0" font-size="20" style="fill:#3f75ad">Области BRAM ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/i2c-irq.svg">
+      <text x="786.6666666666666" y="3902.0" font-size="20" style="fill:#3f75ad">Доставка IRQ I²C ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/spi/sd-transfer.svg">
+      <text x="1513.3333333333333" y="3902.0" font-size="20" style="fill:#3f75ad">Чтение блока SD ↗</text>
     </a>
   </g>
 </svg>

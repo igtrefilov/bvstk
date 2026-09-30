@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="4520" viewBox="0 0 2800 4520" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="4662" viewBox="0 0 2800 4662" role="img" aria-labelledby="title desc" data-pl-original-height="4520">
   <title id="title">L1. Платформа и аппаратные события</title>
   <desc id="desc">Общие интерфейсы, реализации портов, MMIO и доставка прерываний. Слева показаны части FreeRTOS, справа — Нейтрино, в центре — общие исходники или аппаратура. Вложенные рамки раскрывают функцию до конкретных модулей. Цвет рамки и блока обозначает слой. Общие исходники включаются в выбранную сборку; состав подключённых модулей различается. Серые стрелки обозначают вызовы, коричневые — MMIO и настройку, синие — данные, красные пунктирные — прерывания и события. Соединение с рамкой относится к функции внутри неё. Заголовки ссылочных блоков открывают соответствующую схему.
 Одноимённые блоки на соседних схемах обозначают одну функцию. Ссылки ведут к конкретным блокам; выбранный блок выделяется рамкой. Тип стрелки и направление взаимодействия сохраняются при переходе.</desc>
@@ -1419,6 +1419,18 @@ src/shared/interfaces/bvstk_mmio.h</title>
     <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
       <rect x="2660.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
       <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
+    </a>
+  </g>
+  <g id="pl-subsystem-navigation" data-kind="navigation">
+    <rect x="0" y="4520.0" width="2800.0" height="142.0" fill="white" />
+    <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
+      <text x="60" y="4560.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/i2c-irq.svg">
+      <text x="60.0" y="4612.0" font-size="20" style="fill:#3f75ad">Доставка IRQ I²C ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/mdio-write.svg#worker">
+      <text x="953.3333333333334" y="4612.0" font-size="20" style="fill:#3f75ad">Работа задачи MDIO ↗</text>
     </a>
   </g>
 </svg>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="1330" viewBox="0 0 2800 1330" id="bvstk-levels-overview" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="1420" viewBox="0 0 2800 1420" id="bvstk-levels-overview" role="img" aria-labelledby="title desc" data-pl-original-height="1330">
   <title id="title">Уровни абстракции BVSTK</title>
   <desc id="desc">Декларация пяти уровней абстракции BVSTK. L4 — приложения; L3 — сервисы и драйверы; L2 — ядро ОС; L1 — платформа; L0 — аппаратура. Каждая строка определяет область ответственности уровня. Порядок строк не задаёт порядок вызовов. Названия открывают соответствующие подробные схемы. Цвета совпадают со всем рядом архитектурных схем.</desc>
   <defs>
@@ -80,4 +80,10 @@
     <text x="1260" y="1087" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Процессор, память и периферия.</text>
   </g>
   <text x="180" y="1238" font-size="23" font-weight="400" text-anchor="start" style="fill:#576c7b">Названия слоёв открывают соответствующие схемы.</text>
+  <g id="pl-subsystem-navigation" data-kind="navigation">
+    <rect x="0" y="1330.0" width="2800.0" height="90.0" fill="white" />
+    <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
+      <text x="60" y="1370.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+    </a>
+  </g>
 </svg>

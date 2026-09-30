@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2475" role="img" aria-labelledby="title desc" height="2475">
+  <title id="title">BRAM: карта памяти реализации</title>
+  <desc id="desc">Адреса относятся к аппаратному проекту Burevestnik_21. Смещения внутри окна указаны в байтах.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="2475" fill="white" />
+  <g id="backgrounds">
+    <rect x="80" y="270" width="2040" height="595" rx="16" fill="white" />
+    <rect x="80" y="975" width="2040" height="595" rx="16" fill="white" />
+    <rect x="80" y="1680" width="2040" height="510" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="i2c-bank-w0" data-to="i2c-bank-m0" data-interaction="data" data-direction="forward">
+      <path d="M500,430 L595,430 L595,436 L690,436" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M500,430 L595,430 L595,436 L690,436" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="i2c-bank-m0" data-to="i2c-bank-r0" data-interaction="data" data-direction="forward">
+      <path d="M1510,436 L1600,436 L1600,430 L1690,430" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1510,436 L1600,436 L1600,430 L1690,430" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="i2c-bank-w1" data-to="i2c-bank-m1" data-interaction="data" data-direction="forward">
+      <path d="M500,590 L595,590 L595,596 L690,596" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M500,590 L595,590 L595,596 L690,596" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="i2c-bank-m1" data-to="i2c-bank-r1" data-interaction="data" data-direction="forward">
+      <path d="M1510,596 L1600,596 L1600,590 L1690,590" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1510,596 L1600,596 L1600,590 L1690,590" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="i2c-bank-w2" data-to="i2c-bank-m2" data-interaction="data" data-direction="forward">
+      <path d="M500,750 L595,750 L595,756 L690,756" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M500,750 L595,750 L595,756 L690,756" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="i2c-bank-m2" data-to="i2c-bank-r2" data-interaction="data" data-direction="forward">
+      <path d="M1510,756 L1600,756 L1600,750 L1690,750" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1510,756 L1600,756 L1600,750 L1690,750" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="mdio-bank-w0" data-to="mdio-bank-m0" data-interaction="data" data-direction="forward">
+      <path d="M500,1135 L595,1135 L595,1141 L690,1141" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M500,1135 L595,1135 L595,1141 L690,1141" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="mdio-bank-m0" data-to="mdio-bank-r0" data-interaction="data" data-direction="forward">
+      <path d="M1510,1141 L1600,1141 L1600,1135 L1690,1135" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1510,1141 L1600,1141 L1600,1135 L1690,1135" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="mdio-bank-w1" data-to="mdio-bank-m1" data-interaction="data" data-direction="forward">
+      <path d="M500,1295 L595,1295 L595,1301 L690,1301" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M500,1295 L595,1295 L595,1301 L690,1301" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="mdio-bank-m1" data-to="mdio-bank-r1" data-interaction="data" data-direction="forward">
+      <path d="M1510,1301 L1600,1301 L1600,1295 L1690,1295" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1510,1301 L1600,1301 L1600,1295 L1690,1295" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="mdio-bank-w2" data-to="mdio-bank-m2" data-interaction="data" data-direction="forward">
+      <path d="M500,1455 L595,1455 L595,1461 L690,1461" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M500,1455 L595,1455 L595,1461 L690,1461" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="mdio-bank-m2" data-to="mdio-bank-r2" data-interaction="data" data-direction="forward">
+      <path d="M1510,1461 L1600,1461 L1600,1455 L1690,1455" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1510,1461 L1600,1461 L1600,1455 L1690,1455" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="i2c-bank" data-kind="functional-group" data-label="BRAM I²C" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="80" y="270" width="2040" height="595" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="../i2c/subsystem.svg#memory">
+        <text x="106" y="307.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM I²C</text>
+        <text x="2096" y="306.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+      </a>
+      <text x="106" y="340.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">0x40000000, окно 16 КиБ; пакетные области по 4 КиБ</text>
+      <g id="i2c-bank-w0" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_master_0" data-ownership="common" data-parent="i2c-bank">
+        <rect x="110" y="370" width="390" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="130" y="394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="130" y="428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_master_0</text>
+      </g>
+      <g id="i2c-bank-m0" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x0000  Результат master" data-ownership="common" data-parent="i2c-bank">
+        <rect x="690" y="370" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="710" y="394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="710" y="428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x0000  Результат master</text>
+        <text x="710" y="467.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Заголовок 4 байта, затем принятые данные</text>
+      </g>
+      <g id="i2c-bank-r0" data-kind="component" data-layer="L0" data-label="CPU PS" data-ownership="common" data-parent="i2c-bank">
+        <rect x="1690" y="370" width="400" height="120" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+        <text x="1710" y="394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="1710" y="428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">CPU PS</text>
+      </g>
+      <g id="i2c-bank-w1" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_slave_0" data-ownership="common" data-parent="i2c-bank">
+        <rect x="110" y="530" width="390" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="130" y="554.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="130" y="588.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
+      </g>
+      <g id="i2c-bank-m1" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x1000  Запрос к slave" data-ownership="common" data-parent="i2c-bank">
+        <rect x="690" y="530" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="710" y="554.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="710" y="588.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x1000  Запрос к slave</text>
+        <text x="710" y="627.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Заголовок с адресом и длиной, затем полезные данные</text>
+      </g>
+      <g id="i2c-bank-r1" data-kind="component" data-layer="L0" data-label="CPU PS" data-ownership="common" data-parent="i2c-bank">
+        <rect x="1690" y="530" width="400" height="120" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+        <text x="1710" y="554.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="1710" y="588.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">CPU PS</text>
+      </g>
+      <g id="i2c-bank-w2" data-kind="component" data-layer="L0" data-label="CPU PS" data-ownership="common" data-parent="i2c-bank">
+        <rect x="110" y="690" width="390" height="120" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+        <text x="130" y="714.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="130" y="748.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">CPU PS</text>
+      </g>
+      <g id="i2c-bank-m2" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x2000  Ответ slave" data-ownership="common" data-parent="i2c-bank">
+        <rect x="690" y="690" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="710" y="714.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="710" y="748.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x2000  Ответ slave</text>
+        <text x="710" y="787.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">PS заполняет окно и устанавливает rd_valid</text>
+      </g>
+      <g id="i2c-bank-r2" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_slave_0" data-ownership="common" data-parent="i2c-bank">
+        <rect x="1690" y="690" width="400" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="1710" y="714.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1710" y="748.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
+      </g>
+    </g>
+    <g id="mdio-bank" data-kind="functional-group" data-label="BRAM MDIO" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="80" y="975" width="2040" height="595" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="../mdio/subsystem.svg#memory">
+        <text x="106" y="1012.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM MDIO</text>
+        <text x="2096" y="1011.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+      </a>
+      <text x="106" y="1045.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">0x42000000, окно 16 КиБ; индекс слова = ((PHY &lt;&lt; 5) | REG) × 4</text>
+      <g id="mdio-bank-w0" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_master_0" data-ownership="common" data-parent="mdio-bank">
+        <rect x="110" y="1075" width="390" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="130" y="1099.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="130" y="1133.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_master_0</text>
+      </g>
+      <g id="mdio-bank-m0" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x0000  Результаты master" data-ownership="common" data-parent="mdio-bank">
+        <rect x="690" y="1075" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="710" y="1099.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="710" y="1133.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x0000  Результаты master</text>
+        <text x="710" y="1172.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">16-битное значение в 32-битном слове</text>
+      </g>
+      <g id="mdio-bank-r0" data-kind="component" data-layer="L0" data-label="CPU PS" data-ownership="common" data-parent="mdio-bank">
+        <rect x="1690" y="1075" width="400" height="120" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+        <text x="1710" y="1099.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="1710" y="1133.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">CPU PS</text>
+      </g>
+      <g id="mdio-bank-w1" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_slave_0" data-ownership="common" data-parent="mdio-bank">
+        <rect x="110" y="1235" width="390" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="130" y="1259.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="130" y="1293.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_slave_0</text>
+      </g>
+      <g id="mdio-bank-m1" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x1000  Последние записи" data-ownership="common" data-parent="mdio-bank">
+        <rect x="690" y="1235" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="710" y="1259.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="710" y="1293.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x1000  Последние записи</text>
+        <text x="710" y="1332.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ячейки по адресу регистра; потреблённая ячейка = 0x00010000</text>
+      </g>
+      <g id="mdio-bank-r1" data-kind="component" data-layer="L0" data-label="CPU PS" data-ownership="common" data-parent="mdio-bank">
+        <rect x="1690" y="1235" width="400" height="120" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+        <text x="1710" y="1259.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="1710" y="1293.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">CPU PS</text>
+      </g>
+      <g id="mdio-bank-w2" data-kind="component" data-layer="L0" data-label="CPU PS" data-ownership="common" data-parent="mdio-bank">
+        <rect x="110" y="1395" width="390" height="120" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+        <text x="130" y="1419.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="130" y="1453.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">CPU PS</text>
+      </g>
+      <g id="mdio-bank-m2" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x2000  Ответы slave" data-ownership="common" data-parent="mdio-bank">
+        <rect x="690" y="1395" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="710" y="1419.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="710" y="1453.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x2000  Ответы slave</text>
+        <text x="710" y="1492.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подготовленное значение; недостоверный ответ = 0xFFFF</text>
+      </g>
+      <g id="mdio-bank-r2" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_slave_0" data-ownership="common" data-parent="mdio-bank">
+        <rect x="1690" y="1395" width="400" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="1710" y="1419.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1710" y="1453.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_slave_0</text>
+      </g>
+    </g>
+    <g id="spi-bank" data-kind="functional-group" data-label="BRAM SPI" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="80" y="1680" width="2040" height="510" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="../spi/subsystem.svg#memory">
+        <text x="106" y="1717.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM SPI</text>
+        <text x="2096" y="1716.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+      </a>
+      <text x="106" y="1750.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Два аппаратных банка. Действующий драйвер SD использует банк 0.</text>
+      <g id="spi-bank0" data-kind="component" data-layer="L0" data-domain="pl" data-label="Банк 0 — 0x44000000" data-ownership="common" data-parent="spi-bank" data-target="../spi/sd-transfer.svg#memory">
+        <rect x="110" y="1780" width="960" height="350" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../spi/sd-transfer.svg#memory">
+          <text x="130" y="1804.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1052" y="1805.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="130" y="1838.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Банк 0 — 0x44000000</text>
+        </a>
+        <text x="130" y="1877.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Окно 8 КиБ, axi_bram_ctrl_2</text>
+        <text x="130" y="1903.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ответы команд: +0x34, +0x38, +0x3C, +0x44</text>
+        <text x="130" y="1929.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Передача: +0x0400</text>
+        <text x="130" y="1955.78" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Приём CMD17: +0x1000, 514 байт</text>
+        <text x="130" y="1982.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">CPU готовит TX; MM2S читает TX.</text>
+        <text x="130" y="2008.2199999999998" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">S2MM пишет RX; SPI master пишет ответы команд.</text>
+      </g>
+      <g id="spi-bank1" data-kind="component" data-layer="L0" data-domain="pl" data-label="Банк 1 — 0x46000000" data-ownership="common" data-parent="spi-bank" data-target="../../architecture_bvstk_ps_pl.svg#spi-bank1">
+        <rect x="1260" y="1780" width="820" height="220" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#spi-bank1">
+          <text x="1280" y="1804.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="2062" y="1805.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="1280" y="1838.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Банк 1 — 0x46000000</text>
+        </a>
+        <text x="1280" y="1877.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Окно 8 КиБ, axi_bram_ctrl_3</text>
+        <text x="1280" y="1903.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Оба AXI DMA имеют адресный доступ к обоим банкам.</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">BRAM: карта памяти реализации</text>
+    <a data-navigation="sheet" xlink:href="../README.md">
+      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/bridge.svg">
+      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/subsystems.svg">
+      <rect x="364" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="426.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/exchange.svg">
+      <rect x="504" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="560.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/memory.svg">
+      <rect x="632" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="694.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../i2c/subsystem.svg">
+      <rect x="772" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="816.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../mdio/subsystem.svg">
+      <rect x="876" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="926.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../spi/subsystem.svg">
+      <rect x="992" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1036.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="memory-map.svg">
+      <rect x="1096" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1158.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../ps-interaction/startup.svg">
+      <rect x="1236" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1334.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../../levels.svg">
+      <rect x="1448" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
+    </a>
+    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Адреса относятся к аппаратному проекту Burevestnik_21. Смещения внутри окна указаны в байтах.</text>
+    <text x="595.0" y="419.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
+    <text x="1600.0" y="419.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
+    <text x="595.0" y="579.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
+    <text x="1600.0" y="579.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
+    <text x="595.0" y="739.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
+    <text x="1600.0" y="739.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
+    <text x="595.0" y="1124.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
+    <text x="1600.0" y="1124.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
+    <text x="595.0" y="1284.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
+    <text x="1600.0" y="1284.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
+    <text x="595.0" y="1444.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
+    <text x="1600.0" y="1444.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
+    <text x="60" y="2250.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Программный кэш хранится в памяти PS на </tspan><tspan style="fill:#287f73">L3</tspan><tspan>. BRAM содержит аппаратные буферы и подготовленные ответы; их обновление выполняется отдельными операциями.</tspan></text>
+    <path d="M60,2329.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="2335.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2366.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2385.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2366.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2385.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="2432.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/hardware/pl/i2c/bvstk_i2c_regs.h",
+    "src/hardware/pl/mdio/bvstk_mdio_regs.h",
+    "src/hardware/pl/sd/bvstk_sd_master_regs.h",
+    "../hw_platform/fpga/Burevestnik_21.tcl"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "i2c-bank",
+      "target": "../i2c/subsystem.svg#memory"
+    },
+    {
+      "node": "mdio-bank",
+      "target": "../mdio/subsystem.svg#memory"
+    },
+    {
+      "node": "spi-bank",
+      "target": "../spi/subsystem.svg#memory"
+    },
+    {
+      "node": "spi-bank0",
+      "target": "../spi/sd-transfer.svg#memory"
+    },
+    {
+      "node": "spi-bank1",
+      "target": "../../architecture_bvstk_ps_pl.svg#spi-bank1"
+    }
+  ]
+}</metadata>
+</svg>

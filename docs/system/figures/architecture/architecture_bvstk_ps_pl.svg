@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="4810" viewBox="0 0 2800 4810" role="img" aria-labelledby="title desc" id="bvstk-ps-pl-architecture">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="5004" viewBox="0 0 2800 5004" role="img" aria-labelledby="title desc" id="bvstk-ps-pl-architecture" data-pl-original-height="4810">
   <title id="title">BVSTK. L0. Взаимодействие PS и PL</title>
   <desc id="desc">Аппаратная детализация схемы L0–L1 по Burevestnik_21.tcl. Все аппаратные блоки общие для сборок FreeRTOS и Нейтрино. Серый цвет обозначает PS уровня L0, фиолетовый — PL внутри L0. Имена шлюзов совпадают с L0–L1; заголовки открывают соответствующие блоки.
 Процессор инициирует доступ к регистрам через M_AXI_GP0 и axi_interconnect_2. Коричневые стрелки показывают направление обращения, ответы чтения отдельно не проведены. Синие двусторонние линии обозначают чтение и запись данных. Справа продолжается адресный путь PS к локальной BRAM через тот же interconnect; слева — обращения к регистрам. Точки обозначают ответвления общей линии.
@@ -983,6 +983,30 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
     <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
       <rect x="2660.0" y="64" width="80" height="46" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="2" />
       <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
+    </a>
+  </g>
+  <g id="pl-subsystem-navigation" data-kind="navigation">
+    <rect x="0" y="4810.0" width="2800.0" height="194.0" fill="white" />
+    <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
+      <text x="60" y="4850.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/i2c/master.svg#core">
+      <text x="60.0" y="4902.0" font-size="20" style="fill:#3f75ad">I2C_master_0 ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/i2c/slave.svg#core">
+      <text x="953.3333333333334" y="4902.0" font-size="20" style="fill:#3f75ad">I2C_slave_0 ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/mdio/master.svg#core">
+      <text x="1846.6666666666667" y="4902.0" font-size="20" style="fill:#3f75ad">SMI_master_0 ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/mdio/slave.svg#core">
+      <text x="60.0" y="4954.0" font-size="20" style="fill:#3f75ad">SMI_slave_0 ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/spi/master.svg#core">
+      <text x="953.3333333333334" y="4954.0" font-size="20" style="fill:#3f75ad">SPI_master_0 ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/spi/slave.svg#core">
+      <text x="1846.6666666666667" y="4954.0" font-size="20" style="fill:#3f75ad">SPI_Slave_0 ↗</text>
     </a>
   </g>
 </svg>

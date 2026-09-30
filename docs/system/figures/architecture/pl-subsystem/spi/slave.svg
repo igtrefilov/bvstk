@@ -1,0 +1,248 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2685" role="img" aria-labelledby="title desc" height="2685">
+  <title id="title">SPI slave: обмен между шиной и AXI Stream</title>
+  <desc id="desc">Внешний ведущий задаёт SCK и CS. Два FIFO развязывают последовательную шину и потоки.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="2685" fill="white" />
+  <g id="backgrounds">
+    <rect x="80" y="590" width="2040" height="1390" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="host" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M920,435 L920,710" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M920,435 L920,710" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="host" data-interaction="data" data-direction="forward">
+      <path d="M1280,710 L1280,435" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1280,710 L1280,435" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="ctrl" data-interaction="data" data-direction="forward">
+      <path d="M920,895 L920,1050" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M920,895 L920,1050" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ctrl" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M1280,1050 L1280,895" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1280,1050 L1280,895" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="rx-from-axis" data-to="ctrl" data-interaction="data" data-direction="forward">
+      <path d="M560,1470 L560,1370 L880,1370 L880,1275" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M560,1470 L560,1370 L880,1370 L880,1275" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ctrl" data-to="tx-to-axis" data-interaction="data" data-direction="forward">
+      <path d="M1320,1275 L1320,1370 L1640,1370 L1640,1470" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1320,1275 L1320,1370 L1640,1370 L1640,1470" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="axis-in" data-to="rx-from-axis" data-interaction="data" data-direction="forward">
+      <path d="M560,1770 L560,1635" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M560,1770 L560,1635" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="tx-to-axis" data-to="axis-out" data-interaction="data" data-direction="forward">
+      <path d="M1640,1635 L1640,1770" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1640,1635 L1640,1770" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="dma-tx" data-to="axis-in" data-interaction="data" data-direction="forward">
+      <path d="M560,2150 L560,1915" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M560,2150 L560,1915" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="axis-out" data-to="dma-rx" data-interaction="data" data-direction="forward">
+      <path d="M1640,1915 L1640,2150" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1640,1915 L1640,2150" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="host" data-kind="component" data-layer="L0" data-label="Внешний ведущий SPI" data-ownership="common">
+      <rect x="660" y="270" width="880" height="165" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="680" y="294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="680" y="328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий SPI</text>
+      <text x="680" y="367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SCK, CS и MOSI; принимает MISO</text>
+    </g>
+    <g id="core" data-kind="functional-group" data-label="SPI_Slave_0" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="80" y="590" width="2040" height="1390" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="subsystem.svg#slave">
+        <text x="106" y="627.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">SPI_Slave_0</text>
+        <text x="2096" y="626.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+      </a>
+      <text x="106" y="660.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">top_spi_slave</text>
+      <g id="engine" data-kind="component" data-layer="L0" data-domain="pl" data-label="spi_slave_engine" data-ownership="common" data-parent="core">
+        <rect x="650" y="710" width="900" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="670" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="670" y="768.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_slave_engine</text>
+        <text x="670" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Сдвиг данных по внешнему SCK</text>
+        <text x="670" y="833.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Границы байтов и транзакции по CS</text>
+      </g>
+      <g id="ctrl" data-kind="component" data-layer="L0" data-domain="pl" data-label="spi_slave_ctrl" data-ownership="common" data-parent="core">
+        <rect x="650" y="1050" width="900" height="225" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="670" y="1074.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="670" y="1108.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_slave_ctrl</text>
+        <text x="670" y="1147.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Разбор и сборка 32-битных слов</text>
+        <text x="670" y="1173.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">CSR, состояние FIFO и IRQ</text>
+        <text x="670" y="1199.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Доступ PS через axi_lite_slave_native</text>
+      </g>
+      <g id="rx-from-axis" data-kind="component" data-layer="L0" data-domain="pl" data-label="FIFO ответа внешнему ведущему" data-ownership="common" data-parent="core">
+        <rect x="180" y="1470" width="760" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="200" y="1494.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="200" y="1528.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">FIFO ответа внешнему ведущему</text>
+        <text x="200" y="1567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">rx_xpm_fifo_sync_inst в RTL</text>
+      </g>
+      <g id="tx-to-axis" data-kind="component" data-layer="L0" data-domain="pl" data-label="FIFO принятого MOSI" data-ownership="common" data-parent="core">
+        <rect x="1260" y="1470" width="760" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="1280" y="1494.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1280" y="1528.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">FIFO принятого MOSI</text>
+        <text x="1280" y="1567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">tx_xpm_fifo_sync_inst в RTL</text>
+      </g>
+      <g id="axis-in" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_stream_slave" data-ownership="common" data-parent="core">
+        <rect x="180" y="1770" width="760" height="145" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="200" y="1794.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="200" y="1828.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_stream_slave</text>
+        <text x="200" y="1867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">axi_str_s: данные из DMA</text>
+      </g>
+      <g id="axis-out" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_stream_master" data-ownership="common" data-parent="core">
+        <rect x="1260" y="1770" width="760" height="145" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="1280" y="1794.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1280" y="1828.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_stream_master</text>
+        <text x="1280" y="1867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">axi_str_m: данные в DMA</text>
+      </g>
+    </g>
+    <g id="dma-tx" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_dma_1: MM2S" data-ownership="common" data-target="subsystem.svg#dma1-tx">
+      <rect x="180" y="2150" width="760" height="150" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="subsystem.svg#dma1-tx">
+        <text x="200" y="2174.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="922" y="2175.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+        <text x="200" y="2208.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_1: MM2S</text>
+      </a>
+      <text x="200" y="2247.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Читает подготовленные данные из памяти</text>
+    </g>
+    <g id="dma-rx" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_dma_1: S2MM" data-ownership="common" data-target="subsystem.svg#dma1-rx">
+      <rect x="1260" y="2150" width="760" height="150" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="subsystem.svg#dma1-rx">
+        <text x="1280" y="2174.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="2002" y="2175.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+        <text x="1280" y="2208.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_1: S2MM</text>
+      </a>
+      <text x="1280" y="2247.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Записывает принятые данные в память</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">SPI slave: обмен между шиной и AXI Stream</text>
+    <a data-navigation="sheet" xlink:href="../README.md">
+      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/bridge.svg">
+      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/subsystems.svg">
+      <rect x="364" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="426.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/exchange.svg">
+      <rect x="504" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="560.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/memory.svg">
+      <rect x="632" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="694.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../i2c/subsystem.svg">
+      <rect x="772" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="816.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../mdio/subsystem.svg">
+      <rect x="876" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="926.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="subsystem.svg">
+      <rect x="992" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1036.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../reference/memory-map.svg">
+      <rect x="1096" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1158.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../ps-interaction/startup.svg">
+      <rect x="1236" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1334.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../../levels.svg">
+      <rect x="1448" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
+    </a>
+    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Внешний ведущий задаёт SCK и CS. Два FIFO развязывают последовательную шину и потоки.</text>
+    <text x="920.0" y="558.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MOSI</text>
+    <text x="1280.0" y="558.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MISO</text>
+    <text x="920.0" y="958.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Принятые байты</text>
+    <text x="1280.0" y="958.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Байты ответа</text>
+    <text x="60" y="2400.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Названия RX и TX в RTL относятся к стороне потоков. Функциональные подписи показывают направление относительно внешней шины.</text>
+    <text x="60" y="2460.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">На этом листе показана аппаратная возможность. Обслуживание SPI slave отдельной службой текущего BVSTK не подключено.</text>
+    <path d="M60,2539.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="2545.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2576.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2595.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2576.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2595.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="2642.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/ip_repo/SPI_Slave/top_spi_slave.sv",
+    "../hw_platform/fpga/ip_repo/SPI_Slave/spi_slave_ctrl.sv",
+    "../hw_platform/fpga/ip_repo/SPI_Slave/spi_slave_engine.sv",
+    "../hw_platform/fpga/ip_repo/SPI_Slave/axi_stream_master.sv",
+    "../hw_platform/fpga/ip_repo/SPI_Slave/axi_stream_slave.sv"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "core",
+      "target": "subsystem.svg#slave"
+    },
+    {
+      "node": "dma-tx",
+      "target": "subsystem.svg#dma1-tx"
+    },
+    {
+      "node": "dma-rx",
+      "target": "subsystem.svg#dma1-rx"
+    }
+  ]
+}</metadata>
+</svg>

@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2965" role="img" aria-labelledby="title desc" height="2965">
+  <title id="title">I²C slave: от IRQ к сервису и ответу</title>
+  <desc id="desc">Слева FreeRTOS, справа Нейтрино. Общая обработка запроса расположена в центре.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="2965" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="580" width="620" height="1420" rx="16" fill="white" />
+    <rect x="1520" y="580" width="620" height="1420" rx="16" fill="white" />
+    <rect x="790" y="1480" width="620" height="515" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="hardware" data-to="f-isr" data-interaction="irq" data-direction="forward">
+      <path d="M910,455 L910,520 L370,520 L370,700" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M910,455 L910,520 L370,520 L370,700" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="f-isr" data-to="f-queue" data-interaction="irq" data-direction="forward">
+      <path d="M370,905 L370,1070" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M370,905 L370,1070" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="f-queue" data-to="f-worker" data-interaction="irq" data-direction="forward">
+      <path d="M370,1265 L370,1500" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M370,1265 L370,1500" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="n-attach" data-to="n-kernel" data-interaction="call" data-direction="forward">
+      <path d="M1830,905 L1830,1070" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1830,905 L1830,1070" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="hardware" data-to="n-kernel" data-interaction="irq" data-direction="forward">
+      <path d="M1400,362.5 L1460,362.5 L1460,1167.5 L1560,1167.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1400,362.5 L1460,362.5 L1460,1167.5 L1560,1167.5" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="n-kernel" data-to="n-worker" data-interaction="irq" data-direction="forward">
+      <path d="M1830,1265 L1830,1500" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1830,1265 L1830,1500" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="f-worker" data-to="slave-service" data-interaction="call" data-direction="forward">
+      <path d="M640,1625 L735,1625 L735,1672.5 L830,1672.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M640,1625 L735,1625 L735,1672.5 L830,1672.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="n-worker" data-to="slave-service" data-interaction="call" data-direction="forward">
+      <path d="M1560,1635 L1465,1635 L1465,1672.5 L1370,1672.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1560,1635 L1465,1635 L1465,1672.5 L1370,1672.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="slave-service" data-to="master-service" data-interaction="call" data-direction="forward">
+      <path d="M1100,1765 L1100,1840" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1100,1765 L1100,1840" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="master-service" data-to="window" data-interaction="data" data-direction="forward">
+      <path d="M1100,1955 L1100,2160" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1100,1955 L1100,2160" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="window" data-to="read" data-interaction="data" data-direction="forward">
+      <path d="M1100,2340 L1100,2490" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1100,2340 L1100,2490" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="hardware" data-kind="component" data-layer="L0" data-label="I2C_slave_0 и GIC" data-ownership="common" data-target="../i2c/slave.svg#core">
+      <rect x="800" y="270" width="600" height="185" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../i2c/slave.svg#core">
+        <text x="820" y="294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="1382" y="295.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#607487">↗</text>
+        <text x="820" y="328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0 и GIC</text>
+      </a>
+      <text x="820" y="367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">DATA_VALID или RD_REQUEST</text>
+      <text x="820" y="393.34000000000003" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">PL IRQ → IRQ_F2P → GIC</text>
+    </g>
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-layer="L1" data-ownership="freertos">
+      <rect x="60" y="580" width="620" height="1420" rx="16" fill="none" stroke="#8495a3" stroke-width="2" stroke-dasharray="10 7" />
+      <text x="86" y="617.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#b56b1d">FreeRTOS</text>
+      <g id="f-isr" data-kind="component" data-layer="L1" data-label="slave_isr" data-ownership="common" data-parent="freertos" data-target="../../architecture_bvstk_l1.svg#f-interrupt-processing--attach">
+        <rect x="100" y="700" width="540" height="205" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../architecture_bvstk_l1.svg#f-interrupt-processing--attach">
+          <text x="120" y="724.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="622" y="725.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#b56b1d">↗</text>
+          <text x="120" y="758.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">slave_isr</text>
+        </a>
+        <text x="120" y="797.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Захватить и подтвердить IRQ</text>
+        <text x="120" y="823.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Сохранить признаки события</text>
+      </g>
+      <g id="f-queue" data-kind="component" data-layer="L2" data-label="Очередь событий" data-ownership="common" data-parent="freertos" data-target="../../architecture_bvstk_l1.svg#f-interrupt-processing--event">
+        <rect x="100" y="1070" width="540" height="195" rx="11" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../architecture_bvstk_l1.svg#f-interrupt-processing--event">
+          <text x="120" y="1094.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#c65b4e" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
+          <text x="622" y="1095.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#c65b4e">↗</text>
+          <text x="120" y="1128.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Очередь событий</text>
+        </a>
+        <text x="120" y="1167.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">xQueueSendFromISR</text>
+        <text x="120" y="1193.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">portYIELD_FROM_ISR</text>
+      </g>
+      <g id="f-worker" data-kind="component" data-layer="L1" data-label="slave_task" data-ownership="common" data-parent="freertos" data-target="../../architecture_bvstk_l1.svg#f-interrupt-processing--worker">
+        <rect x="100" y="1500" width="540" height="250" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../architecture_bvstk_l1.svg#f-interrupt-processing--worker">
+          <text x="120" y="1524.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="622" y="1525.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#b56b1d">↗</text>
+          <text x="120" y="1558.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">slave_task</text>
+        </a>
+        <text x="120" y="1597.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">xQueueReceive</text>
+        <text x="120" y="1623.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Разобрать флаги</text>
+        <text x="120" y="1649.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Обработать запись или запрос чтения</text>
+      </g>
+    </g>
+    <g id="neutrino" data-kind="ownership-region" data-label="Нейтрино" data-layer="L1" data-ownership="neutrino">
+      <rect x="1520" y="580" width="620" height="1420" rx="16" fill="none" stroke="#8495a3" stroke-width="2" stroke-dasharray="10 7" />
+      <text x="1546" y="617.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#b56b1d">Нейтрино</text>
+      <g id="n-attach" data-kind="component" data-layer="L1" data-label="Подключение IRQ" data-ownership="common" data-parent="neutrino" data-target="../../architecture_bvstk_l1.svg#n-interrupt-processing--attach">
+        <rect x="1560" y="700" width="540" height="205" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../architecture_bvstk_l1.svg#n-interrupt-processing--attach">
+          <text x="1580" y="724.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="2082" y="725.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#b56b1d">↗</text>
+          <text x="1580" y="758.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Подключение IRQ</text>
+        </a>
+        <text x="1580" y="797.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">InterruptAttachEvent</text>
+        <text x="1580" y="823.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SIGEV_INTR, до начала ожидания</text>
+      </g>
+      <g id="n-kernel" data-kind="component" data-layer="L2" data-label="Доставка IRQ" data-ownership="common" data-parent="neutrino" data-target="../../architecture_bvstk_l1.svg#n-interrupt-processing--event">
+        <rect x="1560" y="1070" width="540" height="195" rx="11" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../architecture_bvstk_l1.svg#n-interrupt-processing--event">
+          <text x="1580" y="1094.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#c65b4e" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
+          <text x="2082" y="1095.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#c65b4e">↗</text>
+          <text x="1580" y="1128.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Доставка IRQ</text>
+        </a>
+        <text x="1580" y="1167.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ядро отмечает событие</text>
+        <text x="1580" y="1193.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">InterruptWait возвращает управление</text>
+      </g>
+      <g id="n-worker" data-kind="component" data-layer="L1" data-label="Поток обслуживания" data-ownership="common" data-parent="neutrino" data-target="../../architecture_bvstk_l1.svg#n-interrupt-processing--worker">
+        <rect x="1560" y="1500" width="540" height="270" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../architecture_bvstk_l1.svg#n-interrupt-processing--worker">
+          <text x="1580" y="1524.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="2082" y="1525.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#b56b1d">↗</text>
+          <text x="1580" y="1558.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Поток обслуживания</text>
+        </a>
+        <text x="1580" y="1597.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Захватить аппаратное состояние</text>
+        <text x="1580" y="1623.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Вызвать сервис под блокировкой</text>
+        <text x="1580" y="1649.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Затем InterruptUnmask</text>
+      </g>
+    </g>
+    <g id="service" data-kind="functional-group" data-label="Обработка ведомого запроса" data-layer="L3" data-ownership="common">
+      <rect x="790" y="1480" width="620" height="515" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#service-bvstk_i2c_slave_service">
+        <text x="816" y="1517.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Обработка ведомого запроса</text>
+        <text x="1386" y="1516.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
+      </a>
+      <g id="slave-service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_slave_service" data-ownership="common" data-parent="service">
+        <rect x="830" y="1580" width="540" height="185" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="850" y="1604.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="850" y="1638.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave_service</text>
+        <text x="850" y="1677.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Указатель регистра, запись, окно ответа</text>
+      </g>
+      <g id="master-service" data-kind="component" data-layer="L3" data-label="Кэш и ведущий сервис" data-ownership="common" data-parent="service" data-target="../../architecture_bvstk_l3.svg#service-bvstk_i2c_master_service">
+        <rect x="830" y="1840" width="540" height="115" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#service-bvstk_i2c_master_service">
+          <text x="850" y="1864.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="1352" y="1865.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
+          <text x="850" y="1898.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Кэш и ведущий сервис</text>
+        </a>
+      </g>
+    </g>
+    <g id="window" data-kind="component" data-layer="L0" data-domain="pl" data-label="Окно ответа I²C" data-ownership="common" data-target="../reference/memory-map.svg#i2c-bank">
+      <rect x="810" y="2160" width="580" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../reference/memory-map.svg#i2c-bank">
+        <text x="830" y="2184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1372" y="2185.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+        <text x="830" y="2218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Окно ответа I²C</text>
+      </a>
+      <text x="830" y="2257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Запись BRAM и установка rd_valid</text>
+      <text x="830" y="2283.3399999999997" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747" xml:space="preserve"><tspan>Через драйвер </tspan><tspan style="fill:#287f73">L3</tspan><tspan> и MMIO </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
+    </g>
+    <g id="read" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_slave_0" data-ownership="common" data-target="../i2c/slave.svg#read-send">
+      <rect x="810" y="2490" width="580" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../i2c/slave.svg#read-send">
+        <text x="830" y="2514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1372" y="2515.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+        <text x="830" y="2548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
+      </a>
+      <text x="830" y="2587.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Продолжить чтение и выдать байты</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C slave: от IRQ к сервису и ответу</text>
+    <a data-navigation="sheet" xlink:href="../README.md">
+      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/bridge.svg">
+      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/subsystems.svg">
+      <rect x="364" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="426.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/exchange.svg">
+      <rect x="504" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="560.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/memory.svg">
+      <rect x="632" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="694.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../i2c/subsystem.svg">
+      <rect x="772" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="816.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../mdio/subsystem.svg">
+      <rect x="876" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="926.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../spi/subsystem.svg">
+      <rect x="992" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1036.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../reference/memory-map.svg">
+      <rect x="1096" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1158.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="startup.svg">
+      <rect x="1236" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1334.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../../levels.svg">
+      <rect x="1448" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
+    </a>
+    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Слева FreeRTOS, справа Нейтрино. Общая обработка запроса расположена в центре.</text>
+    <text x="370.0" y="973.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">Событие</text>
+    <text x="370.0" y="1368.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">Пробуждение</text>
+    <text x="1830.0" y="973.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Подключение события</text>
+    <text x="1430" y="985.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">IRQ</text>
+    <text x="1830.0" y="1368.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">Пробуждение</text>
+    <text x="1100.0" y="2043.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Подготовленные байты</text>
+    <text x="60" y="2740.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">При входящей записи сервис проверяет политику и вызывает ведущую операцию. В IRQ-контексте FreeRTOS выполняется захват события.</text>
+    <path d="M60,2819.6 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="2825.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,2819.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="2825.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M441,2819.6 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="523" y="2825.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="2856.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2856.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="2856.6" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="419" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="490" y="2856.6" width="32" height="24" rx="4" fill="#ffd1c7" stroke="#c65b4e" />
+    <text x="534" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
+    <rect x="605" y="2856.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="649" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="2922.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.c",
+    "src/ports/neutrino-zynq7000/os/i2c/bvstk_i2c_slave_neutrino.c",
+    "src/services/i2c/bvstk_i2c_slave_service.c",
+    "Neutrino 2024: InterruptWait, physical PDF page 6144"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "hardware",
+      "target": "../i2c/slave.svg#core"
+    },
+    {
+      "node": "f-isr",
+      "target": "../../architecture_bvstk_l1.svg#f-interrupt-processing--attach"
+    },
+    {
+      "node": "f-queue",
+      "target": "../../architecture_bvstk_l1.svg#f-interrupt-processing--event"
+    },
+    {
+      "node": "f-worker",
+      "target": "../../architecture_bvstk_l1.svg#f-interrupt-processing--worker"
+    },
+    {
+      "node": "n-attach",
+      "target": "../../architecture_bvstk_l1.svg#n-interrupt-processing--attach"
+    },
+    {
+      "node": "n-kernel",
+      "target": "../../architecture_bvstk_l1.svg#n-interrupt-processing--event"
+    },
+    {
+      "node": "n-worker",
+      "target": "../../architecture_bvstk_l1.svg#n-interrupt-processing--worker"
+    },
+    {
+      "node": "service",
+      "target": "../../architecture_bvstk_l3.svg#service-bvstk_i2c_slave_service"
+    },
+    {
+      "node": "master-service",
+      "target": "../../architecture_bvstk_l3.svg#service-bvstk_i2c_master_service"
+    },
+    {
+      "node": "window",
+      "target": "../reference/memory-map.svg#i2c-bank"
+    },
+    {
+      "node": "read",
+      "target": "../i2c/slave.svg#read-send"
+    }
+  ]
+}</metadata>
+</svg>

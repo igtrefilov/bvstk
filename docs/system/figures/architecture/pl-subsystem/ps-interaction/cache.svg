@@ -1,0 +1,280 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2178" role="img" aria-labelledby="title desc" height="2178">
+  <title id="title">MDIO: обновление кэша и ответов slave</title>
+  <desc id="desc">Последовательность одного успешного обновления. Фоновый опрос выполняет задача FreeRTOS.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="2178" fill="white" />
+  <g id="backgrounds">
+    <rect x="86.0" y="245" width="398.4" height="245" rx="16" fill="white" />
+    <path d="M285.2,470 V1770" stroke="#d3dce3" stroke-width="1.5" fill="none" />
+    <path d="M697.5999999999999,470 V1770" stroke="#d3dce3" stroke-width="1.5" fill="none" />
+    <path d="M1110.0,470 V1770" stroke="#d3dce3" stroke-width="1.5" fill="none" />
+    <path d="M1522.3999999999999,470 V1770" stroke="#d3dce3" stroke-width="1.5" fill="none" />
+    <path d="M1934.8,470 V1770" stroke="#d3dce3" stroke-width="1.5" fill="none" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="worker" data-to="cache" data-interaction="call" data-direction="forward">
+      <path d="M285.2,591 L697.6,591" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M285.2,591 L697.6,591" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cache" data-to="master" data-interaction="mmio" data-direction="forward">
+      <path d="M697.6,717 L1110,717" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M697.6,717 L1110,717" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="master" data-to="memory" data-interaction="data" data-direction="forward">
+      <path d="M1110,843 L1522.4,843" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1110,843 L1522.4,843" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cache" data-to="master" data-interaction="mmio" data-direction="forward">
+      <path d="M697.6,969 L1110,969" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M697.6,969 L1110,969" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="memory" data-to="cache" data-interaction="data" data-direction="forward">
+      <path d="M1522.4,1095 L697.6,1095" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1522.4,1095 L697.6,1095" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cache" data-to="master" data-interaction="mmio" data-direction="forward">
+      <path d="M697.6,1221 L1110,1221" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M697.6,1221 L1110,1221" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cache" data-to="memory" data-interaction="data" data-direction="forward">
+      <path d="M697.6,1347 L1522.4,1347" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M697.6,1347 L1522.4,1347" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cache" data-to="cache" data-interaction="call" data-direction="forward">
+      <path d="M697.6,1473 L783.6,1473 L783.6,1497 L697.6,1497" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M697.6,1473 L783.6,1473 L783.6,1497 L697.6,1497" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cache" data-to="registry" data-interaction="data" data-direction="forward">
+      <path d="M697.6,1599 L1934.8,1599" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M697.6,1599 L1934.8,1599" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="registry" data-to="registry" data-interaction="data" data-direction="forward">
+      <path d="M1934.8,1725 L2020.8,1725 L2020.8,1749 L1934.8,1749" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1934.8,1725 L2020.8,1725 L2020.8,1749 L1934.8,1749" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="freertos-os" data-kind="ownership-region" data-label="FreeRTOS" data-layer="L1" data-ownership="freertos">
+      <rect x="86.0" y="245" width="398.4" height="245" rx="16" fill="none" stroke="#8495a3" stroke-width="2" stroke-dasharray="10 7" />
+      <text x="112.0" y="282.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#b56b1d">FreeRTOS</text>
+      <g id="worker" data-kind="component" data-layer="L1" data-label="Задача mdio" data-ownership="freertos" data-parent="freertos-os" data-target="mdio-write.svg#worker">
+        <rect x="100.0" y="305" width="370.4" height="165" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="mdio-write.svg#worker">
+          <text x="120.0" y="329.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="452.4" y="330.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#b56b1d">↗</text>
+          <text x="120.0" y="363.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Задача mdio</text>
+        </a>
+        <text x="120.0" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Периодический service_step</text>
+      </g>
+    </g>
+    <g id="cache" data-kind="component" data-layer="L3" data-label="bvstk_mdio_service" data-ownership="common" data-target="../../architecture_bvstk_l3.svg#service-bvstk_mdio_service">
+      <rect x="512.4" y="305" width="370.4" height="165" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#service-bvstk_mdio_service">
+        <text x="532.4" y="329.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="864.8" y="330.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
+        <text x="532.4" y="363.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_service</text>
+      </a>
+      <text x="532.4" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Кэш и расписание опроса</text>
+    </g>
+    <g id="master" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_master_0" data-ownership="common" data-target="../mdio/master.svg#core">
+      <rect x="924.8" y="305" width="370.4" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../mdio/master.svg#core">
+        <text x="944.8" y="329.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1277.1999999999998" y="330.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+        <text x="944.8" y="363.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_master_0</text>
+      </a>
+      <text x="944.8" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Через bvstk_mdio_core</text>
+    </g>
+    <g id="memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM MDIO" data-ownership="common" data-target="../reference/memory-map.svg#mdio-bank">
+      <rect x="1337.1999999999998" y="305" width="370.4" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../reference/memory-map.svg#mdio-bank">
+        <text x="1357.1999999999998" y="329.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1689.6" y="330.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+        <text x="1357.1999999999998" y="363.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM MDIO</text>
+      </a>
+      <text x="1357.1999999999998" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Результаты и ответы slave</text>
+    </g>
+    <g id="registry" data-kind="component" data-layer="L3" data-label="bvstk_cache" data-ownership="common" data-target="interfaces.svg#cache">
+      <rect x="1749.6" y="305" width="370.4" height="165" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="interfaces.svg#cache">
+        <text x="1769.6" y="329.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="2102.0" y="330.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
+        <text x="1769.6" y="363.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_cache</text>
+      </a>
+      <text x="1769.6" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Каталог значений для</text>
+      <text x="1769.6" y="428.34000000000003" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">клиентов</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">MDIO: обновление кэша и ответов slave</text>
+    <a data-navigation="sheet" xlink:href="../README.md">
+      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/bridge.svg">
+      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/subsystems.svg">
+      <rect x="364" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="426.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/exchange.svg">
+      <rect x="504" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="560.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../overview/memory.svg">
+      <rect x="632" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="694.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../i2c/subsystem.svg">
+      <rect x="772" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="816.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../mdio/subsystem.svg">
+      <rect x="876" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="926.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../spi/subsystem.svg">
+      <rect x="992" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1036.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../reference/memory-map.svg">
+      <rect x="1096" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1158.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="startup.svg">
+      <rect x="1236" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1334.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../../levels.svg">
+      <rect x="1448" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
+    </a>
+    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Последовательность одного успешного обновления. Фоновый опрос выполняет задача FreeRTOS.</text>
+    <rect x="63" y="499" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="530.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">01</text>
+    <text x="130" y="530.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Выбрать очередной шаг фоновой работы</text>
+    <text x="130" y="561.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Учитываются проверка присутствия PHY, список регистров и интервалы профиля.</text>
+    <rect x="63" y="625" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="656.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">02</text>
+    <text x="130" y="656.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Запустить физическое чтение регистра</text>
+    <text x="130" y="687.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Сервис вызывает драйвер; доступ к аппаратуре выполняется через </tspan><tspan style="fill:#b56b1d">L1</tspan><tspan>.</tspan></text>
+    <rect x="63" y="751" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="782.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">03</text>
+    <text x="130" y="782.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Сохранить результат физического чтения</text>
+    <text x="130" y="813.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Банк +0x0000, адрес по PHY и REG.</text>
+    <rect x="63" y="877" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="908.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">04</text>
+    <text x="130" y="908.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Дождаться нового результата</text>
+    <text x="130" y="939.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Проверить DATA_VALID и адрес результата MEM_ADDR.</text>
+    <rect x="63" y="1003" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="1034.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">05</text>
+    <text x="130" y="1034.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Получить значение из банка результатов</text>
+    <text x="130" y="1065.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Это значение прочитано у PHY.</text>
+    <rect x="63" y="1129" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="1160.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">06</text>
+    <text x="130" y="1160.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Подтвердить полученный результат</text>
+    <text x="130" y="1191.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Прочитать MEM_ADDR, затем записать 1 в IRQ.</text>
+    <rect x="63" y="1255" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="1286.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">07</text>
+    <text x="130" y="1286.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Опубликовать ответ для внешнего ведущего</text>
+    <text x="130" y="1317.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Записать значение в банк slave +0x2000.</text>
+    <rect x="63" y="1381" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="1412.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">08</text>
+    <text x="130" y="1412.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Обновить программный кэш</text>
+    <text x="130" y="1443.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">value, valid = 1, seeded = 0, updated_ms.</text>
+    <rect x="63" y="1507" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="1538.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">09</text>
+    <text x="130" y="1538.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Передать изменение в общий каталог</text>
+    <text x="130" y="1569.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">bvstk_cache_sink и bvstk_cache_bridges.</text>
+    <rect x="63" y="1633" width="2074" height="63" rx="5" fill="white" opacity=".96" />
+    <text x="76" y="1664.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">10</text>
+    <text x="130" y="1664.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Подготовить снимок и изменения для клиентов</text>
+    <text x="130" y="1695.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Продолжение — на схеме программных интерфейсов.</text>
+    <text x="60" y="1858.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">При ошибке чтения значение становится недостоверным; в ответ slave публикуется 0xFFFF. Проверка присутствия PHY имеет отдельные правила учёта.</text>
+    <text x="60" y="1905.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Начальные settings имеют источник settings. После физического чтения источником становится устройство.</text>
+    <text x="60" y="1953.1999999999998" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Кэш I²C также обновляется при операциях сервиса. Отдельный фоновый опрос всех устройств I²C здесь не подразумевается.</text>
+    <path d="M60,2032.7999999999997 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="2038.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,2032.7999999999997 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="2038.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,2032.7999999999997 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="2038.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2069.7999999999997" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="2088.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="2069.7999999999997" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="304" y="2088.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="375" y="2069.7999999999997" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="2088.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="2135.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/services/mdio/bvstk_mdio_service.c",
+    "src/services/cache/bvstk_cache_bridges.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "worker",
+      "target": "mdio-write.svg#worker"
+    },
+    {
+      "node": "cache",
+      "target": "../../architecture_bvstk_l3.svg#service-bvstk_mdio_service"
+    },
+    {
+      "node": "master",
+      "target": "../mdio/master.svg#core"
+    },
+    {
+      "node": "memory",
+      "target": "../reference/memory-map.svg#mdio-bank"
+    },
+    {
+      "node": "registry",
+      "target": "interfaces.svg#cache"
+    }
+  ]
+}</metadata>
+</svg>

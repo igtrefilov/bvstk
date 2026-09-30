@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="3330" viewBox="0 0 2800 3330" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="3472" viewBox="0 0 2800 3472" role="img" aria-labelledby="title desc" data-pl-original-height="3330">
   <title id="title">L4. Приложения и пользовательские команды</title>
   <desc id="desc">Запуск, настройки, обработчики команд и обращение к сервисам. Слева показаны части FreeRTOS, справа — Нейтрино, в центре — общие исходники или аппаратура. Вложенные рамки раскрывают функцию до конкретных модулей. Цвет рамки и блока обозначает слой. Общие исходники включаются в выбранную сборку; состав подключённых модулей различается. Серые стрелки обозначают вызовы, коричневые — MMIO и настройку, синие — данные, красные пунктирные — прерывания и события. Соединение с рамкой относится к функции внутри неё. Заголовки ссылочных блоков открывают соответствующую схему.
 Одноимённые блоки на соседних схемах обозначают одну функцию. Ссылки ведут к конкретным блокам; выбранный блок выделяется рамкой. Тип стрелки и направление взаимодействия сохраняются при переходе.</desc>
@@ -1014,6 +1014,21 @@ src/shared/protocols/http/bvstk_http_input.c</title>
     <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
       <rect x="2660.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
       <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
+    </a>
+  </g>
+  <g id="pl-subsystem-navigation" data-kind="navigation">
+    <rect x="0" y="3330.0" width="2800.0" height="142.0" fill="white" />
+    <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
+      <text x="60" y="3370.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/startup.svg">
+      <text x="60.0" y="3422.0" font-size="20" style="fill:#3f75ad">Подготовка по профилю ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/interfaces.svg">
+      <text x="953.3333333333334" y="3422.0" font-size="20" style="fill:#3f75ad">Программные интерфейсы ↗</text>
+    </a>
+    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/configuration.svg">
+      <text x="1846.6666666666667" y="3422.0" font-size="20" style="fill:#3f75ad">Изменение и сохранение ↗</text>
     </a>
   </g>
 </svg>
