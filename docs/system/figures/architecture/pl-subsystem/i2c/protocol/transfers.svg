@@ -1,0 +1,348 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2502" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="2502">
+  <title id="title">I²C: запись и чтение</title>
+  <desc id="desc">L0. Кто передаёт данные, кто подтверждает байт и как заканчивается обмен.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="2502" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions" />
+  <g id="components">
+    <g id="write-fields" data-kind="protocol-fields" data-layer="L0">
+      <rect x="88" y="493" width="1430" height="150" fill="none" stroke="#607487" stroke-width="0" />
+      <g id="write-fields-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
+        <polygon points="100,517 112,505 172,505 184,517 184,583 172,595 112,595 100,583" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="142.0" y="542.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
+        <text x="142.0" y="574.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="142.0" y="625.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="write-fields-1" data-kind="protocol-field" data-label="Адрес + W" data-driver="ведущий">
+        <rect x="196" y="505" width="240" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <a data-navigation="detail" xlink:href="transaction.svg#address">
+          <text x="316.0" y="542.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + W</text>
+          <text x="316.0" y="574.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">7 бит + 0</text>
+        </a>
+        <text x="316.0" y="625.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="write-fields-2" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
+        <rect x="448" y="505" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="495.0" y="542.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
+        <text x="495.0" y="574.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="495.0" y="625.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="write-fields-3" data-kind="protocol-field" data-label="Данные 0" data-driver="ведущий">
+        <rect x="554" y="505" width="260" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="684.0" y="542.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные 0</text>
+        <text x="684.0" y="574.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="684.0" y="625.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="write-fields-4" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
+        <rect x="826" y="505" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="873.0" y="542.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
+        <text x="873.0" y="574.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="873.0" y="625.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="write-fields-5" data-kind="protocol-field" data-label="…" data-driver="">
+        <text x="982.0" y="542.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">…</text>
+      </g>
+      <g id="write-fields-6" data-kind="protocol-field" data-label="Данные n" data-driver="ведущий">
+        <rect x="1044" y="505" width="260" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="1174.0" y="542.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные n</text>
+        <text x="1174.0" y="574.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="1174.0" y="625.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="write-fields-7" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
+        <rect x="1316" y="505" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="1363.0" y="542.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
+        <text x="1363.0" y="574.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="1363.0" y="625.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="write-fields-8" data-kind="protocol-field" data-label="P" data-driver="ведущий">
+        <polygon points="1422,517 1434,505 1494,505 1506,517 1506,583 1494,595 1434,595 1422,583" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="1464.0" y="542.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
+        <text x="1464.0" y="574.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="1464.0" y="625.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+    </g>
+    <g id="read-fields" data-kind="protocol-fields" data-layer="L0">
+      <rect x="88" y="1038" width="1410" height="150" fill="none" stroke="#607487" stroke-width="0" />
+      <g id="read-fields-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
+        <polygon points="100,1062 112,1050 172,1050 184,1062 184,1128 172,1140 112,1140 100,1128" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="142.0" y="1087.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
+        <text x="142.0" y="1119.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="142.0" y="1170.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="read-fields-1" data-kind="protocol-field" data-label="Адрес + R" data-driver="ведущий">
+        <rect x="196" y="1050" width="240" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <a data-navigation="detail" xlink:href="transaction.svg#address">
+          <text x="316.0" y="1087.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + R</text>
+          <text x="316.0" y="1119.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">7 бит + 1</text>
+        </a>
+        <text x="316.0" y="1170.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="read-fields-2" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
+        <rect x="448" y="1050" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="495.0" y="1087.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
+        <text x="495.0" y="1119.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="495.0" y="1170.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="read-fields-3" data-kind="protocol-field" data-label="Данные 0" data-driver="ведомый">
+        <rect x="554" y="1050" width="250" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="679.0" y="1087.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные 0</text>
+        <text x="679.0" y="1119.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="679.0" y="1170.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="read-fields-4" data-kind="protocol-field" data-label="ACK" data-driver="ведущий">
+        <rect x="816" y="1050" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="863.0" y="1087.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
+        <text x="863.0" y="1119.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="863.0" y="1170.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="read-fields-5" data-kind="protocol-field" data-label="…" data-driver="">
+        <text x="972.0" y="1087.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">…</text>
+      </g>
+      <g id="read-fields-6" data-kind="protocol-field" data-label="Данные n" data-driver="ведомый">
+        <rect x="1034" y="1050" width="250" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="1159.0" y="1087.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные n</text>
+        <text x="1159.0" y="1119.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="1159.0" y="1170.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="read-fields-7" data-kind="protocol-field" data-label="NACK" data-driver="ведущий">
+        <rect x="1296" y="1050" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="1343.0" y="1087.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
+        <text x="1343.0" y="1119.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="1343.0" y="1170.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="read-fields-8" data-kind="protocol-field" data-label="P" data-driver="ведущий">
+        <polygon points="1402,1062 1414,1050 1474,1050 1486,1062 1486,1128 1474,1140 1414,1140 1402,1128" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="1444.0" y="1087.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
+        <text x="1444.0" y="1119.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="1444.0" y="1170.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+    </g>
+    <g id="single-read-fields" data-kind="protocol-fields" data-layer="L0">
+      <rect x="88" y="1488" width="930" height="150" fill="none" stroke="#607487" stroke-width="0" />
+      <g id="single-read-fields-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
+        <polygon points="100,1512 112,1500 172,1500 184,1512 184,1578 172,1590 112,1590 100,1578" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="142.0" y="1537.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
+        <text x="142.0" y="1569.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="142.0" y="1620.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="single-read-fields-1" data-kind="protocol-field" data-label="Адрес + R" data-driver="ведущий">
+        <rect x="196" y="1500" width="240" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <a data-navigation="detail" xlink:href="transaction.svg#address">
+          <text x="316.0" y="1537.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + R</text>
+          <text x="316.0" y="1569.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">7 бит + 1</text>
+        </a>
+        <text x="316.0" y="1620.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="single-read-fields-2" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
+        <rect x="448" y="1500" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="495.0" y="1537.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
+        <text x="495.0" y="1569.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="495.0" y="1620.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="single-read-fields-3" data-kind="protocol-field" data-label="Данные" data-driver="ведомый">
+        <rect x="554" y="1500" width="250" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="679.0" y="1537.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные</text>
+        <text x="679.0" y="1569.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="679.0" y="1620.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="single-read-fields-4" data-kind="protocol-field" data-label="NACK" data-driver="ведущий">
+        <rect x="816" y="1500" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="863.0" y="1537.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
+        <text x="863.0" y="1569.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="863.0" y="1620.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="single-read-fields-5" data-kind="protocol-field" data-label="P" data-driver="ведущий">
+        <polygon points="922,1512 934,1500 994,1500 1006,1512 1006,1578 994,1590 934,1590 922,1578" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="964.0" y="1537.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
+        <text x="964.0" y="1569.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="964.0" y="1620.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+    </g>
+    <g id="nack-fields" data-kind="protocol-fields" data-layer="L0">
+      <rect x="88" y="1878" width="562" height="150" fill="none" stroke="#607487" stroke-width="0" />
+      <g id="nack-fields-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
+        <polygon points="100,1902 112,1890 172,1890 184,1902 184,1968 172,1980 112,1980 100,1968" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="142.0" y="1927.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
+        <text x="142.0" y="1959.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="142.0" y="2010.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="nack-fields-1" data-kind="protocol-field" data-label="Адрес + W" data-driver="ведущий">
+        <rect x="196" y="1890" width="240" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <a data-navigation="detail" xlink:href="transaction.svg#address">
+          <text x="316.0" y="1927.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + W</text>
+          <text x="316.0" y="1959.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">7 бит + 0</text>
+        </a>
+        <text x="316.0" y="2010.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="nack-fields-2" data-kind="protocol-field" data-label="NACK" data-driver="—">
+        <rect x="448" y="1890" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="495.0" y="1927.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
+        <text x="495.0" y="1959.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="495.0" y="2010.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">—</text>
+      </g>
+      <g id="nack-fields-3" data-kind="protocol-field" data-label="P" data-driver="ведущий">
+        <polygon points="554,1902 566,1890 626,1890 638,1902 638,1968 626,1980 566,1980 554,1968" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="596.0" y="1927.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
+        <text x="596.0" y="1959.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="596.0" y="2010.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C: запись и чтение</text>
+    <a data-navigation="sheet" xlink:href="../../README.md">
+      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="interface.svg">
+      <rect x="248" y="123" width="160" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="328.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Интерфейс</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="transaction.svg">
+      <rect x="424" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="510.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Транзакция</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="transfers.svg">
+      <rect x="612" y="123" width="232" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="728.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Чтение и запись</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="repeated-start.svg">
+      <rect x="860" y="123" width="232" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="976.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Повторный START</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../cores/slave/structure.svg">
+      <rect x="1108" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1194.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Ядро slave</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../cores/master/structure.svg">
+      <rect x="1296" y="123" width="184" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1388.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Ядро master</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../../overview/bridge.svg">
+      <rect x="1496" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1546.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../../../levels.svg">
+      <rect x="1612" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1668.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
+    </a>
+    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. Кто передаёт данные, кто подтверждает байт и как заканчивается обмен.</tspan></text>
+    <text x="60" y="285.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Читаем слева направо. Под полями указано, кто задаёт SDA. Ширина полей условна.</text>
+    <g id="write" data-kind="protocol-section" data-layer="L0">
+      <rect x="60" y="361" width="2080" height="86" fill="none" stroke="#607487" stroke-width="0" />
+      <text x="60" y="395.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Запись: данные передаёт ведущий</text>
+      <text x="60" y="435.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Выбранное устройство подтверждает адрес и каждый принятый байт данных.</text>
+    </g>
+    <text x="60" y="730.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Для записи одного байта достаточно одной пары «данные, ACK». Затем ведущий формирует STOP.</text>
+    <text x="60" y="785.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">При записи нескольких байтов эта пара повторяется. Смысл и число байтов определяются устройством.</text>
+    <g id="read" data-kind="protocol-section" data-layer="L0">
+      <rect x="60" y="906" width="2080" height="86" fill="none" stroke="#607487" stroke-width="0" />
+      <text x="60" y="940.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Чтение: данные передаёт устройство</text>
+      <text x="60" y="980.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Адрес подтверждает ведомый. Байты данных подтверждает ведущий.</text>
+    </g>
+    <text x="60" y="1265.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">ACK ведущего запрашивает следующий байт. После последнего нужного байта ведущий выдаёт NACK, затем STOP.</text>
+    <g id="single-byte-read" data-kind="protocol-section" data-layer="L0">
+      <rect x="60" y="1386" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
+      <text x="60" y="1420.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Если нужен ровно один байт</text>
+    </g>
+    <text x="1390" y="1535.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">NACK сразу после первого байта —</text>
+    <text x="1390" y="1568.12" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">нормальное завершение такого чтения.</text>
+    <g id="address-nack" data-kind="protocol-section" data-layer="L0">
+      <rect x="60" y="1746" width="2080" height="86" fill="none" stroke="#607487" stroke-width="0" />
+      <text x="60" y="1780.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Адрес не подтверждён</text>
+      <text x="60" y="1820.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">SDA остаётся в 1 на девятом такте. В этом примере ведущий завершает попытку.</text>
+    </g>
+    <text x="1020" y="1925.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Возможные причины: устройство отсутствует</text>
+    <text x="1020" y="1956.74" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">по этому адресу или ещё не готово отвечать.</text>
+    <text x="60" y="2110.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">NACK возможен и после байта данных при записи. Ведущий выбирает дальнейшее действие.</text>
+    <a data-navigation="detail" xlink:href="https://www.nxp.com/docs/en/user-guide/UM10204.pdf">
+      <text x="60" y="2210.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">NXP UM10204: раздел 3.1 ↗</text>
+    </a>
+    <a data-navigation="detail" xlink:href="https://www.ti.com/lit/an/slva704/slva704.pdf">
+      <text x="655" y="2210.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">TI: Understanding the I²C Bus ↗</text>
+    </a>
+    <a data-navigation="detail" xlink:href="repeated-start.svg">
+      <text x="60" y="2274.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Далее: чтение с повторным START ↗</text>
+    </a>
+    <rect x="60" y="2393" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2412.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="2459.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan> — физический интерфейс. Синие поля показывают передаваемые биты. Знак ↗ открывает продолжение.</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "https://www.nxp.com/docs/en/user-guide/UM10204.pdf",
+    "https://www.ti.com/lit/an/slva704/slva704.pdf"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "write-fields-1",
+      "target": "transaction.svg#address"
+    },
+    {
+      "node": "read-fields-1",
+      "target": "transaction.svg#address"
+    },
+    {
+      "node": "single-read-fields-1",
+      "target": "transaction.svg#address"
+    },
+    {
+      "node": "nack-fields-1",
+      "target": "transaction.svg#address"
+    },
+    {
+      "node": "protocol-guide",
+      "target": "https://www.nxp.com/docs/en/user-guide/UM10204.pdf"
+    },
+    {
+      "node": "protocol-guide",
+      "target": "https://www.ti.com/lit/an/slva704/slva704.pdf"
+    },
+    {
+      "node": "protocol-guide",
+      "target": "repeated-start.svg"
+    }
+  ]
+}</metadata>
+</svg>

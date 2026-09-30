@@ -1,0 +1,427 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2743" role="img" aria-labelledby="title desc" data-content="hardware-scenario" data-layer="L0" height="2743">
+  <title id="title">I²C master: выполнение записи</title>
+  <desc id="desc">Команда, адрес, байты, подтверждения ведомого и завершение обмена.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="2743" fill="white" />
+  <g id="backgrounds">
+    <rect x="490" y="565" width="1120" height="310" rx="16" fill="white" />
+    <path d="M240.0,960 V2265" fill="none" stroke="#287f73" stroke-width="1.5" opacity=".25" />
+    <path d="M770.0,960 V2265" fill="none" stroke="#8760ba" stroke-width="1.5" opacity=".25" />
+    <path d="M1360.0,960 V2265" fill="none" stroke="#8760ba" stroke-width="1.5" opacity=".25" />
+    <path d="M1955.0,960 V2265" fill="none" stroke="#607487" stroke-width="1.5" opacity=".25" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="ps" data-to="tx" data-interaction="mmio" data-direction="forward">
+      <path d="M240,1066 L770,1066" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M240,1066 L770,1066" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="tx" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M770,1196 L1360,1196" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M770,1196 L1360,1196" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="device" data-interaction="data" data-direction="forward">
+      <path d="M1360,1326 L1955,1326" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1360,1326 L1955,1326" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="device" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M1955,1456 L1360,1456" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1955,1456 L1360,1456" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="tx" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M770,1646 L1360,1646" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M770,1646 L1360,1646" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="device" data-interaction="data" data-direction="forward">
+      <path d="M1360,1776 L1955,1776" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1360,1776 L1955,1776" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="device" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M1955,1906 L1360,1906" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1955,1906 L1360,1906" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="device" data-interaction="data" data-direction="forward">
+      <path d="M1360,2036 L1955,2036" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1360,2036 L1955,2036" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ps" data-to="tx" data-interaction="mmio" data-direction="forward">
+      <path d="M240,2226 L770,2226" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M240,2226 L770,2226" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="wire" data-kind="protocol-fields" data-layer="L0">
+      <rect x="88" y="308" width="1118" height="150" fill="none" stroke="#607487" stroke-width="0" />
+      <g id="wire-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
+        <polygon points="100,332 112,320 172,320 184,332 184,398 172,410 112,410 100,398" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="142.0" y="357.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
+        <text x="142.0" y="389.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="142.0" y="440.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="wire-1" data-kind="protocol-field" data-label="0x2A + W" data-driver="ведущий">
+        <rect x="196" y="320" width="240" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <a data-navigation="detail" xlink:href="../../protocol/transaction.svg#address">
+          <text x="316.0" y="357.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x2A + W</text>
+          <text x="316.0" y="389.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">байт 0x54</text>
+        </a>
+        <text x="316.0" y="440.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="wire-2" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
+        <rect x="448" y="320" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="495.0" y="357.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
+        <text x="495.0" y="389.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="495.0" y="440.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="wire-3" data-kind="protocol-field" data-label="0x10" data-driver="ведущий">
+        <rect x="554" y="320" width="160" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="634.0" y="357.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x10</text>
+        <text x="634.0" y="389.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="634.0" y="440.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="wire-4" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
+        <rect x="726" y="320" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="773.0" y="357.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
+        <text x="773.0" y="389.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="773.0" y="440.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="wire-5" data-kind="protocol-field" data-label="0x7B" data-driver="ведущий">
+        <rect x="832" y="320" width="160" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="912.0" y="357.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x7B</text>
+        <text x="912.0" y="389.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="912.0" y="440.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+      <g id="wire-6" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
+        <rect x="1004" y="320" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
+        <text x="1051.0" y="357.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
+        <text x="1051.0" y="389.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="1051.0" y="440.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
+      </g>
+      <g id="wire-7" data-kind="protocol-field" data-label="P" data-driver="ведущий">
+        <polygon points="1110,332 1122,320 1182,320 1194,332 1194,398 1182,410 1122,410 1110,398" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+        <text x="1152.0" y="357.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
+        <text x="1152.0" y="389.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="1152.0" y="440.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
+      </g>
+    </g>
+    <g id="core" data-kind="functional-group" data-label="I2C_master_0" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="490" y="565" width="1120" height="310" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="structure.svg#core">
+        <text x="516" y="602.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">I2C_master_0</text>
+        <text x="1586" y="601.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+      </a>
+      <g id="tx" data-kind="component" data-layer="L0" data-domain="pl" data-label="Команды" data-ownership="common" data-parent="core" data-target="commands.svg#core">
+        <rect x="550" y="650" width="440" height="200" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="commands.svg#core">
+          <text x="570" y="674.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="972" y="675.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="570" y="708.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Команды</text>
+        </a>
+        <text x="570" y="747.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">regs, TX FIFO</text>
+        <text x="570" y="773.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">tx_data_ctrl</text>
+      </g>
+      <g id="engine" data-kind="component" data-layer="L0" data-domain="pl" data-label="i2c_master_engine" data-ownership="common" data-parent="core" data-target="structure.svg#engine">
+        <rect x="1170" y="650" width="380" height="200" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="structure.svg#engine">
+          <text x="1190" y="674.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1532" y="675.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="1190" y="708.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">i2c_master_engine</text>
+        </a>
+        <text x="1190" y="747.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Состояния шины</text>
+      </g>
+    </g>
+    <g id="ps" data-kind="component" data-layer="L3" data-label="Драйвер PS" data-ownership="common" data-target="commands.svg#driver">
+      <rect x="60" y="650" width="360" height="200" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="commands.svg#driver">
+        <text x="80" y="674.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="402" y="675.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
+        <text x="80" y="708.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер PS</text>
+      </a>
+      <text x="80" y="747.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Запуск и опрос</text>
+      <text x="80" y="773.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747" xml:space="preserve"><tspan>Доступ через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
+    </g>
+    <g id="device" data-kind="component" data-layer="L0" data-label="Ведомое устройство" data-ownership="common" data-target="../../protocol/interface.svg#target">
+      <rect x="1770" y="650" width="370" height="200" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../../protocol/interface.svg#target">
+        <text x="1790" y="674.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="2122" y="675.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#607487">↗</text>
+        <text x="1790" y="708.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведомое устройство</text>
+      </a>
+      <text x="1790" y="747.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SDA и SCL</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C master: выполнение записи</text>
+    <a data-navigation="sheet" xlink:href="../../../README.md">
+      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="structure.svg">
+      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Ядро</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="commands.svg">
+      <rect x="364" y="123" width="136" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="432.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Команды</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="write.svg">
+      <rect x="516" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="578.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Запись</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="read.svg">
+      <rect x="656" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="718.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Чтение</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="repeated-start.svg">
+      <rect x="796" y="123" width="232" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="912.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Повторный START</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="buffers.svg">
+      <rect x="1044" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1094.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">BRAM</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="timing.svg">
+      <rect x="1160" y="123" width="160" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1240.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SDA и SCL</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="completion.svg">
+      <rect x="1336" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1422.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Завершение</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../slave/structure.svg">
+      <rect x="1524" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1580.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Slave</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../../protocol/interface.svg">
+      <rect x="1652" y="123" width="148" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1726.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Протокол</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../../../../levels.svg">
+      <rect x="1816" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1872.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
+    </a>
+    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Команда, адрес, байты, подтверждения ведомого и завершение обмена.</text>
+    <text x="1440" y="355.0" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Пример: записать значение 0x7B</text>
+    <text x="1440" y="385.36" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">по указателю регистра 0x10.</text>
+    <g id="launch" data-kind="sequence-step">
+      <rect x="60" y="971" width="2080" height="64" fill="white" stroke="#b56b1d" stroke-width="0" />
+      <text x="66" y="1000.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">1</text>
+      <a data-navigation="detail" xlink:href="commands.svg#header">
+        <text x="115" y="1000.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#b56b1d">Записать команду W, два байта и CSR.start ↗</text>
+      </a>
+      <text x="115" y="1032.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">TX FIFO: 0x0000102A, затем 0x00007B10. Длина 2, restart = 0, адрес 0x2A.</text>
+    </g>
+    <g id="packet-address" data-kind="sequence-step">
+      <rect x="60" y="1101" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
+      <text x="66" y="1130.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">2</text>
+      <a data-navigation="detail" xlink:href="commands.svg#parser">
+        <text x="115" y="1130.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">PROCESSING_ADDR: передать адресный пакет ↗</text>
+      </a>
+      <text x="115" y="1162.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">packet.data = 0x54. Передача внутри ядра подтверждается сочетанием tx_valid и tx_ready.</text>
+    </g>
+    <g id="address" data-kind="sequence-step">
+      <rect x="60" y="1231" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
+      <text x="66" y="1260.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">3</text>
+      <a data-navigation="detail" xlink:href="timing.svg#sampling">
+        <text x="115" y="1260.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">START → SEND_ADDR → OP_CODE ↗</text>
+      </a>
+      <text x="115" y="1292.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Ядро формирует START и передаёт адрес с битом W. На шину первым выходит старший бит.</text>
+    </g>
+    <g id="address-ack" data-kind="sequence-step">
+      <rect x="60" y="1361" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
+      <text x="66" y="1390.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">4</text>
+      <a data-navigation="detail" xlink:href="completion.svg#outcomes">
+        <text x="115" y="1390.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">READ_ACK: проверить подтверждение адреса ↗</text>
+      </a>
+      <text x="115" y="1422.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">SDA = 0 на фронте SCL означает ACK. При NACK устанавливается ERR_ACK.</text>
+    </g>
+    <rect x="60" y="1490" width="2080" height="45" fill="white" />
+    <text x="240.0" y="1520.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#287f73">PS</text>
+    <text x="770.0" y="1520.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#8760ba">Команды</text>
+    <text x="1360.0" y="1520.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#8760ba">i2c_master_engine</text>
+    <text x="1955.0" y="1520.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Устройство</text>
+    <g id="bytes" data-kind="sequence-step">
+      <rect x="60" y="1551" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
+      <text x="66" y="1580.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">5</text>
+      <a data-navigation="detail" xlink:href="commands.svg#fifo">
+        <text x="115" y="1580.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">WAIT_DATA → PROCESSING_DATA: выдать очередной байт ↗</text>
+      </a>
+      <text x="115" y="1612.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Из data4bytes сначала извлекается 0x10, затем 0x7B. У последнего пакета stop = 1.</text>
+    </g>
+    <g id="send" data-kind="sequence-step">
+      <rect x="60" y="1681" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
+      <text x="66" y="1710.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">6</text>
+      <a data-navigation="detail" xlink:href="timing.svg#sampling">
+        <text x="115" y="1710.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">SEND_BYTE: передать восемь бит ↗</text>
+      </a>
+      <text x="115" y="1742.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Автомат задаёт SDA на спаде SCL. После байта переходит в READ_ACK и отпускает SDA.</text>
+    </g>
+    <g id="byte-ack" data-kind="sequence-step">
+      <rect x="60" y="1811" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
+      <text x="66" y="1840.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">7</text>
+      <text x="115" y="1840.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">ACK разрешает продолжить фазу</text>
+      <text x="115" y="1872.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">После 0x10 повторяются выдача пакета и передача байта. После 0x7B признак stop ведёт к STOP.</text>
+    </g>
+    <g id="stop" data-kind="sequence-step">
+      <rect x="60" y="1941" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
+      <text x="66" y="1970.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">8</text>
+      <a data-navigation="detail" xlink:href="timing.svg#boundaries">
+        <text x="115" y="1970.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">STOP → TIMEOUT → IDLE ↗</text>
+      </a>
+      <text x="115" y="2002.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Ядро завершает обмен. TIMEOUT здесь задаёт выдержку для условия STOP.</text>
+    </g>
+    <rect x="60" y="2070" width="2080" height="45" fill="white" />
+    <text x="240.0" y="2100.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#287f73">PS</text>
+    <text x="770.0" y="2100.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#8760ba">Команды</text>
+    <text x="1360.0" y="2100.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#8760ba">i2c_master_engine</text>
+    <text x="1955.0" y="2100.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Устройство</text>
+    <g id="poll" data-kind="sequence-step">
+      <rect x="60" y="2131" width="2080" height="64" fill="white" stroke="#b56b1d" stroke-width="0" />
+      <text x="66" y="2160.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">9</text>
+      <a data-navigation="detail" xlink:href="completion.svg#driver">
+        <text x="115" y="2160.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#b56b1d">Драйвер проверяет завершение записи ↗</text>
+      </a>
+      <text x="115" y="2192.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Он опрашивает CSR и IRQ: core_state = 0 при отсутствии ERR_ACK завершает ожидание записи.</text>
+    </g>
+    <text x="60" y="2340.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Шаги передачи байта и приёма ACK повторяются по длине команды. NACK устройства прерывает успешный путь.</text>
+    <text x="60" y="2402.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Смысл 0x10 как указателя регистра задаёт сервис и ведомое устройство. Ядро передаёт заданные байты.</text>
+    <a data-navigation="detail" xlink:href="read.svg">
+      <text x="60" y="2505.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Далее: выполнение чтения и возврат результата ↗</text>
+    </a>
+    <path d="M60,2597 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="142" y="2603.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M366,2597 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="448" y="2603.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2634" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2653.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2634" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2653.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="2634" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="2653.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="2700.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра. Знак ↗ связывает одноимённые части схем.</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/ip_repo/i2c_master/src/i2c_master_wrapper.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/top_i2c_master.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/i2c_master_engine.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/i2c_master_pkg.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/regs.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/tx_data_ctrl.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/rx_data_ctrl.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/rx_fifo_mux.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/debouncer.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/sync.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/axi_lite_master_native.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/axi_lite_slave_native.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/component.xml",
+    "../hw_platform/fpga/Burevestnik_21.tcl",
+    "src/drivers/pl/i2c/bvstk_i2c_master.c",
+    "src/drivers/pl/i2c/bvstk_i2c_master.h",
+    "src/services/i2c/bvstk_i2c_master_service.c",
+    "src/hardware/pl/i2c/bvstk_i2c_regs.h",
+    "src/hardware/boards/ax7020/bvstk_hw_config.h",
+    "src/services/i2c/bvstk_i2c_slave_service.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "wire-1",
+      "target": "../../protocol/transaction.svg#address"
+    },
+    {
+      "node": "core",
+      "target": "structure.svg#core"
+    },
+    {
+      "node": "ps",
+      "target": "commands.svg#driver"
+    },
+    {
+      "node": "tx",
+      "target": "commands.svg#core"
+    },
+    {
+      "node": "engine",
+      "target": "structure.svg#engine"
+    },
+    {
+      "node": "device",
+      "target": "../../protocol/interface.svg#target"
+    },
+    {
+      "node": "launch",
+      "target": "commands.svg#header"
+    },
+    {
+      "node": "packet-address",
+      "target": "commands.svg#parser"
+    },
+    {
+      "node": "address",
+      "target": "timing.svg#sampling"
+    },
+    {
+      "node": "address-ack",
+      "target": "completion.svg#outcomes"
+    },
+    {
+      "node": "bytes",
+      "target": "commands.svg#fifo"
+    },
+    {
+      "node": "send",
+      "target": "timing.svg#sampling"
+    },
+    {
+      "node": "stop",
+      "target": "timing.svg#boundaries"
+    },
+    {
+      "node": "poll",
+      "target": "completion.svg#driver"
+    },
+    {
+      "node": "protocol-guide",
+      "target": "read.svg"
+    }
+  ]
+}</metadata>
+</svg>

@@ -16,6 +16,10 @@ import re
 import textwrap
 import xml.etree.ElementTree as ET
 
+from i2c_protocol import generate_i2c_protocol
+from i2c_slave import generate_i2c_slave
+from i2c_master import generate_i2c_master
+
 ROOT = Path(__file__).resolve().parents[2]
 ARCH = ROOT / "docs/system/figures/architecture"
 OUT = ARCH / "pl-subsystem"
@@ -59,6 +63,8 @@ def lines(value, width, size):
 
 
 def href(source: str, target: str):
+    if target.startswith(("https://", "http://")):
+        return target
     path, sep, fragment = target.partition("#")
     absolute = ARCH / path[1:] if path.startswith("@") else OUT / path
     relative = os.path.relpath(absolute, (OUT / source).parent)
@@ -124,9 +130,42 @@ g:target > rect { stroke-width: 5; }
             ("Состав", "overview/subsystems.svg"),
             ("Обмен", "overview/exchange.svg"), ("Память", "overview/memory.svg"),
         ]
-        if not name.startswith("overview/"):
+        if name.startswith("i2c/cores/slave/"):
+            nav = [
+                ("Оглавление", "README.md"), ("Ядро", "i2c/cores/slave/structure.svg"),
+                ("Адрес", "i2c/cores/slave/addressing.svg"),
+                ("Запись", "i2c/cores/slave/write.svg"), ("Чтение", "i2c/cores/slave/read.svg"),
+                ("Повторный START", "i2c/cores/slave/repeated-start.svg"),
+                ("BRAM", "i2c/cores/slave/buffers.svg"),
+                ("Завершение", "i2c/cores/slave/completion.svg"),
+                ("Master", "i2c/cores/master/structure.svg"),
+                ("Протокол", "i2c/protocol/interface.svg"),
+            ]
+        elif name.startswith("i2c/cores/master/"):
+            nav = [
+                ("Оглавление", "README.md"), ("Ядро", "i2c/cores/master/structure.svg"),
+                ("Команды", "i2c/cores/master/commands.svg"),
+                ("Запись", "i2c/cores/master/write.svg"), ("Чтение", "i2c/cores/master/read.svg"),
+                ("Повторный START", "i2c/cores/master/repeated-start.svg"),
+                ("BRAM", "i2c/cores/master/buffers.svg"), ("SDA и SCL", "i2c/cores/master/timing.svg"),
+                ("Завершение", "i2c/cores/master/completion.svg"),
+                ("Slave", "i2c/cores/slave/structure.svg"), ("Протокол", "i2c/protocol/interface.svg"),
+            ]
+        elif name.startswith("i2c/protocol/"):
+            nav = [
+                ("Оглавление", "README.md"), ("Интерфейс", "i2c/protocol/interface.svg"),
+                ("Транзакция", "i2c/protocol/transaction.svg"),
+                ("Чтение и запись", "i2c/protocol/transfers.svg"),
+                ("Повторный START", "i2c/protocol/repeated-start.svg"),
+                ("Ядро slave", "i2c/cores/slave/structure.svg"),
+                ("Ядро master", "i2c/cores/master/structure.svg"),
+                ("Мост", "overview/bridge.svg"),
+            ]
+        elif not name.startswith("overview/"):
             nav += [
-                ("I²C", "i2c/subsystem.svg"), ("MDIO", "mdio/subsystem.svg"),
+                ("I²C", "i2c/protocol/interface.svg"), ("I²C slave", "i2c/cores/slave/structure.svg"),
+                ("I²C master", "i2c/cores/master/structure.svg"),
+                ("MDIO", "mdio/subsystem.svg"),
                 ("SPI", "spi/subsystem.svg"), ("Адреса", "reference/memory-map.svg"),
                 ("Программа PS", "ps-interaction/startup.svg"),
             ]
@@ -294,7 +333,8 @@ g:target > rect { stroke-width: 5; }
             self.text(self.notes, x+44, y, label, 18, color="#576c7b")
             x += 200 if layer == "PL" else 115
         self.text(self.notes, 60, y+47,
-                  "Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.",
+                  getattr(self, "legend_note",
+                          "Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции."),
                   18, color="#576c7b")
         el(self.root, "metadata", json.dumps({
             "generator": "tools/docs/generate_pl_subsystem.py",
@@ -778,9 +818,14 @@ def memory_map_sheet():
         p.frame(key, 80, y, 2040, h, title, subtitle=subtitle, target=target)
         for i, (off, name, writer, reader, detail) in enumerate(rows):
             yy = y+100+i*160
+            memory_target = {
+                ("i2c-bank", 0): "i2c/cores/master/buffers.svg#bram",
+                ("i2c-bank", 1): "i2c/cores/slave/buffers.svg#wr-window",
+                ("i2c-bank", 2): "i2c/cores/slave/buffers.svg#rd-window",
+            }.get((key, i))
             p.node(key+f"-w{i}", 110, yy, 390, 120, writer, layer="L0" if writer == "CPU PS" else "PL",
-                   parent=key)
-            p.node(key+f"-m{i}", 690, yy, 820, 132, off+"  "+name, detail, parent=key)
+                   parent=key, target="i2c/cores/master/structure.svg#core" if (key, i) == ("i2c-bank", 0) else None)
+            p.node(key+f"-m{i}", 690, yy, 820, 132, off+"  "+name, detail, parent=key, target=memory_target)
             p.node(key+f"-r{i}", 1690, yy, 400, 120, reader, layer="L0" if reader == "CPU PS" else "PL", parent=key)
             p.edge(key+f"-w{i}", key+f"-m{i}", "data", "Запись")
             p.edge(key+f"-m{i}", key+f"-r{i}", "data", "Чтение")
@@ -792,7 +837,7 @@ def memory_map_sheet():
          "Заголовок с адресом и длиной, затем полезные данные"),
         ("+0x2000", "Ответ slave", "CPU PS", "I2C_slave_0",
          "PS заполняет окно и устанавливает rd_valid"),
-    ], "i2c/subsystem.svg#memory")
+    ], "i2c/cores/slave/buffers.svg#bram")
     end = bank("mdio-bank", end+110, "BRAM MDIO", "0x42000000, окно 16 КиБ; индекс слова = ((PHY << 5) | REG) × 4", [
         ("+0x0000", "Результаты master", "SMI_master_0", "CPU PS",
          "16-битное значение в 32-битном слове"),
@@ -816,7 +861,6 @@ def memory_map_sheet():
 
 def bridge_subsystems():
     for bus, label, hardware, fabric, bram_ctrl, bram, base in [
-        ("i2c", "I²C", "I2C", "axi_interconnect_1", "axi_bram_ctrl_0", "blk_mem_gen_1", "0x40000000"),
         ("mdio", "MDIO", "SMI", "axi_interconnect_0", "axi_bram_ctrl_1", "blk_mem_gen_0", "0x42000000"),
     ]:
         p = Page(f"{bus}/subsystem.svg", f"Подсистема {label}: аппаратура и программный мост",
@@ -875,115 +919,6 @@ def bridge_subsystems():
             p.note(2070, "Ведомый запрос обслуживается портом ОС через IRQ. Сервис связывает принятое обращение, политику и кэш с ведущими операциями.")
 
 
-def i2c_cores():
-    p = Page("i2c/master.svg", "I²C master: от команды к результату",
-             "Передача через FIFO, управление шиной и запись принятого пакета в BRAM.",
-             [source("i2c", "master", n) for n in
-              ("top_i2c_master", "regs", "tx_data_ctrl", "i2c_master_engine", "rx_data_ctrl", "rx_fifo_mux")])
-    p.node("driver", 600, 275, 1000, 165, "bvstk_i2c_master",
-           "Заполнить FIFO, установить START, дождаться завершения", "L3",
-           target="@architecture_bvstk_l3.svg#driver-bvstk_i2c_master")
-    p.frame("core", 400, 565, 1420, 1590, "I2C_master_0",
-            subtitle="top_i2c_master", target="i2c/subsystem.svg#master")
-    p.frame("registers", 450, 670, 1320, 220, "Доступ PS к ядру", parent="core")
-    p.node("axil-s", 490, 745, 525, 100, "axi_lite_slave_native", parent="registers")
-    p.node("regs", 1215, 745, 510, 100, "regs", parent="registers")
-    p.edge("driver", "axil-s", "mmio", "Через L1", start="S", end="N",
-           via=((1100, 495), (752.5, 495)))
-    p.edge("axil-s", "regs", "mmio", "CSR, IRQ, FIFO")
-    p.frame("transmit", 450, 1000, 1320, 245, "Подготовка транзакции", parent="core")
-    p.node("tx-fifo", 490, 1080, 525, 125, "TX FIFO",
-           "xpm_fifo_sync", parent="transmit")
-    p.node("tx-ctrl", 1215, 1080, 510, 125, "tx_data_ctrl",
-           "Заголовок, адрес, байты", parent="transmit")
-    p.edge("regs", "tx-fifo", "data", start="S", end="N",
-           via=((1470, 945), (752.5, 945)))
-    p.edge("tx-fifo", "tx-ctrl", "data")
-    p.node("engine", 1215, 1370, 510, 225, "i2c_master_engine",
-           "START и адрес\nЧтение, запись, ACK\nПовторный START и STOP", parent="core")
-    p.edge("tx-ctrl", "engine", "data", "Пакеты")
-    p.node("device", 1860, 1370, 310, 225, "Устройство",
-           "SCL и SDA", "L0")
-    p.edge("engine", "device", "data", bidirectional=True)
-    p.frame("receive", 450, 1715, 1320, 390, "Сборка принятого пакета", parent="core")
-    p.node("rx-ctrl", 1225, 1790, 500, 120, "rx_data_ctrl",
-           "Пакет приёма", parent="receive")
-    p.node("rx-fifo", 490, 1790, 525, 120, "RX FIFO",
-           "xpm_fifo_sync", parent="receive")
-    p.node("rx-mux", 490, 1970, 525, 100, "rx_fifo_mux", parent="receive")
-    p.node("axil-m", 1225, 1970, 500, 100, "axi_lite_master_native", parent="receive")
-    p.edge("engine", "rx-ctrl", "data")
-    p.edge("rx-ctrl", "rx-fifo", "data")
-    p.edge("rx-fifo", "rx-mux", "data")
-    p.edge("rx-mux", "axil-m", "data")
-    p.node("memory", 1215, 2310, 730, 165, "BRAM I²C",
-           "+0x0000: заголовок и результат", target="reference/memory-map.svg#i2c-bank")
-    p.edge("axil-m", "memory", "data", "M_AXI", start="S", end="N")
-    p.node("completion", 140, 2310, 730, 195, "Завершение в драйвере",
-           "CSR свободен и новый DATA_VALID\nПроверить ERR_ACK, затем читать BRAM", "L3",
-           target="@architecture_bvstk_l3.svg#driver-bvstk_i2c_master")
-    p.edge("memory", "completion", "data", "Результат")
-    p.edge("core", "completion", "mmio", "CSR и IRQ", start="W", end="N", a_offset=480,
-           via=((340, 1840), (340, 2200), (505, 2200)), label_xy=(335, 2170))
-    p.note(2600, "Готовность FIFO, завершение обмена на шине и наличие нового результата — отдельные условия. Ведущий драйвер проверяет их опросом.")
-
-    p = Page("i2c/slave.svg", "I²C slave: запрос и подготовка ответа",
-             "Входной пакет записывается в BRAM. Чтение продолжится после подготовки окна ответа программой PS.",
-             [source("i2c", "slave", n) for n in
-              ("top_i2c_slave", "i2c_slave_engine", "data_ctrl", "regs")])
-    p.node("host", 70, 280, 610, 165, "Внешний ведущий I²C",
-           "Адрес, запись, чтение", "L0")
-    p.frame("core", 60, 570, 2080, 1440, "I2C_slave_0",
-            subtitle="top_i2c_slave", target="i2c/subsystem.svg#slave")
-    p.node("engine", 110, 690, 620, 260, "i2c_slave_engine",
-           "Распознать адрес из phy_addr_list\nПринять или выдать байт\nУдерживать SCL при ожидании ответа",
-           parent="core")
-    p.edge("host", "engine", "data", "SCL и SDA", start="S", end="N",
-           via=((375, 505), (420, 505)), bidirectional=True, label_xy=(430, 475))
-    p.frame("data-ctrl", 1040, 680, 1050, 1240, "data_ctrl",
-            parent="core", subtitle="Пакет, указатель памяти и согласование с PS")
-    p.node("write-packet", 1090, 800, 950, 165, "Сборка входного пакета",
-           "Слова данных, затем заголовок\nWR_MEM_DATA и WR_MEM_HEADER", parent="data-ctrl")
-    p.edge("engine", "write-packet", "data", "Приём")
-    p.node("write-memory", 1090, 1070, 950, 155, "AXI: записать запрос",
-           "BRAM +0x1000, затем DATA_VALID", parent="data-ctrl",
-           target="reference/memory-map.svg#i2c-bank")
-    p.edge("write-packet", "write-memory", "data")
-    p.node("read-request", 1090, 1350, 950, 170, "Запросить ответ",
-           "RD_REQ: событие RD_REQUEST\nОжидать control_s.rd_valid", parent="data-ctrl")
-    p.edge("engine", "read-request", "data", "Чтение", start="E", end="W",
-           a_offset=90, b_offset=-50, via=((980, 910), (980, 1385)),
-           label_xy=(990, 1310))
-    p.node("read-send", 1090, 1640, 950, 200, "Прочитать и выдать окно",
-           "RD_MEM_HEADER, RD_MEM_DATA, RD_SEND_BYTE\nBRAM +0x2000; новое окно при исчерпании данных",
-           parent="data-ctrl", target="ps-interaction/reads.svg#i2c")
-    p.edge("read-request", "read-send", "data", "rd_valid")
-    p.node("regs", 110, 1130, 620, 195, "regs",
-           "Маска адресов, CSR и IRQ\nРегистр запроса REQ", parent="core")
-    p.node("service", 110, 2190, 620, 240, "Обработчик ведомого запроса",
-           "Порт ОС вызывает сервис L3\nСервис готовит содержимое ответа", "L1",
-           target="ps-interaction/i2c-irq.svg")
-    p.edge("read-request", "regs", "irq", "RD_REQUEST", start="W", end="E", b_offset=45,
-           via=((855, 1435), (855, 1272.5)), label_xy=(785, 1400))
-    p.edge("service", "regs", "mmio", "rd_valid", start="N", end="S",
-           a_offset=-210, b_offset=-240, via=((210, 2080), (180, 2080)), label_xy=(165, 1960))
-    p.edge("read-send", "engine", "data", "Байты ответа", start="N", end="S", a_offset=-220, b_offset=230,
-           via=((1345, 1570), (915, 1570), (915, 1020), (650, 1020)),
-           label_xy=(805, 995))
-    p.edge("write-memory", "regs", "irq", "DATA_VALID", start="W", end="E", b_offset=-45,
-           via=((795, 1147.5), (795, 1182.5)), label_xy=(815, 1105))
-    p.edge("regs", "service", "irq", "IRQ через GIC", start="S", end="N",
-           a_offset=180, b_offset=180)
-    p.node("bram", 850, 2190, 1280, 165, "BRAM I²C",
-           "Окна запроса и ответа раскрыты на карте памяти",
-           target="reference/memory-map.svg#i2c-bank")
-    p.edge("write-memory", "bram", "data", start="E", end="E",
-           via=((2180, 1147.5), (2180, 2272.5)))
-    p.edge("service", "bram", "data", start="E", end="W")
-    p.edge("bram", "read-send", "data", "Чтение окна", start="N", end="S",
-           a_offset=220, b_offset=145, label_xy=(1710, 2040))
-    p.note(2540, "Порт ОС находится за границей аппаратного ядра. Он получает событие, вызывает сервис и публикует подготовленное окно ответа.")
-    p.note(2600, "Бюджет clock stretching — 100 мкс в штатном XSA. STOP после установки указателя регистра допускается; подготовка отменяется по условиям завершения и ошибки.")
 
 
 def mdio_cores():
@@ -1348,7 +1283,7 @@ def ps_structural_sheets():
               "Neutrino 2024: InterruptWait, physical PDF page 6144"])
     p.node("hardware", 800, 270, 600, 185, "I2C_slave_0 и GIC",
            "DATA_VALID или RD_REQUEST\nPL IRQ → IRQ_F2P → GIC", "L0",
-           target="i2c/slave.svg#core")
+           target="@architecture_bvstk_ps_pl.svg#irq-i2c-slave")
     p.frame("freertos", 60, 580, 620, 1420, "FreeRTOS", "L1", ownership="freertos")
     p.frame("neutrino", 1520, 580, 620, 1420, "Нейтрино", "L1", ownership="neutrino")
     p.node("f-isr", 100, 700, 540, 205, "slave_isr",
@@ -1381,8 +1316,8 @@ def ps_structural_sheets():
             target="@architecture_bvstk_l3.svg#service-bvstk_i2c_slave_service")
     p.node("slave-service", 830, 1580, 540, 185, "bvstk_i2c_slave_service",
            "Указатель регистра, запись, окно ответа", "L3", parent="service")
-    p.node("master-service", 830, 1840, 540, 115, "Кэш и ведущий сервис",
-           layer="L3", parent="service", target="@architecture_bvstk_l3.svg#service-bvstk_i2c_master_service")
+    p.node("master-service", 830, 1840, 540, 115, "bvstk_i2c_master_service",
+           layer="L3", parent="service", target="i2c/cores/master/commands.svg#master-service")
     p.edge("f-worker", "slave-service", "call")
     p.edge("n-worker", "slave-service", "call")
     p.edge("slave-service", "master-service", "call")
@@ -1391,7 +1326,7 @@ def ps_structural_sheets():
            target="reference/memory-map.svg#i2c-bank")
     p.edge("master-service", "window", "data", "Подготовленные байты")
     p.node("read", 810, 2490, 580, 165, "I2C_slave_0",
-           "Продолжить чтение и выдать байты", target="i2c/slave.svg#read-send")
+           "Продолжить чтение и выдать байты", target="i2c/cores/slave/read.svg#core")
     p.edge("window", "read", "data")
     p.note(2740, "При входящей записи сервис проверяет политику и вызывает ведущую операцию. В IRQ-контексте FreeRTOS выполняется захват события.")
 
@@ -1468,7 +1403,7 @@ def ps_remaining_sheets():
     p.node("i-host", 110, 1410, 490, 165, "Внешний ведущий",
            "Адрес и чтение", "L0")
     p.node("i2c", 850, 1410, 510, 165, "I2C_slave_0",
-           "RD_REQUEST и ожидание rd_valid", target="i2c/slave.svg#read-request")
+           "RD_REQUEST и ожидание rd_valid", target="i2c/cores/slave/read.svg#request")
     p.node("i-port", 1600, 1410, 510, 165, "Доставка IRQ",
            "Порт выбранной ОС", "L1", target="ps-interaction/i2c-irq.svg#hardware")
     p.edge("i-host", "i2c", "data", "1. Запрос")
@@ -1477,16 +1412,16 @@ def ps_remaining_sheets():
            "Указатель регистра\nЗаполнение окна через ведущий сервис", "L3",
            target="@architecture_bvstk_l3.svg#service-bvstk_i2c_slave_service")
     p.edge("i-port", "i-service", "call", "3. Обработка")
-    p.node("i-cache", 850, 1750, 510, 205, "Кэш I²C",
+    p.node("i-cache", 850, 1750, 510, 205, "bvstk_i2c_master_service",
            "Достоверное значение\nПри необходимости — физическое чтение", "L3",
-           target="@architecture_bvstk_l3.svg#state-bvstk_i2c_cache")
+           target="i2c/cores/master/repeated-start.svg#master-service")
     p.edge("i-service", "i-cache", "call", "4. Получить значения")
     p.node("i-memory", 110, 1750, 490, 205, "BRAM I²C",
            "+0x2000: заголовок и байты\nПорт устанавливает rd_valid",
            target="reference/memory-map.svg#i2c-bank")
     p.edge("i-cache", "i-memory", "data", "5. Подготовить окно")
     p.node("i-send", 110, 2120, 490, 165, "I2C_slave_0",
-           "Прочитать окно ответа", target="i2c/slave.svg#read-send")
+           "Прочитать окно ответа", target="i2c/cores/slave/read.svg#fetch")
     p.node("i-result", 850, 2120, 510, 165, "Внешний ведущий",
            "Получает байты по SDA", "L0")
     p.edge("i-memory", "i-send", "data", "6. Данные")
@@ -1627,9 +1562,29 @@ SECTIONS = [
         ("overview/memory.svg", "Области запросов, результатов и ответов, их читатели и писатели"),
     ]),
     ("I²C", [
-        ("i2c/subsystem.svg", "Аппаратный состав и программный мост"),
-        ("i2c/master.svg", "Командный FIFO, протокол и результат"),
-        ("i2c/slave.svg", "Запрос, clock stretching и окно ответа"),
+        ("i2c/protocol/interface.svg", "Линии SDA и SCL, открытый сток и clock stretching"),
+        ("i2c/protocol/transaction.svg", "Условия START и STOP, адрес, байт и подтверждение"),
+        ("i2c/protocol/transfers.svg", "Запись, чтение одного или нескольких байтов и NACK"),
+        ("i2c/protocol/repeated-start.svg", "Повторный START и чтение по указателю регистра"),
+    ]),
+    ("I²C: ведомое ядро", [
+        ("i2c/cores/slave/structure.svg", "Модули ядра, связи с BRAM и программой PS"),
+        ("i2c/cores/slave/addressing.svg", "Обработка входов, выбор адреса и направления"),
+        ("i2c/cores/slave/write.svg", "Приём байтов, запись слов и публикация запроса"),
+        ("i2c/cores/slave/read.svg", "Ожидание первого байта, подтверждение адреса и выдача ответа"),
+        ("i2c/cores/slave/repeated-start.svg", "Завершение записи указателя и переход к чтению"),
+        ("i2c/cores/slave/buffers.svg", "Окна запроса и ответа, заголовки и порядок байтов"),
+        ("i2c/cores/slave/completion.svg", "Границы фаз, истечение времени ожидания и подтверждение IRQ"),
+    ]),
+    ("I²C: ведущее ядро", [
+        ("i2c/cores/master/structure.svg", "Модули ядра, путь команды и возврат результата"),
+        ("i2c/cores/master/commands.svg", "Заголовки TX FIFO, порядок загрузки и запуск"),
+        ("i2c/cores/master/write.svg", "Передача адреса и данных, приём подтверждений"),
+        ("i2c/cores/master/read.svg", "Приём заданного числа байтов и получение результата в PS"),
+        ("i2c/cores/master/repeated-start.svg", "Запись указателя и чтение из одной очереди команд"),
+        ("i2c/cores/master/buffers.svg", "Пакеты RX FIFO, слова BRAM и публикация результата"),
+        ("i2c/cores/master/timing.svg", "Делитель SCL, входные фронты и ожидания автомата"),
+        ("i2c/cores/master/completion.svg", "Опрос регистров, ошибки, сброс и повторная попытка"),
     ]),
     ("MDIO", [
         ("mdio/subsystem.svg", "Master, slave и общая BRAM"),
@@ -1661,7 +1616,7 @@ def link_existing_series():
     """Append navigation without changing the existing node and edge geometry."""
     targets = {
         "architecture_bvstk_ps_pl.svg": [
-            ("I2C_master_0", "i2c/master.svg#core"), ("I2C_slave_0", "i2c/slave.svg#core"),
+            ("I2C_master_0", "i2c/cores/master/structure.svg#core"), ("I2C_slave_0", "i2c/cores/slave/structure.svg#core"),
             ("SMI_master_0", "mdio/master.svg#core"), ("SMI_slave_0", "mdio/slave.svg#core"),
             ("SPI_master_0", "spi/master.svg#core"), ("SPI_Slave_0", "spi/slave.svg#core"),
         ],
@@ -1674,6 +1629,7 @@ def link_existing_series():
             ("Работа задачи MDIO", "ps-interaction/mdio-write.svg#worker"),
         ],
         "architecture_bvstk_l3.svg": [
+            ("bvstk_i2c_master_service", "i2c/cores/master/commands.svg#master-service"),
             ("bvstk_mdio_service", "ps-interaction/mdio-write.svg#service"),
             ("Кэш и публикация", "ps-interaction/cache.svg#cache"),
             ("Внешнее чтение", "ps-interaction/reads.svg"),
@@ -1722,7 +1678,7 @@ def write_readme():
         "На [схеме кэша](overview/cache.svg) та же структура показывает "
         "обновление значений и подготовку ответов. "
         "Затем рассмотрите состав подсистемы, порядок операций и области обмена. "
-        "После общего устройства переходите к конкретным шинам и ядрам. "
+        "После общего устройства переходите к вводной части I²C и схемам конкретных подсистем. "
         "Сценарии PS связывают аппаратуру с профилями устройств, "
         "политикой, кэшем и пользовательскими входами.\n",
         "В `overview` показана функциональная модель без привязки к шине. "
@@ -1735,6 +1691,22 @@ def write_readme():
     ]
     for heading, entries in SECTIONS:
         parts.append("## "+heading+"\n")
+        if heading == "I²C":
+            parts.append("Вводные схемы в `i2c/protocol` описывают протокол на L0: один ведущий, "
+                         "7-битный адрес, обычный двунаправленный I²C. "
+                         "Начните с интерфейса и читайте листы в указанном порядке. "
+                         "Номер регистра в примере задаётся устройством и передаётся как данные.\n")
+        if heading == "I²C: ведомое ядро":
+            parts.append("Листы в `i2c/cores/slave` раскрывают действующий RTL. "
+                         "Начните с состава ядра. На сценарных листах сверху показана транзакция, "
+                         "ниже — действия её участников. Программная обработка PS вынесена "
+                         "за границу аппаратного ядра и связана с листами `ps-interaction`.\n")
+        if heading == "I²C: ведущее ядро":
+            parts.append("Листы в `i2c/cores/master` показывают путь от команды PS до обмена на шине "
+                         "и возврата прочитанных байтов. Команды поступают через TX FIFO; "
+                         "результат проходит через RX FIFO в BRAM. Начните с состава и подготовки команды. "
+                         "Временные диаграммы поясняют состояния текущего RTL. Драйвер определяет завершение "
+                         "опросом CSR и IRQ, при чтении также ожидает DATA_VALID.\n")
         parts.append("\n".join(f"- [{SHEETS[name].title}]({name}) — {description[:1].lower() + description[1:]}."
                                for name, description in entries)+"\n")
     parts += [
@@ -1754,6 +1726,10 @@ def write_readme():
         "Стрелка с двумя наконечниками показывает обмен в обоих направлениях. "
         "Небольшой разрыв в месте пересечения отделяет независимые линии.\n",
         "## Состояние реализации\n",
+        "Вводная часть I²C опирается на "
+        "[NXP UM10204, редакция 7.0, раздел 3.1](https://www.nxp.com/docs/en/user-guide/UM10204.pdf) "
+        "и [TI SLVA704](https://www.ti.com/lit/an/slva704/slva704.pdf). "
+        "Это описание протокола; возможности конкретных ядер определяются их реализацией.\n",
         "Аппаратные схемы основаны на `Burevestnik_21.tcl` и RTL из `ip_repo` "
         "соседнего проекта `hw_platform/fpga`. Программные сценарии основаны "
         "на исходниках BVSTK. В метаданных каждого SVG указан список источников.\n",
@@ -1770,6 +1746,8 @@ def write_readme():
         "[Burevestnik_21.tcl](../../../../../../hw_platform/fpga/Burevestnik_21.tcl) |\n"
         "| Обработка ведомых запросов I²C | "
         "[bvstk_i2c_slave_service.c](../../../../../src/services/i2c/bvstk_i2c_slave_service.c) |\n"
+        "| Запуск и завершение ведущих операций I²C | "
+        "[bvstk_i2c_master.c](../../../../../src/drivers/pl/i2c/bvstk_i2c_master.c) |\n"
         "| Политика MDIO, опрос и кэш | "
         "[bvstk_mdio_service.c](../../../../../src/services/mdio/bvstk_mdio_service.c) |\n"
         "| Аппаратная команда SD и DMA | "
@@ -1781,6 +1759,14 @@ def write_readme():
         "## Обновление SVG\n",
         "Содержание и геометрия этого комплекта задаются в "
         "[generate_pl_subsystem.py](../../../../../tools/docs/generate_pl_subsystem.py).\n",
+        "Вводные листы I²C заданы в "
+        "[i2c_protocol.py](../../../../../tools/docs/i2c_protocol.py).\n",
+        "Листы ведомого ядра I²C заданы в "
+        "[i2c_slave.py](../../../../../tools/docs/i2c_slave.py).\n",
+        "Листы ведущего ядра заданы в "
+        "[i2c_master.py](../../../../../tools/docs/i2c_master.py). "
+        "Общие элементы последовательностей и таблиц находятся в "
+        "[i2c_core.py](../../../../../tools/docs/i2c_core.py).\n",
         "Из корня репозитория:\n\n```sh\npython3 tools/docs/generate_pl_subsystem.py\n```\n",
         "Скрипт использует стандартную библиотеку Python. Он создаёт SVG и README, "
         "затем добавляет переходы к новым листам в общий архитектурный "
@@ -1797,7 +1783,9 @@ def main():
     overview_sheets()
     memory_map_sheet()
     bridge_subsystems()
-    i2c_cores()
+    generate_i2c_protocol(Page, el, PALETTE, ARROWS)
+    generate_i2c_slave(Page, el, PALETTE, ARROWS)
+    generate_i2c_master(Page, el, PALETTE, ARROWS)
     mdio_cores()
     spi_sheets()
     ps_structural_sheets()

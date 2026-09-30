@@ -99,20 +99,26 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="components">
     <g id="i2c-bank" data-kind="functional-group" data-label="BRAM I²C" data-layer="L0" data-domain="pl" data-ownership="common">
       <rect x="80" y="270" width="2040" height="595" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
-      <a data-navigation="detail" xlink:href="../i2c/subsystem.svg#memory">
+      <a data-navigation="detail" xlink:href="../i2c/cores/slave/buffers.svg#bram">
         <text x="106" y="307.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM I²C</text>
         <text x="2096" y="306.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
       </a>
       <text x="106" y="340.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">0x40000000, окно 16 КиБ; пакетные области по 4 КиБ</text>
-      <g id="i2c-bank-w0" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_master_0" data-ownership="common" data-parent="i2c-bank">
+      <g id="i2c-bank-w0" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_master_0" data-ownership="common" data-parent="i2c-bank" data-target="../i2c/cores/master/structure.svg#core">
         <rect x="110" y="370" width="390" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <text x="130" y="394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="130" y="428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_master_0</text>
+        <a data-navigation="detail" xlink:href="../i2c/cores/master/structure.svg#core">
+          <text x="130" y="394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="482" y="395.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="130" y="428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_master_0</text>
+        </a>
       </g>
-      <g id="i2c-bank-m0" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x0000  Результат master" data-ownership="common" data-parent="i2c-bank">
+      <g id="i2c-bank-m0" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x0000  Результат master" data-ownership="common" data-parent="i2c-bank" data-target="../i2c/cores/master/buffers.svg#bram">
         <rect x="690" y="370" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <text x="710" y="394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="710" y="428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x0000  Результат master</text>
+        <a data-navigation="detail" xlink:href="../i2c/cores/master/buffers.svg#bram">
+          <text x="710" y="394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1492" y="395.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="710" y="428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x0000  Результат master</text>
+        </a>
         <text x="710" y="467.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Заголовок 4 байта, затем принятые данные</text>
       </g>
       <g id="i2c-bank-r0" data-kind="component" data-layer="L0" data-label="CPU PS" data-ownership="common" data-parent="i2c-bank">
@@ -125,10 +131,13 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="130" y="554.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="130" y="588.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
       </g>
-      <g id="i2c-bank-m1" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x1000  Запрос к slave" data-ownership="common" data-parent="i2c-bank">
+      <g id="i2c-bank-m1" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x1000  Запрос к slave" data-ownership="common" data-parent="i2c-bank" data-target="../i2c/cores/slave/buffers.svg#wr-window">
         <rect x="690" y="530" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <text x="710" y="554.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="710" y="588.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x1000  Запрос к slave</text>
+        <a data-navigation="detail" xlink:href="../i2c/cores/slave/buffers.svg#wr-window">
+          <text x="710" y="554.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1492" y="555.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="710" y="588.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x1000  Запрос к slave</text>
+        </a>
         <text x="710" y="627.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Заголовок с адресом и длиной, затем полезные данные</text>
       </g>
       <g id="i2c-bank-r1" data-kind="component" data-layer="L0" data-label="CPU PS" data-ownership="common" data-parent="i2c-bank">
@@ -141,10 +150,13 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="130" y="714.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
         <text x="130" y="748.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">CPU PS</text>
       </g>
-      <g id="i2c-bank-m2" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x2000  Ответ slave" data-ownership="common" data-parent="i2c-bank">
+      <g id="i2c-bank-m2" data-kind="component" data-layer="L0" data-domain="pl" data-label="+0x2000  Ответ slave" data-ownership="common" data-parent="i2c-bank" data-target="../i2c/cores/slave/buffers.svg#rd-window">
         <rect x="690" y="690" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <text x="710" y="714.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="710" y="748.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x2000  Ответ slave</text>
+        <a data-navigation="detail" xlink:href="../i2c/cores/slave/buffers.svg#rd-window">
+          <text x="710" y="714.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1492" y="715.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="710" y="748.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x2000  Ответ slave</text>
+        </a>
         <text x="710" y="787.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">PS заполняет окно и устанавливает rd_valid</text>
       </g>
       <g id="i2c-bank-r2" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_slave_0" data-ownership="common" data-parent="i2c-bank">
@@ -269,29 +281,37 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="736" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
       <text x="798.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
     </a>
-    <a data-navigation="sheet" xlink:href="../i2c/subsystem.svg">
+    <a data-navigation="sheet" xlink:href="../i2c/protocol/interface.svg">
       <rect x="876" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
       <text x="920.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
     </a>
+    <a data-navigation="sheet" xlink:href="../i2c/cores/slave/structure.svg">
+      <rect x="980" y="123" width="160" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1060.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C slave</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../i2c/cores/master/structure.svg">
+      <rect x="1156" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1242.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C master</text>
+    </a>
     <a data-navigation="sheet" xlink:href="../mdio/subsystem.svg">
-      <rect x="980" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1030.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
+      <rect x="1344" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1394.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
     </a>
     <a data-navigation="sheet" xlink:href="../spi/subsystem.svg">
-      <rect x="1096" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1140.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
+      <rect x="1460" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
     </a>
     <a data-navigation="sheet" xlink:href="memory-map.svg">
-      <rect x="1200" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1262.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
+      <rect x="1564" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1626.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
     </a>
     <a data-navigation="sheet" xlink:href="../ps-interaction/startup.svg">
-      <rect x="1340" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1438.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
+      <rect x="1704" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1802.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
     </a>
     <a data-navigation="sheet" xlink:href="../../levels.svg">
-      <rect x="1552" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1608.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
+      <rect x="1916" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="1972.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
     </a>
     <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Адреса относятся к аппаратному проекту Burevestnik_21. Смещения внутри окна указаны в байтах.</text>
     <text x="595.0" y="419.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
@@ -326,7 +346,23 @@ g:target &gt; rect { stroke-width: 5; }
   "cross_sheet_links": [
     {
       "node": "i2c-bank",
-      "target": "../i2c/subsystem.svg#memory"
+      "target": "../i2c/cores/slave/buffers.svg#bram"
+    },
+    {
+      "node": "i2c-bank-w0",
+      "target": "../i2c/cores/master/structure.svg#core"
+    },
+    {
+      "node": "i2c-bank-m0",
+      "target": "../i2c/cores/master/buffers.svg#bram"
+    },
+    {
+      "node": "i2c-bank-m1",
+      "target": "../i2c/cores/slave/buffers.svg#wr-window"
+    },
+    {
+      "node": "i2c-bank-m2",
+      "target": "../i2c/cores/slave/buffers.svg#rd-window"
     },
     {
       "node": "mdio-bank",

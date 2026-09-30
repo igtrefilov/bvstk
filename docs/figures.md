@@ -65,7 +65,7 @@ Chromium; путь к браузеру при нестандартной уст�
 [pl-subsystem](system/figures/architecture/pl-subsystem/README.md)
 раскрывает устройство PL и взаимодействие с программой PS.
 Оглавление и порядок чтения находятся в README.
-В комплекте 23 предметных листа:
+В комплекте 39 предметных листов:
 
 | Раздел | Содержание |
 |---|---|
@@ -74,7 +74,9 @@ Chromium; путь к браузеру при нестандартной уст�
 | [Состав подсистемы](system/figures/architecture/pl-subsystem/overview/subsystems.svg) | Ответственность сервиса, драйвера, платформы и аппаратных ядер |
 | [Порядок операций](system/figures/architecture/pl-subsystem/overview/exchange.svg) | Готовый ответ, получение нового значения и обработка записи |
 | [Области обмена](system/figures/architecture/pl-subsystem/overview/memory.svg) | Кто записывает и читает данные, как определяется готовность |
-| [I²C](system/figures/architecture/pl-subsystem/i2c/subsystem.svg) | Подсистема, ведущий и ведомый контроллеры |
+| [I²C](system/figures/architecture/pl-subsystem/i2c/protocol/interface.svg) | Интерфейс, формат транзакции, чтение, запись и повторный START |
+| [Ведомое ядро I²C](system/figures/architecture/pl-subsystem/i2c/cores/slave/structure.svg) | Состав ядра, обработка адреса, запись, чтение, повторный START, окна BRAM и завершение |
+| [Ведущее ядро I²C](system/figures/architecture/pl-subsystem/i2c/cores/master/structure.svg) | Команды TX FIFO, обмен на шине, приёмные буферы, тактирование и завершение |
 | [MDIO](system/figures/architecture/pl-subsystem/mdio/subsystem.svg) | Кадр Clause 22, последние записи и подготовленные ответы |
 | [SPI и SD](system/figures/architecture/pl-subsystem/spi/subsystem.svg) | Потоки, DMA, оба ядра SPI и чтение блока SD |
 | [Карта памяти реализации](system/figures/architecture/pl-subsystem/reference/memory-map.svg) | Адреса BRAM и области обмена конкретных подсистем |
@@ -84,11 +86,23 @@ Chromium; путь к браузеру при нестандартной уст�
 Заголовки со знаком ↗ ведут к соответствующим блокам соседних листов.
 Последовательности операций дополняют схемы состава.
 Схемы в `overview` описывают общий случай без привязки к шине.
-Конкретные адреса и особенности реализации раскрыты в остальных разделах.
+В `i2c/protocol` собрана вводная часть о протоколе с 7-битной адресацией.
+Она основана на [NXP UM10204](https://www.nxp.com/docs/en/user-guide/UM10204.pdf)
+и [TI SLVA704](https://www.ti.com/lit/an/slva704/slva704.pdf).
+Семь схем в `i2c/cores/slave` показывают обработку транзакций действующим
+ведомым ядром. На них используются имена модулей, состояний и сигналов RTL.
+Восемь схем в `i2c/cores/master` раскрывают запуск из PS, выполнение команды
+и возврат результата. Схемы обоих ядер связаны через сервисы PS.
+Аппаратные адреса и особенности реализации раскрыты в карте памяти
+и схемах конкретных ядер.
 
 Новый комплект создаётся из
 [generate_pl_subsystem.py](../tools/docs/generate_pl_subsystem.py).
-Тексты и координаты его элементов редактируются в этом файле:
+Вводная часть I²C задана в [i2c_protocol.py](../tools/docs/i2c_protocol.py).
+Схемы ведомого ядра — в [i2c_slave.py](../tools/docs/i2c_slave.py).
+Схемы ведущего ядра — в [i2c_master.py](../tools/docs/i2c_master.py).
+Общие элементы последовательностей и таблиц — в [i2c_core.py](../tools/docs/i2c_core.py).
+Тексты и координаты редактируются в этих файлах:
 
 ```sh
 python3 tools/docs/generate_pl_subsystem.py
