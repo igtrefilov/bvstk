@@ -120,6 +120,7 @@ g:target > rect { stroke-width: 5; }
         self.text(self.notes, 60, 94, title, 36, bold=True)
         nav = [
             ("Оглавление", "README.md"), ("Мост", "overview/bridge.svg"),
+            ("Кэш", "overview/cache.svg"),
             ("Состав", "overview/subsystems.svg"),
             ("Обмен", "overview/exchange.svg"), ("Память", "overview/memory.svg"),
         ]
@@ -377,6 +378,42 @@ def source(bus, role, filename):
 
 # Sheet definitions follow. Geometry is explicit and differs with the mechanism.
 
+def transaction_symbol(p, key, cx, cy, direction=1, blocked=False, symbol="T"):
+    """Draw a data symbol independently of component and layer colors."""
+    g = el(p.notes, "g", id=key, data_kind="transaction",
+           data_transaction=symbol, data_state="blocked" if blocked else "forwarded")
+    title = "Транзакция T" if symbol == "T" else "Значение V"
+    el(g, "title", title+" остановлена" if blocked else title)
+    points = ((-46, -29), (25, -29), (46, 0), (25, 29), (-46, 29))
+    el(g, "polygon", points=" ".join(f"{cx+direction*x},{cy+y}" for x, y in points),
+       fill="white", stroke=ARROWS["data"][0], stroke_width=2.5,
+       stroke_linejoin="round")
+    p.text(g, cx-4*direction, cy+9, symbol, 27, bold=True,
+           color=ARROWS["data"][0], anchor="middle")
+    if blocked:
+        el(g, "path", d=f"M{cx-29},{cy+28} L{cx+29},{cy-28}",
+           fill="none", stroke="white", stroke_width=9)
+        el(g, "path", d=f"M{cx-29},{cy+28} L{cx+29},{cy-28}",
+           fill="none", stroke="#233747", stroke_width=4)
+
+
+def bridge_bus(p, key, left, right, participants, label, y=1115):
+    """Draw a physical bus; data arrows can run in a separate lane above it."""
+    color = PALETTE["L0"][1]
+    g = el(p.edges, "g", id=key, data_kind="bus", data_layer="L0",
+           data_members=" ".join(participants), data_label=label)
+    el(g, "title", label)
+    el(g, "path", d=f"M{left},{y} H{right}", fill="none",
+       stroke=color, stroke_width=5, stroke_linecap="round")
+    for participant in participants:
+        x, top = p.nodes[participant].point("S")
+        el(g, "path", d=f"M{x},{top} V{y}", fill="none",
+           stroke=color, stroke_width=3)
+        el(g, "circle", cx=x, cy=y, r=5, fill=color)
+    p.text(p.notes, (left+right)/2, y+55, label, 20, bold=True,
+           anchor="middle", color=color)
+
+
 def bridge_overview_sheet():
     """Introduce the bridge without expanding its software and bus internals."""
     p = Page("overview/bridge.svg", "BVSTK: мост между устройствами",
@@ -410,45 +447,12 @@ def bridge_overview_sheet():
     p.edge("policy", "pl_master", "mmio", "Разрешено:\nзапустить",
            start="S", end="N", a_offset=242.5, label_xy=(1658, 648))
 
-    def transaction(key, cx, cy, direction=1, blocked=False):
-        # A white packet symbol represents data, not another software layer.
-        g = el(p.notes, "g", id=key, data_kind="transaction",
-               data_transaction="T", data_state="blocked" if blocked else "forwarded")
-        el(g, "title", "Транзакция T остановлена" if blocked else "Транзакция T")
-        points = ((-46, -29), (25, -29), (46, 0), (25, 29), (-46, 29))
-        el(g, "polygon", points=" ".join(f"{cx+direction*x},{cy+y}" for x, y in points),
-           fill="white", stroke=ARROWS["data"][0], stroke_width=2.5,
-           stroke_linejoin="round")
-        p.text(g, cx-4*direction, cy+9, "T", 27, bold=True,
-               color=ARROWS["data"][0], anchor="middle")
-        if blocked:
-            el(g, "path", d=f"M{cx-29},{cy+28} L{cx+29},{cy-28}",
-               fill="none", stroke="white", stroke_width=9)
-            el(g, "path", d=f"M{cx-29},{cy+28} L{cx+29},{cy-28}",
-               fill="none", stroke="#233747", stroke_width=4)
-
-    def bus(key, left, right, participants, label):
-        # Separate physical bus segments; the packet arrow runs above the wire.
-        color = PALETTE["L0"][1]
-        g = el(p.edges, "g", id=key, data_kind="bus", data_layer="L0",
-               data_members=" ".join(participants), data_label=label)
-        el(g, "title", label)
-        el(g, "path", d=f"M{left},1115 H{right}", fill="none",
-           stroke=color, stroke_width=5, stroke_linecap="round")
-        for participant in participants:
-            x, y = p.nodes[participant].point("S")
-            el(g, "path", d=f"M{x},{y} V1115", fill="none",
-               stroke=color, stroke_width=3)
-            el(g, "circle", cx=x, cy=1115, r=5, fill=color)
-        p.text(p.notes, (left+right)/2, 1170, label, 20, bold=True,
-               anchor="middle", color=color)
-
-    bus("host-bus", 110, 730, ("host", "pl_slave"), "Шина ведущего")
-    bus("device-bus", 1470, 2100, ("pl_master", "device"), "Шина ведомого")
+    bridge_bus(p, "host-bus", 110, 730, ("host", "pl_slave"), "Шина ведущего")
+    bridge_bus(p, "device-bus", 1470, 2100, ("pl_master", "device"), "Шина ведомого")
     p.path("host", "pl_slave", ((270, 1068), (585, 1068)), "data")
     p.path("pl_master", "device", ((1625, 1068), (1930, 1068)), "data")
-    transaction("transaction-in", 420, 1068)
-    transaction("transaction-out", 1780, 1068)
+    transaction_symbol(p, "transaction-in", 420, 1068)
+    transaction_symbol(p, "transaction-out", 1780, 1068)
     p.text(p.notes, 420, 1020, "Входящая транзакция", 18, anchor="middle",
            color=ARROWS["data"][0])
     p.text(p.notes, 1780, 1020, "Транзакция пропущена", 18, anchor="middle",
@@ -456,7 +460,7 @@ def bridge_overview_sheet():
 
     p.path("policy", "transaction-denied", ((945, 487.5), (548, 487.5)),
            "data", "Запрещено", label_xy=(727, 432))
-    transaction("transaction-denied", 727, 487.5, direction=-1, blocked=True)
+    transaction_symbol(p, "transaction-denied", 727, 487.5, direction=-1, blocked=True)
     el(p.notes, "path", d="M532,463.5 V511.5", stroke="#233747",
        stroke_width=6, stroke_linecap="round")
     p.text(p.notes, 727, 560, "Транзакция остановлена", 18,
@@ -464,237 +468,304 @@ def bridge_overview_sheet():
     p.note(1250, "T — условная транзакция: адрес, операция и данные. Шина показана серой линией, движение T — синей стрелкой.")
 
 
+def cache_overview_sheet():
+    """Follow cached values using the physical layout of the bridge overview."""
+    p = Page("overview/cache.svg", "BVSTK: кэш и подготовка ответов",
+             "Сервис обновляет значения в PS и готовит в BRAM ответы для внешнего ведущего.", [
+                 "src/services/i2c/bvstk_i2c_cache.c",
+                 "src/services/i2c/bvstk_i2c_master_service.c",
+                 "src/services/i2c/bvstk_i2c_slave_service.c",
+                 "src/services/mdio/bvstk_mdio_service.c",
+             ])
+    p.frame("bridge", 420, 280, 1360, 935, "BVSTK", layer=None,
+            target="overview/bridge.svg#bridge")
+    p.frame("service", 500, 370, 1200, 450, "Сервис и кэш в PS", "L3",
+            parent="bridge", target="overview/subsystems.svg#services")
+    p.node("cache", 540, 485, 530, 235, "Кэш значений",
+           "Последнее полученное значение\nДостоверность\nИсточник и время обновления",
+           "L3", parent="service", target="ps-interaction/cache.svg#cache")
+    p.node("operation", 1280, 485, 380, 275, "Обработка операций",
+           "Чтение: сохранить результат\nЗапись: обновить по результату\nОшибка: снять достоверность",
+           "L3", parent="service", target="overview/exchange.svg#service")
+    p.edge("operation", "cache", "data", "Значение\nи состояние", start="W", end="E",
+           a_offset=-32.5, b_offset=-12.5, label_xy=(1175, 539))
+
+    p.node("host", 60, 970, 300, 185, "Внешний\nведущий",
+           "Читает и изменяет данные", "L0", target="overview/bridge.svg#host")
+    p.node("pl_slave", 500, 970, 290, 185, "pl_slave",
+           "Приём запроса\nВыдача ответа", parent="bridge",
+           target="overview/bridge.svg#pl_slave")
+    p.node("bram", 935, 970, 330, 185, "BRAM",
+           "Области обмена\nПодготовленные ответы", parent="bridge",
+           target="overview/memory.svg#exchange-memory")
+    p.node("pl_master", 1430, 970, 270, 185, "pl_master",
+           "Чтение и запись\nна внешней шине", parent="bridge",
+           target="overview/bridge.svg#pl_master")
+    p.node("device", 1840, 970, 300, 185, "Внешнее ведомое\nустройство",
+           "Хранит фактическое состояние", "L0", target="overview/bridge.svg#device")
+    p.edge("pl_slave", "bram", "data", "Запрос", start="E", end="W",
+           a_offset=-37.5, b_offset=-37.5, label_xy=(862.5, 1006))
+    p.edge("bram", "pl_slave", "data", "Ответ", start="W", end="E",
+           a_offset=37.5, b_offset=37.5, label_xy=(862.5, 1132))
+    p.edge("pl_master", "bram", "data", "Результат", start="W", end="E",
+           label_xy=(1347.5, 1045))
+    p.edge("cache", "bram", "data", "Подготовить\nответ", start="S", end="N",
+           a_offset=170, b_offset=-125, label_xy=(871, 864))
+    p.edge("bram", "operation", "data", "Запрос\nили результат", start="N", end="W",
+           a_offset=100, b_offset=92.5, via=((1200, 715),), label_xy=(1310, 864))
+    p.edge("operation", "pl_master", "mmio", "Чтение\nили запись", start="S", end="N",
+           a_offset=95, label_xy=(1658, 864))
+
+    bridge_bus(p, "host-bus", 110, 730, ("host", "pl_slave"), "Шина ведущего", y=1355)
+    bridge_bus(p, "device-bus", 1470, 2100, ("pl_master", "device"), "Шина ведомого", y=1355)
+    p.path("pl_slave", "host", ((585, 1308), (270, 1308)), "data")
+    p.path("device", "pl_master", ((1930, 1308), (1625, 1308)), "data")
+    transaction_symbol(p, "value-reply", 420, 1308, direction=-1, symbol="V")
+    transaction_symbol(p, "value-read", 1780, 1308, direction=-1, symbol="V")
+    p.text(p.notes, 420, 1260, "Подготовленное значение", 18, anchor="middle",
+           color=ARROWS["data"][0])
+    p.text(p.notes, 1780, 1260, "Прочитанное значение", 18, anchor="middle",
+           color=ARROWS["data"][0])
+    p.note(1490, "V — значение. Ответ ведущему отражает последнюю публикацию в BRAM; изменения устройства становятся видны после обновления.")
+    p.note(1555, "Опрос по расписанию и перечитывание после записи зависят от подсистемы. Начальные значения могут задаваться профилем.")
+    p.note(1620, "При ошибке запись кэша становится недостоверной. Дальнейшее поведение на шине определяется подсистемой.")
+
+
 def overview_sheets():
-    """Describe functional roles before introducing any bus implementation."""
+    """Give each overview a separate role in the explanation."""
     sources = [
         "../hw_platform/fpga/Burevestnik_21.tcl",
         "src/services/i2c/bvstk_i2c_slave_service.c",
+        "src/services/i2c/bvstk_i2c_master_service.c",
         "src/services/mdio/bvstk_mdio_service.c",
         "src/shared/config/bvstk_device_profile.c",
-        "src/drivers/pl/sd/bvstk_sd_master.c",
     ]
-    p = Page("overview/subsystems.svg", "Подсистема PL: общее устройство",
-             "pl_slave принимает внешние обращения. pl_master выполняет операции на внешней шине.",
+    subsystem_overview_sheet(sources)
+    exchange_overview_sheet(sources)
+    memory_overview_sheet(sources)
+
+
+def subsystem_overview_sheet(sources):
+    p = Page("overview/subsystems.svg", "Подсистема PL: состав и ответственность",
+             "Какие части принимают решения, обращаются к аппаратуре и выполняют операции на шине.",
              sources)
-    p.node("application", 80, 275, 620, 170, "Прикладные команды",
-           "Операции с устройствами и настройками", "L4",
+    p.frame("bridge", 420, 280, 1360, 2130, "BVSTK", layer=None,
+            target="overview/bridge.svg#bridge")
+    p.node("application", 500, 380, 500, 175, "Прикладные команды",
+           "Операции и настройка подсистемы", "L4", parent="bridge",
            target="@architecture_bvstk_l4.svg")
-    p.node("profile", 1320, 275, 800, 215, "Профиль подсистемы",
-           "Устройства и ресурсы\nПравила доступа и начальные настройки", "L4",
-           target="overview/memory.svg#profile")
-    p.frame("services", 300, 660, 1600, 600, "Сервис подсистемы", "L3",
-            target="@architecture_bvstk_l3.svg#subsystem-services")
-    p.node("operation", 340, 785, 700, 205, "Обработка операций",
-           "Принять запрос\nВыбрать действие и вернуть результат", "L3",
+    p.node("profile", 1250, 380, 450, 190, "Профиль подсистемы",
+           "Устройства и правила\nНачальные настройки", "L4", parent="bridge",
+           target="ps-interaction/startup.svg#profile")
+    p.frame("services", 500, 690, 1200, 410, "Сервис подсистемы", "L3",
+            parent="bridge", target="@architecture_bvstk_l3.svg#subsystem-services")
+    p.node("operation", 540, 795, 530, 220, "Обработка операций",
+           "Разобрать запрос\nВыбрать действие\nПодготовить ответ", "L3",
            parent="services", target="overview/exchange.svg#service")
-    p.node("policy", 1260, 785, 600, 205, "Политика",
-           "Проверить разрешение операции\nПрименить правила устройства", "L3",
-           parent="services", target="ps-interaction/configuration.svg")
-    p.node("cache", 1240, 1070, 620, 145, "Программный кэш",
-           "Значения и их достоверность", "L3", parent="services",
-           target="overview/memory.svg#cache")
+    p.node("policy", 1280, 780, 380, 110, "Политика в PS",
+           layer="L3", parent="services", target="overview/bridge.svg#policy")
+    p.node("cache", 1280, 940, 380, 110, "Кэш значений",
+           layer="L3", parent="services", target="overview/cache.svg#cache")
     p.edge("application", "operation", "call", start="S", end="N",
-           via=((390, 555), (690, 555)))
-    p.edge("profile", "services", "data", "Конфигурация", start="S", end="N",
-           b_offset=550, via=((1720, 550), (1650, 550)), label_xy=(1780, 605))
+           b_offset=90, via=((750, 620), (895, 620)))
+    p.edge("profile", "services", "data", "Настройки", start="S", end="N",
+           b_offset=375, label_xy=(1590, 642))
     p.edge("operation", "policy", "call", "Проверка", start="E", end="W",
-           a_offset=-45, b_offset=-45, label_xy=(1150, 821))
-    p.edge("policy", "operation", "data", "Решение", start="W", end="E",
-           a_offset=45, b_offset=45, label_xy=(1150, 970))
-    p.edge("operation", "cache", "data", start="S", end="N", a_offset=200,
-           via=((890, 1025), (1550, 1025)), bidirectional=True)
-    p.node("driver", 450, 1410, 700, 175, "Драйвер подсистемы",
-           "Команды ядер, буферы и условия завершения", "L3",
+           a_offset=-70, label_xy=(1175, 817))
+    p.edge("operation", "cache", "data", "Значения", start="E", end="W",
+           a_offset=90, label_xy=(1175, 977), bidirectional=True)
+
+    p.node("driver", 600, 1220, 620, 165, "Драйвер подсистемы",
+           "Команды, буферы и проверка завершения", "L3", parent="bridge",
            target="overview/exchange.svg#completion")
-    p.edge("operation", "driver", "call", "Разрешённая операция", start="S", end="N",
-           a_offset=-150, via=((540, 1320), (800, 1320)), label_xy=(800, 1370))
-    p.node("platform", 450, 1710, 700, 170, "Платформенный доступ",
-           "MMIO, память и обработка событий\nРеализация в порте выбранной ОС", "L1",
+    p.edge("operation", "driver", "call", "Выполнить операцию", start="S", end="N",
+           via=((805, 1150), (910, 1150)), label_xy=(1110, 1170))
+    p.node("platform", 600, 1470, 620, 150, "Платформенный доступ",
+           "MMIO, память и доставка событий", "L1", parent="bridge",
            target="@architecture_bvstk_l1.svg#platform-access")
     p.edge("driver", "platform", "call")
-    p.node("ps", 450, 2010, 700, 170, "Аппаратная часть PS",
-           "AXI к PL и доступ к памяти обмена", "L0",
+    p.node("ps", 600, 1705, 620, 155, "Аппаратная часть PS",
+           "AXI к PL и доступ к BRAM", "L0", parent="bridge",
            target="@architecture_bvstk_ps_pl.svg#ps-axi")
     p.edge("platform", "ps", "mmio")
-    p.node("registers", 1430, 2010, 690, 200, "Управление ядрами",
-           "Настройка, запуск и состояние\nАдресация через AXI", "PL",
-           target="overview/memory.svg#registers")
-    p.edge("ps", "registers", "mmio", start="E", end="W", b_offset=-15)
-    p.frame("pl-subsystem", 60, 2470, 2080, 600, "Аппаратная часть подсистемы",
-            target="@architecture_bvstk_ps_pl.svg")
-    p.frame("pl_slave", 110, 2580, 600, 360, "pl_slave", parent="pl-subsystem",
-            target="overview/exchange.svg#pl_slave")
-    p.node("slave-rx", 210, 2670, 450, 105, "Приём внешнего запроса", parent="pl_slave")
-    p.node("slave-tx", 210, 2820, 450, 90, "Выдача ответа", parent="pl_slave")
-    p.node("exchange-memory", 820, 2670, 570, 220, "Память обмена",
-           "BRAM и аппаратные буферы\nЗапросы, результаты и ответы", parent="pl-subsystem",
+    p.node("registers", 1400, 1690, 300, 185, "Регистры ядер",
+           "Запуск\nСостояние", parent="bridge",
+           target="@architecture_bvstk_ps_pl.svg")
+    p.edge("ps", "registers", "mmio", start="E", end="W")
+
+    p.frame("pl-subsystem", 480, 2020, 1260, 330, "Ядра и BRAM",
+            parent="bridge", target="@architecture_bvstk_ps_pl.svg")
+    p.node("pl_slave", 500, 2110, 290, 185, "pl_slave",
+           "Приём запроса\nВыдача ответа", parent="pl-subsystem",
+           target="overview/exchange.svg#pl_slave")
+    p.node("exchange-memory", 935, 2110, 330, 185, "BRAM",
+           "Области обмена", parent="pl-subsystem",
            target="overview/memory.svg#exchange-memory")
-    p.frame("pl_master", 1500, 2580, 600, 400, "pl_master", parent="pl-subsystem",
-            target="overview/exchange.svg#pl_master")
-    p.node("master-engine", 1540, 2670, 520, 255, "Выполнение операции",
-           "Формирование сигналов шины\nПередача и приём данных\nЗавершение и ошибки", parent="pl_master")
-    p.edge("registers", "pl_slave", "mmio", start="S", end="N", a_offset=-150, b_offset=230,
-           via=((1625, 2300), (640, 2300)))
-    p.edge("registers", "master-engine", "mmio", start="S", end="N", a_offset=180,
-           via=((1955, 2400), (1800, 2400)))
-    p.edge("ps", "exchange-memory", "data", start="S", end="N",
-           via=((800, 2380), (1105, 2380)), bidirectional=True)
-    p.edge("slave-rx", "exchange-memory", "data", start="E", end="W", b_offset=-57.5)
-    p.edge("exchange-memory", "slave-tx", "data", start="W", end="E", a_offset=85)
-    p.edge("exchange-memory", "master-engine", "data", start="E", end="W",
-           b_offset=-17.5, bidirectional=True)
-    p.node("host", 110, 3260, 600, 170, "Внешний ведущий",
-           "Обращается к подсистеме", "L0", target="overview/exchange.svg#host")
-    p.node("device", 1500, 3260, 600, 170, "Внешнее ведомое устройство",
-           "Выполняет операции ведущего ядра", "L0", target="overview/exchange.svg#device")
-    p.edge("host", "slave-rx", "data", "Запрос", start="N", end="W", a_offset=-250,
-           via=((160, 2722.5),), label_xy=(235, 3180))
-    p.edge("slave-tx", "host", "data", "Ответ", start="S", end="N", b_offset=100,
-           via=((435, 3130), (510, 3130)), label_xy=(550, 3180))
-    p.edge("master-engine", "device", "data", start="S", end="N", bidirectional=True)
-    p.note(3530, "pl_slave и pl_master обозначают роли на внешней шине. Их роли на AXI задаются отдельно.")
-    p.note(3590, "Показаны обе аппаратные роли. Реализация может использовать одну из них; состав политики и кэша определяется задачами сервиса.")
-
-    p = Page("overview/exchange.svg", "Подсистема PL: ход операций",
-             "Операция PS и входящий запрос проходят через разные аппаратные роли.", sources)
-    p.section(285, "Операцию начинает PS")
-    p.node("service", 80, 360, 560, 210, "Сервис подсистемы",
-           "Проверить правила\nПодготовить ведущую операцию", "L3",
-           target="overview/subsystems.svg#operation")
-    p.node("pl_master", 900, 360, 520, 225, "pl_master",
-           "Выполнить команду\nЗафиксировать результат и состояние", target="overview/subsystems.svg#pl_master")
-    p.node("device", 1690, 360, 440, 180, "Внешнее ведомое\nустройство",
-           "Обмен с ведущим ядром", "L0", target="overview/subsystems.svg#device")
-    p.edge("service", "pl_master", "mmio", "Через драйвер L3 и L1",
-           start="E", end="W", b_offset=-7.5, label_xy=(770, 437))
-    p.edge("pl_master", "device", "data", start="E", end="W", a_offset=-22.5,
-           bidirectional=True)
-    p.node("result-buffer", 900, 850, 620, 185, "Результат операции",
-           "Принятые данные в памяти обмена", target="overview/memory.svg#result-buffer")
-    p.node("completion", 80, 850, 640, 230, "Обработка завершения",
-           "Драйвер проверяет состояние и ошибки\nПолучает данные\nВозвращает результат сервису", "L3",
-           target="overview/subsystems.svg#driver")
-    p.edge("pl_master", "result-buffer", "data", start="S", end="N",
-           a_offset=100, b_offset=50)
-    p.edge("pl_master", "completion", "irq", "IRQ, если подключён", start="S", end="N",
-           a_offset=-140, via=((1020, 730), (400, 730)), label_xy=(690, 708))
-    p.edge("completion", "pl_master", "mmio", "Опрос состояния", start="E", end="W",
-           a_offset=-45, b_offset=37.5, via=((800, 920), (800, 510)),
-           label_xy=(800, 650))
-    p.edge("result-buffer", "completion", "data", "Данные", start="W", end="E",
-           a_offset=47.5, b_offset=25, label_xy=(810, 974))
-    p.edge("completion", "service", "data", "Результат", start="N", end="S",
-           a_offset=-220, b_offset=-180, label_xy=(180, 690))
-    p.note(1170, "Опрос состояния и доставка IRQ — способы обнаружить завершение. Достоверность данных и результат операции проверяются драйвером.")
-
-    p.section(1310, "Входящий запрос, требующий обработки PS")
-    p.node("host", 80, 1380, 520, 200, "Внешний ведущий",
-           "Передаёт запрос и получает ответ", "L0", target="overview/subsystems.svg#host")
-    p.node("pl_slave", 820, 1380, 600, 210, "pl_slave",
-           "Принять обращение\nПередать запрос в память обмена", target="overview/subsystems.svg#pl_slave")
-    p.node("request-buffer", 1610, 1380, 520, 210, "Принятый запрос",
-           "Адрес, операция и данные", target="overview/memory.svg#request-buffer")
-    p.edge("host", "pl_slave", "data", "Запрос", start="E", end="W",
-           a_offset=-45, b_offset=-50, label_xy=(710, 1416))
-    p.edge("pl_slave", "host", "data", "Ответ", start="W", end="E",
-           a_offset=45, b_offset=50, label_xy=(710, 1558))
-    p.edge("pl_slave", "request-buffer", "data")
-    p.node("input-handler", 1610, 1830, 520, 215, "Приём запроса в PS",
-           "Получить событие или опросить состояние\nПередать данные сервису", "L1",
-           target="@architecture_bvstk_l1.svg")
-    p.node("request-service", 820, 1820, 600, 260, "Сервис подсистемы",
-           "Разобрать запрос и проверить политику\nОбработать данные\nПодготовить ответ", "L3",
-           target="overview/subsystems.svg#services")
-    p.node("reply-buffer", 80, 1830, 520, 220, "Подготовленный ответ",
-           "Данные для внешнего ведущего", target="overview/memory.svg#reply-buffer")
-    p.edge("request-buffer", "input-handler", "data", start="S", end="N",
-           a_offset=100, b_offset=100)
-    p.edge("pl_slave", "input-handler", "irq", "IRQ, если подключён", start="S", end="N",
-           a_offset=200, b_offset=-150, via=((1320, 1720), (1720, 1720)),
-           label_xy=(1530, 1696))
-    p.edge("input-handler", "request-service", "call", start="W", end="E",
-           b_offset=-12.5)
-    p.edge("request-service", "reply-buffer", "data", start="W", end="E",
-           a_offset=-10)
-    p.edge("reply-buffer", "pl_slave", "data", start="N", end="S", b_offset=-100,
-           via=((340, 1710), (1020, 1710)))
-    p.node("forward-master", 820, 2290, 600, 210, "pl_master",
-           "Ведущая операция по запросу сервиса\nЕсли нужен обмен с устройством",
+    p.node("pl_master", 1430, 2110, 270, 185, "pl_master",
+           "Обмен с устройством", parent="pl-subsystem",
            target="overview/exchange.svg#pl_master")
-    p.edge("request-service", "forward-master", "mmio", "Через драйвер L3 и L1",
-           start="S", end="N", a_offset=-170, b_offset=-170, label_xy=(890, 2195))
-    p.edge("forward-master", "request-service", "data", "Результат",
-           start="N", end="S", a_offset=170, b_offset=170, label_xy=(1320, 2195))
-    p.note(2610, "Заранее подготовленный ответ pl_slave может выдать самостоятельно. Обновление такого ответа выполняется отдельной операцией PS.")
-    p.note(2670, "Порядок ожидания, подтверждения и обработки ошибок определяется ядром и драйвером. Профиль и политика применяются сервисом.")
+    p.edge("ps", "exchange-memory", "data", start="S", end="N",
+           via=((910, 1990), (1100, 1990)), bidirectional=True)
+    p.edge("registers", "pl_slave", "mmio", start="S", end="N", a_offset=-80,
+           via=((1470, 1940), (745, 1940)), b_offset=100)
+    p.edge("registers", "pl_master", "mmio", start="S", end="N", a_offset=80,
+           b_offset=65)
+    p.edge("pl_slave", "exchange-memory", "data", start="E", end="W", bidirectional=True)
+    p.edge("exchange-memory", "pl_master", "data", start="E", end="W", bidirectional=True)
+    p.node("host", 60, 2110, 300, 185, "Внешний\nведущий",
+           "Обращается к BVSTK", "L0", target="overview/bridge.svg#host")
+    p.node("device", 1840, 2110, 300, 185, "Внешнее ведомое\nустройство",
+           "Выполняет операции", "L0", target="overview/bridge.svg#device")
+    bridge_bus(p, "host-bus", 110, 730, ("host", "pl_slave"), "Шина ведущего", y=2550)
+    bridge_bus(p, "device-bus", 1470, 2100, ("pl_master", "device"), "Шина ведомого", y=2550)
+    p.note(2650, "Программная часть раскрывает управление мостом. Политика и кэш подробно показаны на отдельных листах.")
+    p.note(2715, "Показаны обе аппаратные роли. Состав ядер и реализация доступа зависят от подсистемы и выбранной ОС.")
 
-    p = Page("overview/memory.svg", "Память подсистемы: буферы и состояние",
-             "Кто записывает запросы, результаты и ответы; как они связаны с состоянием программы.", sources)
-    p.frame("exchange-memory", 760, 390, 760, 1040, "Память обмена",
-            subtitle="BRAM и буферы обмена. Структура задаётся ядром.",
-            target="overview/subsystems.svg#exchange-memory")
-    p.node("request-buffer", 800, 535, 680, 185, "Принятый запрос",
-           "Данные внешнего обращения\nДля последующей обработки PS", parent="exchange-memory",
+
+def exchange_overview_sheet(sources):
+    p = Page("overview/exchange.svg", "Подсистема PL: порядок операций",
+             "Участники сохраняют свои роли. Внутри каждого сценария шаги читаются сверху вниз.",
+             sources)
+    actors = [
+        ("host", 60, 300, "Внешний\nведущий", "L0", "overview/bridge.svg#host"),
+        ("pl_slave", 440, 270, "pl_slave", "PL", "overview/subsystems.svg#pl_slave"),
+        ("memory", 780, 280, "BRAM", "PL", "overview/memory.svg#exchange-memory"),
+        ("service", 1130, 280, "Сервис PS", "L3", "overview/subsystems.svg#services"),
+        ("pl_master", 1480, 270, "pl_master", "PL", "overview/subsystems.svg#pl_master"),
+        ("device", 1840, 300, "Внешнее ведомое\nустройство", "L0", "overview/bridge.svg#device"),
+    ]
+    centers = {}
+    captions = {"host": "Ведущий", "pl_slave": "pl_slave", "memory": "BRAM",
+                "service": "Сервис PS", "pl_master": "pl_master", "device": "Ведомое устройство"}
+    for key, x, w, label, layer, target in actors:
+        p.node(key, x, 300, w, 155, label, layer=layer, target=target)
+        centers[key] = x+w/2
+
+    def phase(key, y, title, subtitle, steps):
+        heading = el(p.notes, "g", id=key, data_kind="scenario")
+        p.text(heading, 60, y, title, 27, bold=True)
+        p.text(heading, 60, y+38, subtitle, 19, color="#576c7b")
+        start, row = y+135, 87
+        bottom = start+(len(steps)-1)*row+60
+        for actor, x in centers.items():
+            component = p.nodes[actor].group
+            layer = "PL" if component.get("data-domain") == "pl" else component.get("data-layer")
+            color = PALETTE[layer][1]
+            p.text(heading, x, y+84, captions[actor], 18, bold=True,
+                   color=color, anchor="middle")
+            el(p.under, "path", d=f"M{x},{y+98} V{bottom}", fill="none",
+               stroke=color,
+               stroke_width=1.4, opacity=".24")
+        for index, (step_id, a, b, kind, label, target, both) in enumerate(steps, 1):
+            yy = start+(index-1)*row
+            group = el(p.notes, "g", id=step_id, data_kind="sequence-step")
+            el(group, "rect", x=60, y=yy-28, width=2080, height=34, fill="white",
+               stroke=ARROWS[kind][0], stroke_width=0)
+            p.text(group, 62, yy, str(index), 20, bold=True, color=ARROWS[kind][0])
+            text_group = p.link(group, target) if target else group
+            p.text(text_group, 109, yy, label+(" ↗" if target else ""), 21,
+                   bold=True, color=ARROWS[kind][0])
+            if target:
+                p.links.append({"node": step_id, "target": href(p.name, target)})
+            xa, xb, edge_y = centers[a], centers[b], yy+34
+            points = ((xa, edge_y), (xb, edge_y)) if a != b else (
+                (xa, edge_y), (xa+92, edge_y), (xa+92, edge_y+17), (xa, edge_y+17))
+            p.path(a, b, points, kind, bidirectional=both)
+        p.max_y = max(p.max_y, bottom)
+        return bottom
+
+    end = phase("prepared-reply", 560, "Готовый ответ уже опубликован",
+                "Этот путь начинается после подготовки ответа в BRAM.", [
+        ("read-request", "host", "pl_slave", "data", "Запросить чтение", None, False),
+        ("reply-address", "pl_slave", "memory", "mmio", "Адресовать подготовленный ответ", None, False),
+        ("reply-buffer", "memory", "pl_slave", "data", "Получить опубликованное значение", "overview/memory.svg#reply-buffer", False),
+        ("send-reply", "pl_slave", "host", "data", "Выдать ответ на внешнюю шину", None, False),
+    ])
+    end = phase("refresh", end+100, "Получить новое значение у устройства",
+                "Начало по запросу сервиса или по расписанию, если подсистема поддерживает опрос.", [
+        ("launch-read", "service", "pl_master", "mmio", "Запустить чтение через драйвер и L1", None, False),
+        ("device-read", "pl_master", "device", "data", "Выполнить обмен чтения", None, True),
+        ("store-result", "pl_master", "memory", "data", "Сохранить результат операции", "overview/memory.svg#result-buffer", False),
+        ("result-event", "pl_master", "service", "irq", "Сообщить о событии через L1, если IRQ подключён", None, False),
+        ("completion", "service", "pl_master", "mmio", "Проверить готовность и состояние", None, False),
+        ("result-buffer", "memory", "service", "data", "Прочитать новый результат", None, False),
+        ("confirm-result", "service", "pl_master", "mmio", "Подтвердить получение, если это требует ядро", None, False),
+        ("publish-reply", "service", "memory", "data", "При необходимости подготовить ответ в BRAM", "overview/cache.svg#service", False),
+    ])
+    end = phase("incoming-write", end+100, "Обработать внешнюю запись",
+                "Проверка политики предшествует запуску операции на ведомой шине.", [
+        ("write-request", "host", "pl_slave", "data", "Передать запрос записи", None, False),
+        ("request-buffer", "pl_slave", "memory", "data", "Сохранить входящий запрос", "overview/memory.svg#request-buffer", False),
+        ("request-event", "pl_slave", "service", "irq", "Сообщить о запросе через L1, если IRQ подключён", None, False),
+        ("take-request", "memory", "service", "data", "Прочитать входящий запрос", None, False),
+        ("confirm-request", "service", "pl_slave", "mmio", "Подтвердить приём запроса ядру, если это требуется", None, False),
+        ("check-policy", "service", "service", "call", "Проверить политику; при запрете остановить обработку", "overview/bridge.svg#policy", False),
+        ("launch-write", "service", "pl_master", "mmio", "При разрешении запустить запись через драйвер и L1", None, False),
+        ("device-write", "pl_master", "device", "data", "Передать значение устройству", None, False),
+        ("write-completion", "service", "pl_master", "mmio", "Проверить завершение и ошибки", None, False),
+        ("write-result", "service", "service", "call", "Обработать результат записи и обновить состояние кэша", "overview/cache.svg#operation", False),
+    ])
+    p.note(end+90, "IRQ сообщает о событии. При его отсутствии готовность обнаруживается опросом состояния.")
+    p.note(end+155, "Завершение записи и проверка фактического значения зависят от подсистемы. Работа с кэшем раскрыта на отдельной схеме.")
+
+
+def memory_overview_sheet(sources):
+    p = Page("overview/memory.svg", "Память подсистемы: области обмена",
+             "Кто записывает запрос, результат и ответ; когда программа может получить или опубликовать данные.",
+             sources)
+    p.frame("bridge", 420, 280, 1360, 1310, "BVSTK", layer=None,
+            target="overview/bridge.svg#bridge")
+    p.frame("driver", 500, 370, 1200, 455, "Драйвер подсистемы", "L3",
+            parent="bridge", target="overview/subsystems.svg#driver",
+            subtitle="Доступ к памяти и состоянию ядер через L1")
+    p.node("take-request", 540, 485, 330, 240, "Получить запрос",
+           "Проверить готовность\nПрочитать данные\nПодтвердить приём", "L3",
+           parent="driver", target="overview/exchange.svg#take-request")
+    p.node("publish", 980, 485, 280, 270, "Опубликовать ответ",
+           "Записать данные\nОбозначить готовность,\nесли это требует ядро", "L3",
+           parent="driver", target="overview/exchange.svg#publish-reply")
+    p.node("take-result", 1400, 485, 260, 285, "Получить результат",
+           "Проверить завершение\nПрочитать данные\nПодтвердить приём", "L3",
+           parent="driver", target="overview/exchange.svg#result-buffer")
+
+    p.frame("exchange-memory", 800, 1080, 620, 370, "BRAM",
+            parent="bridge", target="reference/memory-map.svg")
+    p.node("request-buffer", 830, 1160, 170, 210, "Запрос",
+           "Внешнее\nобращение", parent="exchange-memory",
            target="overview/exchange.svg#request-buffer")
-    p.node("result-buffer", 800, 840, 680, 190, "Результат операции",
-           "Данные, полученные ведущим ядром", parent="exchange-memory",
-           target="overview/exchange.svg#result-buffer")
-    p.node("reply-buffer", 800, 1155, 680, 210, "Подготовленный ответ",
-           "Данные для выдачи внешнему ведущему\nОбновляются программой PS", parent="exchange-memory",
+    p.node("reply-buffer", 1025, 1160, 170, 210, "Ответ",
+           "Внешнему\nведущему", parent="exchange-memory",
            target="overview/exchange.svg#reply-buffer")
-    p.node("pl_slave", 100, 530, 500, 220, "pl_slave",
-           "Записывает принятый запрос\nЧитает подготовленный ответ",
+    p.node("result-buffer", 1220, 1160, 170, 210, "Результат",
+           "Данные\nустройства", parent="exchange-memory",
+           target="overview/exchange.svg#result-buffer")
+    p.node("pl_slave", 480, 1160, 250, 210, "pl_slave",
+           "Приём запроса\nВыдача ответа", parent="bridge",
            target="overview/subsystems.svg#pl_slave")
-    p.node("pl_master", 100, 825, 500, 235, "pl_master",
-           "Передаёт принятые данные в память\nЗавершает ведущую операцию",
+    p.node("pl_master", 1500, 1160, 220, 210, "pl_master",
+           "Получение\nрезультата", parent="bridge",
            target="overview/subsystems.svg#pl_master")
-    p.frame("driver", 1650, 390, 500, 1040, "Драйвер подсистемы", "L3",
-            target="overview/subsystems.svg#driver")
-    p.node("take-request", 1690, 520, 420, 200, "Получить запрос",
-           "Считать содержимое буфера\nПередать сервису", "L3", parent="driver")
-    p.node("take-result", 1690, 845, 420, 180, "Получить результат",
-           "Считать данные завершённой операции", "L3", parent="driver")
-    p.node("publish", 1690, 1160, 420, 210, "Опубликовать ответ",
-           "Записать данные\nСообщить ядру о готовности", "L3", parent="driver")
-    p.edge("pl_slave", "request-buffer", "data", start="E", end="W", a_offset=-12.5)
-    p.edge("pl_master", "result-buffer", "data", start="E", end="W", a_offset=-7.5)
-    p.edge("request-buffer", "take-request", "data", start="E", end="W", b_offset=7.5)
-    p.edge("result-buffer", "take-result", "data")
-    p.edge("publish", "reply-buffer", "data", start="W", end="E", a_offset=-5)
-    p.edge("reply-buffer", "pl_slave", "data", start="W", end="E", b_offset=40,
-           via=((660, 1260), (660, 680)))
-    p.section(1565, "Готовность и подтверждение")
-    p.node("registers", 90, 1660, 600, 240, "Состояние pl_slave и pl_master",
-           "Готовность и состояние обмена\nОшибки и параметры результата\nПодтверждение приёма",
-           target="overview/subsystems.svg#registers")
-    p.node("confirmation", 920, 1660, 490, 240, "Проверка и подтверждение",
-           "Проверить готовность\nПолучить данные\nПодтвердить приём", "L3",
-           target="overview/exchange.svg#completion")
-    p.edge("driver", "confirmation", "call", start="S", end="N", a_offset=-100,
-           via=((1800, 1510), (1165, 1510)))
-    p.edge("confirmation", "registers", "mmio", "Через L1", start="W", end="E",
-           bidirectional=True)
-    p.section(2085, "Состояние в программе PS")
-    p.node("profile", 80, 2160, 600, 220, "Профиль подсистемы",
-           "Конфигурация и правила\nНачальные настройки", "L4",
-           target="overview/subsystems.svg#profile")
-    p.node("service", 1480, 2160, 650, 235, "Сервис подсистемы",
-           "Применяет настройки\nОбрабатывает данные драйвера\nГотовит ответы и обновляет кэш", "L3",
-           target="overview/subsystems.svg#services")
-    p.node("cache", 800, 2520, 650, 240, "Программный кэш",
-           "Значение, достоверность и источник\nВремя обновления\nХранится в памяти PS", "L3",
-           target="overview/subsystems.svg#cache")
-    p.edge("profile", "service", "data", "Конфигурация", start="E", end="W", b_offset=-7.5)
-    p.edge("driver", "service", "data", "Запросы и результаты", start="S", end="N",
-           a_offset=50, via=((1950, 2010), (1805, 2010)), label_xy=(1970, 1980))
-    p.edge("service", "cache", "data", "Чтение и обновление", start="S", end="N",
-           via=((1805, 2450), (1125, 2450)), bidirectional=True, label_xy=(1470, 2428))
-    p.edge("service", "publish", "data", "Публикация", start="N", end="E",
-           a_offset=180, b_offset=50,
-           via=((1985, 2050), (2180, 2050), (2180, 1315)), label_xy=(2090, 1550))
-    p.note(2870, "Программа обращается к аппаратной памяти через L1. Для потоковых ядер перенос данных может выполнять DMA.")
-    p.note(2930, "Число буферов, формат данных и порядок подтверждения задаются реализацией. На схеме показано назначение областей, без фиксированных адресов.")
-    p.note(2990, "Профиль задаёт настройки сервиса. Кэш и подготовленный ответ обновляются отдельными действиями; публикация переносит данные в аппаратный буфер.")
+    p.node("host", 60, 1160, 300, 210, "Внешний\nведущий",
+           "Передаёт запрос\nПолучает ответ", "L0", target="overview/bridge.svg#host")
+    p.node("device", 1840, 1160, 300, 210, "Внешнее ведомое\nустройство",
+           "Участвует в обмене", "L0", target="overview/bridge.svg#device")
+
+    p.edge("pl_slave", "request-buffer", "data", start="E", end="W")
+    p.edge("pl_master", "result-buffer", "data", start="W", end="E")
+    p.edge("request-buffer", "take-request", "data", "Принятые данные", start="N", end="S",
+           a_offset=60, via=((975, 890), (705, 890)), label_xy=(827, 870))
+    p.edge("publish", "reply-buffer", "data", "Подготовленный\nответ", start="S", end="N",
+           a_offset=-10, label_xy=(1215, 985))
+    p.edge("result-buffer", "take-result", "data", "Новый результат", start="N", end="S",
+           via=((1305, 910), (1530, 910)), label_xy=(1420, 886))
+    p.edge("reply-buffer", "pl_slave", "data", "Ответ ведущему", start="S", end="E",
+           b_offset=70, via=((1110, 1520), (770, 1520), (770, 1335)),
+           label_xy=(954, 1500))
+
+    bridge_bus(p, "host-bus", 110, 730, ("host", "pl_slave"), "Шина ведущего", y=1730)
+    bridge_bus(p, "device-bus", 1470, 2100, ("pl_master", "device"), "Шина ведомого", y=1730)
+    p.note(1865, "Названия обозначают назначение областей. Их число, размер и способ размещения определяет реализация.")
+    p.note(1930, "Готовность и подтверждение могут храниться в регистрах ядра или в памяти. Конкретный порядок задаёт драйвер.")
 
 
 def memory_map_sheet():
@@ -1550,9 +1621,10 @@ def ps_remaining_sheets():
 SECTIONS = [
     ("Общее устройство", [
         ("overview/bridge.svg", "Участки шины, BRAM и передача либо остановка транзакции"),
-        ("overview/subsystems.svg", "Общие роли pl_slave и pl_master, драйвер и сервис"),
-        ("overview/exchange.svg", "Ведущая операция PS и обработка внешнего запроса"),
-        ("overview/memory.svg", "Память обмена, готовность, профиль и программный кэш"),
+        ("overview/cache.svg", "Обновление кэша, обработка записи и подготовка ответа в BRAM"),
+        ("overview/subsystems.svg", "Ответственность сервиса, драйвера, платформы и аппаратных ядер"),
+        ("overview/exchange.svg", "Готовый ответ, получение нового значения и обработка записи"),
+        ("overview/memory.svg", "Области запросов, результатов и ответов, их читатели и писатели"),
     ]),
     ("I²C", [
         ("i2c/subsystem.svg", "Аппаратный состав и программный мост"),
@@ -1647,7 +1719,10 @@ def write_readme():
         "# Подсистемы PL\n",
         "Начните со [схемы моста](overview/bridge.svg): внешний ведущий, "
         "BVSTK, ведомое устройство, промежуточная BRAM и политика транзакций. "
-        "Затем рассмотрите общие роли, память и состав конкретной шины. "
+        "На [схеме кэша](overview/cache.svg) та же структура показывает "
+        "обновление значений и подготовку ответов. "
+        "Затем рассмотрите состав подсистемы, порядок операций и области обмена. "
+        "После общего устройства переходите к конкретным шинам и ядрам. "
         "Сценарии PS связывают аппаратуру с профилями устройств, "
         "политикой, кэшем и пользовательскими входами.\n",
         "В `overview` показана функциональная модель без привязки к шине. "
@@ -1718,6 +1793,7 @@ def write_readme():
 
 def main():
     bridge_overview_sheet()
+    cache_overview_sheet()
     overview_sheets()
     memory_map_sheet()
     bridge_subsystems()

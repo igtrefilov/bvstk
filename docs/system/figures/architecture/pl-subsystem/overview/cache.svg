@@ -1,0 +1,312 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 1845" role="img" aria-labelledby="title desc" height="1845">
+  <title id="title">BVSTK: кэш и подготовка ответов</title>
+  <desc id="desc">Сервис обновляет значения в PS и готовит в BRAM ответы для внешнего ведущего.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="1845" fill="white" />
+  <g id="backgrounds">
+    <rect x="420" y="280" width="1360" height="935" rx="16" fill="white" />
+    <rect x="500" y="370" width="1200" height="450" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="operation" data-to="cache" data-interaction="data" data-direction="forward">
+      <path d="M1280,590 L1070,590" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1280,590 L1070,590" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="pl_slave" data-to="bram" data-interaction="data" data-direction="forward">
+      <path d="M790,1025 L935,1025" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M790,1025 L935,1025" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="bram" data-to="pl_slave" data-interaction="data" data-direction="forward">
+      <path d="M935,1100 L790,1100" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M935,1100 L790,1100" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="pl_master" data-to="bram" data-interaction="data" data-direction="forward">
+      <path d="M1430,1062.5 L1265,1062.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1430,1062.5 L1265,1062.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cache" data-to="bram" data-interaction="data" data-direction="forward">
+      <path d="M975,720 L975,970" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M975,720 L975,970" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="bram" data-to="operation" data-interaction="data" data-direction="forward">
+      <path d="M1200,970 L1200,715 L1280,715" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1200,970 L1200,715 L1280,715" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="operation" data-to="pl_master" data-interaction="mmio" data-direction="forward">
+      <path d="M1565,760 L1565,970" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1565,760 L1565,970" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g id="host-bus" data-kind="bus" data-layer="L0" data-members="host pl_slave" data-label="Шина ведущего">
+      <title>Шина ведущего</title>
+      <path d="M110,1355 H730" fill="none" stroke="#607487" stroke-width="5" stroke-linecap="round" />
+      <path d="M210.0,1155 V1355" fill="none" stroke="#607487" stroke-width="3" />
+      <circle cx="210.0" cy="1355" r="5" fill="#607487" />
+      <path d="M645.0,1155 V1355" fill="none" stroke="#607487" stroke-width="3" />
+      <circle cx="645.0" cy="1355" r="5" fill="#607487" />
+    </g>
+    <g id="device-bus" data-kind="bus" data-layer="L0" data-members="pl_master device" data-label="Шина ведомого">
+      <title>Шина ведомого</title>
+      <path d="M1470,1355 H2100" fill="none" stroke="#607487" stroke-width="5" stroke-linecap="round" />
+      <path d="M1565.0,1155 V1355" fill="none" stroke="#607487" stroke-width="3" />
+      <circle cx="1565.0" cy="1355" r="5" fill="#607487" />
+      <path d="M1990.0,1155 V1355" fill="none" stroke="#607487" stroke-width="3" />
+      <circle cx="1990.0" cy="1355" r="5" fill="#607487" />
+    </g>
+    <g data-kind="interaction" data-from="pl_slave" data-to="host" data-interaction="data" data-direction="forward">
+      <path d="M585,1308 L270,1308" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M585,1308 L270,1308" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="device" data-to="pl_master" data-interaction="data" data-direction="forward">
+      <path d="M1930,1308 L1625,1308" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1930,1308 L1625,1308" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="bridge" data-kind="system-boundary" data-label="BVSTK" data-ownership="common">
+      <rect x="420" y="280" width="1360" height="935" rx="16" fill="none" stroke="#233747" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="bridge.svg#bridge">
+        <text x="446" y="317.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">BVSTK</text>
+        <text x="1756" y="316.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#233747">↗</text>
+      </a>
+      <g id="service" data-kind="functional-group" data-label="Сервис и кэш в PS" data-layer="L3" data-ownership="common">
+        <rect x="500" y="370" width="1200" height="450" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+        <a data-navigation="detail" xlink:href="subsystems.svg#services">
+          <text x="526" y="407.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Сервис и кэш в PS</text>
+          <text x="1676" y="406.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
+        </a>
+        <g id="cache" data-kind="component" data-layer="L3" data-label="Кэш значений" data-ownership="common" data-parent="service" data-target="../ps-interaction/cache.svg#cache">
+          <rect x="540" y="485" width="530" height="235" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+          <a data-navigation="detail" xlink:href="../ps-interaction/cache.svg#cache">
+            <text x="560" y="509.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+            <text x="1052" y="510.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
+            <text x="560" y="543.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Кэш значений</text>
+          </a>
+          <text x="560" y="582.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Последнее полученное значение</text>
+          <text x="560" y="608.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Достоверность</text>
+          <text x="560" y="634.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Источник и время обновления</text>
+        </g>
+        <g id="operation" data-kind="component" data-layer="L3" data-label="Обработка операций" data-ownership="common" data-parent="service" data-target="exchange.svg#service">
+          <rect x="1280" y="485" width="380" height="275" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+          <a data-navigation="detail" xlink:href="exchange.svg#service">
+            <text x="1300" y="509.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+            <text x="1642" y="510.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
+            <text x="1300" y="543.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Обработка операций</text>
+          </a>
+          <text x="1300" y="582.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Чтение: сохранить результат</text>
+          <text x="1300" y="608.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Запись: обновить по</text>
+          <text x="1300" y="634.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">результату</text>
+          <text x="1300" y="660.78" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ошибка: снять достоверность</text>
+        </g>
+      </g>
+      <g id="pl_slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_slave" data-ownership="common" data-parent="bridge" data-target="bridge.svg#pl_slave">
+        <rect x="500" y="970" width="290" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="bridge.svg#pl_slave">
+          <text x="520" y="994.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="772" y="995.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="520" y="1028.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_slave</text>
+        </a>
+        <text x="520" y="1067.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Приём запроса</text>
+        <text x="520" y="1093.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выдача ответа</text>
+      </g>
+      <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM" data-ownership="common" data-parent="bridge" data-target="memory.svg#exchange-memory">
+        <rect x="935" y="970" width="330" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="memory.svg#exchange-memory">
+          <text x="955" y="994.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1247" y="995.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="955" y="1028.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM</text>
+        </a>
+        <text x="955" y="1067.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Области обмена</text>
+        <text x="955" y="1093.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подготовленные ответы</text>
+      </g>
+      <g id="pl_master" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_master" data-ownership="common" data-parent="bridge" data-target="bridge.svg#pl_master">
+        <rect x="1430" y="970" width="270" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="bridge.svg#pl_master">
+          <text x="1450" y="994.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1682" y="995.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
+          <text x="1450" y="1028.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_master</text>
+        </a>
+        <text x="1450" y="1067.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Чтение и запись</text>
+        <text x="1450" y="1093.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">на внешней шине</text>
+      </g>
+    </g>
+    <g id="host" data-kind="component" data-layer="L0" data-label="Внешний&#10;ведущий" data-ownership="common" data-target="bridge.svg#host">
+      <rect x="60" y="970" width="300" height="185" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="bridge.svg#host">
+        <text x="80" y="994.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="342" y="995.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#607487">↗</text>
+        <text x="80" y="1028.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
+        <text x="80" y="1061.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
+      </a>
+      <text x="80" y="1100.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Читает и изменяет</text>
+      <text x="80" y="1126.46" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">данные</text>
+    </g>
+    <g id="device" data-kind="component" data-layer="L0" data-label="Внешнее ведомое&#10;устройство" data-ownership="common" data-target="bridge.svg#device">
+      <rect x="1840" y="970" width="300" height="185" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="bridge.svg#device">
+        <text x="1860" y="994.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="2122" y="995.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#607487">↗</text>
+        <text x="1860" y="1028.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее ведомое</text>
+        <text x="1860" y="1061.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">устройство</text>
+      </a>
+      <text x="1860" y="1100.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Хранит фактическое</text>
+      <text x="1860" y="1126.46" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">состояние</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">BVSTK: кэш и подготовка ответов</text>
+    <a data-navigation="sheet" xlink:href="../README.md">
+      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="bridge.svg">
+      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="cache.svg">
+      <rect x="364" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="408.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Кэш</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="subsystems.svg">
+      <rect x="468" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="530.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="exchange.svg">
+      <rect x="608" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="664.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="memory.svg">
+      <rect x="736" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="798.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
+    </a>
+    <a data-navigation="sheet" xlink:href="../../levels.svg">
+      <rect x="876" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
+      <text x="932.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
+    </a>
+    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Сервис обновляет значения в PS и готовит в BRAM ответы для внешнего ведущего.</text>
+    <text x="1175" y="539.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Значение</text>
+    <text x="1175" y="563.84" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">и состояние</text>
+    <text x="862.5" y="1006.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запрос</text>
+    <text x="862.5" y="1132.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Ответ</text>
+    <text x="1347.5" y="1045.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Результат</text>
+    <text x="871" y="864.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Подготовить</text>
+    <text x="871" y="888.84" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">ответ</text>
+    <text x="1310" y="864.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запрос</text>
+    <text x="1310" y="888.84" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">или результат</text>
+    <text x="1658" y="864.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">Чтение</text>
+    <text x="1658" y="888.84" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">или запись</text>
+    <text x="420.0" y="1410.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Шина ведущего</text>
+    <text x="1785.0" y="1410.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Шина ведомого</text>
+    <g id="value-reply" data-kind="transaction" data-transaction="V" data-state="forwarded">
+      <title>Значение V</title>
+      <polygon points="466,1279 395,1279 374,1308 395,1337 466,1337" fill="white" stroke="#3f75ad" stroke-width="2.5" stroke-linejoin="round" />
+      <text x="424" y="1317.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#3f75ad">V</text>
+    </g>
+    <g id="value-read" data-kind="transaction" data-transaction="V" data-state="forwarded">
+      <title>Значение V</title>
+      <polygon points="1826,1279 1755,1279 1734,1308 1755,1337 1826,1337" fill="white" stroke="#3f75ad" stroke-width="2.5" stroke-linejoin="round" />
+      <text x="1784" y="1317.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#3f75ad">V</text>
+    </g>
+    <text x="420" y="1260.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Подготовленное значение</text>
+    <text x="1780" y="1260.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Прочитанное значение</text>
+    <text x="60" y="1490.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">V — значение. Ответ ведущему отражает последнюю публикацию в BRAM; изменения устройства становятся видны после обновления.</text>
+    <text x="60" y="1555.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Опрос по расписанию и перечитывание после записи зависят от подсистемы. Начальные значения могут задаваться профилем.</text>
+    <text x="60" y="1620.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">При ошибке запись кэша становится недостоверной. Дальнейшее поведение на шине определяется подсистемой.</text>
+    <path d="M60,1699.6 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="142" y="1705.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M366,1699.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="448" y="1705.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1736.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1755.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1736.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1755.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="1736.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1755.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1802.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/services/i2c/bvstk_i2c_cache.c",
+    "src/services/i2c/bvstk_i2c_master_service.c",
+    "src/services/i2c/bvstk_i2c_slave_service.c",
+    "src/services/mdio/bvstk_mdio_service.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "bridge",
+      "target": "bridge.svg#bridge"
+    },
+    {
+      "node": "service",
+      "target": "subsystems.svg#services"
+    },
+    {
+      "node": "cache",
+      "target": "../ps-interaction/cache.svg#cache"
+    },
+    {
+      "node": "operation",
+      "target": "exchange.svg#service"
+    },
+    {
+      "node": "host",
+      "target": "bridge.svg#host"
+    },
+    {
+      "node": "pl_slave",
+      "target": "bridge.svg#pl_slave"
+    },
+    {
+      "node": "bram",
+      "target": "memory.svg#exchange-memory"
+    },
+    {
+      "node": "pl_master",
+      "target": "bridge.svg#pl_master"
+    },
+    {
+      "node": "device",
+      "target": "bridge.svg#device"
+    }
+  ]
+}</metadata>
+</svg>

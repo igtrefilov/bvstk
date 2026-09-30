@@ -65,12 +65,15 @@ Chromium; путь к браузеру при нестандартной уст�
 [pl-subsystem](system/figures/architecture/pl-subsystem/README.md)
 раскрывает устройство PL и взаимодействие с программой PS.
 Оглавление и порядок чтения находятся в README.
-В комплекте 22 предметных листа:
+В комплекте 23 предметных листа:
 
 | Раздел | Содержание |
 |---|---|
 | [BVSTK как мост](system/figures/architecture/pl-subsystem/overview/bridge.svg) | Два участка шины, промежуточная BRAM, передача или остановка транзакции по решению политики |
-| [Общее устройство](system/figures/architecture/pl-subsystem/overview/subsystems.svg) | Абстрактные pl_slave и pl_master, операции, память и состояние сервиса |
+| [Кэш и подготовка ответов](system/figures/architecture/pl-subsystem/overview/cache.svg) | Обновление значений, обработка записи, достоверность и публикация в BRAM |
+| [Состав подсистемы](system/figures/architecture/pl-subsystem/overview/subsystems.svg) | Ответственность сервиса, драйвера, платформы и аппаратных ядер |
+| [Порядок операций](system/figures/architecture/pl-subsystem/overview/exchange.svg) | Готовый ответ, получение нового значения и обработка записи |
+| [Области обмена](system/figures/architecture/pl-subsystem/overview/memory.svg) | Кто записывает и читает данные, как определяется готовность |
 | [I²C](system/figures/architecture/pl-subsystem/i2c/subsystem.svg) | Подсистема, ведущий и ведомый контроллеры |
 | [MDIO](system/figures/architecture/pl-subsystem/mdio/subsystem.svg) | Кадр Clause 22, последние записи и подготовленные ответы |
 | [SPI и SD](system/figures/architecture/pl-subsystem/spi/subsystem.svg) | Потоки, DMA, оба ядра SPI и чтение блока SD |
