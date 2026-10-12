@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2612" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="2612">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 217 2200 2123" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="2123">
   <title id="title">I²C: устройство транзакции</title>
   <desc id="desc">L0. Адрес, данные и подтверждения.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2612" fill="white" />
+  <rect width="2200" height="2340" fill="white" />
   <g id="backgrounds">
     <rect x="1804" y="1290" width="193" height="275" fill="#e9eef3" />
   </g>
@@ -130,15 +130,10 @@ g:target &gt; rect { stroke-width: 5; }
     <rect x="1081" y="1970" width="120" height="100" rx="4" fill="white" stroke="#3f75ad" stroke-width="2" />
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C: устройство транзакции</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. Адрес, данные и подтверждения.</tspan></text>
     <g id="format" data-kind="protocol-section" data-layer="L0">
-      <rect x="60" y="251" width="2080" height="86" fill="none" stroke="#607487" stroke-width="0" />
+      <rect x="60" y="251" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
       <text x="60" y="285.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">От START до STOP</text>
-      <text x="60" y="325.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт вправо. Под полями — кто задаёт SDA.</text>
     </g>
-    <text x="100" y="585.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#233747">S и P — условия на линиях. Адрес и направление — один байт. После каждого байта — такт подтверждения.</text>
     <g id="conditions" data-kind="protocol-section" data-layer="L0">
       <rect x="60" y="666" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
       <text x="60" y="700.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">START и STOP формирует ведущий</text>
@@ -152,9 +147,8 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="1285" y="981.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#3f75ad">SDA</text>
     <text x="1315" y="1070.0" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">SDA: 0 → 1 при SCL = 1</text>
     <g id="byte" data-kind="protocol-section" data-layer="L0">
-      <rect x="60" y="1166" width="2080" height="86" fill="none" stroke="#607487" stroke-width="0" />
+      <rect x="60" y="1166" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
       <text x="60" y="1200.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Восемь бит и подтверждение</text>
-      <text x="60" y="1240.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Пример: 0x54 → ACK.</text>
     </g>
     <text x="352" y="1318.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">D7</text>
     <text x="352" y="1580.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
@@ -178,8 +172,6 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="230" y="1501.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#3f75ad">SDA</text>
     <text x="1026.0" y="1644.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#607487">1–8: передатчик, старший бит первым</text>
     <text x="1903.5" y="1644.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#607487">9: получатель</text>
-    <text x="60" y="1720.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">9-й такт: передатчик отпускает SDA. Ответ получателя: 0 — ACK, 1 — NACK.</text>
-    <text x="60" y="1775.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Все такты формирует ведущий. При чтении он же подтверждает данные.</text>
     <g id="address" data-kind="protocol-section" data-layer="L0">
       <rect x="60" y="1866" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
       <text x="60" y="1900.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Первый байт: 7-битный адрес и направление</text>
@@ -205,19 +197,9 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="1310" y="2011.74" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">R = 1: ведомый → ведущий</text>
     <text x="1310" y="2100.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Адрес 0x2A:</text>
     <text x="1310" y="2131.74" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">W → 0x54, R → 0x55</text>
-    <text x="60" y="2220.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Первый байт: 7 бит адреса + 1 бит направления.</text>
-    <a data-navigation="detail" xlink:href="https://www.nxp.com/docs/en/user-guide/UM10204.pdf">
-      <text x="60" y="2320.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">NXP UM10204: раздел 3.1</text>
-    </a>
-    <a data-navigation="detail" xlink:href="https://www.ti.com/lit/an/slva704/slva704.pdf">
-      <text x="655" y="2320.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">TI: Understanding the I²C Bus</text>
-    </a>
-    <a data-navigation="detail" xlink:href="transfers.svg">
-      <text x="60" y="2384.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Далее: запись и чтение целиком</text>
-    </a>
-    <rect x="60" y="2503" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2522.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <text x="60" y="2569.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan> — физический интерфейс. Синие поля — биты на шине.</tspan></text>
+    <rect x="60" y="2231.0" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2250.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="2297.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan> — физический интерфейс. Синие поля — биты на шине.</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -229,19 +211,14 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "frame-1",
       "target": "transaction.svg#address"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "https://www.nxp.com/docs/en/user-guide/UM10204.pdf"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "https://www.ti.com/lit/an/slva704/slva704.pdf"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "transfers.svg"
     }
+  ],
+  "article_notes": [
+    "Время идёт вправо. Под полями — кто задаёт SDA.",
+    "Пример: 0x54 → ACK.",
+    "9-й такт: передатчик отпускает SDA. Ответ получателя: 0 — ACK, 1 — NACK.",
+    "Все такты формирует ведущий. При чтении он же подтверждает данные.",
+    "Первый байт: 7 бит адреса + 1 бит направления."
   ]
 }</metadata>
 </svg>

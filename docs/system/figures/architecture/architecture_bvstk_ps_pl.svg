@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="5004" viewBox="0 0 2800 5004" role="img" aria-labelledby="title desc" id="bvstk-ps-pl-architecture" data-pl-original-height="4810">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="4615" viewBox="0 169 2800 4615" role="img" aria-labelledby="title desc" id="bvstk-ps-pl-architecture">
   <title id="title">BVSTK. L0. Взаимодействие PS и PL</title>
   <desc id="desc">Аппаратная детализация схемы L0–L1 по Burevestnik_21.tcl. Все аппаратные блоки общие для сборок FreeRTOS и Нейтрино. Серый цвет обозначает PS уровня L0, фиолетовый — PL внутри L0. Имена шлюзов совпадают с L0–L1; заголовки открывают соответствующие блоки.
 Процессор инициирует доступ к регистрам через M_AXI_GP0 и axi_interconnect_2. Коричневые стрелки показывают направление обращения, ответы чтения отдельно не проведены. Синие двусторонние линии обозначают чтение и запись данных. Справа продолжается адресный путь PS к локальной BRAM через тот же interconnect; слева — обращения к регистрам. Точки обозначают ответвления общей линии.
@@ -57,9 +57,6 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
     </marker>
   </defs>
   <rect id="page" x="0" y="0" width="2800" height="4810" fill="white" />
-  <text id="pspl-text-1" x="60" y="47" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487" data-max-width="600">BVSTK</text>
-  <text id="pspl-text-2" x="60" y="98" font-size="40" font-weight="700" text-anchor="start" style="fill:#233747" data-max-width="1850">L0. Взаимодействие PS и PL</text>
-  <text id="pspl-text-3" x="60" y="140" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b" data-max-width="2600">Аппаратное продолжение L0–L1. Управление, буферы, DMA и прерывания.</text>
   <g id="hardware-paths" data-layer="L0" data-ownership="common">
     <g id="ps-axi" data-kind="functional-group" data-layer="L0" data-hardware-domain="PS" data-ownership="common" data-label="PS и AXI к PL" data-entity="architecture_bvstk_ps_pl.svg#ps-axi" data-entity-ownership="common" data-representation="definition" data-target="architecture_bvstk_l0_l1.svg#h-mmio-group">
       <title>PS и AXI к PL</title>
@@ -875,10 +872,7 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
   <text id="pspl-text-180" x="127" y="4652" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b" data-max-width="470">L0. Аппаратура PS</text>
   <rect x="620" y="4630" width="48" height="30" rx="5" fill="#e6dcf5" stroke="#8760ba" />
   <text id="pspl-text-181" x="687" y="4652" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b" data-max-width="470">PL внутри L0</text>
-  <text id="pspl-text-182" x="1190" y="4652" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b" data-max-width="1430">Аппаратура общая для обеих ОС.</text>
-  <text id="pspl-text-183" x="60" y="4707" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" data-max-width="2680">Одноимённые блоки продолжают путь на соседней схеме. Названия источников IRQ возвращают к модулям выше.</text>
   <text id="pspl-text-184" x="60" y="4740" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" data-max-width="2680">Коричневая стрелка направлена от инициатора. Две синие стрелки обозначают чтение и запись. Точка — ответвление.</text>
-  <text id="pspl-text-185" x="60" y="4773" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" data-max-width="2680">Здесь показаны аппаратные соединения. Использование портами ОС раскрыто на L0–L1.</text>
   <metadata id="cross-sheet-links">[
   {
     "block": "ps-axi",
@@ -949,64 +943,4 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
     "relation": "overview"
   }
 ]</metadata>
-  <a id="overview-return-ps-axi" data-navigation="overview" data-ref-node="ps-axi" xlink:href="architecture_bvstk_os.svg#hardware" aria-label="Открыть раздел «L0. Аппаратура» в обзоре ОС">
-    <text x="2728.0" y="225.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-pl-dma" data-navigation="overview" data-ref-node="pl-dma" xlink:href="architecture_bvstk_os.svg#hardware" aria-label="Открыть раздел «L0. Аппаратура» в обзоре ОС">
-    <text x="2618.0" y="1645.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <g id="series-navigation" data-kind="navigation">
-    <a data-navigation="sheet" xlink:href="levels.svg">
-      <rect x="2000.0" y="64" width="124" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2062.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">Уровни</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_os.svg">
-      <rect x="2140.0" y="64" width="84" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2182.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">ОС</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l4.svg">
-      <rect x="2240.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#3f75ad" stroke-width="1" />
-      <text x="2280.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#3f75ad">L4</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l3.svg">
-      <rect x="2336.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#287f73" stroke-width="1" />
-      <text x="2376.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#287f73">L3</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l1.svg">
-      <rect x="2432.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#b56b1d" stroke-width="1" />
-      <text x="2472.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#b56b1d">L1</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l0_l1.svg">
-      <rect x="2528.0" y="64" width="116" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2586.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0–L1</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
-      <rect x="2660.0" y="64" width="80" height="46" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-      <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
-    </a>
-  </g>
-  <g id="pl-subsystem-navigation" data-kind="navigation">
-    <rect x="0" y="4810.0" width="2800.0" height="194.0" fill="white" />
-    <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="4850.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/i2c/cores/master/structure.svg#core">
-      <text x="60.0" y="4902.0" font-size="20" style="fill:#3f75ad">I2C_master_0</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/i2c/cores/slave/structure.svg#core">
-      <text x="953.3333333333334" y="4902.0" font-size="20" style="fill:#3f75ad">I2C_slave_0</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/mdio/master.svg#core">
-      <text x="1846.6666666666667" y="4902.0" font-size="20" style="fill:#3f75ad">SMI_master_0</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/mdio/slave.svg#core">
-      <text x="60.0" y="4954.0" font-size="20" style="fill:#3f75ad">SMI_slave_0</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/spi/master.svg#core">
-      <text x="953.3333333333334" y="4954.0" font-size="20" style="fill:#3f75ad">SPI_master_0</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/spi/slave.svg#core">
-      <text x="1846.6666666666667" y="4954.0" font-size="20" style="fill:#3f75ad">SPI_Slave_0</text>
-    </a>
-  </g>
 </svg>

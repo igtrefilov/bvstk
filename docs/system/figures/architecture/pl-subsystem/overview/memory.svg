@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2155" role="img" aria-labelledby="title desc" height="2155">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 240 2200 1749" role="img" aria-labelledby="title desc" height="1749">
   <title id="title">Память подсистемы: области обмена</title>
   <desc id="desc">Кто записывает запрос, результат и ответ; когда программа может получить или опубликовать данные.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2155" fill="white" />
+  <rect width="2200" height="1989" fill="white" />
   <g id="backgrounds">
     <rect x="420" y="280" width="1360" height="1310" rx="16" fill="white" />
     <rect x="500" y="370" width="1200" height="455" rx="16" fill="white" />
@@ -208,9 +208,6 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">Память подсистемы: области обмена</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Кто записывает запрос, результат и ответ; когда программа может получить или опубликовать данные.</text>
     <text x="827" y="870.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Принятые данные</text>
     <text x="1215" y="985.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Подготовленный</text>
     <text x="1215" y="1009.84" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">ответ</text>
@@ -218,17 +215,15 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="954" y="1500.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Ответ ведущему</text>
     <text x="420.0" y="1785.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Шина ведущего</text>
     <text x="1785.0" y="1785.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Шина ведомого</text>
-    <text x="60" y="1865.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Названия обозначают назначение областей. Их число, размер и способ размещения определяет реализация.</text>
-    <text x="60" y="1930.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Готовность и подтверждение могут храниться в регистрах ядра или в памяти. Конкретный порядок задаёт драйвер.</text>
-    <path d="M60,2009.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="142" y="2015.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="2046.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2065.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2046.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2065.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="2046.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="2065.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2112.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,1843.0 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="1849.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1880.0" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1899.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1880.0" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1899.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="1880.0" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1899.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1946.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -292,6 +287,10 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "device",
       "target": "bridge.svg#device"
     }
+  ],
+  "article_notes": [
+    "Названия обозначают назначение областей. Их число, размер и способ размещения определяет реализация.",
+    "Готовность и подтверждение могут храниться в регистрах ядра или в памяти. Конкретный порядок задаёт драйвер."
   ]
 }</metadata>
 </svg>

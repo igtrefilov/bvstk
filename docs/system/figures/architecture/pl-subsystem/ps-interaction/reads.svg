@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2685" role="img" aria-labelledby="title desc" height="2685">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 230 2200 2293" role="img" aria-labelledby="title desc" height="2293">
   <title id="title">Внешнее чтение: откуда появляется ответ</title>
   <desc id="desc">MDIO использует подготовленные значения; I²C может запросить заполнение окна у программы PS.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2685" fill="white" />
+  <rect width="2200" height="2523" fill="white" />
   <g id="backgrounds">
     <rect x="60" y="270" width="2080" height="600" rx="16" fill="white" />
   </g>
@@ -50,8 +50,8 @@ g:target &gt; rect { stroke-width: 5; }
       <path d="M580,482.5 L865,482.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
     </g>
     <g data-kind="interaction" data-from="m-slave" data-to="m-memory" data-interaction="mmio" data-direction="forward">
-      <path d="M1335,482.5 L1477.5,482.5 L1477.5,497.5 L1620,497.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1335,482.5 L1477.5,482.5 L1477.5,497.5 L1620,497.5" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+      <path d="M1335,497.5 L1620,497.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1335,497.5 L1620,497.5" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
     </g>
     <g data-kind="interaction" data-from="m-memory" data-to="m-slave" data-interaction="data" data-direction="forward">
       <path d="M1775,595 L1775,735 L1180,735 L1180,565" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
@@ -77,13 +77,21 @@ g:target &gt; rect { stroke-width: 5; }
       <path d="M1855,1575 L1855,1750" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
       <path d="M1855,1575 L1855,1750" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="i-service" data-to="i-cache" data-interaction="call" data-direction="forward">
-      <path d="M1600,1852.5 L1360,1852.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1600,1852.5 L1360,1852.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    <g data-kind="interaction" data-from="i-service" data-to="i-cache" data-interaction="data" data-direction="forward">
+      <path d="M1600,1797.5 L1360,1797.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1600,1797.5 L1360,1797.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
     </g>
     <g data-kind="interaction" data-from="i-cache" data-to="i-memory" data-interaction="data" data-direction="forward">
       <path d="M850,1852.5 L600,1852.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
       <path d="M850,1852.5 L600,1852.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="i-service" data-to="i-master" data-interaction="call" data-direction="forward">
+      <path d="M1855,1955 L1855,2120" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1855,1955 L1855,2120" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="i-master" data-to="i-cache" data-interaction="data" data-direction="forward">
+      <path d="M1600,2222.5 L1470,2222.5 L1470,1907.5 L1360,1907.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1600,2222.5 L1470,2222.5 L1470,1907.5 L1360,1907.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
     </g>
     <g data-kind="interaction" data-from="i-memory" data-to="i-send" data-interaction="data" data-direction="forward">
       <path d="M355,1955 L355,2120" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
@@ -161,16 +169,14 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="1620" y="1808.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave_service</text>
       </a>
       <text x="1620" y="1847.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Указатель регистра</text>
-      <text x="1620" y="1873.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Заполнение окна через ведущий сервис</text>
+      <text x="1620" y="1873.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Проверка достоверности кэша</text>
     </g>
-    <g id="i-cache" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-target="../i2c/cores/master/repeated-start.svg#master-service">
+    <g id="i-cache" data-kind="component" data-layer="L3" data-label="Окно ответа" data-ownership="common">
       <rect x="850" y="1750" width="510" height="205" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../i2c/cores/master/repeated-start.svg#master-service">
-        <text x="870" y="1774.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="870" y="1808.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master_service</text>
-      </a>
-      <text x="870" y="1847.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Достоверное значение</text>
-      <text x="870" y="1873.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">При необходимости — физическое чтение</text>
+      <text x="870" y="1774.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="870" y="1808.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Окно ответа</text>
+      <text x="870" y="1847.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Байты из кэша</text>
+      <text x="870" y="1873.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">или полученный байт устройства</text>
     </g>
     <g id="i-memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM I²C" data-ownership="common" data-target="../reference/memory-map.svg#i2c-bank">
       <rect x="110" y="1750" width="490" height="205" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -195,13 +201,18 @@ g:target &gt; rect { stroke-width: 5; }
       <text x="870" y="2178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий</text>
       <text x="870" y="2217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Получает байты по SDA</text>
     </g>
+    <g id="i-master" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-target="../i2c/cores/master/repeated-start.svg#master-service">
+      <rect x="1600" y="2120" width="510" height="205" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../i2c/cores/master/repeated-start.svg#master-service">
+        <text x="1620" y="2144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1620" y="2178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master_service</text>
+      </a>
+      <text x="1620" y="2217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Прочитать один регистр</text>
+    </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее чтение: откуда появляется ответ</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">MDIO использует подготовленные значения; I²C может запросить заполнение окна у программы PS.</text>
     <text x="722.5" y="468.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">1. Запрос</text>
-    <text x="1477.5" y="476.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">2. Адрес ячейки</text>
+    <text x="1477.5" y="483.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">2. Адрес ячейки</text>
     <text x="1490" y="718.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">3. Значение</text>
     <text x="720" y="748.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">4. Ответ</text>
     <text x="2020" y="950.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Публикация</text>
@@ -209,29 +220,28 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="725.0" y="1478.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">1. Запрос</text>
     <text x="1480.0" y="1478.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">2. RD_REQUEST</text>
     <text x="1855.0" y="1648.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">3. Обработка</text>
-    <text x="1480.0" y="1838.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">4. Получить значения</text>
+    <text x="1480.0" y="1783.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">4. Из кэша</text>
     <text x="725.0" y="1838.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">5. Подготовить окно</text>
+    <text x="1855.0" y="2023.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Нет первого байта</text>
     <text x="355.0" y="2023.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">6. Данные</text>
     <text x="725.0" y="2188.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">7. Ответ</text>
-    <text x="60" y="2400.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Для I²C предварительно установленный указатель регистра связывает запись адреса и последующее чтение, включая повторный START.</text>
-    <text x="60" y="2460.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Значение из BRAM MDIO отражает последнюю публикацию PS. В I²C доставка IRQ и подготовка ответа ограничены временем clock stretching.</text>
-    <path d="M60,2539.6 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="2545.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,2539.6 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="327" y="2545.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M551,2539.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="633" y="2545.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <path d="M747,2539.6 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
-    <text x="829" y="2545.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
-    <rect x="60" y="2576.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2595.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2576.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2595.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="2576.6" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
-    <text x="419" y="2595.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-    <rect x="490" y="2576.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="534" y="2595.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2642.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,2377 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="2383.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,2377 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="2383.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,2377 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="2383.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,2377 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="2383.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="2414" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2433.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2414" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2433.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="2414" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="419" y="2433.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="490" y="2414" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="534" y="2433.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="2480.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -270,17 +280,21 @@ g:target &gt; rect { stroke-width: 5; }
       "target": "../../architecture_bvstk_l3.svg#service-bvstk_i2c_slave_service"
     },
     {
-      "node": "i-cache",
-      "target": "../i2c/cores/master/repeated-start.svg#master-service"
-    },
-    {
       "node": "i-memory",
       "target": "../reference/memory-map.svg#i2c-bank"
     },
     {
       "node": "i-send",
       "target": "../i2c/cores/slave/read.svg#fetch"
+    },
+    {
+      "node": "i-master",
+      "target": "../i2c/cores/master/repeated-start.svg#master-service"
     }
+  ],
+  "article_notes": [
+    "Для I²C предварительно установленный указатель регистра связывает запись адреса и последующее чтение, включая повторный START.",
+    "Значение из BRAM MDIO отражает последнюю публикацию PS. В I²C доставка IRQ и подготовка ответа ограничены временем clock stretching."
   ]
 }</metadata>
 </svg>

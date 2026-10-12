@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="3472" viewBox="0 0 2800 3472" role="img" aria-labelledby="title desc" data-pl-original-height="3330">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="3167" viewBox="0 147 2800 3167" role="img" aria-labelledby="title desc">
   <title id="title">L4. Приложения и пользовательские команды</title>
   <desc id="desc">Запуск, настройки, обработчики команд и обращение к сервисам. Слева показаны части FreeRTOS, справа — Нейтрино, в центре — общие исходники или аппаратура. Вложенные рамки раскрывают функцию до конкретных модулей. Цвет рамки и блока обозначает слой. Общие исходники включаются в выбранную сборку; состав подключённых модулей различается. Серые стрелки обозначают вызовы, коричневые — MMIO и настройку, синие — данные, красные пунктирные — прерывания и события. Соединение с рамкой относится к функции внутри неё. Заголовки ссылочных блоков открывают соответствующую схему.
 Одноимённые блоки на соседних схемах обозначают одну функцию. Ссылки ведут к конкретным блокам; выбранный блок выделяется рамкой. Тип стрелки и направление взаимодействия сохраняются при переходе.</desc>
@@ -31,9 +31,6 @@
     <style>text {font-family:DejaVu Sans,sans-serif;fill:#233747;} .code {font-family:DejaVu Sans Mono,monospace;} a {cursor:pointer;} a:hover text {text-decoration:underline;} g:target &gt; rect {stroke-width:4;} .edge-label {paint-order:stroke;stroke:white;stroke-width:7px;stroke-linejoin:round;} </style>
   </defs>
   <rect id="page" x="0" y="0" width="2800" height="3330" fill="white" />
-  <text id="text-1" x="60" y="47" font-size="16" font-weight="700" text-anchor="start" data-max-width="500" style="fill:#3f75ad">BVSTK</text>
-  <text id="text-2" x="60" y="98" font-size="40" font-weight="700" text-anchor="start" data-max-width="1950" style="fill:#233747">L4. Приложения и пользовательские команды</text>
-  <text id="text-3" x="60" y="140" font-size="21" font-weight="400" text-anchor="start" data-max-width="2550" style="fill:#576c7b">Запуск, настройки, обработчики команд и обращение к сервисам.</text>
   <g id="freertos-region" data-kind="ownership-region" data-ownership="freertos">
     <rect x="40" y="188" width="780" height="2912" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
     <text id="text-8" x="68" y="230" font-size="25" font-weight="700" text-anchor="start" data-max-width="710" style="fill:#233747">FreeRTOS</text>
@@ -522,8 +519,7 @@ src/shared/protocols/http/bvstk_http_input.c</title>
   <rect x="2180" y="3202" width="49" height="31" rx="5" fill="#d9ebff" stroke="#3f75ad" />
   <text id="text-140" x="2204.5" y="3225" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#3f75ad">L4</text>
   <text id="text-141" x="2245" y="3225" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Приложения</text>
-  <text id="text-142" x="60" y="3273" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">Вложенность показывает состав. Заголовок ссылочного блока открывает одноимённый блок соседней схемы.</text>
-  <text id="text-143" x="60" y="3302" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">В центре — исходники для повторного использования. Каждая сборка выбирает свой набор модулей и создаёт свои экземпляры.</text>
+  <text id="text-142" x="60" y="3273" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">Вложенность — состав.</text>
   <g id="interactions" data-kind="interactions">
     <g id="f-starts-runtime" data-kind="interaction" data-interaction="call" data-from="f-main" data-to="f-runtime">
       <path d="M 364 458 L 424 458" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
@@ -938,97 +934,4 @@ src/shared/protocols/http/bvstk_http_input.c</title>
     "relation": "overview"
   }
 ]</metadata>
-  <a id="overview-return-f-application-start" data-navigation="overview" data-ref-node="f-application-start" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
-    <text x="768.0" y="305.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-main" data-navigation="overview" data-ref-node="f-main" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
-    <text x="352.0" y="429.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-runtime" data-navigation="overview" data-ref-node="f-runtime" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
-    <text x="716.0" y="429.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-application-start" data-navigation="overview" data-ref-node="n-application-start" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
-    <text x="2708.0" y="305.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-main" data-navigation="overview" data-ref-node="n-main" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
-    <text x="2292.0" y="429.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-runtime" data-navigation="overview" data-ref-node="n-runtime" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
-    <text x="2656.0" y="429.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-configuration" data-navigation="overview" data-ref-node="configuration" xlink:href="architecture_bvstk_os.svg#common-app" aria-label="Открыть раздел «L4. Общая прикладная логика» в обзоре ОС">
-    <text x="1788.0" y="599.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-application-operations" data-navigation="overview" data-ref-node="f-application-operations" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
-    <text x="768.0" y="1315.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-console" data-navigation="overview" data-ref-node="f-console" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
-    <text x="740.0" y="1377.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-web" data-navigation="overview" data-ref-node="f-web" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
-    <text x="740.0" y="2493.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-application-operations" data-navigation="overview" data-ref-node="n-application-operations" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
-    <text x="2708.0" y="1315.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-shell-program" data-navigation="overview" data-ref-node="n-shell-program" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
-    <text x="2656.0" y="1437.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-bvstkctl" data-navigation="overview" data-ref-node="n-bvstkctl" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
-    <text x="2656.0" y="1647.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-input-processing" data-navigation="overview" data-ref-node="input-processing" xlink:href="architecture_bvstk_os.svg#common-app" aria-label="Открыть раздел «L4. Общая прикладная логика» в обзоре ОС">
-    <text x="1788.0" y="1315.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-configuration" data-navigation="overview" data-ref-node="f-configuration" xlink:href="architecture_bvstk_os.svg#f-apps" aria-label="Открыть раздел «L4. Приложение» в обзоре ОС">
-    <text x="740.0" y="599.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-configuration" data-navigation="overview" data-ref-node="n-configuration" xlink:href="architecture_bvstk_os.svg#n-apps" aria-label="Открыть раздел «L4. Прикладные процессы» в обзоре ОС">
-    <text x="2680.0" y="599.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <g id="series-navigation" data-kind="navigation">
-    <a data-navigation="sheet" xlink:href="levels.svg">
-      <rect x="2000.0" y="64" width="124" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2062.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">Уровни</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_os.svg">
-      <rect x="2140.0" y="64" width="84" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2182.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">ОС</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l4.svg">
-      <rect x="2240.0" y="64" width="80" height="46" rx="8" fill="#d9ebff" stroke="#3f75ad" stroke-width="2" />
-      <text x="2280.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#3f75ad">L4</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l3.svg">
-      <rect x="2336.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#287f73" stroke-width="1" />
-      <text x="2376.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#287f73">L3</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l1.svg">
-      <rect x="2432.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#b56b1d" stroke-width="1" />
-      <text x="2472.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#b56b1d">L1</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l0_l1.svg">
-      <rect x="2528.0" y="64" width="116" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2586.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0–L1</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
-      <rect x="2660.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
-    </a>
-  </g>
-  <g id="pl-subsystem-navigation" data-kind="navigation">
-    <rect x="0" y="3330.0" width="2800.0" height="142.0" fill="white" />
-    <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="3370.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/startup.svg">
-      <text x="60.0" y="3422.0" font-size="20" style="fill:#3f75ad">Подготовка по профилю</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/interfaces.svg">
-      <text x="953.3333333333334" y="3422.0" font-size="20" style="fill:#3f75ad">Программные интерфейсы</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/configuration.svg">
-      <text x="1846.6666666666667" y="3422.0" font-size="20" style="fill:#3f75ad">Изменение и сохранение</text>
-    </a>
-  </g>
 </svg>

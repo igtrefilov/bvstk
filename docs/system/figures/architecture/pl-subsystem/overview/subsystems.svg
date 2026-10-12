@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2940" role="img" aria-labelledby="title desc" height="2940">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 240 2200 2569" role="img" aria-labelledby="title desc" height="2569">
   <title id="title">Подсистема PL: состав и ответственность</title>
   <desc id="desc">Какие части принимают решения, обращаются к аппаратуре и выполняют операции на шине.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2940" fill="white" />
+  <rect width="2200" height="2809" fill="white" />
   <g id="backgrounds">
     <rect x="420" y="280" width="1360" height="2130" rx="16" fill="white" />
     <rect x="500" y="690" width="1200" height="410" rx="16" fill="white" />
@@ -254,34 +254,29 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">Подсистема PL: состав и ответственность</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Какие части принимают решения, обращаются к аппаратуре и выполняют операции на шине.</text>
     <text x="1590" y="642.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Настройки</text>
     <text x="1175" y="817.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Проверка</text>
     <text x="1175" y="977.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Значения</text>
     <text x="1110" y="1170.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Выполнить операцию</text>
     <text x="420.0" y="2605.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Шина ведущего</text>
     <text x="1785.0" y="2605.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Шина ведомого</text>
-    <text x="60" y="2650.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Программная часть раскрывает управление мостом. Политика и кэш подробно показаны на отдельных листах.</text>
-    <text x="60" y="2715.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Показаны обе аппаратные роли. Состав ядер и реализация доступа зависят от подсистемы и выбранной ОС.</text>
-    <path d="M60,2794.6 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="2800.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,2794.6 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="327" y="2800.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M551,2794.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="633" y="2800.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="2831.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2850.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2831.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2850.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="2831.6" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
-    <text x="419" y="2850.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-    <rect x="490" y="2831.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="534" y="2850.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <rect x="605" y="2831.6" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
-    <text x="649" y="2850.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-    <text x="60" y="2897.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,2663.0 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="2669.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,2663.0 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="2669.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,2663.0 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="2669.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2700.0" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2719.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2700.0" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2719.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="2700.0" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="419" y="2719.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="490" y="2700.0" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="534" y="2719.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="605" y="2700.0" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="649" y="2719.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="2766.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -361,6 +356,10 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "device",
       "target": "bridge.svg#device"
     }
+  ],
+  "article_notes": [
+    "Программная часть раскрывает управление мостом. Политика и кэш подробно показаны на отдельных листах.",
+    "Показаны обе аппаратные роли. Состав ядер и реализация доступа зависят от подсистемы и выбранной ОС."
   ]
 }</metadata>
 </svg>

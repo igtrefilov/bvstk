@@ -14,7 +14,7 @@ source /etc/profile.d/kpda_env_2024.sh
 
 Результаты находятся в `build/neutrino/`: `bvstkctl`, `bvstkd`, `i2c`,
 `bvstk-shell`, `bvstk-qspi-fat`, `bvstk-sd-raw`. Их назначение описано в
-[модели исполнения](../system/execution.md). Сценарий не обещает отдельный
+[модели исполнения](../system/system.md#два-варианта-исполнения). Сценарий не обещает отдельный
 набор сохраняемых `.o`: он вызывает `qcc` для сборки исполняемых файлов.
 
 Список общих исходников в `scripts/neutrino/build.sh` задан явно. Генератор

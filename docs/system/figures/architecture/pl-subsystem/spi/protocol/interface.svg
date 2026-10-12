@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" viewBox="0 220 1600 616" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="616">
+  <title id="title">SPI: линии и участники</title>
+  <desc id="desc">Четыре сигнала. Выбор устройства активным нулём.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="836" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <path d="M390,365 L1180,365" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="2 6" stroke-linejoin="round" marker-end="url(#clock-arrow)" />
+    <path d="M390,465 L1180,465" fill="none" stroke="#3f75ad" stroke-width="3" stroke-linejoin="round" marker-end="url(#data-arrow)" />
+    <path d="M1180,565 L390,565" fill="none" stroke="#3f75ad" stroke-width="3" stroke-linejoin="round" marker-end="url(#data-arrow)" />
+    <path d="M390,665 L1180,665" fill="none" stroke="#607487" stroke-width="3" stroke-linejoin="round" marker-end="url(#clock-arrow)" />
+  </g>
+  <g id="components">
+    <g id="master" data-kind="component" data-layer="L0" data-label="Ведущий" data-ownership="common">
+      <rect x="60" y="260" width="330" height="430" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="80" y="284.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="80" y="318.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведущий</text>
+    </g>
+    <g id="slave" data-kind="component" data-layer="L0" data-label="Ведомое устройство" data-ownership="common">
+      <rect x="1180" y="260" width="360" height="430" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1200" y="284.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="1200" y="318.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведомое устройство</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="785.0" y="343.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#788794">SCK</text>
+    <text x="785.0" y="443.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">MOSI</text>
+    <text x="785.0" y="543.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">MISO</text>
+    <text x="785.0" y="643.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#607487">CS</text>
+    <rect x="60" y="779" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="798.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "https://www.analog.com/en/resources/analog-dialogue/articles/introduction-to-spi-interface.html",
+    "https://www.analog.com/en/resources/app-notes/an-1248.html",
+    "https://ww1.microchip.com/downloads/en/AppNotes/01496A.pdf"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

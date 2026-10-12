@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import json
+import math
 import os
 import re
 import textwrap
@@ -19,6 +20,8 @@ import xml.etree.ElementTree as ET
 from i2c_protocol import generate_i2c_protocol
 from i2c_slave import generate_i2c_slave
 from i2c_master import generate_i2c_master
+from spi_protocol import generate_spi_protocol
+from mdio_protocol import generate_mdio_protocol
 
 ROOT = Path(__file__).resolve().parents[2]
 ARCH = ROOT / "docs/system/figures/architecture"
@@ -91,6 +94,7 @@ class Box:
 class Page:
     def __init__(self, name, title, subtitle, sources=()):
         self.name, self.title, self.subtitle = name, title, subtitle
+        self.width = 2200
         self.sources = list(sources)
         self.root = ET.Element(f"{{{NS}}}svg", {
             "width": "2200", "viewBox": "0 0 2200 1600",
@@ -122,9 +126,8 @@ g:target > rect { stroke-width: 5; }
         self.nodes: dict[str, Box] = {}
         self.used_layers, self.used_arrows = set(), set()
         self.links, self.max_y = [], 225
-        self.text(self.notes, 60, 42, "BVSTK", 16, bold=True, color="#607487")
-        self.text(self.notes, 60, 94, title, 36, bold=True)
-        self.text(self.notes, 60, 151, subtitle, 21, color="#576c7b")
+        self.min_y = math.inf
+        self.article_notes = []
         SHEETS[name] = self
 
     def text(self, parent, x, y, value, size=21, bold=False,
@@ -144,6 +147,8 @@ g:target > rect { stroke-width: 5; }
                     if chunk:
                         el(label, "tspan", chunk,
                            style=f"fill:{PALETTE[chunk][1]}" if chunk in PALETTE else None)
+        self.min_y = min(self.min_y, y-size)
+        self.max_y = max(self.max_y, y+(len(chunks)-1)*lh+size*.3)
         return len(chunks) * lh
 
     def link(self, parent, target, navigation="detail"):
@@ -172,6 +177,7 @@ g:target > rect { stroke-width: 5; }
         if subtitle:
             self.text(g, x+26, y+70, subtitle, 18, color="#576c7b", width=w-52)
         self.nodes[key] = Box(key, x, y, w, h, g, label)
+        self.min_y = min(self.min_y, y)
         self.max_y = max(self.max_y, y+h)
         if layer:
             self.used_layers.add(layer)
@@ -200,6 +206,7 @@ g:target > rect { stroke-width: 5; }
                 raise ValueError(f"Text height exceeds {self.name}#{key}: {h}")
         self.nodes[key] = Box(key, x, y, w, h, g, label)
         self.used_layers.add(layer)
+        self.min_y = min(self.min_y, y)
         self.max_y = max(self.max_y, y+h)
         return key
 
@@ -224,6 +231,8 @@ g:target > rect { stroke-width: 5; }
         self.path(a, b, (pa, *via, pb), kind, label, label_xy, bidirectional)
 
     def path(self, a, b, points, kind="data", label="", label_xy=None, bidirectional=False):
+        self.min_y = min(self.min_y, *(point[1] for point in points))
+        self.max_y = max(self.max_y, *(point[1] for point in points))
         color, _, dash = ARROWS[kind]
         g = el(self.edges, "g", data_kind="interaction", data_from=a,
                data_to=b, data_interaction=kind,
@@ -248,15 +257,16 @@ g:target > rect { stroke-width: 5; }
                       anchor="middle", cls="edge-label")
 
     def note(self, y, text, x=60, width=2080):
-        h = self.text(self.notes, x, y, text, 20, color="#576c7b", width=width)
-        self.max_y = max(self.max_y, y+h)
-        return h
+        """Retain source context in metadata; explanations belong in Markdown."""
+        self.article_notes.append(text)
+        return 0
 
     def section(self, y, label):
         self.text(self.notes, 60, y, label, 27, bold=True)
         self.max_y = max(self.max_y, y+20)
 
     def save(self):
+        top = max(0, math.floor(self.min_y-40)) if math.isfinite(self.min_y) else 0
         y = self.max_y + 52
         x = 60
         for kind in ARROWS:
@@ -276,17 +286,17 @@ g:target > rect { stroke-width: 5; }
             label = "PL внутри L0" if layer == "PL" else layer
             self.text(self.notes, x+44, y, label, 18, color="#576c7b")
             x += 200 if layer == "PL" else 115
-        self.text(self.notes, 60, y+47,
-                  getattr(self, "legend_note",
-                          "Цвет обозначает уровень абстракции."),
-                  18, color="#576c7b")
+        legend_note = getattr(self, "legend_note", "Цвет обозначает уровень абстракции.")
+        if legend_note:
+            self.text(self.notes, 60, y+47, legend_note, 18, color="#576c7b")
         el(self.root, "metadata", json.dumps({
             "generator": "tools/docs/generate_pl_subsystem.py",
             "sources": self.sources, "cross_sheet_links": self.links,
+            "article_notes": self.article_notes,
         }, ensure_ascii=False, indent=2), id="provenance")
-        height = int(y+90)
-        self.root.set("height", str(height))
-        self.root.set("viewBox", f"0 0 2200 {height}")
+        height = int(y+(90 if legend_note else 38))
+        self.root.set("height", str(height-top))
+        self.root.set("viewBox", f"0 {top} {self.width} {height-top}")
         self.background.set("height", str(height))
         path = OUT / self.name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -335,7 +345,7 @@ def sequence(name, title, subtitle, actors, steps, sources=(), notes=()):
         p.text(p.notes, 76, y, f"{i+1:02}", 21, bold=True, color=ARROWS[kind][0])
         p.text(p.notes, 130, y, label, 22, bold=True, width=1970)
         if detail:
-            p.text(p.notes, 130, y+31, detail, 18, color="#576c7b", width=1950)
+            p.article_notes.append(detail)
         xa, xb = centers[a], centers[b]
         yy = y+61
         pts = ((xa, yy), (xb, yy)) if a != b else (
@@ -450,6 +460,7 @@ def bridge_overview_sheet():
     p.text(p.notes, 727, 560, "Транзакция остановлена", 18,
            color="#233747", anchor="middle")
     p.note(1250, "T — условная транзакция: адрес, операция и данные. Шина показана серой линией, движение T — синей стрелкой.")
+    p.legend_note = "T — транзакция. Серая линия — шина."
 
 
 def cache_overview_sheet():
@@ -513,6 +524,7 @@ def cache_overview_sheet():
     p.note(1490, "V — значение. Ответ ведущему отражает последнюю публикацию в BRAM; изменения устройства становятся видны после обновления.")
     p.note(1555, "Опрос по расписанию и перечитывание после записи зависят от подсистемы. Начальные значения могут задаваться профилем.")
     p.note(1620, "При ошибке запись кэша становится недостоверной. Дальнейшее поведение на шине определяется подсистемой.")
+    p.legend_note = "V — значение. Серая линия — шина."
 
 
 def overview_sheets():
@@ -1259,16 +1271,16 @@ def ps_structural_sheets():
     p.frame("service", 790, 1480, 620, 515, "Обработка ведомого запроса", "L3",
             target="@architecture_bvstk_l3.svg#service-bvstk_i2c_slave_service")
     p.node("slave-service", 830, 1580, 540, 185, "bvstk_i2c_slave_service",
-           "Указатель регистра, запись, окно ответа", "L3", parent="service")
+           "Указатель, кэш и запись\nПодготовка окна ответа", "L3", parent="service")
     p.node("master-service", 830, 1840, 540, 115, "bvstk_i2c_master_service",
            layer="L3", parent="service", target="i2c/cores/master/commands.svg#master-service")
-    p.edge("f-worker", "slave-service", "call")
-    p.edge("n-worker", "slave-service", "call")
-    p.edge("slave-service", "master-service", "call")
+    p.edge("f-worker", "slave-service", "call", a_offset=47.5)
+    p.edge("n-worker", "slave-service", "call", a_offset=37.5)
+    p.edge("slave-service", "master-service", "call", "Запись или промах кэша")
     p.node("window", 810, 2160, 580, 180, "Окно ответа I²C",
            "Запись BRAM и установка rd_valid\nЧерез драйвер L3 и MMIO L1", "PL",
            target="reference/memory-map.svg#i2c-bank")
-    p.edge("master-service", "window", "data", "Подготовленные байты")
+    p.edge("service", "window", "data", "Подготовленные байты")
     p.node("read", 810, 2490, 580, 165, "I2C_slave_0",
            "Продолжить чтение и выдать байты", target="i2c/cores/slave/read.svg#core")
     p.edge("window", "read", "data")
@@ -1333,7 +1345,7 @@ def ps_remaining_sheets():
            "+0x2000 + индекс\nПодготовленное значение", parent="mdio",
            target="reference/memory-map.svg#mdio-bank")
     p.edge("m-host", "m-slave", "data", "1. Запрос")
-    p.edge("m-slave", "m-memory", "mmio", "2. Адрес ячейки")
+    p.edge("m-slave", "m-memory", "mmio", "2. Адрес ячейки", a_offset=15)
     p.edge("m-memory", "m-slave", "data", "3. Значение", start="S", end="S",
            a_offset=-80, b_offset=80, via=((1775, 735), (1180, 735)), label_xy=(1490, 718))
     p.edge("m-slave", "m-host", "data", "4. Ответ", start="S", end="S",
@@ -1353,13 +1365,13 @@ def ps_remaining_sheets():
     p.edge("i-host", "i2c", "data", "1. Запрос")
     p.edge("i2c", "i-port", "irq", "2. RD_REQUEST")
     p.node("i-service", 1600, 1750, 510, 205, "bvstk_i2c_slave_service",
-           "Указатель регистра\nЗаполнение окна через ведущий сервис", "L3",
+           "Указатель регистра\nПроверка достоверности кэша", "L3",
            target="@architecture_bvstk_l3.svg#service-bvstk_i2c_slave_service")
     p.edge("i-port", "i-service", "call", "3. Обработка")
-    p.node("i-cache", 850, 1750, 510, 205, "bvstk_i2c_master_service",
-           "Достоверное значение\nПри необходимости — физическое чтение", "L3",
-           target="i2c/cores/master/repeated-start.svg#master-service")
-    p.edge("i-service", "i-cache", "call", "4. Получить значения")
+    p.node("i-cache", 850, 1750, 510, 205, "Окно ответа",
+           "Байты из кэша\nили полученный байт устройства", "L3")
+    p.edge("i-service", "i-cache", "data", "4. Из кэша",
+           a_offset=-55, b_offset=-55)
     p.node("i-memory", 110, 1750, 490, 205, "BRAM I²C",
            "+0x2000: заголовок и байты\nПорт устанавливает rd_valid",
            target="reference/memory-map.svg#i2c-bank")
@@ -1368,6 +1380,12 @@ def ps_remaining_sheets():
            "Прочитать окно ответа", target="i2c/cores/slave/read.svg#fetch")
     p.node("i-result", 850, 2120, 510, 165, "Внешний ведущий",
            "Получает байты по SDA", "L0")
+    p.node("i-master", 1600, 2120, 510, 205, "bvstk_i2c_master_service",
+           "Прочитать один регистр", "L3",
+           target="i2c/cores/master/repeated-start.svg#master-service")
+    p.edge("i-service", "i-master", "call", "Нет первого байта")
+    p.edge("i-master", "i-cache", "data", start="W", end="E", b_offset=55,
+           via=((1470, 2222.5), (1470, 1907.5)))
     p.edge("i-memory", "i-send", "data", "6. Данные")
     p.edge("i-send", "i-result", "data", "7. Ответ")
     p.note(2400, "Для I²C предварительно установленный указатель регистра связывает запись адреса и последующее чтение, включая повторный START.")
@@ -1497,229 +1515,6 @@ def ps_remaining_sheets():
              ])
 
 
-SECTIONS = [
-    ("Общее устройство", [
-        ("overview/bridge.svg", "Участки шины, BRAM и передача либо остановка транзакции"),
-        ("overview/cache.svg", "Обновление кэша, обработка записи и подготовка ответа в BRAM"),
-        ("overview/subsystems.svg", "Ответственность сервиса, драйвера, платформы и аппаратных ядер"),
-        ("overview/exchange.svg", "Готовый ответ, получение нового значения и обработка записи"),
-        ("overview/memory.svg", "Области запросов, результатов и ответов, их читатели и писатели"),
-    ]),
-    ("I²C", [
-        ("i2c/protocol/interface.svg", "Линии SDA и SCL, открытый сток и clock stretching"),
-        ("i2c/protocol/transaction.svg", "Условия START и STOP, адрес, байт и подтверждение"),
-        ("i2c/protocol/transfers.svg", "Запись, чтение одного или нескольких байтов и NACK"),
-        ("i2c/protocol/repeated-start.svg", "Повторный START и чтение по указателю регистра"),
-    ]),
-    ("I²C: ведомое ядро", [
-        ("i2c/cores/slave/structure.svg", "Модули ядра, связи с BRAM и программой PS"),
-        ("i2c/cores/slave/addressing.svg", "Обработка входов, выбор адреса и направления"),
-        ("i2c/cores/slave/write.svg", "Приём байтов, запись слов и публикация запроса"),
-        ("i2c/cores/slave/read.svg", "Ожидание первого байта, подтверждение адреса и выдача ответа"),
-        ("i2c/cores/slave/repeated-start.svg", "Завершение записи указателя и переход к чтению"),
-        ("i2c/cores/slave/buffers.svg", "Окна запроса и ответа, заголовки и порядок байтов"),
-        ("i2c/cores/slave/completion.svg", "Границы фаз, истечение времени ожидания и подтверждение IRQ"),
-    ]),
-    ("I²C: ведущее ядро", [
-        ("i2c/cores/master/structure.svg", "Модули ядра, путь команды и возврат результата"),
-        ("i2c/cores/master/commands.svg", "Заголовки TX FIFO, порядок загрузки и запуск"),
-        ("i2c/cores/master/write.svg", "Передача адреса и данных, приём подтверждений"),
-        ("i2c/cores/master/read.svg", "Приём заданного числа байтов и получение результата в PS"),
-        ("i2c/cores/master/repeated-start.svg", "Запись указателя и чтение из одной очереди команд"),
-        ("i2c/cores/master/buffers.svg", "Пакеты RX FIFO, слова BRAM и публикация результата"),
-        ("i2c/cores/master/timing.svg", "Делитель SCL, входные фронты и ожидания автомата"),
-        ("i2c/cores/master/completion.svg", "Опрос регистров, ошибки, сброс и повторная попытка"),
-    ]),
-    ("MDIO", [
-        ("mdio/subsystem.svg", "Master, slave и общая BRAM"),
-        ("mdio/master.svg", "Формирование кадра и получение результата"),
-        ("mdio/slave.svg", "Последние записи и подготовленные ответы"),
-    ]),
-    ("SPI и SD", [
-        ("spi/subsystem.svg", "Потоки, DMA и адресные пути памяти"),
-        ("spi/master.svg", "Потоковый обмен и обработка команд SD"),
-        ("spi/slave.svg", "Внешний SCK и два направления AXI Stream"),
-        ("spi/sd-transfer.svg", "Действующее чтение блока SD в FreeRTOS"),
-    ]),
-    ("Карта памяти реализации", [
-        ("reference/memory-map.svg", "Адреса BRAM и назначение областей конкретных подсистем"),
-    ]),
-    ("Взаимодействие с программой PS", [
-        ("ps-interaction/startup.svg", "Загрузка профиля и подготовка подсистемы"),
-        ("ps-interaction/i2c-irq.svg", "Доставка IRQ I²C в FreeRTOS и Нейтрино"),
-        ("ps-interaction/mdio-write.svg", "Входящая запись MDIO и решение политики"),
-        ("ps-interaction/reads.svg", "Происхождение ответа на внешнее чтение"),
-        ("ps-interaction/cache.svg", "Обновление кэша и публикация в BRAM"),
-        ("ps-interaction/interfaces.svg", "Команды, значения и события для клиентов"),
-        ("ps-interaction/configuration.svg", "Рабочие настройки и сохранённый профиль"),
-    ]),
-]
-
-
-def link_existing_series():
-    """Append navigation without changing the existing node and edge geometry."""
-    targets = {
-        "architecture_bvstk_ps_pl.svg": [
-            ("I2C_master_0", "i2c/cores/master/structure.svg#core"), ("I2C_slave_0", "i2c/cores/slave/structure.svg#core"),
-            ("SMI_master_0", "mdio/master.svg#core"), ("SMI_slave_0", "mdio/slave.svg#core"),
-            ("SPI_master_0", "spi/master.svg#core"), ("SPI_Slave_0", "spi/slave.svg#core"),
-        ],
-        "architecture_bvstk_l0_l1.svg": [
-            ("Области BRAM", "reference/memory-map.svg"), ("Доставка IRQ I²C", "ps-interaction/i2c-irq.svg"),
-            ("Чтение блока SD", "spi/sd-transfer.svg"),
-        ],
-        "architecture_bvstk_l1.svg": [
-            ("Доставка IRQ I²C", "ps-interaction/i2c-irq.svg"),
-            ("Работа задачи MDIO", "ps-interaction/mdio-write.svg#worker"),
-        ],
-        "architecture_bvstk_l3.svg": [
-            ("bvstk_i2c_master_service", "i2c/cores/master/commands.svg#master-service"),
-            ("bvstk_mdio_service", "ps-interaction/mdio-write.svg#service"),
-            ("Кэш и публикация", "ps-interaction/cache.svg#cache"),
-            ("Внешнее чтение", "ps-interaction/reads.svg"),
-        ],
-        "architecture_bvstk_l4.svg": [
-            ("Подготовка по профилю", "ps-interaction/startup.svg"),
-            ("Программные интерфейсы", "ps-interaction/interfaces.svg"),
-            ("Изменение и сохранение", "ps-interaction/configuration.svg"),
-        ],
-        "levels.svg": [], "architecture_bvstk_os.svg": [],
-    }
-    for name, entries in targets.items():
-        path = ARCH / name
-        root = ET.parse(path).getroot()
-        for child in list(root):
-            if child.get("id") == "pl-subsystem-navigation":
-                root.remove(child)
-        vb = root.get("viewBox").split()
-        width = float(vb[2])
-        old_height = float(root.get("data-pl-original-height", vb[3]))
-        root.set("data-pl-original-height", str(int(old_height)))
-        rows = (len(entries)+2)//3
-        height = old_height+90+rows*52
-        group = el(root, "g", id="pl-subsystem-navigation", data_kind="navigation")
-        el(group, "rect", x=0, y=old_height, width=width, height=height-old_height, fill="white")
-        a = el(group, "a", data_navigation="pl-catalog")
-        a.set(f"{{{XLINK}}}href", "pl-subsystem/README.md")
-        el(a, "text", "Подсистемы PL: устройство и сценарии", x=60, y=old_height+40,
-           font_size=22, font_weight=700, style="fill:#8760ba")
-        for i, (label, target) in enumerate(entries):
-            a = el(group, "a", data_navigation="pl-detail")
-            a.set(f"{{{XLINK}}}href", "pl-subsystem/"+target)
-            el(a, "text", label, x=60+(i % 3)*(width-120)/3,
-               y=old_height+92+(i//3)*52, font_size=20, style="fill:#3f75ad")
-        root.set("height", str(int(height)))
-        root.set("viewBox", f"0 0 {vb[2]} {int(height)}")
-        ET.indent(root, space="  ")
-        ET.ElementTree(root).write(path, encoding="utf-8", xml_declaration=True)
-
-
-def write_readme():
-    parts = [
-        "# Подсистемы PL\n",
-        "Начните со [схемы моста](overview/bridge.svg): внешний ведущий, "
-        "BVSTK, ведомое устройство, промежуточная BRAM и политика транзакций. "
-        "На [схеме кэша](overview/cache.svg) та же структура показывает "
-        "обновление значений и подготовку ответов. "
-        "Затем рассмотрите состав подсистемы, порядок операций и области обмена. "
-        "После общего устройства переходите к вводной части I²C и схемам конкретных подсистем. "
-        "Сценарии PS связывают аппаратуру с профилями устройств, "
-        "политикой, кэшем и пользовательскими входами.\n",
-        "В `overview` показана функциональная модель без привязки к шине. "
-        "`pl_slave` принимает внешние обращения, `pl_master` выполняет ведущие "
-        "операции. Эти имена обозначают роли, а не конкретные модули RTL. "
-        "Реализация может использовать одну из ролей; состав буферов, политики "
-        "и кэша определяется назначением подсистемы.\n",
-        "Адреса и форматы областей конкретных подсистем вынесены в "
-        "[карту памяти реализации](reference/memory-map.svg).\n",
-    ]
-    for heading, entries in SECTIONS:
-        parts.append("## "+heading+"\n")
-        if heading == "I²C":
-            parts.append("Вводные схемы в `i2c/protocol` описывают протокол на L0: один ведущий, "
-                         "7-битный адрес, обычный двунаправленный I²C. "
-                         "Начните с интерфейса и читайте листы в указанном порядке. "
-                         "Номер регистра в примере задаётся устройством и передаётся как данные.\n")
-        if heading == "I²C: ведомое ядро":
-            parts.append("Листы в `i2c/cores/slave` раскрывают действующий RTL. "
-                         "Начните с состава ядра. На сценарных листах сверху показана транзакция, "
-                         "ниже — действия её участников. Программная обработка PS вынесена "
-                         "за границу аппаратного ядра и связана с листами `ps-interaction`.\n")
-        if heading == "I²C: ведущее ядро":
-            parts.append("Листы в `i2c/cores/master` показывают путь от команды PS до обмена на шине "
-                         "и возврата прочитанных байтов. Команды поступают через TX FIFO; "
-                         "результат проходит через RX FIFO в BRAM. Начните с состава и подготовки команды. "
-                         "Временные диаграммы поясняют состояния текущего RTL. Драйвер определяет завершение "
-                         "опросом CSR и IRQ, при чтении также ожидает DATA_VALID.\n")
-        parts.append("\n".join(f"- [{SHEETS[name].title}]({name}) — {description[:1].lower() + description[1:]}."
-                               for name, description in entries)+"\n")
-    parts += [
-        "## Обозначения\n",
-        "Цвета L0–L4 совпадают с общим архитектурным рядом. Фиолетовый цвет "
-        "обозначает PL внутри L0. При детализации ядра слой остаётся L0. "
-        "Роль master или slave относится к явно названному интерфейсу.\n",
-        "Серые стрелки обозначают вызовы, коричневые — MMIO и настройку, "
-        "синие — данные, красные пунктирные — IRQ и события. Пунктирные "
-        "рамки выделяют части FreeRTOS и Нейтрино. Общие исходники включаются "
-        "в выбранную сборку отдельно.\n",
-        "На последовательностях шаги читаются сверху вниз. Линии под "
-        "заголовками обозначают участников; стрелки между ними — отдельные "
-        "операции. На структурных схемах направление стрелки обозначает "
-        "указанный обмен. Ссылки в заголовках ведут к подробным листам и "
-        "схемам общего архитектурного ряда.\n",
-        "Стрелка с двумя наконечниками показывает обмен в обоих направлениях. "
-        "Небольшой разрыв в месте пересечения отделяет независимые линии.\n",
-        "## Состояние реализации\n",
-        "Вводная часть I²C опирается на "
-        "[NXP UM10204, редакция 7.0, раздел 3.1](https://www.nxp.com/docs/en/user-guide/UM10204.pdf) "
-        "и [TI SLVA704](https://www.ti.com/lit/an/slva704/slva704.pdf). "
-        "Это описание протокола; возможности конкретных ядер определяются их реализацией.\n",
-        "Аппаратные схемы основаны на `Burevestnik_21.tcl` и RTL из `ip_repo` "
-        "соседнего проекта `hw_platform/fpga`. Программные сценарии основаны "
-        "на исходниках BVSTK. В метаданных каждого SVG указан список источников.\n",
-        "В FreeRTOS действуют мосты I²C и MDIO, а также путь SD через SPI master "
-        "и DMA. В Нейтрино показан действующий путь I²C. Аппаратный SPI slave "
-        "раскрыт как часть PL; отдельная служба BVSTK для него не подключена. "
-        "Профили и политики устройств SPI не показаны как работающая функция.\n",
-        "Адресные окна SPI BRAM доступны обоим DMA. В сценарии SD используется "
-        "банк 0; подключение HP0 к памяти PS показано на аппаратных листах.\n",
-        "## Основные исходники\n",
-        "| Часть описания | Исходник |\n"
-        "|---|---|\n"
-        "| Состав PL и адресные пути | "
-        "[Burevestnik_21.tcl](../../../../../../hw_platform/fpga/Burevestnik_21.tcl) |\n"
-        "| Обработка ведомых запросов I²C | "
-        "[bvstk_i2c_slave_service.c](../../../../../src/services/i2c/bvstk_i2c_slave_service.c) |\n"
-        "| Запуск и завершение ведущих операций I²C | "
-        "[bvstk_i2c_master.c](../../../../../src/drivers/pl/i2c/bvstk_i2c_master.c) |\n"
-        "| Политика MDIO, опрос и кэш | "
-        "[bvstk_mdio_service.c](../../../../../src/services/mdio/bvstk_mdio_service.c) |\n"
-        "| Аппаратная команда SD и DMA | "
-        "[bvstk_sd_master.c](../../../../../src/drivers/pl/sd/bvstk_sd_master.c) |\n"
-        "| Формат профиля устройства | "
-        "[bvstk_device_profile.c](../../../../../src/shared/config/bvstk_device_profile.c) |\n",
-        "Аппаратный исходник находится в соседнем репозитории. "
-        "Полные списки модулей каждого листа сохранены в его метаданных.\n",
-        "## Обновление SVG\n",
-        "Содержание и геометрия этого комплекта задаются в "
-        "[generate_pl_subsystem.py](../../../../../tools/docs/generate_pl_subsystem.py).\n",
-        "Вводные листы I²C заданы в "
-        "[i2c_protocol.py](../../../../../tools/docs/i2c_protocol.py).\n",
-        "Листы ведомого ядра I²C заданы в "
-        "[i2c_slave.py](../../../../../tools/docs/i2c_slave.py).\n",
-        "Листы ведущего ядра заданы в "
-        "[i2c_master.py](../../../../../tools/docs/i2c_master.py). "
-        "Общие элементы последовательностей и таблиц находятся в "
-        "[i2c_core.py](../../../../../tools/docs/i2c_core.py).\n",
-        "Из корня репозитория:\n\n```sh\npython3 tools/docs/generate_pl_subsystem.py\n```\n",
-        "Скрипт использует стандартную библиотеку Python. Он создаёт SVG и README, "
-        "затем добавляет переходы к новым листам в общий архитектурный "
-        "ряд. Источники, тексты и координаты редактируются в скрипте.\n",
-        "Векторные SVG можно открывать отдельно и включать в статью. "
-        "Для работы переходов сохраняйте относительное расположение файлов.\n",
-    ]
-    (OUT / "README.md").write_text("\n".join(parts), encoding="utf-8")
-
 
 def main():
     bridge_overview_sheet()
@@ -1730,14 +1525,14 @@ def main():
     generate_i2c_protocol(Page, el, PALETTE, ARROWS)
     generate_i2c_slave(Page, el, PALETTE, ARROWS)
     generate_i2c_master(Page, el, PALETTE, ARROWS)
+    generate_spi_protocol(Page, el, PALETTE, ARROWS)
+    generate_mdio_protocol(Page, el, PALETTE, ARROWS)
     mdio_cores()
     spi_sheets()
     ps_structural_sheets()
     ps_remaining_sheets()
     for page in SHEETS.values():
         page.save()
-    write_readme()
-    link_existing_series()
     placeholder = OUT / ".gitkeep"
     if placeholder.exists():
         placeholder.unlink()

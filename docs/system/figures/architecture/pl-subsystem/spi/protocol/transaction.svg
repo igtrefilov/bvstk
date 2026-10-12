@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" viewBox="0 238 1600 900" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="900">
+  <title id="title">SPI: два байта за восемь тактов</title>
+  <desc id="desc">Режим 0. Старший бит передаётся первым. Время слева направо.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1138" fill="white" />
+  <g id="backgrounds">
+    <path d="M342,407 L342,636" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M342,407 L342,801" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M480,407 L480,590" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M480,407 L480,801" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M618,407 L618,590" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M618,407 L618,755" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M756,407 L756,590" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M756,407 L756,755" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M894,407 L894,590" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M894,407 L894,801" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1032,407 L1032,636" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1032,407 L1032,755" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1170,407 L1170,590" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1170,407 L1170,801" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1308,407 L1308,590" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1308,407 L1308,801" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+  </g>
+  <g id="interactions">
+    <path d="M240,270 L270,270 L270,316 L1450,316 L1450,270 L1490,270" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M240,461 L300,461 L342,461 L342,415 L405,415 L405,461 L480,461 L480,415 L543,415 L543,461 L618,461 L618,415 L681,415 L681,461 L756,461 L756,415 L819,415 L819,461 L894,461 L894,415 L957,415 L957,461 L1032,461 L1032,415 L1095,415 L1095,461 L1170,461 L1170,415 L1233,415 L1233,461 L1308,461 L1308,415 L1371,415 L1371,461 L1490,461" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M240,636 L300,636 L405,636 L405,590 L543,590 L543,590 L681,590 L681,590 L819,590 L819,590 L957,590 L957,636 L1095,636 L1095,590 L1233,590 L1233,590 L1490,590" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M300,801 L405,801 L405,801 L543,801 L543,755 L681,755 L681,755 L819,755 L819,801 L957,801 L957,755 L1095,755 L1095,801 L1233,801 L1233,801 L1450,801" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M240,778 L300,778" fill="none" stroke="#607487" stroke-width="2" stroke-dasharray="7 6" stroke-linejoin="round" />
+    <path d="M1450,778 L1490,778" fill="none" stroke="#607487" stroke-width="2" stroke-dasharray="7 6" stroke-linejoin="round" />
+  </g>
+  <g id="components" />
+  <g id="annotations">
+    <text x="205" y="303.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">CS</text>
+    <text x="205" y="448.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">SCK</text>
+    <text x="205" y="623.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">MOSI</text>
+    <text x="205" y="788.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">MISO</text>
+    <text x="270.0" y="767.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">Z</text>
+    <text x="1470.0" y="767.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">Z</text>
+    <text x="342" y="387.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">D7</text>
+    <circle cx="342" cy="636" r="5.5" fill="#3f75ad" />
+    <text x="366" y="685.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
+    <circle cx="342" cy="801" r="5.5" fill="#3f75ad" />
+    <text x="366" y="850.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
+    <text x="480" y="387.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">D6</text>
+    <circle cx="480" cy="590" r="5.5" fill="#3f75ad" />
+    <text x="504" y="685.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <circle cx="480" cy="801" r="5.5" fill="#3f75ad" />
+    <text x="504" y="850.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
+    <text x="618" y="387.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">D5</text>
+    <circle cx="618" cy="590" r="5.5" fill="#3f75ad" />
+    <text x="642" y="685.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <circle cx="618" cy="755" r="5.5" fill="#3f75ad" />
+    <text x="642" y="850.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <text x="756" y="387.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">D4</text>
+    <circle cx="756" cy="590" r="5.5" fill="#3f75ad" />
+    <text x="780" y="685.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <circle cx="756" cy="755" r="5.5" fill="#3f75ad" />
+    <text x="780" y="850.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <text x="894" y="387.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">D3</text>
+    <circle cx="894" cy="590" r="5.5" fill="#3f75ad" />
+    <text x="918" y="685.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <circle cx="894" cy="801" r="5.5" fill="#3f75ad" />
+    <text x="918" y="850.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
+    <text x="1032" y="387.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">D2</text>
+    <circle cx="1032" cy="636" r="5.5" fill="#3f75ad" />
+    <text x="1056" y="685.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
+    <circle cx="1032" cy="755" r="5.5" fill="#3f75ad" />
+    <text x="1056" y="850.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <text x="1170" y="387.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">D1</text>
+    <circle cx="1170" cy="590" r="5.5" fill="#3f75ad" />
+    <text x="1194" y="685.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <circle cx="1170" cy="801" r="5.5" fill="#3f75ad" />
+    <text x="1194" y="850.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
+    <text x="1308" y="387.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">D0</text>
+    <circle cx="1308" cy="590" r="5.5" fill="#3f75ad" />
+    <text x="1332" y="685.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <circle cx="1308" cy="801" r="5.5" fill="#3f75ad" />
+    <text x="1332" y="850.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
+    <text x="240" y="955.0" font-size="27" font-weight="700" text-anchor="start" style="fill:#3f75ad">MOSI: 0x7B</text>
+    <text x="660" y="955.0" font-size="27" font-weight="700" text-anchor="start" style="fill:#3f75ad">MISO: 0x34</text>
+    <circle cx="1140" cy="947" r="5.5" fill="#3f75ad" />
+    <text x="1160" y="955.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">Приём бита</text>
+    <rect x="60" y="1081.26" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1100.26" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "https://www.analog.com/en/resources/analog-dialogue/articles/introduction-to-spi-interface.html",
+    "https://www.analog.com/en/resources/app-notes/an-1248.html",
+    "https://ww1.microchip.com/downloads/en/AppNotes/01496A.pdf"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

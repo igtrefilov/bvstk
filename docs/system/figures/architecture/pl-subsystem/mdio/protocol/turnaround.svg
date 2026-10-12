@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" viewBox="0 199 1600 1167" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="1167">
+  <title id="title">MDIO: передача линии при чтении</title>
+  <desc id="desc">Сверху — кто задаёт биты. Снизу — задержка выдачи PHY.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1366" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <path d="M300,287 L300,638" fill="none" stroke="#dbe3e9" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M520,287 L520,638" fill="none" stroke="#dbe3e9" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M740,287 L740,638" fill="none" stroke="#dbe3e9" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M960,287 L960,638" fill="none" stroke="#dbe3e9" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1180,287 L1180,638" fill="none" stroke="#dbe3e9" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M300,361 L375,361 L375,315 L485,315 L485,361 L595,361 L595,315 L705,315 L705,361 L815,361 L815,315 L925,315 L925,361 L1035,361 L1035,315 L1145,315 L1145,361 L1255,361 L1255,315 L1365,315 L1365,361 L1400,361" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M520,457 L1400,457" fill="none" stroke="#607487" stroke-width="2" stroke-dasharray="7 6" stroke-linejoin="round" />
+    <path d="M300,567 L740,567" fill="none" stroke="#607487" stroke-width="2" stroke-dasharray="7 6" stroke-linejoin="round" />
+    <path d="M520,635 L520,645 L960,645 L960,635" fill="none" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+    <path d="M300,976 L500,976 L500,930 L800,930 L800,976 L1100,976 L1100,930 L1400,930 L1400,976 L1450,976" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M500,910 L500,1150" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1100,910 L1100,1150" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M550,1028 L550,1150" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M500,1140 L500,1150 L550,1150 L550,1140" fill="none" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+  </g>
+  <g id="components">
+    <polygon points="300,457.0 310,430 510,430 520,457.0 510,484 310,484" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="740,567.0 750,540 950,540 960,567.0 950,594 750,594" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="960,567.0 970,540 1170,540 1180,567.0 1170,594 970,594" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="1180,567.0 1190,540 1390,540 1400,567.0 1390,594 1190,594" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="300,1073.0 310,1046 540,1046 550,1073.0 540,1100 310,1100" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="550,1073.0 560,1046 1140,1046 1150,1073.0 1140,1100 560,1100" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="1150,1073.0 1160,1046 1440,1046 1450,1073.0 1440,1100 1160,1100" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+  </g>
+  <g id="annotations">
+    <text x="410.0" y="265.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#607487">REG₀</text>
+    <text x="630.0" y="265.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#607487">TA₁</text>
+    <text x="850.0" y="265.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#607487">TA₂</text>
+    <text x="1070.0" y="265.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#607487">D15</text>
+    <text x="1290.0" y="265.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#607487">D14</text>
+    <text x="225" y="348.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">MDC</text>
+    <text x="225" y="464.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#233747">Ведущий</text>
+    <text x="225" y="574.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#233747">PHY</text>
+    <text x="410.0" y="466.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
+    <text x="960.0" y="446.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">Z</text>
+    <text x="520.0" y="556.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">Z</text>
+    <text x="850.0" y="576.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0</text>
+    <text x="1070.0" y="576.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D15</text>
+    <text x="1290.0" y="576.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D14</text>
+    <text x="740.0" y="682.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#607487">TA</text>
+    <text x="800" y="755.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">Z — отключённый выход</text>
+    <text x="60" y="865.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Выдача PHY и приём ведущим</text>
+    <text x="225" y="963.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">MDC</text>
+    <text x="225" y="1080.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">MDIO</text>
+    <text x="425.0" y="1082.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Бит n−1</text>
+    <text x="850.0" y="1082.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Бит n</text>
+    <text x="1300.0" y="1082.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Бит n+1</text>
+    <text x="525.0" y="1187.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#607487">tCO</text>
+    <circle cx="1100" cy="1100" r="5.5" fill="#3f75ad" />
+    <text x="1100" y="1187.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">Приём бита n</text>
+    <rect x="60" y="1309.12" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1328.12" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "https://docs.altera.com/r/docs/683402/25.3/triple-speed-ethernet-ip-user-guide/mdio-frame-format?contentId=ADlhHNZTvR9r2gR_oCxdsg",
+    "https://www.ti.com/lit/ds/symlink/dp83867ir.pdf",
+    "https://docs.amd.com/r/en-US/pg051-tri-mode-eth-mac/MDIO-Transactions",
+    "https://docs.amd.com/r/en-US/pg051-tri-mode-eth-mac/MDIO-Bus-System"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

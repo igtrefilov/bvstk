@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2818" role="img" aria-labelledby="title desc" data-content="hardware-scenario" data-layer="L0" height="2818">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 270 2200 2181" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="2181">
   <title id="title">I²C slave: состав ядра</title>
-  <desc id="desc">Шина I²C, обработка байтов и обмен с PS.</desc>
+  <desc id="desc" />
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2818" fill="white" />
+  <rect width="2200" height="2451" fill="white" />
   <g id="backgrounds">
     <rect x="420" y="310" width="1280" height="1630" rx="16" fill="white" />
     <rect x="475" y="920" width="570" height="650" rx="16" fill="white" />
@@ -123,9 +123,9 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="446" y="347.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">I2C_slave_0</text>
       </a>
       <text x="446" y="380.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">i2c_slave_wrapper → top_i2c_slave</text>
-      <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="regs" data-ownership="common" data-parent="core" data-target="completion.svg#irq">
+      <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="regs" data-ownership="common" data-parent="core" data-target="completion.svg#regs">
         <rect x="500" y="490" width="470" height="195" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="completion.svg#irq">
+        <a data-navigation="detail" xlink:href="completion.svg#regs">
           <text x="520" y="514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="520" y="548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">regs</text>
         </a>
@@ -164,7 +164,7 @@ g:target &gt; rect { stroke-width: 5; }
       </g>
       <g id="data-ctrl" data-kind="functional-group" data-label="data_ctrl" data-layer="L0" data-domain="pl" data-ownership="common">
         <rect x="1180" y="920" width="480" height="665" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
-        <a data-navigation="detail" xlink:href="buffers.svg#data-ctrl">
+        <a data-navigation="detail" xlink:href="buffers.svg#writer">
           <text x="1206" y="957.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">data_ctrl</text>
         </a>
         <g id="rx-pkt" data-kind="component" data-layer="L0" data-domain="pl" data-label="Событие rx_pkt" data-ownership="common" data-parent="data-ctrl" data-target="write.svg#capture">
@@ -176,9 +176,9 @@ g:target &gt; rect { stroke-width: 5; }
           <text x="1240" y="1107.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">packet_view_t</text>
           <text x="1240" y="1133.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">rx_full: событие готово</text>
         </g>
-        <g id="word" data-kind="component" data-layer="L0" data-domain="pl" data-label="Буфер data4bytes" data-ownership="common" data-parent="data-ctrl" data-target="buffers.svg#packing">
+        <g id="word" data-kind="component" data-layer="L0" data-domain="pl" data-label="Буфер data4bytes" data-ownership="common" data-parent="data-ctrl" data-target="memory-format.svg#packing">
           <rect x="1220" y="1310" width="400" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="buffers.svg#packing">
+          <a data-navigation="detail" xlink:href="memory-format.svg#packing">
             <text x="1240" y="1334.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
             <text x="1240" y="1368.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Буфер data4bytes</text>
           </a>
@@ -229,9 +229,6 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C slave: состав ядра</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Шина I²C, обработка байтов и обмен с PS.</text>
     <text x="1570" y="407.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">IRQ через GIC</text>
     <text x="1115" y="1210.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Событие</text>
     <text x="1115" y="1500.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Байт ответа</text>
@@ -242,28 +239,22 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="1150" y="716.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">События data_ctrl</text>
     <text x="1660" y="1990.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Через AXI и контроллер BRAM</text>
     <text x="1800" y="2184.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label" xml:space="preserve"><tspan>Данные через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
-    <text x="60" y="2420.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">На I²C ядро — ведомое; при обращении к BRAM — инициатор AXI.</text>
-    <text x="60" y="2480.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Указатель регистра, политика и кэш — в сервисе </tspan><tspan style="fill:#287f73">L3</tspan><tspan>.</tspan></text>
-    <a data-navigation="detail" xlink:href="addressing.svg">
-      <text x="60" y="2580.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Далее: как ядро выбирает обращение на шине</text>
-    </a>
-    <path d="M60,2672 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="2678.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,2672 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="327" y="2678.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M551,2672 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="633" y="2678.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <path d="M747,2672 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
-    <text x="829" y="2678.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
-    <rect x="60" y="2709" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2728.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2709" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2728.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="2709" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
-    <text x="419" y="2728.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-    <rect x="490" y="2709" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="534" y="2728.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2775.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра.</tspan></text>
+    <path d="M60,2357 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="2363.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,2357 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="2363.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,2357 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="2363.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,2357 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="2363.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="2394" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2413.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2394" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2413.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="2394" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="419" y="2413.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="490" y="2394" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="534" y="2413.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -291,7 +282,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "regs",
-      "target": "completion.svg#irq"
+      "target": "completion.svg#regs"
     },
     {
       "node": "platform",
@@ -315,7 +306,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "data-ctrl",
-      "target": "buffers.svg#data-ctrl"
+      "target": "buffers.svg#writer"
     },
     {
       "node": "rx-pkt",
@@ -323,7 +314,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "word",
-      "target": "buffers.svg#packing"
+      "target": "memory-format.svg#packing"
     },
     {
       "node": "host",
@@ -332,11 +323,8 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "bram",
       "target": "buffers.svg#bram"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "addressing.svg"
     }
-  ]
+  ],
+  "article_notes": []
 }</metadata>
 </svg>

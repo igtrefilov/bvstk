@@ -1,0 +1,106 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" viewBox="0 177 1600 1337" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="1337">
+  <title id="title">SPI: чтение и запись регистра</title>
+  <desc id="desc">Условное устройство: байт команды, байт адреса, байт данных.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1514" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <path d="M240,295 L265,295 L265,341 L1490,341 L1490,295 L1520,295" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M240,433 L290,433 L302,433 L302,387 L326,387 L326,433 L350.75,433 L350.75,387 L374.75,387 L374.75,433 L399.5,433 L399.5,387 L423.5,387 L423.5,433 L448.25,433 L448.25,387 L472.25,387 L472.25,433 L497,433 L497,387 L521,387 L521,433 L545.75,433 L545.75,387 L569.75,387 L569.75,433 L594.5,433 L594.5,387 L618.5,387 L618.5,433 L643.25,433 L643.25,387 L667.25,387 L667.25,433 L692,433 L692,387 L716,387 L716,433 L740.75,433 L740.75,387 L764.75,387 L764.75,433 L789.5,433 L789.5,387 L813.5,387 L813.5,433 L838.25,433 L838.25,387 L862.25,387 L862.25,433 L887,433 L887,387 L911,387 L911,433 L935.75,433 L935.75,387 L959.75,387 L959.75,433 L984.5,433 L984.5,387 L1008.5,387 L1008.5,433 L1033.25,433 L1033.25,387 L1057.25,387 L1057.25,433 L1082,433 L1082,387 L1106,387 L1106,433 L1130.75,433 L1130.75,387 L1154.75,387 L1154.75,433 L1179.5,433 L1179.5,387 L1203.5,387 L1203.5,433 L1228.25,433 L1228.25,387 L1252.25,387 L1252.25,433 L1277,433 L1277,387 L1301,387 L1301,433 L1325.75,433 L1325.75,387 L1349.75,387 L1349.75,433 L1374.5,433 L1374.5,387 L1398.5,387 L1398.5,433 L1423.25,433 L1423.25,387 L1447.25,387 L1447.25,433 L1520,433" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M290,700 L290,710 L1460,710 L1460,700" fill="none" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+    <path d="M240,885 L265,885 L265,931 L1490,931 L1490,885 L1520,885" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M240,1023 L290,1023 L302,1023 L302,977 L326,977 L326,1023 L350.75,1023 L350.75,977 L374.75,977 L374.75,1023 L399.5,1023 L399.5,977 L423.5,977 L423.5,1023 L448.25,1023 L448.25,977 L472.25,977 L472.25,1023 L497,1023 L497,977 L521,977 L521,1023 L545.75,1023 L545.75,977 L569.75,977 L569.75,1023 L594.5,1023 L594.5,977 L618.5,977 L618.5,1023 L643.25,1023 L643.25,977 L667.25,977 L667.25,1023 L692,1023 L692,977 L716,977 L716,1023 L740.75,1023 L740.75,977 L764.75,977 L764.75,1023 L789.5,1023 L789.5,977 L813.5,977 L813.5,1023 L838.25,1023 L838.25,977 L862.25,977 L862.25,1023 L887,1023 L887,977 L911,977 L911,1023 L935.75,1023 L935.75,977 L959.75,977 L959.75,1023 L984.5,1023 L984.5,977 L1008.5,977 L1008.5,1023 L1033.25,1023 L1033.25,977 L1057.25,977 L1057.25,1023 L1082,1023 L1082,977 L1106,977 L1106,1023 L1130.75,1023 L1130.75,977 L1154.75,977 L1154.75,1023 L1179.5,1023 L1179.5,977 L1203.5,977 L1203.5,1023 L1228.25,1023 L1228.25,977 L1252.25,977 L1252.25,1023 L1277,1023 L1277,977 L1301,977 L1301,1023 L1325.75,1023 L1325.75,977 L1349.75,977 L1349.75,1023 L1374.5,1023 L1374.5,977 L1398.5,977 L1398.5,1023 L1423.25,1023 L1423.25,977 L1447.25,977 L1447.25,1023 L1520,1023" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M290,1290 L290,1300 L1460,1300 L1460,1290" fill="none" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+  </g>
+  <g id="components">
+    <rect x="290" y="475" width="378" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="680" y="475" width="378" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="1070" y="475" width="390" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="290" y="585" width="1170" height="80" rx="5" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+    <rect x="290" y="1065" width="378" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="680" y="1065" width="378" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="1070" y="1065" width="390" height="80" rx="5" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+    <rect x="290" y="1175" width="768" height="80" rx="5" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+    <rect x="1070" y="1175" width="390" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+  </g>
+  <g id="annotations">
+    <text x="60" y="245.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Запись</text>
+    <text x="205" y="328.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">CS</text>
+    <text x="205" y="420.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">SCK</text>
+    <text x="205" y="518.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">MOSI</text>
+    <text x="205" y="628.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">MISO</text>
+    <text x="479.0" y="509.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">WRITE</text>
+    <text x="479.0" y="539.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">Команда</text>
+    <text x="869.0" y="509.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x10</text>
+    <text x="869.0" y="539.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">Регистр</text>
+    <text x="1265.0" y="509.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x7B</text>
+    <text x="1265.0" y="539.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">Значение</text>
+    <text x="875.0" y="634.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#607487">Не используется</text>
+    <text x="875.0" y="747.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#607487">24 такта SCK</text>
+    <text x="60" y="835.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Чтение</text>
+    <text x="205" y="918.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">CS</text>
+    <text x="205" y="1010.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">SCK</text>
+    <text x="205" y="1108.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">MOSI</text>
+    <text x="205" y="1218.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">MISO</text>
+    <text x="479.0" y="1099.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">READ</text>
+    <text x="479.0" y="1129.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">Команда</text>
+    <text x="869.0" y="1099.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x10</text>
+    <text x="869.0" y="1129.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">Регистр</text>
+    <text x="1265.0" y="1099.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#607487">Заполнитель</text>
+    <text x="1265.0" y="1129.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">8 бит</text>
+    <text x="674.0" y="1224.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#607487">Не используется</text>
+    <text x="1265.0" y="1209.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x34</text>
+    <text x="1265.0" y="1239.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">Значение</text>
+    <text x="875.0" y="1337.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#607487">24 такта SCK</text>
+    <rect x="60" y="1457.74" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1476.74" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "https://www.analog.com/en/resources/analog-dialogue/articles/introduction-to-spi-interface.html",
+    "https://www.analog.com/en/resources/app-notes/an-1248.html",
+    "https://ww1.microchip.com/downloads/en/AppNotes/01496A.pdf"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2945" role="img" aria-labelledby="title desc" height="2945">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 230 2200 2528" role="img" aria-labelledby="title desc" height="2528">
   <title id="title">Программные входы и наблюдение</title>
   <desc id="desc">Команды обращаются к сервисам. Значения кэша и события имеют свои пути к клиенту.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2945" fill="white" />
+  <rect width="2200" height="2758" fill="white" />
   <g id="backgrounds">
     <rect x="60" y="270" width="670" height="2290" rx="16" fill="white" />
     <rect x="1470" y="270" width="670" height="1130" rx="16" fill="white" />
@@ -211,27 +211,22 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">Программные входы и наблюдение</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Команды обращаются к сервисам. Значения кэша и события имеют свои пути к клиенту.</text>
     <text x="1805.0" y="946.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запрос</text>
     <text x="1100.0" y="1671.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Изменения кэша</text>
     <text x="1480" y="2080.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">События</text>
-    <text x="60" y="2660.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Общий каталог кэша на этом листе подключён в runtime FreeRTOS. В Нейтрино показан действующий путь I²C через менеджер ресурсов.</text>
-    <text x="60" y="2720.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Команды прямого MMIO находятся на </tspan><tspan style="fill:#b56b1d">L1</tspan><tspan> и обходят политику устройства. Они раскрыты в общем архитектурном ряду отдельно.</tspan></text>
-    <path d="M60,2799.6 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="2805.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,2799.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="327" y="2805.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <path d="M441,2799.6 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
-    <text x="523" y="2805.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
-    <rect x="60" y="2836.6" width="32" height="24" rx="4" fill="#ffd1c7" stroke="#c65b4e" />
-    <text x="104" y="2855.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
-    <rect x="175" y="2836.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="219" y="2855.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <rect x="290" y="2836.6" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
-    <text x="334" y="2855.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-    <text x="60" y="2902.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,2612 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="2618.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,2612 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="2618.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M441,2612 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="523" y="2618.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="2649" width="32" height="24" rx="4" fill="#ffd1c7" stroke="#c65b4e" />
+    <text x="104" y="2668.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
+    <rect x="175" y="2649" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="219" y="2668.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="290" y="2649" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="334" y="2668.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="2715.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -296,6 +291,10 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "notify",
       "target": "../../architecture_bvstk_l4.svg#f-observation"
     }
+  ],
+  "article_notes": [
+    "Общий каталог кэша на этом листе подключён в runtime FreeRTOS. В Нейтрино показан действующий путь I²C через менеджер ресурсов.",
+    "Команды прямого MMIO находятся на L1 и обходят политику устройства. Они раскрыты в общем архитектурном ряду отдельно."
   ]
 }</metadata>
 </svg>

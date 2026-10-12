@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2835" role="img" aria-labelledby="title desc" height="2835">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 220 2200 2443" role="img" aria-labelledby="title desc" height="2443">
   <title id="title">MDIO slave: два независимых пути BRAM</title>
   <desc id="desc">Внешнее чтение использует подготовленный ответ. Входящая запись сохраняется для последующей обработки PS.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2835" fill="white" />
+  <rect width="2200" height="2663" fill="white" />
   <g id="backgrounds">
     <rect x="130" y="550" width="1940" height="1270" rx="16" fill="white" />
     <rect x="180" y="1020" width="1840" height="735" rx="16" fill="white" />
@@ -164,27 +164,22 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">MDIO slave: два независимых пути BRAM</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Внешнее чтение использует подготовленный ответ. Входящая запись сохраняется для последующей обработки PS.</text>
     <text x="1100.0" y="533.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MDC и MDIO</text>
     <text x="722.5" y="926.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">OP = write</text>
     <text x="1477.5" y="906.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Ответ</text>
     <text x="1780" y="969.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">OP = read</text>
     <text x="950.0" y="1806.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">M_AXI</text>
-    <text x="60" y="2550.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Ячейка хранит последнее значение. Несколько записей до обработки PS могут слиться; порядок между регистрами из этой памяти восстановить нельзя.</text>
-    <text x="60" y="2610.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">После потребления PS ставит метку 0x00010000. Запрет политики учитывается программой; отдельного ответа об отказе внешней MDIO-записи нет.</text>
-    <path d="M60,2689.6 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="142" y="2695.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M366,2689.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="448" y="2695.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="2726.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2745.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2726.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2745.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="2726.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="2745.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2792.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,2517 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="142" y="2523.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M366,2517 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="448" y="2523.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2554" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2573.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2554" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2573.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="2554" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="2573.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="2620.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -210,6 +205,10 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "publish",
       "target": "../ps-interaction/cache.svg#cache"
     }
+  ],
+  "article_notes": [
+    "Ячейка хранит последнее значение. Несколько записей до обработки PS могут слиться; порядок между регистрами из этой памяти восстановить нельзя.",
+    "После потребления PS ставит метку 0x00010000. Запрет политики учитывается программой; отдельного ответа об отказе внешней MDIO-записи нет."
   ]
 }</metadata>
 </svg>

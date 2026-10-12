@@ -1,44 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="1720" viewBox="0 0 2800 1720" id="bvstk-os-overview" role="img" aria-labelledby="title desc" data-pl-original-height="1630">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="1396" viewBox="0 199 2800 1396" id="bvstk-os-overview" role="img" aria-labelledby="title desc">
   <title id="title">BVSTK в двух ОС</title>
   <desc id="desc">Структура двух альтернативных сборок BVSTK. FreeRTOS находится слева, Нейтрино справа, общий код — в центре. Пунктирные рамки обозначают принадлежность к ОС, цвет — уровень абстракции. Показаны приложения, системные службы, ядра и реализации платформы. Общий код включает прикладную логику, логику подсистем и интерфейсы платформы; он входит в каждую сборку отдельно. Аппаратура общая. Положение блоков показывает их место в структуре. Подробности раскрываются по ссылкам в заголовках.</desc>
   <defs>
     <style>text{font-family:DejaVu Sans,sans-serif;fill:#233747;} a{cursor:pointer;} a:hover text{text-decoration:underline;} g:target&gt;rect{stroke-width:4;}</style>
   </defs>
   <rect id="page" x="0" y="0" width="2800" height="1630" fill="white" />
-  <text x="60" y="47" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-  <text x="60" y="98" font-size="40" font-weight="700" text-anchor="start" style="fill:#233747">BVSTK в двух ОС</text>
-  <text x="60" y="144" font-size="23" font-weight="400" text-anchor="start" style="fill:#576c7b">Состав сборок и общая часть проекта.</text>
-  <g id="series-navigation" data-kind="navigation">
-    <a data-navigation="sheet" xlink:href="levels.svg">
-      <rect x="2000" y="64" width="124" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2062.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">Уровни</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_os.svg">
-      <rect x="2140" y="64" width="84" height="46" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-      <text x="2182.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">ОС</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l4.svg">
-      <rect x="2240" y="64" width="80" height="46" rx="8" fill="white" stroke="#3f75ad" stroke-width="1" />
-      <text x="2280.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#3f75ad">L4</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l3.svg">
-      <rect x="2336" y="64" width="80" height="46" rx="8" fill="white" stroke="#287f73" stroke-width="1" />
-      <text x="2376.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#287f73">L3</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l1.svg">
-      <rect x="2432" y="64" width="80" height="46" rx="8" fill="white" stroke="#b56b1d" stroke-width="1" />
-      <text x="2472.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#b56b1d">L1</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l0_l1.svg">
-      <rect x="2528" y="64" width="116" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2586.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0–L1</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
-      <rect x="2660" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
-    </a>
-  </g>
   <g id="freertos-region" data-kind="ownership-region" data-ownership="freertos">
     <rect x="60" y="240" width="760" height="1010" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.8" stroke-dasharray="10 8" />
     <text x="90" y="293" font-size="32" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
@@ -142,7 +109,7 @@
     </g>
   </g>
   <view id="os-kernels" viewBox="60 750 2680 230" />
-  <text x="100" y="1550" font-size="23" font-weight="400" text-anchor="start" style="fill:#576c7b">Общий код входит в каждую сборку отдельно. Цвет блока обозначает уровень, пунктирная рамка — ОС.</text>
+  <text x="100" y="1550" font-size="23" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет — уровень абстракции. Пунктирная рамка — часть ОС.</text>
   <metadata id="cross-sheet-links">[
   {
     "block": "f-apps",
@@ -229,10 +196,4 @@
     "relation": "summary"
   }
 ]</metadata>
-  <g id="pl-subsystem-navigation" data-kind="navigation">
-    <rect x="0" y="1630.0" width="2800.0" height="90.0" fill="white" />
-    <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="1670.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
-    </a>
-  </g>
 </svg>

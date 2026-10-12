@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 3213" role="img" aria-labelledby="title desc" data-content="hardware-scenario" data-layer="L0" height="3213">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 270 2200 2556" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="2556">
   <title id="title">I²C master: состав ядра</title>
-  <desc id="desc">Команды PS → шина I²C → результат в BRAM.</desc>
+  <desc id="desc" />
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="3213" fill="white" />
+  <rect width="2200" height="2826" fill="white" />
   <g id="backgrounds">
     <rect x="100" y="670" width="2000" height="1630" rx="16" fill="white" />
     <rect x="1170" y="1260" width="860" height="640" rx="16" fill="white" />
@@ -141,9 +141,9 @@ g:target &gt; rect { stroke-width: 5; }
       </a>
       <text x="840" y="407.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">MMIO</text>
     </g>
-    <g id="irq-pin" data-kind="component" data-layer="L0" data-label="IRQ → GIC" data-ownership="common" data-target="completion.svg#status">
+    <g id="irq-pin" data-kind="component" data-layer="L0" data-label="IRQ → GIC" data-ownership="common" data-target="completion.svg#regs">
       <rect x="1550" y="310" width="510" height="220" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="completion.svg#status">
+      <a data-navigation="detail" xlink:href="completion.svg#regs">
         <text x="1570" y="334.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
         <text x="1570" y="368.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">IRQ → GIC</text>
       </a>
@@ -160,9 +160,9 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="160" y="868.0" font-size="22.22" font-weight="700" text-anchor="start" style="fill:#233747">axi_lite_slave_native</text>
         <text x="160" y="907.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Порт s_axi</text>
       </g>
-      <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="regs" data-ownership="common" data-parent="core" data-target="completion.svg#status">
+      <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="regs" data-ownership="common" data-parent="core" data-target="completion.svg#regs">
         <rect x="590" y="810" width="350" height="190" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="completion.svg#status">
+        <a data-navigation="detail" xlink:href="completion.svg#regs">
           <text x="610" y="834.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="610" y="868.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">regs</text>
         </a>
@@ -209,9 +209,9 @@ g:target &gt; rect { stroke-width: 5; }
           <text x="1730" y="1447.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">div_cnt, divisor</text>
           <text x="1730" y="1473.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">scl_oe</text>
         </g>
-        <g id="inputs" data-kind="component" data-layer="L0" data-domain="pl" data-label="Входы" data-ownership="common" data-parent="engine" data-target="timing.svg#sampling">
+        <g id="inputs" data-kind="component" data-layer="L0" data-domain="pl" data-label="Входы" data-ownership="common" data-parent="engine" data-target="sampling.svg">
           <rect x="1710" y="1625" width="280" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="timing.svg#sampling">
+          <a data-navigation="detail" xlink:href="sampling.svg">
             <text x="1730" y="1649.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
             <text x="1730" y="1683.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Входы</text>
           </a>
@@ -270,39 +270,30 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C master: состав ядра</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Команды PS → шина I²C → результат в BRAM.</text>
     <text x="780" y="588.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">MMIO</text>
     <text x="1300" y="713.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">CSR.start</text>
     <text x="1940" y="1140.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">tx_valid и tx_ready</text>
     <text x="990" y="1088.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">ERR_ACK</text>
     <text x="430" y="1218.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">DATA_VALID</text>
     <text x="1725" y="2195.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">SDA и SCL</text>
-    <text x="60" y="2810.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Команды → TX_FIFO. Результат чтения → BRAM через m_axi.</text>
-    <text x="60" y="2872.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Модули упакованного IP. Политика и кэш — в сервисе </tspan><tspan style="fill:#287f73">L3</tspan><tspan>.</tspan></text>
-    <a data-navigation="detail" xlink:href="commands.svg">
-      <text x="60" y="2975.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Далее: подготовка команды и запуск ядра</text>
-    </a>
-    <path d="M60,3067 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="3073.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,3067 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="327" y="3073.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M551,3067 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="633" y="3073.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <path d="M747,3067 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
-    <text x="829" y="3073.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
-    <path d="M1020,3067 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="2 6" marker-end="url(#clock-arrow)" />
-    <text x="1102" y="3073.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Тактирование и сброс</text>
-    <rect x="60" y="3104" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="3123.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="3104" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="3123.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="3104" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
-    <text x="419" y="3123.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-    <rect x="490" y="3104" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="534" y="3123.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="3170.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра.</tspan></text>
+    <path d="M60,2732 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="2738.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,2732 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="2738.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,2732 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="2738.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,2732 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="2738.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <path d="M1020,2732 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="2 6" marker-end="url(#clock-arrow)" />
+    <text x="1102" y="2738.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Тактирование и сброс</text>
+    <rect x="60" y="2769" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2788.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2769" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2788.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="2769" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="419" y="2788.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="490" y="2769" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="534" y="2788.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -339,7 +330,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "irq-pin",
-      "target": "completion.svg#status"
+      "target": "completion.svg#regs"
     },
     {
       "node": "core",
@@ -347,7 +338,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "regs",
-      "target": "completion.svg#status"
+      "target": "completion.svg#regs"
     },
     {
       "node": "tx-fifo",
@@ -371,7 +362,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "inputs",
-      "target": "timing.svg#sampling"
+      "target": "sampling.svg"
     },
     {
       "node": "rx-data-ctrl",
@@ -392,11 +383,8 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "device",
       "target": "../../protocol/interface.svg#target"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "commands.svg"
     }
-  ]
+  ],
+  "article_notes": []
 }</metadata>
 </svg>

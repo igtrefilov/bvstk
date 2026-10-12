@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 3378" role="img" aria-labelledby="title desc" height="3378">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 260 2200 2936" role="img" aria-labelledby="title desc" height="2936">
   <title id="title">Подсистема PL: порядок операций</title>
   <desc id="desc">Участники сохраняют свои роли. Внутри каждого сценария шаги читаются сверху вниз.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="3378" fill="white" />
+  <rect width="2200" height="3196" fill="white" />
   <g id="backgrounds">
     <path d="M210.0,658 V1016" fill="none" stroke="#607487" stroke-width="1.4" opacity=".24" />
     <path d="M575.0,658 V1016" fill="none" stroke="#8760ba" stroke-width="1.4" opacity=".24" />
@@ -198,9 +198,6 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">Подсистема PL: порядок операций</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Участники сохраняют свои роли. Внутри каждого сценария шаги читаются сверху вниз.</text>
     <g id="prepared-reply" data-kind="scenario">
       <text x="60" y="560.0" font-size="27" font-weight="700" text-anchor="start" style="fill:#233747">Готовый ответ уже опубликован</text>
       <text x="60" y="598.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Этот путь начинается после подготовки ответа в BRAM.</text>
@@ -353,23 +350,21 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="109" y="2938.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">Обработать результат записи и обновить состояние кэша</text>
       </a>
     </g>
-    <text x="60" y="3088.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ сообщает о событии. При его отсутствии готовность обнаруживается опросом состояния.</text>
-    <text x="60" y="3153.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Завершение записи и проверка фактического значения зависят от подсистемы. Работа с кэшем раскрыта на отдельной схеме.</text>
-    <path d="M60,3232.6 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="3238.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,3232.6 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="327" y="3238.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M551,3232.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="633" y="3238.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <path d="M747,3232.6 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
-    <text x="829" y="3238.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
-    <rect x="60" y="3269.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="3288.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="3269.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="3288.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="3269.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="3288.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="3335.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,3050 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="3056.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,3050 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="3056.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,3050 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="3056.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,3050 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="3056.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="3087" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="3106.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="3087" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="3106.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="3087" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="3106.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="3153.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -429,6 +424,10 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "write-result",
       "target": "cache.svg#operation"
     }
+  ],
+  "article_notes": [
+    "IRQ сообщает о событии. При его отсутствии готовность обнаруживается опросом состояния.",
+    "Завершение записи и проверка фактического значения зависят от подсистемы. Работа с кэшем раскрыта на отдельной схеме."
   ]
 }</metadata>
 </svg>

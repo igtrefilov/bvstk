@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2685" role="img" aria-labelledby="title desc" height="2685">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 230 2200 2268" role="img" aria-labelledby="title desc" height="2268">
   <title id="title">SPI slave: обмен между шиной и AXI Stream</title>
   <desc id="desc">Внешний ведущий задаёт SCK и CS. Два FIFO развязывают последовательную шину и потоки.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2685" fill="white" />
+  <rect width="2200" height="2498" fill="white" />
   <g id="backgrounds">
     <rect x="80" y="590" width="2040" height="1390" rx="16" fill="white" />
   </g>
@@ -157,22 +157,17 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">SPI slave: обмен между шиной и AXI Stream</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Внешний ведущий задаёт SCK и CS. Два FIFO развязывают последовательную шину и потоки.</text>
     <text x="920.0" y="558.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MOSI</text>
     <text x="1280.0" y="558.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MISO</text>
     <text x="920.0" y="958.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Принятые байты</text>
     <text x="1280.0" y="958.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Байты ответа</text>
-    <text x="60" y="2400.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Названия RX и TX в RTL относятся к стороне потоков. Функциональные подписи показывают направление относительно внешней шины.</text>
-    <text x="60" y="2460.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">На этом листе показана аппаратная возможность. Обслуживание SPI slave отдельной службой текущего BVSTK не подключено.</text>
-    <path d="M60,2539.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="142" y="2545.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="2576.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2595.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2576.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2595.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <text x="60" y="2642.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,2352 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="2358.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2389" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2408.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2389" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2408.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="2455.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -196,6 +191,10 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "dma-rx",
       "target": "subsystem.svg#dma1-rx"
     }
+  ],
+  "article_notes": [
+    "Названия RX и TX в RTL относятся к стороне потоков. Функциональные подписи показывают направление относительно внешней шины.",
+    "На этом листе показана аппаратная возможность. Обслуживание SPI slave отдельной службой текущего BVSTK не подключено."
   ]
 }</metadata>
 </svg>

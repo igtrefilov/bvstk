@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2178" role="img" aria-labelledby="title desc" height="2178">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 205 2200 1803" role="img" aria-labelledby="title desc" height="1803">
   <title id="title">MDIO: обновление кэша и ответов slave</title>
   <desc id="desc">Последовательность одного успешного обновления. Фоновый опрос выполняет задача FreeRTOS.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2178" fill="white" />
+  <rect width="2200" height="2008" fill="white" />
   <g id="backgrounds">
     <rect x="86.0" y="245" width="398.4" height="245" rx="16" fill="white" />
     <path d="M285.2,470 V1770" stroke="#d3dce3" stroke-width="1.5" fill="none" />
@@ -139,65 +139,49 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">MDIO: обновление кэша и ответов slave</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Последовательность одного успешного обновления. Фоновый опрос выполняет задача FreeRTOS.</text>
     <rect x="63" y="499" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="530.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">01</text>
     <text x="130" y="530.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Выбрать очередной шаг фоновой работы</text>
-    <text x="130" y="561.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Учитываются проверка присутствия PHY, список регистров и интервалы профиля.</text>
     <rect x="63" y="625" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="656.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">02</text>
     <text x="130" y="656.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Запустить физическое чтение регистра</text>
-    <text x="130" y="687.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Сервис вызывает драйвер; доступ к аппаратуре выполняется через </tspan><tspan style="fill:#b56b1d">L1</tspan><tspan>.</tspan></text>
     <rect x="63" y="751" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="782.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">03</text>
     <text x="130" y="782.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Сохранить результат физического чтения</text>
-    <text x="130" y="813.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Банк +0x0000, адрес по PHY и REG.</text>
     <rect x="63" y="877" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="908.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">04</text>
     <text x="130" y="908.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Дождаться нового результата</text>
-    <text x="130" y="939.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Проверить DATA_VALID и адрес результата MEM_ADDR.</text>
     <rect x="63" y="1003" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1034.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">05</text>
     <text x="130" y="1034.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Получить значение из банка результатов</text>
-    <text x="130" y="1065.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Это значение прочитано у PHY.</text>
     <rect x="63" y="1129" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1160.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">06</text>
     <text x="130" y="1160.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Подтвердить полученный результат</text>
-    <text x="130" y="1191.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Прочитать MEM_ADDR, затем записать 1 в IRQ.</text>
     <rect x="63" y="1255" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1286.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">07</text>
     <text x="130" y="1286.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Опубликовать ответ для внешнего ведущего</text>
-    <text x="130" y="1317.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Записать значение в банк slave +0x2000.</text>
     <rect x="63" y="1381" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1412.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">08</text>
     <text x="130" y="1412.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Обновить программный кэш</text>
-    <text x="130" y="1443.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">value, valid = 1, seeded = 0, updated_ms.</text>
     <rect x="63" y="1507" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1538.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">09</text>
     <text x="130" y="1538.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Передать изменение в общий каталог</text>
-    <text x="130" y="1569.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">bvstk_cache_sink и bvstk_cache_bridges.</text>
     <rect x="63" y="1633" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1664.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">10</text>
     <text x="130" y="1664.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Подготовить снимок и изменения для клиентов</text>
-    <text x="130" y="1695.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Продолжение — на схеме программных интерфейсов.</text>
-    <text x="60" y="1858.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">При ошибке чтения значение становится недостоверным; в ответ slave публикуется 0xFFFF. Проверка присутствия PHY имеет отдельные правила учёта.</text>
-    <text x="60" y="1905.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Начальные settings имеют источник settings. После физического чтения источником становится устройство.</text>
-    <text x="60" y="1953.1999999999998" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Кэш I²C также обновляется при операциях сервиса. Отдельный фоновый опрос всех устройств I²C здесь не подразумевается.</text>
-    <path d="M60,2032.7999999999997 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="2038.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,2032.7999999999997 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="327" y="2038.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M551,2032.7999999999997 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="633" y="2038.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="2069.7999999999997" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="104" y="2088.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="260" y="2069.7999999999997" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
-    <text x="304" y="2088.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-    <rect x="375" y="2069.7999999999997" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="2088.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2135.7999999999997" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,1862 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1868.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1862 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1868.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,1862 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="1868.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1899" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="1918.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="1899" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="304" y="1918.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="375" y="1899" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1918.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1965.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -226,6 +210,21 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "registry",
       "target": "interfaces.svg#cache"
     }
+  ],
+  "article_notes": [
+    "Учитываются проверка присутствия PHY, список регистров и интервалы профиля.",
+    "Сервис вызывает драйвер; доступ к аппаратуре выполняется через L1.",
+    "Банк +0x0000, адрес по PHY и REG.",
+    "Проверить DATA_VALID и адрес результата MEM_ADDR.",
+    "Это значение прочитано у PHY.",
+    "Прочитать MEM_ADDR, затем записать 1 в IRQ.",
+    "Записать значение в банк slave +0x2000.",
+    "value, valid = 1, seeded = 0, updated_ms.",
+    "bvstk_cache_sink и bvstk_cache_bridges.",
+    "Продолжение — на схеме программных интерфейсов.",
+    "При ошибке чтения значение становится недостоверным; в ответ slave публикуется 0xFFFF. Проверка присутствия PHY имеет отдельные правила учёта.",
+    "Начальные settings имеют источник settings. После физического чтения источником становится устройство.",
+    "Кэш I²C также обновляется при операциях сервиса. Отдельный фоновый опрос всех устройств I²C здесь не подразумевается."
   ]
 }</metadata>
 </svg>

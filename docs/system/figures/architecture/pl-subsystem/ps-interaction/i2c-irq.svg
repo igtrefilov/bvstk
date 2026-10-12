@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2965" role="img" aria-labelledby="title desc" height="2965">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 230 2200 2623" role="img" aria-labelledby="title desc" height="2623">
   <title id="title">I²C slave: от IRQ к сервису и ответу</title>
   <desc id="desc">Слева FreeRTOS, справа Нейтрино. Общая обработка запроса расположена в центре.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2965" fill="white" />
+  <rect width="2200" height="2853" fill="white" />
   <g id="backgrounds">
     <rect x="60" y="580" width="620" height="1420" rx="16" fill="white" />
     <rect x="1520" y="580" width="620" height="1420" rx="16" fill="white" />
@@ -72,20 +72,20 @@ g:target &gt; rect { stroke-width: 5; }
       <path d="M1830,1265 L1830,1500" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
     </g>
     <g data-kind="interaction" data-from="f-worker" data-to="slave-service" data-interaction="call" data-direction="forward">
-      <path d="M640,1625 L735,1625 L735,1672.5 L830,1672.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M640,1625 L735,1625 L735,1672.5 L830,1672.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <path d="M640,1672.5 L830,1672.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M640,1672.5 L830,1672.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
     <g data-kind="interaction" data-from="n-worker" data-to="slave-service" data-interaction="call" data-direction="forward">
-      <path d="M1560,1635 L1465,1635 L1465,1672.5 L1370,1672.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1560,1635 L1465,1635 L1465,1672.5 L1370,1672.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <path d="M1560,1672.5 L1370,1672.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1560,1672.5 L1370,1672.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
     <g data-kind="interaction" data-from="slave-service" data-to="master-service" data-interaction="call" data-direction="forward">
       <path d="M1100,1765 L1100,1840" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
       <path d="M1100,1765 L1100,1840" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="master-service" data-to="window" data-interaction="data" data-direction="forward">
-      <path d="M1100,1955 L1100,2160" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1100,1955 L1100,2160" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    <g data-kind="interaction" data-from="service" data-to="window" data-interaction="data" data-direction="forward">
+      <path d="M1100,1995 L1100,2160" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1100,1995 L1100,2160" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
     </g>
     <g data-kind="interaction" data-from="window" data-to="read" data-interaction="data" data-direction="forward">
       <path d="M1100,2340 L1100,2490" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
@@ -175,7 +175,8 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="830" y="1580" width="540" height="185" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <text x="850" y="1604.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
         <text x="850" y="1638.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave_service</text>
-        <text x="850" y="1677.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Указатель регистра, запись, окно ответа</text>
+        <text x="850" y="1677.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Указатель, кэш и запись</text>
+        <text x="850" y="1703.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подготовка окна ответа</text>
       </g>
       <g id="master-service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-parent="service" data-target="../i2c/cores/master/commands.svg#master-service">
         <rect x="830" y="1840" width="540" height="115" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
@@ -204,33 +205,30 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C slave: от IRQ к сервису и ответу</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Слева FreeRTOS, справа Нейтрино. Общая обработка запроса расположена в центре.</text>
     <text x="370.0" y="973.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">Событие</text>
     <text x="370.0" y="1368.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">Пробуждение</text>
     <text x="1830.0" y="973.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Подключение события</text>
     <text x="1430" y="985.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">IRQ</text>
     <text x="1830.0" y="1368.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">Пробуждение</text>
-    <text x="1100.0" y="2043.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Подготовленные байты</text>
-    <text x="60" y="2740.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">При входящей записи сервис проверяет политику и вызывает ведущую операцию. В IRQ-контексте FreeRTOS выполняется захват события.</text>
-    <path d="M60,2819.6 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="2825.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,2819.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="327" y="2825.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <path d="M441,2819.6 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
-    <text x="523" y="2825.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
-    <rect x="60" y="2856.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2856.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="2856.6" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
-    <text x="419" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-    <rect x="490" y="2856.6" width="32" height="24" rx="4" fill="#ffd1c7" stroke="#c65b4e" />
-    <text x="534" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
-    <rect x="605" y="2856.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="649" y="2875.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2922.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <text x="1100.0" y="1788.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Запись или промах кэша</text>
+    <text x="1100.0" y="2063.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Подготовленные байты</text>
+    <path d="M60,2707 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="2713.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,2707 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="2713.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M441,2707 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="523" y="2713.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="2744" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2763.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2744" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2763.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="2744" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="419" y="2763.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="490" y="2744" width="32" height="24" rx="4" fill="#ffd1c7" stroke="#c65b4e" />
+    <text x="534" y="2763.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
+    <rect x="605" y="2744" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="649" y="2763.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="2810.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -285,6 +283,9 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "read",
       "target": "../i2c/cores/slave/read.svg#core"
     }
+  ],
+  "article_notes": [
+    "При входящей записи сервис проверяет политику и вызывает ведущую операцию. В IRQ-контексте FreeRTOS выполняется захват события."
   ]
 }</metadata>
 </svg>

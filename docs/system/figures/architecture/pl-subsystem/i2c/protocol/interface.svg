@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2332" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="2332">
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" viewBox="0 222 2200 1661" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="1661">
   <title id="title">I²C: линии и участники</title>
   <desc id="desc">L0. SDA, SCL и открытый сток.</desc>
   <defs>
@@ -40,11 +40,11 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2332" fill="white" />
+  <rect width="2200" height="1883" fill="white" />
   <g id="backgrounds">
-    <rect x="390" y="1135" width="220" height="235" fill="#e9eef3" />
-    <rect x="850" y="1135" width="220" height="235" fill="#e9eef3" />
-    <rect x="525" y="1620" width="460" height="130" fill="#e9eef3" />
+    <rect x="483" y="985" width="352" height="235" fill="#e9eef3" />
+    <rect x="1219" y="985" width="352" height="235" fill="#e9eef3" />
+    <rect x="699" y="1460" width="736" height="130" fill="#e9eef3" />
   </g>
   <g id="interactions">
     <path d="M230,440 L2090,440" fill="none" stroke="#607487" stroke-width="4" stroke-linejoin="round" />
@@ -78,10 +78,10 @@ g:target &gt; rect { stroke-width: 5; }
     <path d="M1995,515 L1995,635" fill="none" stroke="white" stroke-width="11" />
     <path d="M1995,515 L1995,635" fill="none" stroke="#607487" stroke-width="3" stroke-linejoin="round" />
     <circle cx="1995" cy="515" r="5" fill="#607487" />
-    <path d="M235,1220 L390,1220 L390,1160 L610,1160 L610,1220 L850,1220 L850,1160 L1070,1160 L1070,1220 L1205,1220" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
-    <path d="M235,1300 L735,1300 L735,1360 L1205,1360" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" />
-    <path d="M235,1640 L340,1640 L340,1700 L985,1700 L985,1640 L1150,1640 L1150,1700 L1265,1700" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
-    <path d="M525,1612 L525,1760" fill="none" stroke="#607487" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M235,1070 L483,1070 L483,1010 L835,1010 L835,1070 L1219,1070 L1219,1010 L1571,1010 L1571,1070 L1787,1070" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M235,1150 L1035,1150 L1035,1210 L1787,1210" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M235,1480 L403,1480 L403,1540 L1435,1540 L1435,1480 L1699,1480 L1699,1540 L1883,1540" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M699,1452 L699,1600" fill="none" stroke="#607487" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
   </g>
   <g id="components">
     <g id="controller" data-kind="component" data-layer="L0" data-label="Ведущий" data-ownership="common">
@@ -105,13 +105,9 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C: линии и участники</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. SDA, SCL и открытый сток.</tspan></text>
     <g id="bus" data-kind="protocol-section" data-layer="L0">
-      <rect x="60" y="256" width="2080" height="86" fill="none" stroke="#607487" stroke-width="0" />
+      <rect x="60" y="256" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
       <text x="60" y="290.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Две общие линии</text>
-      <text x="60" y="330.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">SDA — данные. SCL — такты от ведущего.</text>
     </g>
     <text x="90" y="448.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">SDA</text>
     <text x="90" y="523.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">SCL</text>
@@ -124,43 +120,24 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="1359" y="604.0" font-size="17" font-weight="400" text-anchor="start" style="fill:#233747">SCL</text>
     <text x="1729" y="604.0" font-size="17" font-weight="400" text-anchor="start" style="fill:#233747">SDA</text>
     <text x="2009" y="604.0" font-size="17" font-weight="400" text-anchor="start" style="fill:#233747">SCL</text>
-    <text x="60" y="905.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Открытый сток: участник тянет линию в 0; подтяжка поднимает отпущенную линию в 1.</text>
-    <text x="60" y="959.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Любой участник может удерживать 0. Свободная шина: SDA = SCL = 1. Земля общая.</text>
     <g id="bit" data-kind="protocol-section" data-layer="L0">
-      <rect x="60" y="1041" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="1075.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Бит читается при высоком SCL</text>
+      <rect x="60" y="891" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
+      <text x="60" y="925.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Передача бита</text>
     </g>
-    <text x="205" y="1196.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#607487">SCL</text>
-    <text x="205" y="1336.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#3f75ad">SDA</text>
-    <text x="500" y="1410.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#3f75ad">1</text>
-    <text x="960" y="1410.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0</text>
-    <text x="1380" y="1195.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">SCL = 1: SDA стабильна</text>
-    <text x="1380" y="1226.74" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">SCL = 0: смена бита</text>
-    <a data-navigation="detail" xlink:href="transaction.svg#conditions">
-      <text x="1380" y="1345.0" font-size="20" font-weight="700" text-anchor="start" style="fill:#3f75ad">START и STOP — отдельные условия</text>
-    </a>
+    <text x="205" y="1046.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#607487">SCL</text>
+    <text x="205" y="1186.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#3f75ad">SDA</text>
+    <text x="659" y="1260.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#3f75ad">1</text>
+    <text x="1395" y="1260.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0</text>
     <g id="clock-stretching" data-kind="protocol-section" data-layer="L0">
-      <rect x="60" y="1516" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="1550.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Clock stretching: удержание SCL в 0</text>
+      <rect x="60" y="1356" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
+      <text x="60" y="1390.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Clock stretching</text>
     </g>
-    <text x="205" y="1676.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#607487">SCL</text>
-    <text x="525" y="1800.0" font-size="19" font-weight="400" text-anchor="middle" style="fill:#233747">Ведущий отпустил SCL</text>
-    <text x="985" y="1840.0" font-size="19" font-weight="400" text-anchor="middle" style="fill:#233747">Устройство отпустило SCL</text>
-    <text x="1380" y="1650.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Ведущий ждёт SCL = 1.</text>
-    <text x="1380" y="1681.74" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Поддержка зависит от участников.</text>
-    <text x="60" y="1945.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Двунаправленный I²C: один ведущий, 7-битные адреса. Адреса условные, масштаб времени условный.</text>
-    <a data-navigation="detail" xlink:href="https://www.nxp.com/docs/en/user-guide/UM10204.pdf">
-      <text x="60" y="2040.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">NXP UM10204: раздел 3.1</text>
-    </a>
-    <a data-navigation="detail" xlink:href="https://www.ti.com/lit/an/slva704/slva704.pdf">
-      <text x="655" y="2040.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">TI: Understanding the I²C Bus</text>
-    </a>
-    <a data-navigation="detail" xlink:href="transaction.svg">
-      <text x="60" y="2104.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Далее: из чего состоит транзакция</text>
-    </a>
-    <rect x="60" y="2223" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2242.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <text x="60" y="2289.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan> — физический интерфейс. Синие поля — биты на шине.</tspan></text>
+    <text x="205" y="1516.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#607487">SCL</text>
+    <text x="699" y="1640.0" font-size="19" font-weight="400" text-anchor="middle" style="fill:#233747">Ведущий отпустил SCL</text>
+    <text x="1435" y="1680.0" font-size="19" font-weight="400" text-anchor="middle" style="fill:#233747">Устройство отпустило SCL</text>
+    <rect x="60" y="1774.7" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1793.7" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="1840.7" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan> — физический интерфейс. Синие поля — биты на шине.</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -168,23 +145,12 @@ g:target &gt; rect { stroke-width: 5; }
     "https://www.nxp.com/docs/en/user-guide/UM10204.pdf",
     "https://www.ti.com/lit/an/slva704/slva704.pdf"
   ],
-  "cross_sheet_links": [
-    {
-      "node": "protocol-guide",
-      "target": "transaction.svg#conditions"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "https://www.nxp.com/docs/en/user-guide/UM10204.pdf"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "https://www.ti.com/lit/an/slva704/slva704.pdf"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "transaction.svg"
-    }
+  "cross_sheet_links": [],
+  "article_notes": [
+    "SDA — данные. SCL — такты от ведущего.",
+    "Открытый сток: участник тянет линию в 0; подтяжка поднимает отпущенную линию в 1.",
+    "Любой участник может удерживать 0. Свободная шина: SDA = SCL = 1. Земля общая.",
+    "Двунаправленный I²C: один ведущий, 7-битные адреса. Адреса условные, масштаб времени условный."
   ]
 }</metadata>
 </svg>

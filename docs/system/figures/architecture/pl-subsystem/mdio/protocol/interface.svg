@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" viewBox="0 165 1600 591" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="591">
+  <title id="title">MDIO: линии и участники</title>
+  <desc id="desc">Clause 22. Доступ к 16-битным регистрам PHY.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="756" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <path d="M390,400 L1180,400" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+    <path d="M390,545 L1180,545" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="2 6" stroke-linejoin="round" marker-end="url(#clock-arrow)" />
+    <path d="M900,250 L900,280" fill="none" stroke="#607487" stroke-width="3" stroke-linejoin="round" />
+    <rect x="888" y="280" width="24" height="54" fill="white" stroke="#607487" stroke-width="2.5" />
+    <path d="M900,334 L900,400" fill="none" stroke="#607487" stroke-width="3" stroke-linejoin="round" />
+    <circle cx="900" cy="400" r="5" fill="#3f75ad" />
+  </g>
+  <g id="components">
+    <g id="master" data-kind="component" data-layer="L0" data-label="Ведущий" data-ownership="common">
+      <rect x="60" y="270" width="330" height="340" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="80" y="294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="80" y="328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведущий</text>
+    </g>
+    <g id="phy" data-kind="component" data-layer="L0" data-label="PHY" data-ownership="common">
+      <rect x="1180" y="270" width="360" height="340" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1200" y="294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="1200" y="328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">PHY</text>
+      <text x="1200" y="367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Адрес 1</text>
+      <text x="1200" y="393.34000000000003" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Регистры 0…31</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="590" y="378.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">MDIO</text>
+    <text x="785.0" y="523.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#788794">MDC</text>
+    <text x="900" y="230.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#233747">VDD</text>
+    <text x="945" y="315.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#607487">Подтяжка</text>
+    <rect x="60" y="699" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="718.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "https://docs.altera.com/r/docs/683402/25.3/triple-speed-ethernet-ip-user-guide/mdio-frame-format?contentId=ADlhHNZTvR9r2gR_oCxdsg",
+    "https://www.ti.com/lit/ds/symlink/dp83867ir.pdf",
+    "https://docs.amd.com/r/en-US/pg051-tri-mode-eth-mac/MDIO-Transactions",
+    "https://docs.amd.com/r/en-US/pg051-tri-mode-eth-mac/MDIO-Bus-System"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 3674" role="img" aria-labelledby="title desc" data-content="hardware-scenario" data-layer="L0" height="3674">
-  <title id="title">I²C master: завершение и восстановление</title>
-  <desc id="desc">Признаки PL → опрос PS → результат или повтор.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 170 1800 916" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="916">
+  <title id="title">I²C master: признаки готовности</title>
+  <desc id="desc" />
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -40,215 +40,85 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="3674" fill="white" />
+  <rect width="1800" height="1086" fill="white" />
   <g id="backgrounds">
-    <rect x="60" y="320" width="1730" height="850" rx="16" fill="white" />
-    <rect x="60" y="1370" width="2080" height="1040" rx="16" fill="white" />
+    <rect x="1320" y="210" width="420" height="730" rx="16" fill="white" />
   </g>
   <g id="interactions">
     <g data-kind="interaction" data-from="engine" data-to="regs" data-interaction="irq" data-direction="forward">
-      <path d="M630,515 L790,515 L1350,515 L1350,620" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M630,515 L790,515 L1350,515 L1350,620" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+      <path d="M530,300 L665,300 L1050,300 L1050,440" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M530,300 L665,300 L1050,300 L1050,440" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
     </g>
     <g data-kind="interaction" data-from="engine" data-to="regs" data-interaction="mmio" data-direction="forward">
-      <path d="M630,615 L900,615 L900,800 L1000,800" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M630,615 L900,615 L900,800 L1000,800" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+      <path d="M530,390 L710,390 L710,530 L875,530" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M530,390 L710,390 L710,530 L875,530" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
     </g>
     <g data-kind="interaction" data-from="writer" data-to="regs" data-interaction="irq" data-direction="forward">
-      <path d="M630,955 L790,955 L790,1100 L1350,1100 L1350,920" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M630,955 L790,955 L790,1100 L1350,1100 L1350,920" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="regs" data-to="irq" data-interaction="irq" data-direction="forward">
-      <path d="M1700,770 L1860,770" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1700,770 L1860,770" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="prepare" data-to="poll" data-interaction="call" data-direction="forward">
-      <path d="M630,1600 L850,1600" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M630,1600 L850,1600" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="poll" data-to="success" data-interaction="call" data-direction="forward">
-      <path d="M1400,1600 L1610,1600" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1400,1600 L1610,1600" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="success" data-to="return" data-interaction="call" data-direction="forward">
-      <path d="M1850,1710 L1850,1925" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1850,1710 L1850,1925" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="poll" data-to="recover" data-interaction="call" data-direction="forward">
-      <path d="M1125,1710 L1125,1910" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1125,1710 L1125,1910" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="recover" data-to="return" data-interaction="call" data-direction="forward">
-      <path d="M1400,2055 L1610,2055" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1400,2055 L1610,2055" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="recover" data-to="prepare" data-interaction="call" data-direction="forward">
-      <path d="M1125,2200 L1125,2320 L365,2320 L365,1710" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1125,2200 L1125,2320 L365,2320 L365,1710" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <path d="M530,700 L665,700 L1050,700 L1050,620" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M530,700 L665,700 L1050,700 L1050,620" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
     </g>
     <g data-kind="interaction" data-from="poll" data-to="regs" data-interaction="mmio" data-direction="forward">
-      <path d="M1285,1490 L1285,1270 L1550,1270 L1550,920" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1285,1490 L1285,1270 L1550,1270 L1550,920" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+      <path d="M1355,482.5 L1225,482.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1355,482.5 L1225,482.5" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="poll" data-to="success" data-interaction="call" data-direction="forward">
+      <path d="M1530,565 L1530,685" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1530,565 L1530,685" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
   </g>
   <g id="components">
-    <g id="status" data-kind="functional-group" data-label="Аппаратные признаки" data-layer="L0" data-domain="pl" data-ownership="common">
-      <rect x="60" y="320" width="1730" height="850" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
-      <a data-navigation="detail" xlink:href="structure.svg#regs">
-        <text x="86" y="357.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">Аппаратные признаки</text>
-      </a>
-      <g id="engine" data-kind="component" data-layer="L0" data-domain="pl" data-label="i2c_master_engine" data-ownership="common" data-parent="status" data-target="timing.svg#stretching">
-        <rect x="100" y="440" width="530" height="230" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="timing.svg#stretching">
-          <text x="120" y="464.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="120" y="498.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">i2c_master_engine</text>
-        </a>
-        <text x="120" y="537.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">core_state = 1 вне IDLE</text>
-        <text x="120" y="563.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">ERR_ACK: NACK или тайм-аут SCL</text>
-      </g>
-      <g id="writer" data-kind="component" data-layer="L0" data-domain="pl" data-label="rx_fifo_mux" data-ownership="common" data-parent="status" data-target="buffers.svg#publish">
-        <rect x="100" y="840" width="530" height="230" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="buffers.svg#publish">
-          <text x="120" y="864.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="120" y="898.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">rx_fifo_mux</text>
-        </a>
-        <text x="120" y="937.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Данные → заголовок</text>
-        <text x="120" y="963.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подтверждение AXI → DATA_VALID</text>
-      </g>
-      <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="regs: CSR и IRQ" data-ownership="common" data-parent="status">
-        <rect x="1000" y="620" width="700" height="300" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <text x="1020" y="644.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1020" y="678.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">regs: CSR и IRQ</text>
-        <text x="1020" y="717.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">CSR: core_state</text>
-        <text x="1020" y="743.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">IRQ: DATA_VALID, ERR_ACK</text>
-        <text x="1020" y="769.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">FINAL_PACKET и состояние FIFO</text>
-      </g>
+    <g id="engine" data-kind="component" data-layer="L0" data-domain="pl" data-label="i2c_master_engine" data-ownership="common">
+      <rect x="60" y="250" width="470" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <text x="80" y="274.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="80" y="308.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">i2c_master_engine</text>
+      <text x="80" y="347.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">core_state и ERR_ACK</text>
     </g>
-    <g id="irq" data-kind="component" data-layer="L0" data-label="IRQ → GIC" data-ownership="common" data-target="../../../../architecture_bvstk_ps_pl.svg#i2c-master">
-      <rect x="1860" y="675" width="280" height="190" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../../../../architecture_bvstk_ps_pl.svg#i2c-master">
-        <text x="1880" y="699.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="1880" y="733.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">IRQ → GIC</text>
-      </a>
-      <text x="1880" y="772.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">PS: опрос регистров</text>
+    <g id="writer" data-kind="component" data-layer="L0" data-domain="pl" data-label="rx_fifo_mux" data-ownership="common">
+      <rect x="60" y="615" width="470" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <text x="80" y="639.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="80" y="673.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">rx_fifo_mux</text>
+      <text x="80" y="712.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">DATA_VALID после записи BRAM</text>
     </g>
-    <g id="driver" data-kind="functional-group" data-label="Драйвер PS: wait_completion" data-layer="L3" data-ownership="common">
-      <rect x="60" y="1370" width="2080" height="1040" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
-      <a data-navigation="detail" xlink:href="commands.svg#driver">
-        <text x="86" y="1407.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Драйвер PS: wait_completion</text>
-      </a>
-      <text x="86" y="1440.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Весь вызов под mutex</text>
-      <g id="prepare" data-kind="component" data-layer="L3" data-label="Подготовить и запустить" data-ownership="common" data-parent="driver" data-target="commands.svg#driver">
-        <rect x="100" y="1490" width="530" height="220" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="commands.svg#driver">
-          <text x="120" y="1514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="120" y="1548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Подготовить и запустить</text>
-        </a>
-        <text x="120" y="1587.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Свободное ядро → сброс IRQ</text>
-        <text x="120" y="1613.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Команда → CSR.start</text>
-      </g>
-      <g id="poll" data-kind="component" data-layer="L3" data-label="Опрос CSR и IRQ" data-ownership="common" data-parent="driver">
-        <rect x="850" y="1490" width="550" height="220" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <text x="870" y="1514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="870" y="1548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Опрос CSR и IRQ</text>
-        <text x="870" y="1587.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">ERR_ACK и готовность</text>
-        <text x="870" y="1613.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Тайм-аут по часам PS</text>
-      </g>
-      <g id="success" data-kind="component" data-layer="L3" data-label="Успешное завершение" data-ownership="common" data-parent="driver">
-        <rect x="1610" y="1490" width="480" height="220" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <text x="1630" y="1514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="1630" y="1548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Успешное завершение</text>
-        <text x="1630" y="1587.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">core_state = 0</text>
-        <text x="1630" y="1613.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">При чтении: свежий DATA_VALID</text>
-      </g>
-      <g id="recover" data-kind="component" data-layer="L3" data-label="Сброс ядра" data-ownership="common" data-parent="driver">
-        <rect x="850" y="1910" width="550" height="290" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <text x="870" y="1934.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="870" y="1968.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сброс ядра</text>
-        <text x="870" y="2007.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">CSR.soft_reset → 10 мс</text>
-        <text x="870" y="2033.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">До трёх попыток; NACK без повтора</text>
-      </g>
-      <g id="return" data-kind="component" data-layer="L3" data-label="Завершить вызов" data-ownership="common" data-parent="driver" data-target="buffers.svg#ps">
-        <rect x="1610" y="1925" width="480" height="260" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="buffers.svg#ps">
-          <text x="1630" y="1949.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="1630" y="1983.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Завершить вызов</text>
-        </a>
-        <text x="1630" y="2022.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Успех чтения: данные из BRAM</text>
-        <text x="1630" y="2048.3399999999997" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Освободить mutex; вернуть статус</text>
-      </g>
+    <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="regs: CSR и IRQ" data-ownership="common">
+      <rect x="875" y="440" width="350" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <text x="895" y="464.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="895" y="498.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">regs: CSR и IRQ</text>
+      <text x="895" y="537.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Состояние и события</text>
     </g>
-    <g id="outcome-table" data-kind="reference-table">
-      <text x="84" y="2660.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#607487">Событие</text>
-      <text x="634" y="2660.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Поведение PL</text>
-      <text x="1379" y="2660.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#287f73">Действие драйвера PS</text>
-      <path d="M70,2692 L2110,2692" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="2725" font-size="19" font-weight="400" text-anchor="start" style="fill:#607487">Запись завершена</text>
-      <text x="634" y="2725" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">core_state = 0</text>
-      <text x="634" y="2752" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">DATA_VALID не требуется</text>
-      <text x="1379" y="2725" font-size="19" font-weight="400" text-anchor="start" style="fill:#287f73">Завершить при отсутствии ERR_ACK</text>
-      <path d="M70,2784 L2110,2784" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="2817" font-size="19" font-weight="400" text-anchor="start" style="fill:#607487">Ядро свободно, BRAM ещё записывается</text>
-      <text x="634" y="2817" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">IDLE без свежего DATA_VALID</text>
-      <text x="1379" y="2817" font-size="19" font-weight="400" text-anchor="start" style="fill:#287f73">Продолжать опрос</text>
-      <path d="M70,2849 L2110,2849" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="2882" font-size="19" font-weight="400" text-anchor="start" style="fill:#607487">NACK master в конце чтения</text>
-      <text x="634" y="2882" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">SEND_ACK по stop или restart</text>
-      <text x="634" y="2909" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Штатное завершение</text>
-      <text x="1379" y="2882" font-size="19" font-weight="400" text-anchor="start" style="fill:#287f73">Ждать core_state = 0 и DATA_VALID</text>
-      <path d="M70,2941 L2110,2941" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="2974" font-size="19" font-weight="400" text-anchor="start" style="fill:#607487">NACK ведомого</text>
-      <text x="634" y="2974" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">READ_ACK → ERR_ACK → STOP</text>
-      <text x="1379" y="2974" font-size="19" font-weight="400" text-anchor="start" style="fill:#287f73">Сброс → ошибка без повтора</text>
-      <path d="M70,3006 L2110,3006" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="3039" font-size="19" font-weight="400" text-anchor="start" style="fill:#607487">Тайм-аут SCL в READ_ACK</text>
-      <text x="634" y="3039" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">ERR_ACK; ожидание SCL может продолжаться</text>
-      <text x="1379" y="3039" font-size="19" font-weight="400" text-anchor="start" style="fill:#287f73">Сброс → ошибка без повтора</text>
-      <path d="M70,3071 L2110,3071" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="3104" font-size="19" font-weight="400" text-anchor="start" style="fill:#607487">Тайм-аут драйвера</text>
-      <text x="634" y="3104" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Условие готовности не выполнено</text>
-      <text x="1379" y="3104" font-size="19" font-weight="400" text-anchor="start" style="fill:#287f73">Сброс → повтор в пределах лимита</text>
-      <path d="M70,3136 L2110,3136" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="3169" font-size="19" font-weight="400" text-anchor="start" style="fill:#607487">TX FIFO или RX FIFO заполнен</text>
-      <text x="634" y="3169" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">full → IRQ</text>
-      <text x="1379" y="3169" font-size="19" font-weight="400" text-anchor="start" style="fill:#287f73">Отдельной обработки full нет</text>
-      <path d="M70,3201 L2110,3201" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
+    <g id="driver" data-kind="functional-group" data-label="Драйвер PS" data-layer="L3" data-ownership="common">
+      <rect x="1320" y="210" width="420" height="730" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+      <text x="1346" y="247.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Драйвер PS</text>
+      <g id="poll" data-kind="component" data-layer="L3" data-label="wait_completion" data-ownership="common" data-parent="driver">
+        <rect x="1355" y="400" width="350" height="165" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="1375" y="424.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1375" y="458.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">wait_completion</text>
+        <text x="1375" y="497.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Опрос CSR и IRQ</text>
+      </g>
+      <g id="success" data-kind="component" data-layer="L3" data-label="Готово" data-ownership="common" data-parent="driver">
+        <rect x="1355" y="685" width="350" height="190" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="1375" y="709.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1375" y="743.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Готово</text>
+        <text x="1375" y="782.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">core_state = 0</text>
+        <text x="1375" y="808.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Чтение: новый DATA_VALID</text>
+      </g>
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C master: завершение и восстановление</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Признаки PL → опрос PS → результат или повтор.</text>
-    <text x="1120" y="490.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">ERR_ACK</text>
-    <text x="805" y="590.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">core_state</text>
-    <text x="1130" y="1075.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">DATA_VALID</text>
-    <text x="1280" y="1830.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Ошибка или истёк срок</text>
-    <text x="1505" y="2010.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">NACK</text>
-    <text x="1505" y="2034.84" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">или лимит попыток</text>
-    <text x="650" y="2295.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Повтор после других ошибок</text>
-    <text x="1450" y="1245.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label" xml:space="preserve"><tspan>Чтение через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
-    <g id="outcomes" data-kind="protocol-section" data-layer="L0">
-      <rect x="60" y="2516" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="2550.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Как различаются окончания и ошибки</text>
-    </g>
-    <text x="60" y="3271.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">DATA_VALID и ERR_ACK — до сброса IRQ. FINAL_PACKET и FIFO — текущие сигналы.</text>
-    <text x="60" y="3333.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Тайм-аут драйвера: 100 мс по умолчанию. Ошибка MMIO также ведёт к восстановлению.</text>
-    <a data-navigation="detail" xlink:href="structure.svg">
-      <text x="60" y="3436.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Вернуться к составу ведущего ядра</text>
-    </a>
-    <path d="M60,3528 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="3534.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,3528 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="327" y="3534.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M551,3528 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
-    <text x="633" y="3534.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
-    <rect x="60" y="3565" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="3584.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="3565" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="3584.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="3565" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="3584.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="3631.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра.</tspan></text>
+    <text x="910" y="275.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">ERR_ACK</text>
+    <text x="630" y="445.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">core_state</text>
+    <text x="900" y="675.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">DATA_VALID</text>
+    <text x="1290" y="460.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <text x="1625" y="605.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Без ERR_ACK</text>
+    <path d="M60,992 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="998.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,992 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="998.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,992 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="633" y="998.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="1029" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="1048.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="1029" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="304" y="1048.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -274,39 +144,7 @@ g:target &gt; rect { stroke-width: 5; }
     "src/hardware/boards/ax7020/bvstk_hw_config.h",
     "src/services/i2c/bvstk_i2c_slave_service.c"
   ],
-  "cross_sheet_links": [
-    {
-      "node": "status",
-      "target": "structure.svg#regs"
-    },
-    {
-      "node": "engine",
-      "target": "timing.svg#stretching"
-    },
-    {
-      "node": "writer",
-      "target": "buffers.svg#publish"
-    },
-    {
-      "node": "irq",
-      "target": "../../../../architecture_bvstk_ps_pl.svg#i2c-master"
-    },
-    {
-      "node": "driver",
-      "target": "commands.svg#driver"
-    },
-    {
-      "node": "prepare",
-      "target": "commands.svg#driver"
-    },
-    {
-      "node": "return",
-      "target": "buffers.svg#ps"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "structure.svg"
-    }
-  ]
+  "cross_sheet_links": [],
+  "article_notes": []
 }</metadata>
 </svg>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="4662" viewBox="0 0 2800 4662" role="img" aria-labelledby="title desc" data-pl-original-height="4520">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="4357" viewBox="0 147 2800 4357" role="img" aria-labelledby="title desc">
   <title id="title">L1. Платформа и аппаратные события</title>
   <desc id="desc">Общие интерфейсы, реализации портов, MMIO и доставка прерываний. Слева показаны части FreeRTOS, справа — Нейтрино, в центре — общие исходники или аппаратура. Вложенные рамки раскрывают функцию до конкретных модулей. Цвет рамки и блока обозначает слой. Общие исходники включаются в выбранную сборку; состав подключённых модулей различается. Серые стрелки обозначают вызовы, коричневые — MMIO и настройку, синие — данные, красные пунктирные — прерывания и события. Соединение с рамкой относится к функции внутри неё. Заголовки ссылочных блоков открывают соответствующую схему.
 Одноимённые блоки на соседних схемах обозначают одну функцию. Ссылки ведут к конкретным блокам; выбранный блок выделяется рамкой. Тип стрелки и направление взаимодействия сохраняются при переходе.</desc>
@@ -31,9 +31,6 @@
     <style>text {font-family:DejaVu Sans,sans-serif;fill:#233747;} .code {font-family:DejaVu Sans Mono,monospace;} a {cursor:pointer;} a:hover text {text-decoration:underline;} g:target &gt; rect {stroke-width:4;} .edge-label {paint-order:stroke;stroke:white;stroke-width:7px;stroke-linejoin:round;} </style>
   </defs>
   <rect id="page" x="0" y="0" width="2800" height="4520" fill="white" />
-  <text id="text-1" x="60" y="47" font-size="16" font-weight="700" text-anchor="start" data-max-width="500" style="fill:#b56b1d">BVSTK</text>
-  <text id="text-2" x="60" y="98" font-size="40" font-weight="700" text-anchor="start" data-max-width="1950" style="fill:#233747">L1. Платформа и аппаратные события</text>
-  <text id="text-3" x="60" y="140" font-size="21" font-weight="400" text-anchor="start" data-max-width="2550" style="fill:#576c7b">Общие интерфейсы, реализации портов, MMIO и доставка прерываний.</text>
   <g id="freertos-region" data-kind="ownership-region" data-ownership="freertos">
     <rect x="40" y="188" width="780" height="4102" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
     <text id="text-8" x="68" y="230" font-size="25" font-weight="700" text-anchor="start" data-max-width="710" style="fill:#233747">FreeRTOS</text>
@@ -679,8 +676,7 @@ src/shared/interfaces/bvstk_mmio.h</title>
   <rect x="2180" y="4392" width="49" height="31" rx="5" fill="#d9ebff" stroke="#3f75ad" />
   <text id="text-190" x="2204.5" y="4415" font-size="18" font-weight="700" text-anchor="middle" data-max-width="45" style="fill:#3f75ad">L4</text>
   <text id="text-191" x="2245" y="4415" font-size="19" font-weight="400" text-anchor="start" data-max-width="420" style="fill:#576c7b">Приложения</text>
-  <text id="text-192" x="60" y="4463" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">Вложенность показывает состав. Заголовок ссылочного блока открывает одноимённый блок соседней схемы.</text>
-  <text id="text-193" x="60" y="4492" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">В центре — исходники для повторного использования. Каждая сборка выбирает свой набор модулей и создаёт свои экземпляры.</text>
+  <text id="text-192" x="60" y="4463" font-size="18" font-weight="400" text-anchor="start" data-max-width="2670" style="fill:#576c7b">Вложенность — состав.</text>
   <g id="interactions" data-kind="interactions">
     <g id="f-startup-calls-kernel" data-kind="interaction" data-interaction="call" data-from="f-startup-caller" data-to="f-task-start">
       <path d="M 430 374 L 430 430" fill="none" stroke="white" stroke-width="8.7" stroke-linejoin="round" />
@@ -1340,97 +1336,4 @@ src/shared/interfaces/bvstk_mmio.h</title>
     "relation": "overview"
   }
 ]</metadata>
-  <a id="overview-return-system-interfaces" data-navigation="overview" data-ref-node="system-interfaces" xlink:href="architecture_bvstk_os.svg#common-platform" aria-label="Открыть раздел «L1. Интерфейсы платформы» в обзоре ОС">
-    <text x="1788.0" y="545.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-platform-access" data-navigation="overview" data-ref-node="platform-access" xlink:href="architecture_bvstk_os.svg#common-platform" aria-label="Открыть раздел «L1. Интерфейсы платформы» в обзоре ОС">
-    <text x="1788.0" y="1145.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-system-port" data-navigation="overview" data-ref-node="f-system-port" xlink:href="architecture_bvstk_os.svg#f-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="768.0" y="545.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-system-adapters" data-navigation="overview" data-ref-node="f-system-adapters" xlink:href="architecture_bvstk_os.svg#f-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="740.0" y="607.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-kernel" data-navigation="overview" data-ref-node="f-kernel" xlink:href="architecture_bvstk_os.svg#f-kernel" aria-label="Открыть раздел «L2. Ядро ОС» в обзоре ОС">
-    <text x="740.0" y="851.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-system-port" data-navigation="overview" data-ref-node="n-system-port" xlink:href="architecture_bvstk_os.svg#n-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="2708.0" y="545.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-system-adapters" data-navigation="overview" data-ref-node="n-system-adapters" xlink:href="architecture_bvstk_os.svg#n-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="2680.0" y="607.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-kernel" data-navigation="overview" data-ref-node="n-kernel" xlink:href="architecture_bvstk_os.svg#n-kernel" aria-label="Открыть раздел «L2. Ядро ОС» в обзоре ОС">
-    <text x="2680.0" y="851.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-port" data-navigation="overview" data-ref-node="f-port" xlink:href="architecture_bvstk_os.svg#f-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="768.0" y="1295.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-port--mmio" data-navigation="overview" data-ref-node="f-port--mmio" xlink:href="architecture_bvstk_os.svg#f-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="716.0" y="1631.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-mmio-bsp" data-navigation="overview" data-ref-node="f-mmio-bsp" xlink:href="architecture_bvstk_os.svg#f-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="740.0" y="1357.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-port" data-navigation="overview" data-ref-node="n-port" xlink:href="architecture_bvstk_os.svg#n-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="2708.0" y="1295.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-port--mapping" data-navigation="overview" data-ref-node="n-port--mapping" xlink:href="architecture_bvstk_os.svg#n-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="2680.0" y="1357.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-memory-api" data-navigation="overview" data-ref-node="n-memory-api" xlink:href="architecture_bvstk_os.svg#n-kernel" aria-label="Открыть раздел «L2. Ядро ОС» в обзоре ОС">
-    <text x="2680.0" y="1501.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-port--registers" data-navigation="overview" data-ref-node="n-port--registers" xlink:href="architecture_bvstk_os.svg#n-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="2680.0" y="1653.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-f-interrupt-processing" data-navigation="overview" data-ref-node="f-interrupt-processing" xlink:href="architecture_bvstk_os.svg#f-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="768.0" y="2165.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <a id="overview-return-n-interrupt-processing" data-navigation="overview" data-ref-node="n-interrupt-processing" xlink:href="architecture_bvstk_os.svg#n-port" aria-label="Открыть раздел «L1. Порт и BSP» в обзоре ОС">
-    <text x="2708.0" y="2165.0" font-size="11" font-weight="700" text-anchor="end" style="fill:#607487">ОС ↑</text>
-  </a>
-  <g id="series-navigation" data-kind="navigation">
-    <a data-navigation="sheet" xlink:href="levels.svg">
-      <rect x="2000.0" y="64" width="124" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2062.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">Уровни</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_os.svg">
-      <rect x="2140.0" y="64" width="84" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2182.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">ОС</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l4.svg">
-      <rect x="2240.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#3f75ad" stroke-width="1" />
-      <text x="2280.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#3f75ad">L4</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l3.svg">
-      <rect x="2336.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#287f73" stroke-width="1" />
-      <text x="2376.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#287f73">L3</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l1.svg">
-      <rect x="2432.0" y="64" width="80" height="46" rx="8" fill="#fff0d6" stroke="#b56b1d" stroke-width="2" />
-      <text x="2472.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#b56b1d">L1</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_l0_l1.svg">
-      <rect x="2528.0" y="64" width="116" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2586.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0–L1</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="architecture_bvstk_ps_pl.svg">
-      <rect x="2660.0" y="64" width="80" height="46" rx="8" fill="white" stroke="#607487" stroke-width="1" />
-      <text x="2700.0" y="94" font-size="21" font-weight="700" text-anchor="middle" style="fill:#607487">L0</text>
-    </a>
-  </g>
-  <g id="pl-subsystem-navigation" data-kind="navigation">
-    <rect x="0" y="4520.0" width="2800.0" height="142.0" fill="white" />
-    <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="4560.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/i2c-irq.svg">
-      <text x="60.0" y="4612.0" font-size="20" style="fill:#3f75ad">Доставка IRQ I²C</text>
-    </a>
-    <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/mdio-write.svg#worker">
-      <text x="953.3333333333334" y="4612.0" font-size="20" style="fill:#3f75ad">Работа задачи MDIO</text>
-    </a>
-  </g>
 </svg>

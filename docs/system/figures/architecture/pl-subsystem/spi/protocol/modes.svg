@@ -1,0 +1,149 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" viewBox="0 217 1600 1210" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="1210">
+  <title id="title">SPI: четыре режима тактирования</title>
+  <desc id="desc">CPOL задаёт уровень покоя. CPHA выбирает фронт приёма.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1427" fill="white" />
+  <g id="backgrounds">
+    <path d="M610,247 L610,419" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M830,247 L830,419" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1050,247 L1050,419" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M720,487 L720,659" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M940,487 L940,659" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1160,487 L1160,659" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M610,727 L610,899" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M830,727 L830,899" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1050,727 L1050,899" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M720,967 L720,1139" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M940,967 L940,1139" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+    <path d="M1160,967 L1160,1139" fill="none" stroke="#adc6e2" stroke-width="1.5" stroke-dasharray="5 6" stroke-linejoin="round" />
+  </g>
+  <g id="interactions">
+    <path d="M480,311 L610,311 L610,265 L720,265 L720,311 L830,311 L830,265 L940,265 L940,311 L1050,311 L1050,265 L1160,265 L1160,311 L1310,311" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M60,465 L1540,465" fill="none" stroke="#dbe3e9" stroke-width="1.5" stroke-linejoin="round" />
+    <path d="M480,551 L610,551 L610,505 L720,505 L720,551 L830,551 L830,505 L940,505 L940,551 L1050,551 L1050,505 L1160,505 L1160,551 L1310,551" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M60,705 L1540,705" fill="none" stroke="#dbe3e9" stroke-width="1.5" stroke-linejoin="round" />
+    <path d="M480,745 L610,745 L610,791 L720,791 L720,745 L830,745 L830,791 L940,791 L940,745 L1050,745 L1050,791 L1160,791 L1160,745 L1310,745" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M60,945 L1540,945" fill="none" stroke="#dbe3e9" stroke-width="1.5" stroke-linejoin="round" />
+    <path d="M480,985 L610,985 L610,1031 L720,1031 L720,985 L830,985 L830,1031 L940,1031 L940,985 L1050,985 L1050,1031 L1160,1031 L1160,985 L1310,985" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
+  </g>
+  <g id="components">
+    <polygon points="480,392.0 490,365 710,365 720,392.0 710,419 490,419" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="720,392.0 730,365 930,365 940,392.0 930,419 730,419" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="940,392.0 950,365 1150,365 1160,392.0 1150,419 950,419" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="1160,392.0 1170,365 1300,365 1310,392.0 1300,419 1170,419" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+    <polygon points="480,632.0 490,605 600,605 610,632.0 600,659 490,659" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+    <polygon points="610,632.0 620,605 820,605 830,632.0 820,659 620,659" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="830,632.0 840,605 1040,605 1050,632.0 1040,659 840,659" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="1050,632.0 1060,605 1260,605 1270,632.0 1260,659 1060,659" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="480,872.0 490,845 710,845 720,872.0 710,899 490,899" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="720,872.0 730,845 930,845 940,872.0 930,899 730,899" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="940,872.0 950,845 1150,845 1160,872.0 1150,899 950,899" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="1160,872.0 1170,845 1300,845 1310,872.0 1300,899 1170,899" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+    <polygon points="480,1112.0 490,1085 600,1085 610,1112.0 600,1139 490,1139" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+    <polygon points="610,1112.0 620,1085 820,1085 830,1112.0 820,1139 620,1139" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="830,1112.0 840,1085 1040,1085 1050,1112.0 1040,1139 840,1139" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <polygon points="1050,1112.0 1060,1085 1260,1085 1270,1112.0 1260,1139 1060,1139" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+  </g>
+  <g id="annotations">
+    <text x="60" y="285.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Режим 0</text>
+    <text x="60" y="327.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#607487">CPOL = 0</text>
+    <text x="60" y="363.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#607487">CPHA = 0</text>
+    <text x="425" y="298.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">SCK</text>
+    <text x="425" y="400.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">Данные</text>
+    <text x="600.0" y="401.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D7</text>
+    <circle cx="610" cy="419" r="5.5" fill="#3f75ad" />
+    <text x="830.0" y="401.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D6</text>
+    <circle cx="830" cy="419" r="5.5" fill="#3f75ad" />
+    <text x="1050.0" y="401.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D5</text>
+    <circle cx="1050" cy="419" r="5.5" fill="#3f75ad" />
+    <text x="1235.0" y="401.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#607487">…</text>
+    <text x="60" y="525.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Режим 1</text>
+    <text x="60" y="567.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#607487">CPOL = 0</text>
+    <text x="60" y="603.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#607487">CPHA = 1</text>
+    <text x="425" y="538.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">SCK</text>
+    <text x="425" y="640.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">Данные</text>
+    <text x="545.0" y="641.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#607487">…</text>
+    <text x="720.0" y="641.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D7</text>
+    <circle cx="720" cy="659" r="5.5" fill="#3f75ad" />
+    <text x="940.0" y="641.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D6</text>
+    <circle cx="940" cy="659" r="5.5" fill="#3f75ad" />
+    <text x="1160.0" y="641.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D5</text>
+    <circle cx="1160" cy="659" r="5.5" fill="#3f75ad" />
+    <text x="60" y="765.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Режим 2</text>
+    <text x="60" y="807.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#607487">CPOL = 1</text>
+    <text x="60" y="843.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#607487">CPHA = 0</text>
+    <text x="425" y="778.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">SCK</text>
+    <text x="425" y="880.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">Данные</text>
+    <text x="600.0" y="881.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D7</text>
+    <circle cx="610" cy="899" r="5.5" fill="#3f75ad" />
+    <text x="830.0" y="881.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D6</text>
+    <circle cx="830" cy="899" r="5.5" fill="#3f75ad" />
+    <text x="1050.0" y="881.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D5</text>
+    <circle cx="1050" cy="899" r="5.5" fill="#3f75ad" />
+    <text x="1235.0" y="881.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#607487">…</text>
+    <text x="60" y="1005.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Режим 3</text>
+    <text x="60" y="1047.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#607487">CPOL = 1</text>
+    <text x="60" y="1083.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#607487">CPHA = 1</text>
+    <text x="425" y="1018.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#607487">SCK</text>
+    <text x="425" y="1120.0" font-size="25" font-weight="700" text-anchor="end" style="fill:#3f75ad">Данные</text>
+    <text x="545.0" y="1121.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#607487">…</text>
+    <text x="720.0" y="1121.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D7</text>
+    <circle cx="720" cy="1139" r="5.5" fill="#3f75ad" />
+    <text x="940.0" y="1121.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D6</text>
+    <circle cx="940" cy="1139" r="5.5" fill="#3f75ad" />
+    <text x="1160.0" y="1121.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">D5</text>
+    <circle cx="1160" cy="1139" r="5.5" fill="#3f75ad" />
+    <circle cx="490" cy="1240" r="5.5" fill="#3f75ad" />
+    <text x="510" y="1248.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">Приём бита</text>
+    <rect x="60" y="1370.12" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1389.12" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "https://www.analog.com/en/resources/analog-dialogue/articles/introduction-to-spi-interface.html",
+    "https://www.analog.com/en/resources/app-notes/an-1248.html",
+    "https://ww1.microchip.com/downloads/en/AppNotes/01496A.pdf"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2475" role="img" aria-labelledby="title desc" height="2475">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 230 2200 2158" role="img" aria-labelledby="title desc" height="2158">
   <title id="title">BRAM: карта памяти реализации</title>
   <desc id="desc">Адреса относятся к аппаратному проекту Burevestnik_21. Смещения внутри окна указаны в байтах.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2475" fill="white" />
+  <rect width="2200" height="2388" fill="white" />
   <g id="backgrounds">
     <rect x="80" y="270" width="2040" height="595" rx="16" fill="white" />
     <rect x="80" y="975" width="2040" height="595" rx="16" fill="white" />
@@ -246,9 +246,6 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">BRAM: карта памяти реализации</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Адреса относятся к аппаратному проекту Burevestnik_21. Смещения внутри окна указаны в байтах.</text>
     <text x="595.0" y="419.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
     <text x="1600.0" y="419.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
     <text x="595.0" y="579.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
@@ -261,14 +258,13 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="1600.0" y="1284.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
     <text x="595.0" y="1444.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
     <text x="1600.0" y="1444.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
-    <text x="60" y="2250.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Программный кэш хранится в памяти PS на </tspan><tspan style="fill:#287f73">L3</tspan><tspan>. BRAM содержит аппаратные буферы и подготовленные ответы; их обновление выполняется отдельными операциями.</tspan></text>
-    <path d="M60,2329.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="142" y="2335.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="2366.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2385.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2366.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2385.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <text x="60" y="2432.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,2242 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="2248.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2279" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2298.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2279" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2298.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="2345.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -315,6 +311,9 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "spi-bank1",
       "target": "../../architecture_bvstk_ps_pl.svg#spi-bank1"
     }
+  ],
+  "article_notes": [
+    "Программный кэш хранится в памяти PS на L3. BRAM содержит аппаратные буферы и подготовленные ответы; их обновление выполняется отдельными операциями."
   ]
 }</metadata>
 </svg>

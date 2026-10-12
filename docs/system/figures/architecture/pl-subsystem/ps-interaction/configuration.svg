@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2257" role="img" aria-labelledby="title desc" height="2257">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 205 2200 1929" role="img" aria-labelledby="title desc" height="1929">
   <title id="title">Изменение настроек и сохранение профиля</title>
   <desc id="desc">Сценарий явного изменения и save в FreeRTOS. Применение в RAM и запись файла — отдельные этапы.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2257" fill="white" />
+  <rect width="2200" height="2134" fill="white" />
   <g id="backgrounds">
     <rect x="86.0" y="245" width="1017.0" height="245" rx="16" fill="white" />
     <path d="M336.75,470 V1896" stroke="#d3dce3" stroke-width="1.5" fill="none" />
@@ -133,66 +133,50 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">Изменение настроек и сохранение профиля</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Сценарий явного изменения и save в FreeRTOS. Применение в RAM и запись файла — отдельные этапы.</text>
     <rect x="63" y="499" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="530.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">01</text>
     <text x="130" y="530.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">При загрузке прочитать и разобрать профиль</text>
-    <text x="130" y="561.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Проверить формат, диапазоны, режим политики и поддерживаемый обработчик.</text>
     <rect x="63" y="625" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="656.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">02</text>
     <text x="130" y="656.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Получить модель конфигурации</text>
-    <text x="130" y="687.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Создание среды исполнения раскрыто на схеме подготовки подсистемы.</text>
     <rect x="63" y="751" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="782.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">03</text>
     <text x="130" y="782.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Изменить правило или настройку в работающем сервисе</text>
-    <text x="130" y="813.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Проверка и изменение выполняются под синхронизацией сервиса.</text>
     <rect x="63" y="877" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="908.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">04</text>
     <text x="130" y="908.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Вернуть результат применения в памяти</text>
-    <text x="130" y="939.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Последующие операции используют актуальные рабочие правила.</text>
     <rect x="63" y="1003" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1034.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">05</text>
     <text x="130" y="1034.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">По команде save получить снимок конфигурации</text>
-    <text x="130" y="1065.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Сервис возвращает текущие значения политики и settings.</text>
     <rect x="63" y="1129" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1160.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">06</text>
     <text x="130" y="1160.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Передать согласованный снимок</text>
-    <text x="130" y="1191.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Кэш физически прочитанных значений не становится автоматически settings.</text>
     <rect x="63" y="1255" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1286.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">07</text>
     <text x="130" y="1286.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Передать снимок на сохранение</text>
-    <text x="130" y="1317.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">config_store_save_i2c_device или сохранение MDIO.</text>
     <rect x="63" y="1381" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1412.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">08</text>
     <text x="130" y="1412.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Сформировать JSON профиля v2</text>
-    <text x="130" y="1443.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Сериализовать выбранную конфигурацию.</text>
     <rect x="63" y="1507" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1538.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">09</text>
     <text x="130" y="1538.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Вернуть JSON профиля</text>
-    <text x="130" y="1569.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Сериализованные данные передаются в config_store.</text>
     <rect x="63" y="1633" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1664.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">10</text>
     <text x="130" y="1664.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747" xml:space="preserve"><tspan>Сохранить файл через файловый слой </tspan><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="130" y="1695.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Сохранить предыдущую версию и заменить основной файл.</text>
     <rect x="63" y="1759" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1790.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">11</text>
     <text x="130" y="1790.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Сообщить результат сохранения</text>
-    <text x="130" y="1821.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Ошибка файла не отменяет уже применённое изменение в RAM.</text>
-    <text x="60" y="1984.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Прямая замена JSON через файловый интерфейс не является командой перезагрузки работающего сервиса.</text>
-    <text x="60" y="2031.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Карта register_map.json объясняет физические регистры, а view.js задаёт представление показателей. Решение политики выполняет сервис.</text>
-    <path d="M60,2111.2 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="2117.2" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,2111.2 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="327" y="2117.2" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="2148.2" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
-    <text x="104" y="2167.2" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-    <rect x="175" y="2148.2" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="219" y="2167.2" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <rect x="290" y="2148.2" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
-    <text x="334" y="2167.2" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-    <text x="60" y="2214.2" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,1988 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1994.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1988 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="1994.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2025" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="104" y="2044.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="175" y="2025" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="219" y="2044.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="290" y="2025" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="334" y="2044.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="2091.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -219,6 +203,21 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "policy",
       "target": "mdio-write.svg#policy"
     }
+  ],
+  "article_notes": [
+    "Проверить формат, диапазоны, режим политики и поддерживаемый обработчик.",
+    "Создание среды исполнения раскрыто на схеме подготовки подсистемы.",
+    "Проверка и изменение выполняются под синхронизацией сервиса.",
+    "Последующие операции используют актуальные рабочие правила.",
+    "Сервис возвращает текущие значения политики и settings.",
+    "Кэш физически прочитанных значений не становится автоматически settings.",
+    "config_store_save_i2c_device или сохранение MDIO.",
+    "Сериализовать выбранную конфигурацию.",
+    "Сериализованные данные передаются в config_store.",
+    "Сохранить предыдущую версию и заменить основной файл.",
+    "Ошибка файла не отменяет уже применённое изменение в RAM.",
+    "Прямая замена JSON через файловый интерфейс не является командой перезагрузки работающего сервиса.",
+    "Карта register_map.json объясняет физические регистры, а view.js задаёт представление показателей. Решение политики выполняет сервис."
   ]
 }</metadata>
 </svg>

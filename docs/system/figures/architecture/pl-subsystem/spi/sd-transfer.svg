@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2209" role="img" aria-labelledby="title desc" height="2209">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 205 2200 1929" role="img" aria-labelledby="title desc" height="1929">
   <title id="title">SD через SPI master: чтение блока</title>
   <desc id="desc">Сценарий FreeRTOS, CMD17. Общие драйверы исполняются в этой сборке.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2209" fill="white" />
+  <rect width="2200" height="2134" fill="white" />
   <g id="backgrounds">
     <rect x="86.0" y="245" width="501.5" height="245" rx="16" fill="white" />
     <path d="M336.75,470 V1896" stroke="#d3dce3" stroke-width="1.5" fill="none" />
@@ -133,69 +133,54 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">SD через SPI master: чтение блока</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Сценарий FreeRTOS, CMD17. Общие драйверы исполняются в этой сборке.</text>
     <rect x="63" y="499" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="530.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">01</text>
     <text x="130" y="530.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Запросить блок карты</text>
-    <text x="130" y="561.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Сервис выполняет операцию с картой под своей синхронизацией.</text>
     <rect x="63" y="625" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="656.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">02</text>
     <text x="130" y="656.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Подготовить SPI и сбросить DMA</text>
-    <text x="130" y="687.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Порт ОС подтверждает старые события и разрешает учёт нового IRQ.</text>
     <rect x="63" y="751" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="782.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">03</text>
     <text x="130" y="782.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Записать дескриптор CMD17</text>
-    <text x="130" y="813.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Аргумент, код команды и CRC7; очистить RX и установить защитные слова.</text>
     <rect x="63" y="877" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="908.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">04</text>
     <text x="130" y="908.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Сначала запустить приём S2MM</text>
-    <text x="130" y="939.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Адрес BRAM +0x1000, ожидаемая длина 514 байт.</text>
     <rect x="63" y="1003" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1034.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">05</text>
     <text x="130" y="1034.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Запустить MM2S и команду SPI</text>
-    <text x="130" y="1065.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">TX из BRAM +0x400; CSR получает SDM_START_COMMAND.</text>
     <rect x="63" y="1129" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1160.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">06</text>
     <text x="130" y="1160.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">DMA передаёт команду в SPI master</text>
-    <text x="130" y="1191.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Ядро обменивается с картой по внешней шине.</text>
     <rect x="63" y="1255" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1286.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">07</text>
     <text x="130" y="1286.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Сохранить ответ и принятый блок</text>
-    <text x="130" y="1317.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">S2MM записывает 512 байт данных и два байта CRC16.</text>
     <rect x="63" y="1381" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1412.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#c65b4e">08</text>
     <text x="130" y="1412.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Зафиксировать новое аппаратное прерывание</text>
-    <text x="130" y="1443.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">ISR порта увеличивает счётчик; логика команды остаётся в вызывающем контексте.</text>
     <rect x="63" y="1507" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1538.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">09</text>
     <text x="130" y="1538.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Проверить завершение</text>
-    <text x="130" y="1569.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Нужны новый IRQ, обновлённый ответ, завершение MM2S и S2MM.</text>
     <rect x="63" y="1633" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1664.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">10</text>
     <text x="130" y="1664.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Забрать и проверить блок</text>
-    <text x="130" y="1695.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Проверить длину, защитные слова, CRC16 и допустимость ответа карты.</text>
     <rect x="63" y="1759" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1790.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">11</text>
     <text x="130" y="1790.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Вернуть блок или причину ошибки</text>
-    <text x="130" y="1821.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Образование сигнала IRQ само по себе ещё не завершает проверку данных.</text>
-    <text x="60" y="1984.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">На ошибке драйвер выполняет восстановление DMA и аппаратного состояния. Буферы этого пути размещены в BRAM.</text>
-    <path d="M60,2063.6 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="2069.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,2063.6 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="327" y="2069.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M551,2063.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="633" y="2069.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <path d="M747,2063.6 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
-    <text x="829" y="2069.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
-    <rect x="60" y="2100.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="104" y="2119.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="260" y="2100.6" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
-    <text x="304" y="2119.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-    <rect x="375" y="2100.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="2119.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2166.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,1988 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1994.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1988 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1994.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,1988 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="1994.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,1988 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="1994.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="2025" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="2044.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="2025" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="304" y="2044.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="375" y="2025" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="2044.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="2091.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -220,6 +205,20 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "hardware",
       "target": "subsystem.svg#master"
     }
+  ],
+  "article_notes": [
+    "Сервис выполняет операцию с картой под своей синхронизацией.",
+    "Порт ОС подтверждает старые события и разрешает учёт нового IRQ.",
+    "Аргумент, код команды и CRC7; очистить RX и установить защитные слова.",
+    "Адрес BRAM +0x1000, ожидаемая длина 514 байт.",
+    "TX из BRAM +0x400; CSR получает SDM_START_COMMAND.",
+    "Ядро обменивается с картой по внешней шине.",
+    "S2MM записывает 512 байт данных и два байта CRC16.",
+    "ISR порта увеличивает счётчик; логика команды остаётся в вызывающем контексте.",
+    "Нужны новый IRQ, обновлённый ответ, завершение MM2S и S2MM.",
+    "Проверить длину, защитные слова, CRC16 и допустимость ответа карты.",
+    "Образование сигнала IRQ само по себе ещё не завершает проверку данных.",
+    "На ошибке драйвер выполняет восстановление DMA и аппаратного состояния. Буферы этого пути размещены в BRAM."
   ]
 }</metadata>
 </svg>

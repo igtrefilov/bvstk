@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 3797" role="img" aria-labelledby="title desc" data-content="hardware-scenario" data-layer="L0" height="3797">
-  <title id="title">I²C master: управление SDA и SCL</title>
-  <desc id="desc">Делитель, выборка битов и ожидания. Масштаб условный.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 280 2200 1126" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1126">
+  <title id="title">I²C master: формирование SCL</title>
+  <desc id="desc" />
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -40,10 +40,9 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="3797" fill="white" />
+  <rect width="2200" height="1406" fill="white" />
   <g id="backgrounds">
     <rect x="60" y="320" width="1540" height="940" rx="16" fill="white" />
-    <rect x="580" y="2150" width="540" height="370" fill="#e9eef3" />
   </g>
   <g id="interactions">
     <g data-kind="interaction" data-from="speed" data-to="clock" data-interaction="mmio" data-direction="forward">
@@ -70,18 +69,6 @@ g:target &gt; rect { stroke-width: 5; }
       <path d="M550,920 L550,810 L800,810 L800,710" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
       <path d="M550,920 L550,810 L800,810 L800,710" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
     </g>
-    <path d="M420,1570 L420,1840" fill="none" stroke="#ced6dd" stroke-width="1.4" stroke-dasharray="5 7" stroke-linejoin="round" />
-    <path d="M660,1570 L660,1840" fill="none" stroke="#ced6dd" stroke-width="1.4" stroke-dasharray="5 7" stroke-linejoin="round" />
-    <path d="M900,1570 L900,1840" fill="none" stroke="#ced6dd" stroke-width="1.4" stroke-dasharray="5 7" stroke-linejoin="round" />
-    <path d="M1140,1570 L1140,1840" fill="none" stroke="#ced6dd" stroke-width="1.4" stroke-dasharray="5 7" stroke-linejoin="round" />
-    <path d="M1380,1570 L1380,1840" fill="none" stroke="#ced6dd" stroke-width="1.4" stroke-dasharray="5 7" stroke-linejoin="round" />
-    <path d="M1620,1570 L1620,1840" fill="none" stroke="#ced6dd" stroke-width="1.4" stroke-dasharray="5 7" stroke-linejoin="round" />
-    <path d="M300,1600 L420,1600 L420,1660 L660,1660 L660,1600 L900,1600 L900,1660 L1140,1660 L1140,1600 L1380,1600 L1380,1660 L1620,1660 L1620,1600 L1800,1600" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
-    <path d="M300,1760 L460,1760 L460,1820 L940,1820 L940,1760 L1420,1760 L1420,1820 L1800,1820" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" />
-    <path d="M320,2210 L580,2210 L580,2270 L1620,2270" fill="none" stroke="#8760ba" stroke-width="3.5" stroke-linejoin="round" />
-    <path d="M320,2460 L1120,2460 L1120,2400 L1620,2400" fill="none" stroke="#607487" stroke-width="3.5" stroke-linejoin="round" />
-    <path d="M580,2150 L580,2520" fill="none" stroke="#607487" stroke-width="1.4" stroke-dasharray="5 7" stroke-linejoin="round" />
-    <path d="M1120,2150 L1120,2520" fill="none" stroke="#607487" stroke-width="1.4" stroke-dasharray="5 7" stroke-linejoin="round" />
   </g>
   <g id="components">
     <g id="engine" data-kind="functional-group" data-label="i2c_master_engine" data-layer="L0" data-domain="pl" data-ownership="common">
@@ -89,16 +76,13 @@ g:target &gt; rect { stroke-width: 5; }
       <a data-navigation="detail" xlink:href="structure.svg#engine">
         <text x="86" y="357.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">i2c_master_engine</text>
       </a>
-      <g id="speed" data-kind="component" data-layer="L0" data-domain="pl" data-label="packet.speed" data-ownership="common" data-parent="engine" data-target="commands.svg#header">
+      <g id="speed" data-kind="component" data-layer="L0" data-domain="pl" data-label="packet.speed" data-ownership="common" data-parent="engine" data-target="command-format.svg#header">
         <rect x="100" y="460" width="360" height="250" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="commands.svg#header">
+        <a data-navigation="detail" xlink:href="command-format.svg#header">
           <text x="120" y="484.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="120" y="518.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">packet.speed</text>
         </a>
-        <text x="120" y="557.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">00: 100 кГц</text>
-        <text x="120" y="583.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">01: 400 кГц</text>
-        <text x="120" y="609.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">10: 1 МГц</text>
-        <text x="120" y="635.78" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">11: 1,5 МГц</text>
+        <text x="120" y="557.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выбор divisor</text>
       </g>
       <g id="clock" data-kind="component" data-layer="L0" data-domain="pl" data-label="div_cnt и divisor" data-ownership="common" data-parent="engine">
         <rect x="600" y="460" width="400" height="250" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -129,93 +113,29 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="120" y="1043.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">READ_BYTE: выборка SDA по scl_pe</text>
       </g>
     </g>
-    <g id="scl" data-kind="component" data-layer="L0" data-label="Линия SCL" data-ownership="common" data-target="../../protocol/interface.svg#clock-stretching">
+    <g id="scl" data-kind="component" data-layer="L0" data-label="Линия SCL" data-ownership="common" data-target="clock-stretching.svg">
       <rect x="1750" y="460" width="390" height="250" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../../protocol/interface.svg#clock-stretching">
+      <a data-navigation="detail" xlink:href="clock-stretching.svg">
         <text x="1770" y="484.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
         <text x="1770" y="518.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Линия SCL</text>
       </a>
       <text x="1770" y="557.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подтяжка к 1</text>
       <text x="1770" y="583.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ведомый может удерживать 0</text>
     </g>
-    <g id="waits" data-kind="reference-table">
-      <text x="84" y="3000.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Место в RTL</text>
-      <text x="619" y="3000.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Что происходит</text>
-      <path d="M70,3032 L2110,3032" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="3065" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">START</text>
-      <text x="619" y="3065" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">SDA = 0 → снижение SCL → SEND_ADDR. Выбор divisor по speed.</text>
-      <path d="M70,3097 L2110,3097" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="3130" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">STOP → TIMEOUT</text>
-      <text x="619" y="3130" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">SCL = 1: выдержка divisor → отпустить SDA → IDLE</text>
-      <path d="M70,3162 L2110,3162" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="3195" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">RESTART → TIMEOUT</text>
-      <text x="619" y="3195" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">SDA отпущена → выдержка → SDA = 0 → WAIT_PACKET</text>
-      <path d="M70,3227 L2110,3227" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="3260" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">WAIT_PACKET</text>
-      <text x="619" y="3260" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Ожидание tx_valid и tx_ready; div_cnt продолжает счёт</text>
-      <path d="M70,3292 L2110,3292" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="3325" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Регистр TIMEOUT</text>
-      <text x="619" y="3325" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Выдержка tx_data_ctrl: COMPLETE → WAIT_START.</text>
-      <text x="619" y="3352" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Отдельна от состояния TIMEOUT в engine.</text>
-      <path d="M70,3384 L2110,3384" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-    </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C master: управление SDA и SCL</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Делитель, выборка битов и ожидания. Масштаб условный.</text>
     <text x="1840" y="787.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">scl_i</text>
     <text x="675" y="787.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">Состояние</text>
-    <text x="60" y="1340.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">IDLE и TIMEOUT: SCL отпущена. READ_ACK: отдельное управление SCL.</text>
-    <g id="sampling" data-kind="protocol-section" data-layer="L0">
-      <rect x="60" y="1416" width="2080" height="86" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="1450.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Изменение SDA и выборка бита</text>
-      <text x="60" y="1490.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Масштаб условный; задержки debouncer и sync не показаны.</text>
-    </g>
-    <text x="420" y="1550.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#233747">scl_ne</text>
-    <text x="660" y="1550.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#233747">scl_pe</text>
-    <text x="900" y="1550.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#233747">scl_ne</text>
-    <text x="1140" y="1550.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#233747">scl_pe</text>
-    <text x="1380" y="1550.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#233747">scl_ne</text>
-    <text x="1620" y="1550.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#233747">scl_pe</text>
-    <text x="270" y="1636.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#607487">SCL</text>
-    <text x="270" y="1796.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#3f75ad">SDA</text>
-    <text x="780" y="1885.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0</text>
-    <text x="1260" y="1885.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#3f75ad">1</text>
-    <text x="1740" y="1885.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0</text>
-    <text x="60" y="1960.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Передача — по scl_ne, приём — по scl_pe. Старший бит первым.</text>
-    <g id="stretching" data-kind="protocol-section" data-layer="L0">
-      <rect x="60" y="2046" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="2080.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">READ_ACK: дождаться фактического подъёма SCL</text>
-    </g>
-    <text x="290" y="2246.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#8760ba">scl_oe</text>
-    <text x="290" y="2436.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#607487">SCL</text>
-    <text x="580" y="2565.0" font-size="19" font-weight="400" text-anchor="middle" style="fill:#233747">Ядро отпустило SCL</text>
-    <text x="1120" y="2610.0" font-size="19" font-weight="400" text-anchor="middle" style="fill:#233747">Ведомый отпустил SCL</text>
-    <text x="1730" y="2220.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">На scl_pe:</text>
-    <text x="1730" y="2251.74" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">SDA = 0 → ACK</text>
-    <text x="1730" y="2283.48" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">SDA = 1 → NACK</text>
-    <text x="60" y="2700.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">READ_ACK: выдержка SCL = 0 → отпускание → ожидание scl_pe.</text>
-    <text x="60" y="2762.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Переполнение stretch_cnt → ERR_ACK. Выход из READ_ACK по scl_pe либо сбросу ядра.</text>
-    <g id="boundaries" data-kind="protocol-section" data-layer="L0">
-      <rect x="60" y="2856" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="2890.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Границы фаз и разные виды ожидания</text>
-    </g>
-    <text x="60" y="3454.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Драйвер: speed = 0. Разрядность stretch_cnt задаёт STRETCH_TIMEOUT_MS.</text>
-    <a data-navigation="detail" xlink:href="completion.svg">
-      <text x="60" y="3559.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Ошибки ожидания и действия программы PS</text>
-    </a>
-    <path d="M60,3651 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="142" y="3657.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M366,3651 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="448" y="3657.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <path d="M562,3651 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="2 6" marker-end="url(#clock-arrow)" />
-    <text x="644" y="3657.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Тактирование и сброс</text>
-    <rect x="60" y="3688" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="3707.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="3688" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="3707.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <text x="60" y="3754.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра.</tspan></text>
+    <path d="M60,1312 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="142" y="1318.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M366,1312 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="448" y="1318.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M562,1312 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="2 6" marker-end="url(#clock-arrow)" />
+    <text x="644" y="1318.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Тактирование и сброс</text>
+    <rect x="60" y="1349" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1368.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1349" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1368.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -248,16 +168,13 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "speed",
-      "target": "commands.svg#header"
+      "target": "command-format.svg#header"
     },
     {
       "node": "scl",
-      "target": "../../protocol/interface.svg#clock-stretching"
-    },
-    {
-      "node": "protocol-guide",
-      "target": "completion.svg"
+      "target": "clock-stretching.svg"
     }
-  ]
+  ],
+  "article_notes": []
 }</metadata>
 </svg>

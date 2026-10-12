@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 1475" role="img" aria-labelledby="title desc" height="1475">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 240 2200 1134" role="img" aria-labelledby="title desc" height="1134">
   <title id="title">BVSTK: мост между устройствами</title>
   <desc id="desc">Два участка шины соединены через BVSTK. Политика решает, передавать ли транзакцию дальше.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="1475" fill="white" />
+  <rect width="2200" height="1374" fill="white" />
   <g id="backgrounds">
     <rect x="420" y="280" width="1360" height="695" rx="16" fill="white" />
   </g>
@@ -151,9 +151,6 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
-    <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">BVSTK: мост между устройствами</text>
-    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Два участка шины соединены через BVSTK. Политика решает, передавать ли транзакцию дальше.</text>
     <text x="1015" y="666.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запрос T</text>
     <text x="1658" y="648.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">Разрешено:</text>
     <text x="1658" y="672.84" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">запустить</text>
@@ -181,18 +178,17 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <path d="M532,463.5 V511.5" stroke="#233747" stroke-width="6" stroke-linecap="round" />
     <text x="727" y="560.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#233747">Транзакция остановлена</text>
-    <text x="60" y="1250.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">T — условная транзакция: адрес, операция и данные. Шина показана серой линией, движение T — синей стрелкой.</text>
-    <path d="M60,1329.6 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="142" y="1335.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M366,1329.6 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="448" y="1335.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="1366.6" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="1385.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="1366.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="1385.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="1366.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="1385.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="1432.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <path d="M60,1228.0 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="142" y="1234.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M366,1228.0 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="448" y="1234.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1265.0" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1284.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1265.0" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1284.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="1265.0" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1284.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1331.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">T — транзакция. Серая линия — шина.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -230,6 +226,9 @@ g:target &gt; rect { stroke-width: 5; }
       "node": "device",
       "target": "subsystems.svg#device"
     }
+  ],
+  "article_notes": [
+    "T — условная транзакция: адрес, операция и данные. Шина показана серой линией, движение T — синей стрелкой."
   ]
 }</metadata>
 </svg>

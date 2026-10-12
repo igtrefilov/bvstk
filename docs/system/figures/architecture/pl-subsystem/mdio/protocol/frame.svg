@@ -1,0 +1,128 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" viewBox="0 177 1600 958" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="958">
+  <title id="title">MDIO: кадры Clause 22</title>
+  <desc id="desc">PHY с адресом 1, регистр 0x10. Поля идут слева направо.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1135" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <path d="M140,501 L140,511 L1482,511 L1482,501" fill="none" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+    <path d="M140,911 L140,921 L973,921 L973,911" fill="none" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+    <path d="M1047.5,911 L1047.5,921 L1482,921 L1482,911" fill="none" stroke="#3f75ad" stroke-width="2" stroke-linejoin="round" />
+  </g>
+  <g id="components">
+    <rect x="140" y="345" width="245" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="397" y="345" width="85" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="494" y="345" width="95" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="601" y="345" width="180" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="793" y="345" width="180" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="985" y="345" width="125" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="1122" y="345" width="360" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="140" y="755" width="245" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="397" y="755" width="85" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="494" y="755" width="95" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="601" y="755" width="180" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="793" y="755" width="180" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="985" y="755" width="125" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    <rect x="1122" y="755" width="360" height="80" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+  </g>
+  <g id="annotations">
+    <text x="60" y="245.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Запись</text>
+    <text x="262.5" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">PRE</text>
+    <text x="262.5" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">32 × 1</text>
+    <text x="262.5" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">32</text>
+    <text x="439.5" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">ST</text>
+    <text x="439.5" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">01</text>
+    <text x="439.5" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">2</text>
+    <text x="541.5" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">OP</text>
+    <text x="541.5" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">01</text>
+    <text x="541.5" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">2</text>
+    <text x="691.0" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">PHY</text>
+    <text x="691.0" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">00001</text>
+    <text x="691.0" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">5</text>
+    <text x="883.0" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">REG</text>
+    <text x="883.0" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">10000</text>
+    <text x="883.0" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">5</text>
+    <text x="1047.5" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">TA</text>
+    <text x="1047.5" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">1 0</text>
+    <text x="1047.5" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">2</text>
+    <text x="1302.0" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">DATA</text>
+    <text x="1302.0" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x007B</text>
+    <text x="1302.0" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">16 бит</text>
+    <text x="811.0" y="548.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#607487">Ведущий</text>
+    <text x="60" y="655.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Чтение</text>
+    <text x="262.5" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">PRE</text>
+    <text x="262.5" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">32 × 1</text>
+    <text x="262.5" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">32</text>
+    <text x="439.5" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">ST</text>
+    <text x="439.5" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">01</text>
+    <text x="439.5" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">2</text>
+    <text x="541.5" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">OP</text>
+    <text x="541.5" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">10</text>
+    <text x="541.5" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">2</text>
+    <text x="691.0" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">PHY</text>
+    <text x="691.0" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">00001</text>
+    <text x="691.0" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">5</text>
+    <text x="883.0" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">REG</text>
+    <text x="883.0" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">10000</text>
+    <text x="883.0" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">5</text>
+    <text x="1047.5" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">TA</text>
+    <text x="1047.5" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Z 0</text>
+    <text x="1047.5" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">2</text>
+    <text x="1302.0" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">DATA</text>
+    <text x="1302.0" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x0034</text>
+    <text x="1302.0" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">16 бит</text>
+    <text x="556.5" y="958.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#607487">Ведущий</text>
+    <text x="1264.75" y="958.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">PHY</text>
+    <rect x="60" y="1078.74" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1097.74" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "https://docs.altera.com/r/docs/683402/25.3/triple-speed-ethernet-ip-user-guide/mdio-frame-format?contentId=ADlhHNZTvR9r2gR_oCxdsg",
+    "https://www.ti.com/lit/ds/symlink/dp83867ir.pdf",
+    "https://docs.amd.com/r/en-US/pg051-tri-mode-eth-mac/MDIO-Transactions",
+    "https://docs.amd.com/r/en-US/pg051-tri-mode-eth-mac/MDIO-Bus-System"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

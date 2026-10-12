@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 233 1800 308" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="308">
+  <title id="title">I²C master: заголовок header_t</title>
+  <desc id="desc" />
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="541" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions" />
+  <g id="components">
+    <g id="header" data-kind="word-layout" data-layer="L0" data-domain="pl">
+      <rect x="100" y="250" width="680" height="125" fill="white" stroke="#8760ba" stroke-width="2" />
+      <text x="440.0" y="298.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#8760ba">num_bytes</text>
+      <text x="440.0" y="342.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#233747">31…11</text>
+      <rect x="780" y="250" width="180" height="125" fill="white" stroke="#8760ba" stroke-width="2" />
+      <text x="870.0" y="298.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#8760ba">speed</text>
+      <text x="870.0" y="342.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#233747">10…9</text>
+      <rect x="960" y="250" width="210" height="125" fill="white" stroke="#8760ba" stroke-width="2" />
+      <text x="1065.0" y="298.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#8760ba">restart</text>
+      <text x="1065.0" y="342.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#233747">8</text>
+      <rect x="1170" y="250" width="160" height="125" fill="white" stroke="#8760ba" stroke-width="2" />
+      <text x="1250.0" y="298.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#8760ba">rw</text>
+      <text x="1250.0" y="342.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#233747">7</text>
+      <rect x="1330" y="250" width="370" height="125" fill="white" stroke="#8760ba" stroke-width="2" />
+      <text x="1515.0" y="298.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#8760ba">phy_addr</text>
+      <text x="1515.0" y="342.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#233747">6…0</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <rect x="60" y="484" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="503.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/ip_repo/i2c_master/src/i2c_master_wrapper.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/top_i2c_master.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/i2c_master_engine.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/i2c_master_pkg.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/regs.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/tx_data_ctrl.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/rx_data_ctrl.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/rx_fifo_mux.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/debouncer.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/sync.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/axi_lite_master_native.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/src/axi_lite_slave_native.sv",
+    "../hw_platform/fpga/ip_repo/i2c_master/component.xml",
+    "../hw_platform/fpga/Burevestnik_21.tcl",
+    "src/drivers/pl/i2c/bvstk_i2c_master.c",
+    "src/drivers/pl/i2c/bvstk_i2c_master.h",
+    "src/services/i2c/bvstk_i2c_master_service.c",
+    "src/hardware/pl/i2c/bvstk_i2c_regs.h",
+    "src/hardware/boards/ax7020/bvstk_hw_config.h",
+    "src/services/i2c/bvstk_i2c_slave_service.c"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>
