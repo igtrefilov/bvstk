@@ -124,61 +124,7 @@ g:target > rect { stroke-width: 5; }
         self.links, self.max_y = [], 225
         self.text(self.notes, 60, 42, "BVSTK", 16, bold=True, color="#607487")
         self.text(self.notes, 60, 94, title, 36, bold=True)
-        nav = [
-            ("Оглавление", "README.md"), ("Мост", "overview/bridge.svg"),
-            ("Кэш", "overview/cache.svg"),
-            ("Состав", "overview/subsystems.svg"),
-            ("Обмен", "overview/exchange.svg"), ("Память", "overview/memory.svg"),
-        ]
-        if name.startswith("i2c/cores/slave/"):
-            nav = [
-                ("Оглавление", "README.md"), ("Ядро", "i2c/cores/slave/structure.svg"),
-                ("Адрес", "i2c/cores/slave/addressing.svg"),
-                ("Запись", "i2c/cores/slave/write.svg"), ("Чтение", "i2c/cores/slave/read.svg"),
-                ("Повторный START", "i2c/cores/slave/repeated-start.svg"),
-                ("BRAM", "i2c/cores/slave/buffers.svg"),
-                ("Завершение", "i2c/cores/slave/completion.svg"),
-                ("Master", "i2c/cores/master/structure.svg"),
-                ("Протокол", "i2c/protocol/interface.svg"),
-            ]
-        elif name.startswith("i2c/cores/master/"):
-            nav = [
-                ("Оглавление", "README.md"), ("Ядро", "i2c/cores/master/structure.svg"),
-                ("Команды", "i2c/cores/master/commands.svg"),
-                ("Запись", "i2c/cores/master/write.svg"), ("Чтение", "i2c/cores/master/read.svg"),
-                ("Повторный START", "i2c/cores/master/repeated-start.svg"),
-                ("BRAM", "i2c/cores/master/buffers.svg"), ("SDA и SCL", "i2c/cores/master/timing.svg"),
-                ("Завершение", "i2c/cores/master/completion.svg"),
-                ("Slave", "i2c/cores/slave/structure.svg"), ("Протокол", "i2c/protocol/interface.svg"),
-            ]
-        elif name.startswith("i2c/protocol/"):
-            nav = [
-                ("Оглавление", "README.md"), ("Интерфейс", "i2c/protocol/interface.svg"),
-                ("Транзакция", "i2c/protocol/transaction.svg"),
-                ("Чтение и запись", "i2c/protocol/transfers.svg"),
-                ("Повторный START", "i2c/protocol/repeated-start.svg"),
-                ("Ядро slave", "i2c/cores/slave/structure.svg"),
-                ("Ядро master", "i2c/cores/master/structure.svg"),
-                ("Мост", "overview/bridge.svg"),
-            ]
-        elif not name.startswith("overview/"):
-            nav += [
-                ("I²C", "i2c/protocol/interface.svg"), ("I²C slave", "i2c/cores/slave/structure.svg"),
-                ("I²C master", "i2c/cores/master/structure.svg"),
-                ("MDIO", "mdio/subsystem.svg"),
-                ("SPI", "spi/subsystem.svg"), ("Адреса", "reference/memory-map.svg"),
-                ("Программа PS", "ps-interaction/startup.svg"),
-            ]
-        nav.append(("L0–L4", "@levels.svg"))
-        x = 60
-        for label, target in nav:
-            w = 52 + len(label) * 12
-            a = self.link(self.notes, target, navigation="sheet")
-            el(a, "rect", x=x, y=123, width=w, height=43, rx=8,
-               fill="#f6f8fa", stroke="#ced6dd")
-            self.text(a, x+w/2, 151, label, 19, bold=True, anchor="middle")
-            x += w + 16
-        self.text(self.notes, 60, 207, subtitle, 21, color="#576c7b")
+        self.text(self.notes, 60, 151, subtitle, 21, color="#576c7b")
         SHEETS[name] = self
 
     def text(self, parent, x, y, value, size=21, bold=False,
@@ -222,7 +168,6 @@ g:target > rect { stroke-width: 5; }
         header = self.link(g, target) if target else g
         self.text(header, x+26, y+37, label, 25, bold=True, color=color)
         if target:
-            self.text(header, x+w-24, y+36, "↗", 22, color=color, anchor="end")
             self.links.append({"node": key, "target": href(self.name, target)})
         if subtitle:
             self.text(g, x+26, y+70, subtitle, 18, color="#576c7b", width=w-52)
@@ -246,7 +191,6 @@ g:target > rect { stroke-width: 5; }
         self.text(head, x+20, y+24, "L0. PL" if layer == "PL" else layer,
                   14, bold=True, color=color)
         if target:
-            self.text(head, x+w-18, y+25, "↗", 20, anchor="end", color=color)
             self.links.append({"node": key, "target": href(self.name, target)})
             g.set("data-target", href(self.name, target))
         title_h = self.text(head, x+20, y+58, label, 24, bold=True, width=w-40)
@@ -334,7 +278,7 @@ g:target > rect { stroke-width: 5; }
             x += 200 if layer == "PL" else 115
         self.text(self.notes, 60, y+47,
                   getattr(self, "legend_note",
-                          "Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции."),
+                          "Цвет обозначает уровень абстракции."),
                   18, color="#576c7b")
         el(self.root, "metadata", json.dumps({
             "generator": "tools/docs/generate_pl_subsystem.py",
@@ -703,7 +647,7 @@ def exchange_overview_sheet(sources):
                stroke=ARROWS[kind][0], stroke_width=0)
             p.text(group, 62, yy, str(index), 20, bold=True, color=ARROWS[kind][0])
             text_group = p.link(group, target) if target else group
-            p.text(text_group, 109, yy, label+(" ↗" if target else ""), 21,
+            p.text(text_group, 109, yy, label, 21,
                    bold=True, color=ARROWS[kind][0])
             if target:
                 p.links.append({"node": step_id, "target": href(p.name, target)})
@@ -1657,12 +1601,12 @@ def link_existing_series():
         el(group, "rect", x=0, y=old_height, width=width, height=height-old_height, fill="white")
         a = el(group, "a", data_navigation="pl-catalog")
         a.set(f"{{{XLINK}}}href", "pl-subsystem/README.md")
-        el(a, "text", "Подсистемы PL: устройство и сценарии ↗", x=60, y=old_height+40,
+        el(a, "text", "Подсистемы PL: устройство и сценарии", x=60, y=old_height+40,
            font_size=22, font_weight=700, style="fill:#8760ba")
         for i, (label, target) in enumerate(entries):
             a = el(group, "a", data_navigation="pl-detail")
             a.set(f"{{{XLINK}}}href", "pl-subsystem/"+target)
-            el(a, "text", label+" ↗", x=60+(i % 3)*(width-120)/3,
+            el(a, "text", label, x=60+(i % 3)*(width-120)/3,
                y=old_height+92+(i//3)*52, font_size=20, style="fill:#3f75ad")
         root.set("height", str(int(height)))
         root.set("viewBox", f"0 0 {vb[2]} {int(height)}")

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2868" role="img" aria-labelledby="title desc" data-content="hardware-scenario" data-layer="L0" height="2868">
   <title id="title">I²C slave: приём адреса</title>
-  <desc id="desc">Отфильтровать входы, распознать START, выбрать адрес и направление обмена.</desc>
+  <desc id="desc">Входы → START → адрес → направление.</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -115,7 +115,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="420" y="580" width="1320" height="1800" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
       <a data-navigation="detail" xlink:href="structure.svg#engine">
         <text x="446" y="617.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">i2c_slave_engine</text>
-        <text x="1716" y="616.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
       </a>
       <g id="inputs" data-kind="functional-group" data-label="Обработка входов" data-layer="L0" data-domain="pl" data-ownership="common">
         <rect x="465" y="660" width="1225" height="280" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
@@ -124,34 +123,32 @@ g:target &gt; rect { stroke-width: 5; }
           <rect x="540" y="770" width="400" height="130" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="560" y="794.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="560" y="828.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">debouncer</text>
-          <text x="560" y="867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">По экземпляру для SDA и SCL</text>
+          <text x="560" y="867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Фильтрация SDA и SCL</text>
         </g>
         <g id="sync" data-kind="component" data-layer="L0" data-domain="pl" data-label="sync" data-ownership="common" data-parent="inputs">
           <rect x="1150" y="770" width="440" height="130" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="1170" y="794.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="1170" y="828.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">sync</text>
-          <text x="1170" y="867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Уровни и фронты в домене clk</text>
+          <text x="1170" y="867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Синхронизация с clk</text>
         </g>
       </g>
       <g id="start" data-kind="component" data-layer="L0" data-domain="pl" data-label="IDLE → ADDR" data-ownership="common" data-parent="engine">
         <rect x="870" y="1080" width="420" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="890" y="1104.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="890" y="1138.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">IDLE → ADDR</text>
-        <text x="890" y="1177.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Спад SDA при высоком SCL</text>
-        <text x="890" y="1203.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Начать сборку адреса</text>
+        <text x="890" y="1177.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">START: SDA ↓ при SCL = 1</text>
       </g>
       <g id="address" data-kind="component" data-layer="L0" data-domain="pl" data-label="ADDR" data-ownership="common" data-parent="engine">
         <rect x="870" y="1380" width="420" height="205" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="890" y="1404.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="890" y="1438.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ADDR</text>
-        <text x="890" y="1477.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Принять 7 бит адреса</text>
-        <text x="890" y="1503.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Проверить phy_addr_list[addr]</text>
+        <text x="890" y="1477.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">7 бит адреса</text>
+        <text x="890" y="1503.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">phy_addr_list[addr]</text>
       </g>
       <g id="ignored" data-kind="component" data-layer="L0" data-domain="pl" data-label="IDLE" data-ownership="common" data-parent="engine" data-target="completion.svg#outcomes">
         <rect x="1390" y="1395" width="300" height="175" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="completion.svg#outcomes">
           <text x="1410" y="1419.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1672" y="1420.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="1410" y="1453.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">IDLE</text>
         </a>
         <text x="1410" y="1492.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Адрес не выбран</text>
@@ -161,35 +158,30 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="870" y="1750" width="420" height="190" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="890" y="1774.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="890" y="1808.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">OP_CODE</text>
-        <text x="890" y="1847.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Принять бит направления</text>
-        <text x="890" y="1873.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Событие start в data_ctrl</text>
+        <text x="890" y="1847.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Бит направления</text>
+        <text x="890" y="1873.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Событие start</text>
       </g>
       <g id="write" data-kind="component" data-layer="L0" data-domain="pl" data-label="Запись: WRITE_ACK" data-ownership="common" data-parent="engine" data-target="write.svg#address-write">
         <rect x="465" y="2110" width="540" height="200" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="write.svg#address-write">
           <text x="485" y="2134.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="987" y="2135.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="485" y="2168.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Запись: WRITE_ACK</text>
         </a>
-        <text x="485" y="2207.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подтвердить адрес</text>
-        <text x="485" y="2233.3399999999997" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Затем принимать WRITE_BYTE</text>
+        <text x="485" y="2207.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">ACK адреса → WRITE_BYTE</text>
       </g>
       <g id="read" data-kind="component" data-layer="L0" data-domain="pl" data-label="Чтение: WAIT_PACKET" data-ownership="common" data-parent="engine" data-target="read.svg#wait-first">
         <rect x="1160" y="2110" width="540" height="200" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="read.svg#wait-first">
           <text x="1180" y="2134.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1682" y="2135.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="1180" y="2168.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Чтение: WAIT_PACKET</text>
         </a>
-        <text x="1180" y="2207.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Удерживать SCL</text>
-        <text x="1180" y="2233.3399999999997" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Дождаться первого байта</text>
+        <text x="1180" y="2207.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SCL = 0 до первого байта</text>
       </g>
     </g>
     <g id="pins" data-kind="component" data-layer="L0" data-label="SDA и SCL" data-ownership="common" data-target="../../protocol/interface.svg#bus">
       <rect x="60" y="760" width="300" height="150" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../protocol/interface.svg#bus">
         <text x="80" y="784.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="342" y="785.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#607487">↗</text>
         <text x="80" y="818.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SDA и SCL</text>
       </a>
       <text x="80" y="857.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Сигналы шины</text>
@@ -198,7 +190,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="1820" y="1180" width="320" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="structure.svg#regs">
         <text x="1840" y="1204.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="2122" y="1205.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         <text x="1840" y="1238.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">regs</text>
       </a>
       <text x="1840" y="1277.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">128-битная карта</text>
@@ -208,63 +199,19 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C slave: приём адреса</text>
-    <a data-navigation="sheet" xlink:href="../../../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="structure.svg">
-      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Ядро</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="addressing.svg">
-      <rect x="364" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="420.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адрес</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="write.svg">
-      <rect x="492" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="554.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Запись</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="read.svg">
-      <rect x="632" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="694.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Чтение</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="repeated-start.svg">
-      <rect x="772" y="123" width="232" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="888.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Повторный START</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="buffers.svg">
-      <rect x="1020" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1070.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">BRAM</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="completion.svg">
-      <rect x="1136" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1222.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Завершение</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../master/structure.svg">
-      <rect x="1324" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1386.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Master</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../protocol/interface.svg">
-      <rect x="1464" y="123" width="148" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1538.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Протокол</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../../../levels.svg">
-      <rect x="1628" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1684.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Отфильтровать входы, распознать START, выбрать адрес и направление обмена.</text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Входы → START → адрес → направление.</text>
     <a data-navigation="detail" xlink:href="../../protocol/transaction.svg#address">
-      <text x="1110" y="370.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Адресная фаза в протоколе ↗</text>
+      <text x="1110" y="370.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Адресная фаза в протоколе</text>
     </a>
     <text x="1530" y="1262.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">Карта выбранных адресов</text>
     <text x="1340" y="1455.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">0</text>
     <text x="1160" y="1670.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Адрес выбран</text>
     <text x="785" y="1997.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">W = 0</text>
     <text x="1380" y="1997.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">R = 1</text>
-    <text x="60" y="2470.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">При чтении ACK адреса выдаётся после появления tx_full. Путь через WAIT_PACKET раскрыт на листе чтения.</text>
-    <text x="60" y="2530.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Повторный START приводит через RESTART к ADDR: адрес выбирается заново для следующей фазы.</text>
+    <text x="60" y="2470.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Чтение: ACK адреса только после tx_full.</text>
+    <text x="60" y="2530.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Повторный START: RESTART → ADDR, новый выбор адреса.</text>
     <a data-navigation="detail" xlink:href="write.svg">
-      <text x="60" y="2630.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Продолжение: приём записи ↗</text>
+      <text x="60" y="2630.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Продолжение: приём записи</text>
     </a>
     <path d="M60,2722 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
     <text x="142" y="2728.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
@@ -274,7 +221,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="104" y="2778.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
     <rect x="175" y="2759" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
     <text x="219" y="2778.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <text x="60" y="2825.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра. Знак ↗ связывает одноимённые части схем.</tspan></text>
+    <text x="60" y="2825.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра.</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

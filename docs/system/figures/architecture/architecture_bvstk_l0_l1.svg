@@ -1037,16 +1037,16 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
   <g id="pl-subsystem-navigation" data-kind="navigation">
     <rect x="0" y="3810.0" width="2300.0" height="142.0" fill="white" />
     <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="3850.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+      <text x="60" y="3850.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/reference/memory-map.svg">
-      <text x="60.0" y="3902.0" font-size="20" style="fill:#3f75ad">Области BRAM ↗</text>
+      <text x="60.0" y="3902.0" font-size="20" style="fill:#3f75ad">Области BRAM</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/i2c-irq.svg">
-      <text x="786.6666666666666" y="3902.0" font-size="20" style="fill:#3f75ad">Доставка IRQ I²C ↗</text>
+      <text x="786.6666666666666" y="3902.0" font-size="20" style="fill:#3f75ad">Доставка IRQ I²C</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/spi/sd-transfer.svg">
-      <text x="1513.3333333333333" y="3902.0" font-size="20" style="fill:#3f75ad">Чтение блока SD ↗</text>
+      <text x="1513.3333333333333" y="3902.0" font-size="20" style="fill:#3f75ad">Чтение блока SD</text>
     </a>
   </g>
 </svg>

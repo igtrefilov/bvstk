@@ -88,7 +88,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="830" y="265" width="640" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../mdio/slave.svg#core">
         <text x="850" y="289.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1452" y="290.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         <text x="850" y="323.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_slave_0</text>
       </a>
       <text x="850" y="362.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Принять запись внешнего ведущего</text>
@@ -97,7 +96,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="830" y="570" width="640" height="195" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../reference/memory-map.svg#mdio-bank">
         <text x="850" y="594.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1452" y="595.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         <text x="850" y="628.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM MDIO</text>
       </a>
       <text x="850" y="667.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">+0x1000: последнее значение</text>
@@ -116,7 +114,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="1280" width="530" height="190" rx="11" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l1.svg#f-kernel">
           <text x="120" y="1304.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#c65b4e" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
-          <text x="612" y="1305.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#c65b4e">↗</text>
           <text x="120" y="1338.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Планировщик</text>
         </a>
         <text x="120" y="1377.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">vTaskDelay(1) между проходами</text>
@@ -127,7 +124,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="760" y="895" width="1380" height="1185" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#service-bvstk_mdio_service">
         <text x="786" y="932.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">bvstk_mdio_service</text>
-        <text x="2116" y="931.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
       </a>
       <g id="take" data-kind="component" data-layer="L3" data-label="Забрать входную запись" data-ownership="common" data-parent="service">
         <rect x="830" y="1010" width="640" height="210" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
@@ -141,7 +137,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="830" y="1370" width="640" height="210" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="configuration.svg#policy">
           <text x="850" y="1394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="1452" y="1395.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
           <text x="850" y="1428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Проверить политику</text>
         </a>
         <text x="850" y="1467.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_mdio_policy_allows</text>
@@ -152,7 +147,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1670" y="1330" width="410" height="310" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="interfaces.svg#events">
           <text x="1690" y="1354.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="2062" y="1355.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
           <text x="1690" y="1388.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Запрет</text>
         </a>
         <text x="1690" y="1427.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">BVSTK_ERR_DENIED</text>
@@ -173,7 +167,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="830" y="2230" width="640" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../mdio/master.svg#core">
         <text x="850" y="2254.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1452" y="2255.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         <text x="850" y="2288.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_master_0</text>
       </a>
       <text x="850" y="2327.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Передать кадр физическому PHY</text>
@@ -183,7 +176,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="830" y="2560" width="640" height="190" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="cache.svg#cache">
         <text x="850" y="2584.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="1452" y="2585.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
         <text x="850" y="2618.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Прочитать фактическое значение</text>
       </a>
       <text x="850" y="2657.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Обновить кэш и ответ slave</text>
@@ -193,63 +185,7 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">MDIO: входящая запись и решение политики</text>
-    <a data-navigation="sheet" xlink:href="../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/bridge.svg">
-      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/cache.svg">
-      <rect x="364" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="408.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Кэш</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/subsystems.svg">
-      <rect x="468" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="530.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/exchange.svg">
-      <rect x="608" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="664.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/memory.svg">
-      <rect x="736" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="798.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/protocol/interface.svg">
-      <rect x="876" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="920.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/slave/structure.svg">
-      <rect x="980" y="123" width="160" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1060.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C slave</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/master/structure.svg">
-      <rect x="1156" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1242.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C master</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../mdio/subsystem.svg">
-      <rect x="1344" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1394.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../spi/subsystem.svg">
-      <rect x="1460" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../reference/memory-map.svg">
-      <rect x="1564" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1626.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="startup.svg">
-      <rect x="1704" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1802.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../levels.svg">
-      <rect x="1916" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1972.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Сценарий работающего моста FreeRTOS. Запрет и разрешение расходятся до обращения к PHY.</text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Сценарий работающего моста FreeRTOS. Запрет и разрешение расходятся до обращения к PHY.</text>
     <text x="1150.0" y="873.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label" xml:space="preserve"><tspan>Через драйвер и </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
     <text x="730.0" y="1054.75" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">service_step</text>
     <text x="1570.0" y="1466.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Запрещено</text>
@@ -272,7 +208,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="419" y="3035.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
     <rect x="490" y="3016.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
     <text x="534" y="3035.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="3082.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+    <text x="60" y="3082.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

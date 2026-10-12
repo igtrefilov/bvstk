@@ -1288,19 +1288,19 @@ src/services/sd/bvstk_sd_volume.c</title>
   <g id="pl-subsystem-navigation" data-kind="navigation">
     <rect x="0" y="4110.0" width="2800.0" height="194.0" fill="white" />
     <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="4150.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+      <text x="60" y="4150.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/i2c/cores/master/commands.svg#master-service">
-      <text x="60.0" y="4202.0" font-size="20" style="fill:#3f75ad">bvstk_i2c_master_service ↗</text>
+      <text x="60.0" y="4202.0" font-size="20" style="fill:#3f75ad">bvstk_i2c_master_service</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/mdio-write.svg#service">
-      <text x="953.3333333333334" y="4202.0" font-size="20" style="fill:#3f75ad">bvstk_mdio_service ↗</text>
+      <text x="953.3333333333334" y="4202.0" font-size="20" style="fill:#3f75ad">bvstk_mdio_service</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/cache.svg#cache">
-      <text x="1846.6666666666667" y="4202.0" font-size="20" style="fill:#3f75ad">Кэш и публикация ↗</text>
+      <text x="1846.6666666666667" y="4202.0" font-size="20" style="fill:#3f75ad">Кэш и публикация</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/reads.svg">
-      <text x="60.0" y="4254.0" font-size="20" style="fill:#3f75ad">Внешнее чтение ↗</text>
+      <text x="60.0" y="4254.0" font-size="20" style="fill:#3f75ad">Внешнее чтение</text>
     </a>
   </g>
 </svg>

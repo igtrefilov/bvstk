@@ -1019,16 +1019,16 @@ src/shared/protocols/http/bvstk_http_input.c</title>
   <g id="pl-subsystem-navigation" data-kind="navigation">
     <rect x="0" y="3330.0" width="2800.0" height="142.0" fill="white" />
     <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="3370.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+      <text x="60" y="3370.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/startup.svg">
-      <text x="60.0" y="3422.0" font-size="20" style="fill:#3f75ad">Подготовка по профилю ↗</text>
+      <text x="60.0" y="3422.0" font-size="20" style="fill:#3f75ad">Подготовка по профилю</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/interfaces.svg">
-      <text x="953.3333333333334" y="3422.0" font-size="20" style="fill:#3f75ad">Программные интерфейсы ↗</text>
+      <text x="953.3333333333334" y="3422.0" font-size="20" style="fill:#3f75ad">Программные интерфейсы</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/configuration.svg">
-      <text x="1846.6666666666667" y="3422.0" font-size="20" style="fill:#3f75ad">Изменение и сохранение ↗</text>
+      <text x="1846.6666666666667" y="3422.0" font-size="20" style="fill:#3f75ad">Изменение и сохранение</text>
     </a>
   </g>
 </svg>

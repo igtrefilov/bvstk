@@ -93,20 +93,17 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="420" y="280" width="1360" height="1310" rx="16" fill="none" stroke="#233747" stroke-width="2" />
       <a data-navigation="detail" xlink:href="bridge.svg#bridge">
         <text x="446" y="317.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">BVSTK</text>
-        <text x="1756" y="316.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#233747">↗</text>
       </a>
       <g id="driver" data-kind="functional-group" data-label="Драйвер подсистемы" data-layer="L3" data-ownership="common">
         <rect x="500" y="370" width="1200" height="455" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
         <a data-navigation="detail" xlink:href="subsystems.svg#driver">
           <text x="526" y="407.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Драйвер подсистемы</text>
-          <text x="1676" y="406.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
         </a>
         <text x="526" y="440.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Доступ к памяти и состоянию ядер через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
         <g id="take-request" data-kind="component" data-layer="L3" data-label="Получить запрос" data-ownership="common" data-parent="driver" data-target="exchange.svg#take-request">
           <rect x="540" y="485" width="330" height="240" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
           <a data-navigation="detail" xlink:href="exchange.svg#take-request">
             <text x="560" y="509.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-            <text x="852" y="510.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
             <text x="560" y="543.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Получить запрос</text>
           </a>
           <text x="560" y="582.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Проверить готовность</text>
@@ -117,7 +114,6 @@ g:target &gt; rect { stroke-width: 5; }
           <rect x="980" y="485" width="280" height="270" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
           <a data-navigation="detail" xlink:href="exchange.svg#publish-reply">
             <text x="1000" y="509.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-            <text x="1242" y="510.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
             <text x="1000" y="543.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Опубликовать</text>
             <text x="1000" y="576.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ответ</text>
           </a>
@@ -130,7 +126,6 @@ g:target &gt; rect { stroke-width: 5; }
           <rect x="1400" y="485" width="260" height="285" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
           <a data-navigation="detail" xlink:href="exchange.svg#result-buffer">
             <text x="1420" y="509.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-            <text x="1642" y="510.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
             <text x="1420" y="543.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Получить</text>
             <text x="1420" y="576.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">результат</text>
           </a>
@@ -144,13 +139,11 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="800" y="1080" width="620" height="370" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
         <a data-navigation="detail" xlink:href="../reference/memory-map.svg">
           <text x="826" y="1117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM</text>
-          <text x="1396" y="1116.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         </a>
         <g id="request-buffer" data-kind="component" data-layer="L0" data-domain="pl" data-label="Запрос" data-ownership="common" data-parent="exchange-memory" data-target="exchange.svg#request-buffer">
           <rect x="830" y="1160" width="170" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <a data-navigation="detail" xlink:href="exchange.svg#request-buffer">
             <text x="850" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-            <text x="982" y="1185.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
             <text x="850" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Запрос</text>
           </a>
           <text x="850" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Внешнее</text>
@@ -160,7 +153,6 @@ g:target &gt; rect { stroke-width: 5; }
           <rect x="1025" y="1160" width="170" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <a data-navigation="detail" xlink:href="exchange.svg#reply-buffer">
             <text x="1045" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-            <text x="1177" y="1185.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
             <text x="1045" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ответ</text>
           </a>
           <text x="1045" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Внешнему</text>
@@ -170,7 +162,6 @@ g:target &gt; rect { stroke-width: 5; }
           <rect x="1220" y="1160" width="170" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <a data-navigation="detail" xlink:href="exchange.svg#result-buffer">
             <text x="1240" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-            <text x="1372" y="1185.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
             <text x="1240" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Результат</text>
           </a>
           <text x="1240" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Данные</text>
@@ -181,7 +172,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="480" y="1160" width="250" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="subsystems.svg#pl_slave">
           <text x="500" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="712" y="1185.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="500" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_slave</text>
         </a>
         <text x="500" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Приём запроса</text>
@@ -191,7 +181,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1500" y="1160" width="220" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="subsystems.svg#pl_master">
           <text x="1520" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1702" y="1185.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="1520" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_master</text>
         </a>
         <text x="1520" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Получение</text>
@@ -202,7 +191,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="60" y="1160" width="300" height="210" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="bridge.svg#host">
         <text x="80" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="342" y="1185.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#607487">↗</text>
         <text x="80" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
         <text x="80" y="1251.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
       </a>
@@ -213,7 +201,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="1840" y="1160" width="300" height="210" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="bridge.svg#device">
         <text x="1860" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="2122" y="1185.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#607487">↗</text>
         <text x="1860" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее ведомое</text>
         <text x="1860" y="1251.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">устройство</text>
       </a>
@@ -223,35 +210,7 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">Память подсистемы: области обмена</text>
-    <a data-navigation="sheet" xlink:href="../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="bridge.svg">
-      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="cache.svg">
-      <rect x="364" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="408.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Кэш</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="subsystems.svg">
-      <rect x="468" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="530.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="exchange.svg">
-      <rect x="608" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="664.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="memory.svg">
-      <rect x="736" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="798.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../levels.svg">
-      <rect x="876" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="932.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Кто записывает запрос, результат и ответ; когда программа может получить или опубликовать данные.</text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Кто записывает запрос, результат и ответ; когда программа может получить или опубликовать данные.</text>
     <text x="827" y="870.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Принятые данные</text>
     <text x="1215" y="985.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Подготовленный</text>
     <text x="1215" y="1009.84" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">ответ</text>
@@ -269,7 +228,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="219" y="2065.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
     <rect x="375" y="2046.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
     <text x="419" y="2065.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2112.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+    <text x="60" y="2112.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

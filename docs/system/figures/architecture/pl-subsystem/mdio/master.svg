@@ -92,7 +92,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="630" y="270" width="940" height="175" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#driver-bvstk_mdio_core">
         <text x="650" y="294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="1552" y="295.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
         <text x="650" y="328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_core</text>
       </a>
       <text x="650" y="367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Записать команду в TX_FIFO</text>
@@ -102,7 +101,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="100" y="570" width="2000" height="1550" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
       <a data-navigation="detail" xlink:href="subsystem.svg#master">
         <text x="126" y="607.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">SMI_master_0</text>
-        <text x="2076" y="606.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
       </a>
       <text x="126" y="640.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">top_mdio_master</text>
       <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="Регистры управления" data-ownership="common" data-parent="core">
@@ -176,7 +174,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="180" y="2310" width="1120" height="195" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../reference/memory-map.svg#mdio-bank">
         <text x="200" y="2334.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1282" y="2335.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         <text x="200" y="2368.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM MDIO</text>
       </a>
       <text x="200" y="2407.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">+0x0000 + ((PHY &lt;&lt; 5) | REG) × 4</text>
@@ -186,63 +183,7 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">MDIO master: команда, кадр и результат</text>
-    <a data-navigation="sheet" xlink:href="../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/bridge.svg">
-      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/cache.svg">
-      <rect x="364" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="408.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Кэш</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/subsystems.svg">
-      <rect x="468" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="530.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/exchange.svg">
-      <rect x="608" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="664.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/memory.svg">
-      <rect x="736" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="798.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/protocol/interface.svg">
-      <rect x="876" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="920.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/slave/structure.svg">
-      <rect x="980" y="123" width="160" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1060.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C slave</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/master/structure.svg">
-      <rect x="1156" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1242.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C master</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="subsystem.svg">
-      <rect x="1344" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1394.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../spi/subsystem.svg">
-      <rect x="1460" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../reference/memory-map.svg">
-      <rect x="1564" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1626.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../ps-interaction/startup.svg">
-      <rect x="1704" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1802.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../levels.svg">
-      <rect x="1916" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1972.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Имя аппаратного экземпляра — SMI_master_0. Программная подсистема называется MDIO.</text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Имя аппаратного экземпляра — SMI_master_0. Программная подсистема называется MDIO.</text>
     <text x="845.0" y="491.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label" xml:space="preserve"><tspan>Через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
     <text x="2070" y="2180.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Шина</text>
     <text x="60" y="2590.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Подтверждение результата в PS: прочитать MEM_ADDR, затем записать 1 в IRQ. Драйвер сверяет адрес результата и проверяет DATA_VALID.</text>
@@ -257,7 +198,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="219" y="2785.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
     <rect x="375" y="2766.6" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
     <text x="419" y="2785.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2832.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+    <text x="60" y="2832.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

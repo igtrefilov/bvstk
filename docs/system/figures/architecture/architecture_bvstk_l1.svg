@@ -1424,13 +1424,13 @@ src/shared/interfaces/bvstk_mmio.h</title>
   <g id="pl-subsystem-navigation" data-kind="navigation">
     <rect x="0" y="4520.0" width="2800.0" height="142.0" fill="white" />
     <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="4560.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+      <text x="60" y="4560.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/i2c-irq.svg">
-      <text x="60.0" y="4612.0" font-size="20" style="fill:#3f75ad">Доставка IRQ I²C ↗</text>
+      <text x="60.0" y="4612.0" font-size="20" style="fill:#3f75ad">Доставка IRQ I²C</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/ps-interaction/mdio-write.svg#worker">
-      <text x="953.3333333333334" y="4612.0" font-size="20" style="fill:#3f75ad">Работа задачи MDIO ↗</text>
+      <text x="953.3333333333334" y="4612.0" font-size="20" style="fill:#3f75ad">Работа задачи MDIO</text>
     </a>
   </g>
 </svg>

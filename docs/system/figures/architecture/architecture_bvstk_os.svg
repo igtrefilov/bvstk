@@ -232,7 +232,7 @@
   <g id="pl-subsystem-navigation" data-kind="navigation">
     <rect x="0" y="1630.0" width="2800.0" height="90.0" fill="white" />
     <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="1670.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+      <text x="60" y="1670.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
     </a>
   </g>
 </svg>

@@ -9,7 +9,7 @@ class CoreDrawing(ProtocolDrawing):
         super().__init__(page, element, palette, arrows)
         self.palette, self.arrows = palette, arrows
         page.root.set("data-content", "hardware-scenario")
-        page.legend_note = "Фиолетовые блоки — PL внутри L0. PS показан за границей ядра. Знак ↗ связывает одноимённые части схем."
+        page.legend_note = "Фиолетовые блоки — PL внутри L0. PS показан за границей ядра."
 
     def finish(self, y, title, target):
         self.link(60, y, title, target)
@@ -37,7 +37,7 @@ class CoreDrawing(ProtocolDrawing):
                     fill="white", stroke=self.arrows[kind][0], stroke_width=0)
             p.text(group, 66, yy, str(index), 21, bold=True, color=self.arrows[kind][0])
             label = p.link(group, target) if target else group
-            p.text(label, 115, yy, title+(" ↗" if target else ""), 22, bold=True, color=self.arrows[kind][0])
+            p.text(label, 115, yy, title, 22, bold=True, color=self.arrows[kind][0])
             p.text(group, 115, yy+32, detail, 19, color="#576c7b")
             if target:
                 p.links.append({"node": key, "target": label.get("{http://www.w3.org/1999/xlink}href")})

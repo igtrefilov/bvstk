@@ -108,7 +108,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="365" width="560" height="190" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#f-configuration">
           <text x="120" y="389.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="642" y="390.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="120" y="423.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Профили I²C и MDIO</text>
         </a>
         <text x="120" y="462.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Файлы устройств в flash:/config</text>
@@ -118,7 +117,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="720" width="560" height="165" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#f-config-store">
           <text x="120" y="744.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="642" y="745.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="120" y="778.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">config_store</text>
         </a>
         <text x="120" y="817.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Загрузить и проверить файлы</text>
@@ -127,7 +125,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="1130" width="560" height="165" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#f-runtime">
           <text x="120" y="1154.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="642" y="1155.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="120" y="1188.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_runtime</text>
         </a>
         <text x="120" y="1227.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ждёт готовность config_store</text>
@@ -140,7 +137,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1540" y="365" width="560" height="190" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#n-configuration">
           <text x="1560" y="389.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="2082" y="390.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="1560" y="423.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Профили I²C</text>
         </a>
         <text x="1560" y="462.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Файлы в /flash/config/i2c</text>
@@ -150,7 +146,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1540" y="720" width="560" height="180" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#n-config-store">
           <text x="1560" y="744.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="2082" y="745.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="1560" y="778.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_config_store</text>
         </a>
         <text x="1560" y="817.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Загрузить и проверить файлы</text>
@@ -159,7 +154,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1540" y="1230" width="560" height="165" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#n-runtime">
           <text x="1560" y="1254.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="2082" y="1255.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="1560" y="1288.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_runtime</text>
         </a>
         <text x="1560" y="1327.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Инициализация среды I²C</text>
@@ -169,7 +163,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="820" y="720" width="560" height="215" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="configuration.svg#profile">
         <text x="840" y="744.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-        <text x="1362" y="745.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
         <text x="840" y="778.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_device_profile</text>
       </a>
       <text x="840" y="817.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Кодек v2</text>
@@ -180,7 +173,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="820" y="1080" width="560" height="205" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#configuration-model">
         <text x="840" y="1104.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-        <text x="1362" y="1105.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
         <text x="840" y="1138.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Рабочая модель</text>
       </a>
       <text x="840" y="1177.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">i2c_device_config_t</text>
@@ -191,13 +183,11 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="400" y="1520" width="1400" height="600" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#subsystem-services">
         <text x="426" y="1557.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Сервисы подсистем</text>
-        <text x="1776" y="1556.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
       </a>
       <g id="i2c" data-kind="component" data-layer="L3" data-label="Среда I²C" data-ownership="common" data-parent="services" data-target="i2c-irq.svg#service">
         <rect x="450" y="1650" width="600" height="250" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="i2c-irq.svg#service">
           <text x="470" y="1674.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="1032" y="1675.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
           <text x="470" y="1708.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Среда I²C</text>
         </a>
         <text x="470" y="1747.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_i2c_devices</text>
@@ -208,7 +198,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1220" y="1650" width="530" height="250" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="mdio-write.svg#service">
           <text x="1240" y="1674.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="1732" y="1675.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
           <text x="1240" y="1708.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_service</text>
         </a>
         <text x="1240" y="1747.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Модель PHY и политика</text>
@@ -219,7 +208,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="450" y="1980" width="1300" height="100" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../overview/memory.svg">
           <text x="470" y="2004.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="1732" y="2005.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
           <text x="470" y="2038.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Инициализация драйверов и аппаратных окон</text>
         </a>
       </g>
@@ -228,7 +216,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="610" y="2270" width="980" height="195" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../overview/memory.svg">
         <text x="630" y="2294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1572" y="2295.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         <text x="630" y="2328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Регистры и BRAM</text>
       </a>
       <text x="630" y="2367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747" xml:space="preserve"><tspan>MMIO через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
@@ -238,63 +225,7 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">Профиль устройства: подготовка подсистемы</text>
-    <a data-navigation="sheet" xlink:href="../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/bridge.svg">
-      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/cache.svg">
-      <rect x="364" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="408.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Кэш</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/subsystems.svg">
-      <rect x="468" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="530.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/exchange.svg">
-      <rect x="608" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="664.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/memory.svg">
-      <rect x="736" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="798.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/protocol/interface.svg">
-      <rect x="876" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="920.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/slave/structure.svg">
-      <rect x="980" y="123" width="160" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1060.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C slave</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/master/structure.svg">
-      <rect x="1156" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1242.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C master</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../mdio/subsystem.svg">
-      <rect x="1344" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1394.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../spi/subsystem.svg">
-      <rect x="1460" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../reference/memory-map.svg">
-      <rect x="1564" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1626.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="startup.svg">
-      <rect x="1704" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1802.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../levels.svg">
-      <rect x="1916" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1972.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Два варианта сборки используют общий формат и разные точки запуска.</text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Два варианта сборки используют общий формат и разные точки запуска.</text>
     <text x="380.0" y="993.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Готовность</text>
     <text x="1820.0" y="1051.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Модель I²C</text>
     <text x="1100.0" y="1388.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Конфигурации</text>
@@ -313,7 +244,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="304" y="2755.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
     <rect x="375" y="2736.6" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
     <text x="419" y="2755.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-    <text x="60" y="2802.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+    <text x="60" y="2802.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

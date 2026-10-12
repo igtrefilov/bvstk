@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 3186" role="img" aria-labelledby="title desc" data-content="hardware-scenario" data-layer="L0" height="3186">
   <title id="title">I²C slave: окна BRAM</title>
-  <desc id="desc">Кто записывает и читает каждое окно, как устроены заголовок и слова данных.</desc>
+  <desc id="desc">Запрос, ответ и формат данных.</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -71,13 +71,11 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="65" y="320" width="450" height="900" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
       <a data-navigation="detail" xlink:href="structure.svg#data-ctrl">
         <text x="91" y="357.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">data_ctrl</text>
-        <text x="491" y="356.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
       </a>
       <g id="writer" data-kind="component" data-layer="L0" data-domain="pl" data-label="Приём записи" data-ownership="common" data-parent="data-ctrl" data-target="write.svg#tail">
         <rect x="100" y="515" width="380" height="195" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="write.svg#tail">
           <text x="120" y="539.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="462" y="540.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="120" y="573.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Приём записи</text>
         </a>
         <text x="120" y="612.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">WR_MEM_DATA</text>
@@ -87,7 +85,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="925" width="380" height="220" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="read.svg#fetch">
           <text x="120" y="949.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="462" y="950.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="120" y="983.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Подготовка выдачи</text>
         </a>
         <text x="120" y="1022.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">RD_MEM_HEADER</text>
@@ -99,14 +96,12 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="660" y="320" width="890" height="900" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
       <a data-navigation="detail" xlink:href="../../../reference/memory-map.svg#i2c-bank">
         <text x="686" y="357.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM I²C</text>
-        <text x="1526" y="356.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
       </a>
       <text x="686" y="390.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Смещения от 0x40000000</text>
       <g id="wr-window" data-kind="functional-group" data-label="Запрос: +0x1000" data-layer="L0" data-domain="pl" data-ownership="common">
         <rect x="700" y="440" width="810" height="300" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
         <a data-navigation="detail" xlink:href="write.svg#publish">
           <text x="726" y="477.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">Запрос: +0x1000</text>
-          <text x="1486" y="476.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         </a>
         <g id="wr-header" data-kind="component" data-layer="L0" data-domain="pl" data-label="Заголовок" data-ownership="common" data-parent="wr-window">
           <rect x="735" y="520" width="270" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -125,7 +120,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="700" y="835" width="810" height="320" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
         <a data-navigation="detail" xlink:href="read.svg#prepare">
           <text x="726" y="872.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">Ответ: +0x2000</text>
-          <text x="1486" y="871.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         </a>
         <g id="rd-header" data-kind="component" data-layer="L0" data-domain="pl" data-label="Заголовок" data-ownership="common" data-parent="rd-window">
           <rect x="735" y="925" width="270" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -145,7 +139,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="1740" y="320" width="420" height="900" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
       <a data-navigation="detail" xlink:href="../../../ps-interaction/i2c-irq.svg#service">
         <text x="1766" y="357.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Драйвер PS</text>
-        <text x="2136" y="356.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
       </a>
       <g id="consume" data-kind="component" data-layer="L3" data-label="Прочитать запрос" data-ownership="common" data-parent="ps">
         <rect x="1775" y="515" width="350" height="195" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
@@ -158,9 +151,8 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1775" y="925" width="350" height="220" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <text x="1795" y="949.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
         <text x="1795" y="983.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Записать ответ</text>
-        <text x="1795" y="1022.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Заголовок, затем байты</text>
+        <text x="1795" y="1022.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747" xml:space="preserve"><tspan>Через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
         <text x="1795" y="1048.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">После записи — rd_valid</text>
-        <text x="1795" y="1074.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747" xml:space="preserve"><tspan>Доступ через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
       </g>
     </g>
     <rect x="130" y="1430" width="1380" height="115" rx="6" fill="white" stroke="#3f75ad" stroke-width="2" />
@@ -170,21 +162,21 @@ g:target &gt; rect { stroke-width: 5; }
     <rect x="1090" y="1810" width="465" height="105" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
     <rect x="1570" y="1810" width="465" height="105" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
     <g id="example" data-kind="reference-table">
-      <text x="84" y="2080.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Смещение внутри окна</text>
+      <text x="84" y="2080.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Смещение</text>
       <text x="604" y="2080.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Слово</text>
       <text x="1124" y="2080.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Назначение</text>
       <path d="M70,2112 L2110,2112" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
       <text x="84" y="2145" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">+0x00</text>
       <text x="604" y="2145" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">0x0000032A</text>
-      <text x="1124" y="2145" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Заголовок: адрес 0x2A, число байтов 6.</text>
+      <text x="1124" y="2145" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Адрес 0x2A, длина 6</text>
       <path d="M70,2177 L2110,2177" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
       <text x="84" y="2210" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">+0x04</text>
       <text x="604" y="2210" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">0x30207B10</text>
-      <text x="1124" y="2210" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Первые четыре байта, B0 находится в младших восьми битах.</text>
+      <text x="1124" y="2210" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">B0…B3; B0 в битах 7…0</text>
       <path d="M70,2242 L2110,2242" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
       <text x="84" y="2275" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">+0x08</text>
       <text x="604" y="2275" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">0x00005040</text>
-      <text x="1124" y="2275" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Хвост из двух байтов. Верхние нули не входят в указанную длину.</text>
+      <text x="1124" y="2275" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">B4 и B5; верхние байты не учитываются</text>
       <path d="M70,2307 L2110,2307" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
     </g>
     <g id="window-rules" data-kind="reference-table">
@@ -192,63 +184,19 @@ g:target &gt; rect { stroke-width: 5; }
       <text x="524" y="2507.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Порядок работы</text>
       <path d="M70,2539 L2110,2539" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
       <text x="84" y="2572" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Запись ведущего</text>
-      <text x="524" y="2572" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Данные → заголовок → DATA_VALID. При STOP или Sr также FINAL_PACKET. При заполнении области публикуется промежуточный фрагмент, затем</text>
-      <text x="524" y="2599" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">запись идёт с её начала.</text>
+      <text x="524" y="2572" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Данные → заголовок → DATA_VALID → повторное использование окна.</text>
+      <text x="524" y="2599" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">STOP или Sr добавляет FINAL_PACKET.</text>
       <path d="M70,2631 L2110,2631" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
       <text x="84" y="2664" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Чтение ведущего</text>
-      <text x="524" y="2664" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">PS записывает ответ и передаёт rd_valid. После выдачи окна в engine data_ctrl снова формирует RD_REQUEST. Счётчик отражает переданные в</text>
-      <text x="524" y="2691" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">engine байты, включая ещё не подтверждённые на шине.</text>
+      <text x="524" y="2664" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Ответ PS → rd_valid → выдача окна в engine → RD_REQUEST.</text>
+      <text x="524" y="2691" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Счётчик — по выдаче в engine, до ACK на шине.</text>
       <path d="M70,2723 L2110,2723" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
     </g>
   </g>
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C slave: окна BRAM</text>
-    <a data-navigation="sheet" xlink:href="../../../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="structure.svg">
-      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Ядро</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="addressing.svg">
-      <rect x="364" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="420.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адрес</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="write.svg">
-      <rect x="492" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="554.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Запись</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="read.svg">
-      <rect x="632" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="694.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Чтение</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="repeated-start.svg">
-      <rect x="772" y="123" width="232" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="888.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Повторный START</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="buffers.svg">
-      <rect x="1020" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1070.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">BRAM</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="completion.svg">
-      <rect x="1136" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1222.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Завершение</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../master/structure.svg">
-      <rect x="1324" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1386.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Master</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../protocol/interface.svg">
-      <rect x="1464" y="123" width="148" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1538.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Протокол</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../../../levels.svg">
-      <rect x="1628" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1684.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Кто записывает и читает каждое окно, как устроены заголовок и слова данных.</text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Запрос, ответ и формат данных.</text>
     <text x="605" y="584.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
     <text x="1640" y="584.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
     <text x="1640" y="1005.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
@@ -258,13 +206,13 @@ g:target &gt; rect { stroke-width: 5; }
       <text x="60" y="1360.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Первое слово окна — header_t</text>
     </g>
     <text x="820.0" y="1472.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#3f75ad">num_bytes</text>
-    <text x="820.0" y="1515.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#233747">Биты 31…7: число полезных байтов текущего фрагмента</text>
+    <text x="820.0" y="1515.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#233747">31…7: число байтов фрагмента</text>
     <text x="1800.0" y="1472.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#3f75ad">phy_addr</text>
-    <text x="1800.0" y="1515.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#233747">Биты 6…0: адрес на I²C</text>
-    <text x="60" y="1610.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">В заголовке нет бита направления и номера регистра. Для чтения data_ctrl берёт длину из num_bytes.</text>
+    <text x="1800.0" y="1515.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#233747">6…0: адрес I²C</text>
+    <text x="60" y="1610.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">num_bytes задаёт длину окна. Направление и номер регистра в header_t не входят.</text>
     <g id="packing" data-kind="protocol-section" data-layer="L0">
       <rect x="60" y="1696" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="1730.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Байты располагаются от младших разрядов слова к старшим</text>
+      <text x="60" y="1730.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Упаковка: младший байт первым</text>
     </g>
     <text x="362.5" y="1850.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#3f75ad">B3</text>
     <text x="362.5" y="1891.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#233747">Биты 31…24</text>
@@ -274,15 +222,15 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="1322.5" y="1891.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#233747">Биты 15…8</text>
     <text x="1802.5" y="1850.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#3f75ad">B0</text>
     <text x="1802.5" y="1891.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#233747">Биты 7…0</text>
-    <text x="60" y="1990.0" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Пример шести байтов: 10 7B 20 30 40 50. Все значения ниже шестнадцатеричные.</text>
+    <text x="60" y="1990.0" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Пример: 10 7B 20 30 40 50, шестнадцатеричные байты.</text>
     <g id="window-reuse" data-kind="protocol-section" data-layer="L0">
       <rect x="60" y="2383" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
       <text x="60" y="2417.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Окно используется повторно</text>
     </g>
-    <text x="60" y="2793.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">MEM_DEPTH = 0x1000: четыре байта заголовка и до 4092 байтов данных. Программный сервис подготавливает окна до 64 байтов.</text>
-    <text x="60" y="2853.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">MEM_OVERFLOW возникает, если при публикации очередного фрагмента записи IRQ ещё установлен.</text>
+    <text x="60" y="2793.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">MEM_DEPTH = 0x1000: заголовок 4 байта, данные до 4092 байтов. Окно сервиса — до 64 байтов.</text>
+    <text x="60" y="2853.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Новый фрагмент записи при неснятом IRQ → MEM_OVERFLOW.</text>
     <a data-navigation="detail" xlink:href="completion.svg">
-      <text x="60" y="2948.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">События, подтверждение IRQ и завершение обмена ↗</text>
+      <text x="60" y="2948.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">События, подтверждение IRQ и завершение обмена</text>
     </a>
     <path d="M60,3040 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
     <text x="142" y="3046.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
@@ -292,7 +240,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="219" y="3096.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
     <rect x="375" y="3077" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
     <text x="419" y="3096.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="3143.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра. Знак ↗ связывает одноимённые части схем.</tspan></text>
+    <text x="60" y="3143.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра.</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

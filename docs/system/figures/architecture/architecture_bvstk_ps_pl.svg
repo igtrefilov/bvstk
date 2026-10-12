@@ -988,25 +988,25 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
   <g id="pl-subsystem-navigation" data-kind="navigation">
     <rect x="0" y="4810.0" width="2800.0" height="194.0" fill="white" />
     <a data-navigation="pl-catalog" xlink:href="pl-subsystem/README.md">
-      <text x="60" y="4850.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии ↗</text>
+      <text x="60" y="4850.0" font-size="22" font-weight="700" style="fill:#8760ba">Подсистемы PL: устройство и сценарии</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/i2c/cores/master/structure.svg#core">
-      <text x="60.0" y="4902.0" font-size="20" style="fill:#3f75ad">I2C_master_0 ↗</text>
+      <text x="60.0" y="4902.0" font-size="20" style="fill:#3f75ad">I2C_master_0</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/i2c/cores/slave/structure.svg#core">
-      <text x="953.3333333333334" y="4902.0" font-size="20" style="fill:#3f75ad">I2C_slave_0 ↗</text>
+      <text x="953.3333333333334" y="4902.0" font-size="20" style="fill:#3f75ad">I2C_slave_0</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/mdio/master.svg#core">
-      <text x="1846.6666666666667" y="4902.0" font-size="20" style="fill:#3f75ad">SMI_master_0 ↗</text>
+      <text x="1846.6666666666667" y="4902.0" font-size="20" style="fill:#3f75ad">SMI_master_0</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/mdio/slave.svg#core">
-      <text x="60.0" y="4954.0" font-size="20" style="fill:#3f75ad">SMI_slave_0 ↗</text>
+      <text x="60.0" y="4954.0" font-size="20" style="fill:#3f75ad">SMI_slave_0</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/spi/master.svg#core">
-      <text x="953.3333333333334" y="4954.0" font-size="20" style="fill:#3f75ad">SPI_master_0 ↗</text>
+      <text x="953.3333333333334" y="4954.0" font-size="20" style="fill:#3f75ad">SPI_master_0</text>
     </a>
     <a data-navigation="pl-detail" xlink:href="pl-subsystem/spi/slave.svg#core">
-      <text x="1846.6666666666667" y="4954.0" font-size="20" style="fill:#3f75ad">SPI_Slave_0 ↗</text>
+      <text x="1846.6666666666667" y="4954.0" font-size="20" style="fill:#3f75ad">SPI_Slave_0</text>
     </a>
   </g>
 </svg>

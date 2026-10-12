@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 3300" role="img" aria-labelledby="title desc" data-content="hardware-scenario" data-layer="L0" height="3300">
   <title id="title">I²C slave: выдача ответа</title>
-  <desc id="desc">Первый байт, подтверждение адреса и продолжение чтения из подготовленного окна.</desc>
+  <desc id="desc">От запроса к PS до байтов на шине.</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -158,13 +158,11 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="445" y="625" width="855" height="290" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
       <a data-navigation="detail" xlink:href="structure.svg#core">
         <text x="471" y="662.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">I2C_slave_0</text>
-        <text x="1276" y="661.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
       </a>
       <g id="engine" data-kind="component" data-layer="L0" data-domain="pl" data-label="i2c_slave_engine" data-ownership="common" data-parent="core" data-target="structure.svg#engine">
         <rect x="475" y="710" width="350" height="175" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="structure.svg#engine">
           <text x="495" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="807" y="735.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="495" y="768.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">i2c_slave_engine</text>
         </a>
         <text x="495" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Биты, ACK и границы</text>
@@ -173,7 +171,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="940" y="710" width="325" height="175" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="structure.svg#data-ctrl">
           <text x="960" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1247" y="735.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="960" y="768.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">data_ctrl</text>
         </a>
         <text x="960" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">События и слова</text>
@@ -183,7 +180,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="65" y="710" width="310" height="175" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../protocol/transfers.svg">
         <text x="85" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="357" y="735.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#607487">↗</text>
         <text x="85" y="768.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий</text>
       </a>
       <text x="85" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SDA и SCL</text>
@@ -192,7 +188,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="1370" y="710" width="340" height="175" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="buffers.svg#bram">
         <text x="1390" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1692" y="735.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
         <text x="1390" y="768.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM I²C</text>
       </a>
       <text x="1390" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Запрос и ответ</text>
@@ -201,104 +196,59 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="1810" y="710" width="340" height="175" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../../ps-interaction/i2c-irq.svg#service">
         <text x="1830" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="2132" y="735.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
         <text x="1830" y="768.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сервис и драйвер PS</text>
       </a>
       <text x="1830" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747" xml:space="preserve"><tspan>Доступ через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
     </g>
     <g id="refill-cases" data-kind="reference-table">
-      <text x="84" y="2605.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">После передачи байта в engine</text>
-      <text x="804" y="2605.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Следующее действие data_ctrl</text>
+      <text x="84" y="2605.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">После передачи байта</text>
+      <text x="804" y="2605.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#8760ba">Действие data_ctrl</text>
       <path d="M70,2637 L2110,2637" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="2670" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">В слове и окне ещё есть данные</text>
-      <text x="804" y="2670" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">RD_SEND_BYTE: дождаться tx_ready и выдать следующий байт.</text>
+      <text x="84" y="2670" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">В слове есть данные</text>
+      <text x="804" y="2670" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">RD_SEND_BYTE: следующий байт при tx_ready</text>
       <path d="M70,2702 L2110,2702" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="2735" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Слово закончилось, окно продолжается</text>
-      <text x="804" y="2735" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">RD_MEM_DATA: прочитать следующее слово BRAM, затем RD_SEND_BYTE.</text>
+      <text x="84" y="2735" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Слово закончилось</text>
+      <text x="804" y="2735" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">RD_MEM_DATA: следующее слово → RD_SEND_BYTE</text>
       <path d="M70,2767 L2110,2767" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
-      <text x="84" y="2800" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Выдан последний байт окна или достигнут его предел</text>
-      <text x="804" y="2800" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">RD_REQ: снова поднять RD_REQUEST и ожидать новое окно от PS.</text>
+      <text x="84" y="2800" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">Окно выдано или достигнут предел</text>
+      <text x="804" y="2800" font-size="19" font-weight="400" text-anchor="start" style="fill:#8760ba">RD_REQ: RD_REQUEST → новое окно от PS</text>
       <path d="M70,2832 L2110,2832" fill="none" stroke="#ced6dd" stroke-width="1.2" stroke-linejoin="round" />
     </g>
   </g>
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C slave: выдача ответа</text>
-    <a data-navigation="sheet" xlink:href="../../../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="structure.svg">
-      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Ядро</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="addressing.svg">
-      <rect x="364" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="420.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адрес</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="write.svg">
-      <rect x="492" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="554.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Запись</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="read.svg">
-      <rect x="632" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="694.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Чтение</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="repeated-start.svg">
-      <rect x="772" y="123" width="232" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="888.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Повторный START</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="buffers.svg">
-      <rect x="1020" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1070.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">BRAM</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="completion.svg">
-      <rect x="1136" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1222.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Завершение</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../master/structure.svg">
-      <rect x="1324" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1386.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Master</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../protocol/interface.svg">
-      <rect x="1464" y="123" width="148" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1538.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Протокол</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../../../levels.svg">
-      <rect x="1628" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1684.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Первый байт, подтверждение адреса и продолжение чтения из подготовленного окна.</text>
-    <text x="60" y="525.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Успешный путь: сервис PS подготовлен к чтению и успевает предоставить первый байт.</text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">От запроса к PS до байтов на шине.</text>
+    <text x="60" y="525.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Успешное чтение: PS успевает подготовить ответ.</text>
     <g id="wait-first" data-kind="sequence-step">
       <rect x="60" y="1011" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
       <text x="66" y="1040.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">1</text>
       <a data-navigation="detail" xlink:href="addressing.svg#read">
-        <text x="115" y="1040.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">Адрес + R: OP_CODE → WAIT_PACKET ↗</text>
+        <text x="115" y="1040.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">Адрес + R → WAIT_PACKET</text>
       </a>
-      <text x="115" y="1072.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">ack_pending = 1. Ядро удерживает SCL до готовности первого байта; ACK адреса ещё не выдан.</text>
+      <text x="115" y="1072.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">SCL = 0; ACK адреса отложен до первого байта</text>
     </g>
     <g id="read-start" data-kind="sequence-step">
       <rect x="60" y="1141" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
       <text x="66" y="1170.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">2</text>
-      <text x="115" y="1170.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">Событие start с rw = 1 переводит data_ctrl в RD_REQ</text>
-      <text x="115" y="1202.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Начинается ожидание control_s.rd_valid.</text>
+      <text x="115" y="1170.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">Начало чтения → RD_REQ</text>
+      <text x="115" y="1202.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">start = 1, rw = 1; ожидание rd_valid</text>
     </g>
     <g id="request" data-kind="sequence-step">
       <rect x="60" y="1271" width="2080" height="64" fill="white" stroke="#c65b4e" stroke-width="0" />
       <text x="66" y="1300.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#c65b4e">3</text>
       <a data-navigation="detail" xlink:href="../../../ps-interaction/i2c-irq.svg">
-        <text x="115" y="1300.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#c65b4e">RD_REQUEST через regs сообщает PS о запросе ↗</text>
+        <text x="115" y="1300.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#c65b4e">Запрос ответа: RD_REQUEST</text>
       </a>
-      <text x="115" y="1332.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Доставка IRQ и обработчик выбранной ОС раскрыты на отдельном листе.</text>
+      <text x="115" y="1332.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>IRQ через regs и </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
     </g>
     <g id="prepare" data-kind="sequence-step">
       <rect x="60" y="1401" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
       <text x="66" y="1430.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">4</text>
       <a data-navigation="detail" xlink:href="buffers.svg#rd-window">
-        <text x="115" y="1430.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">Подготовить окно ответа ↗</text>
+        <text x="115" y="1430.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">Подготовка окна ответа</text>
       </a>
-      <text x="115" y="1462.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Драйвер записывает заголовок и байты в область +0x2000. Значения выбирает сервис </tspan><tspan style="fill:#287f73">L3</tspan><tspan>.</tspan></text>
+      <text x="115" y="1462.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>+0x2000: заголовок и байты от сервиса </tspan><tspan style="fill:#287f73">L3</tspan></text>
     </g>
     <rect x="60" y="1530" width="2080" height="45" fill="white" />
     <text x="220.0" y="1560.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Ведущий</text>
@@ -310,29 +260,29 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="60" y="1591" width="2080" height="64" fill="white" stroke="#b56b1d" stroke-width="0" />
       <text x="66" y="1620.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">5</text>
       <a data-navigation="detail" xlink:href="completion.svg#irq">
-        <text x="115" y="1620.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan>Записать CSR.rd_valid через </tspan><tspan style="fill:#b56b1d">L1</tspan><tspan> и regs ↗</tspan></text>
+        <text x="115" y="1620.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#b56b1d">Ответ готов: CSR.rd_valid</text>
       </a>
-      <text x="115" y="1652.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Это разрешает data_ctrl перейти из RD_REQ к чтению подготовленного окна.</text>
+      <text x="115" y="1652.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Запись через </tspan><tspan style="fill:#b56b1d">L1</tspan><tspan> и regs</tspan></text>
     </g>
     <g id="fetch" data-kind="sequence-step">
       <rect x="60" y="1721" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
       <text x="66" y="1750.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">6</text>
       <a data-navigation="detail" xlink:href="buffers.svg#rd-window">
-        <text x="115" y="1750.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">RD_MEM_HEADER → RD_MEM_DATA ↗</text>
+        <text x="115" y="1750.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">RD_MEM_HEADER → RD_MEM_DATA</text>
       </a>
-      <text x="115" y="1782.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Через m_axi прочитать длину ответа и первое слово данных.</text>
+      <text x="115" y="1782.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">m_axi: длина ответа и первое слово</text>
     </g>
     <g id="first-byte" data-kind="sequence-step">
       <rect x="60" y="1851" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
       <text x="66" y="1880.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">7</text>
-      <text x="115" y="1880.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">RD_SEND_BYTE: передать байт при tx_ready = 1</text>
-      <text x="115" y="1912.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Строб заполняет tx_data и устанавливает tx_full.</text>
+      <text x="115" y="1880.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">RD_SEND_BYTE → tx_data</text>
+      <text x="115" y="1912.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">При tx_ready = 1; после передачи tx_full = 1</text>
     </g>
     <g id="address-ack" data-kind="sequence-step">
       <rect x="60" y="1981" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
       <text x="66" y="2010.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">8</text>
-      <text x="115" y="2010.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">WAIT_PACKET → WRITE_ACK: подтвердить адрес</text>
-      <text x="115" y="2042.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Первый байт готов. Ядро отпускает SCL и начинает READ_BYTE.</text>
+      <text x="115" y="2010.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">WAIT_PACKET → WRITE_ACK</text>
+      <text x="115" y="2042.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">Первый байт готов: отпустить SCL, подтвердить адрес</text>
     </g>
     <rect x="60" y="2110" width="2080" height="45" fill="white" />
     <text x="220.0" y="2140.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Ведущий</text>
@@ -343,28 +293,28 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="send-byte" data-kind="sequence-step">
       <rect x="60" y="2171" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
       <text x="66" y="2200.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">9</text>
-      <text x="115" y="2200.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">READ_BYTE: выдать восемь бит по SDA</text>
-      <text x="115" y="2232.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">После байта SDA отпускается для ответа ведущего. tx_data освобождается для следующего байта.</text>
+      <text x="115" y="2200.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">READ_BYTE: выдача байта</text>
+      <text x="115" y="2232.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">8 бит → отпустить SDA для ответа ведущего</text>
     </g>
     <g id="host-ack" data-kind="sequence-step">
       <rect x="60" y="2301" width="2080" height="64" fill="white" stroke="#3f75ad" stroke-width="0" />
       <text x="66" y="2330.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">10</text>
       <a data-navigation="detail" xlink:href="completion.svg#outcomes">
-        <text x="115" y="2330.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">READ_ACK: принять ACK или NACK ведущего ↗</text>
+        <text x="115" y="2330.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#3f75ad">READ_ACK: ответ ведущего</text>
       </a>
-      <text x="115" y="2362.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">ACK ведёт в WAIT_PACKET; NACK ведёт в DONE с ожиданием STOP или повторного START.</text>
+      <text x="115" y="2362.0" font-size="19" font-weight="400" text-anchor="start" style="fill:#576c7b">ACK → WAIT_PACKET; NACK → DONE до STOP или Sr</text>
     </g>
     <g id="refill" data-kind="protocol-section" data-layer="L0">
       <rect x="60" y="2491" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="2525.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">data_ctrl готовит следующие байты независимо от тактов на шине</text>
+      <text x="60" y="2525.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">data_ctrl: подготовка следующего байта</text>
     </g>
-    <text x="60" y="2902.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Запрос нового окна может возникнуть до ACK ведущего на последний байт. STOP и повторный START прекращают текущую фазу.</text>
-    <text x="60" y="2964.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Ожидание каждого байта ограничивает STRETCH_TIMEOUT_US. Поведение при истечении срока зависит от этапа чтения.</text>
+    <text x="60" y="2902.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Новое окно может запрашиваться до ACK последнего байта. STOP и Sr прекращают фазу.</text>
+    <text x="60" y="2964.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Лимит ожидания байта: STRETCH_TIMEOUT_US. Исход зависит от этапа чтения.</text>
     <a data-navigation="detail" xlink:href="../master/repeated-start.svg#master-service">
-      <text x="60" y="3016.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Получение нового значения через master ↗</text>
+      <text x="60" y="3016.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Получение нового значения через master</text>
     </a>
     <a data-navigation="detail" xlink:href="completion.svg">
-      <text x="60" y="3062.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Завершение чтения и истечение времени ожидания ↗</text>
+      <text x="60" y="3062.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Завершение чтения и истечение времени ожидания</text>
     </a>
     <path d="M60,3154 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
     <text x="142" y="3160.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
@@ -378,7 +328,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="219" y="3210.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
     <rect x="375" y="3191" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
     <text x="419" y="3210.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="3257.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра. Знак ↗ связывает одноимённые части схем.</tspan></text>
+    <text x="60" y="3257.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Фиолетовые блоки — PL внутри </tspan><tspan style="fill:#607487">L0</tspan><tspan>. PS показан за границей ядра.</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

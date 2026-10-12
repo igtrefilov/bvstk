@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 0 2200 2482" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="2482">
   <title id="title">I²C: повторный START</title>
-  <desc id="desc">L0. Связанные части обмена и пример чтения по указателю регистра.</desc>
+  <desc id="desc">L0. Запись указателя → чтение регистра.</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -149,7 +149,7 @@ g:target &gt; rect { stroke-width: 5; }
       <g id="separate-write-1" data-kind="protocol-field" data-label="Запись …" data-driver="">
         <rect x="196" y="1780" width="450" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
         <text x="421.0" y="1817.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Запись …</text>
-        <text x="421.0" y="1849.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">адрес, подтверждения и данные</text>
+        <text x="421.0" y="1849.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">адрес, данные, ACK</text>
       </g>
       <g id="separate-write-2" data-kind="protocol-field" data-label="P" data-driver="ведущий">
         <polygon points="658,1792 670,1780 730,1780 742,1792 742,1858 730,1870 670,1870 658,1858" fill="#e9eef3" stroke="#607487" stroke-width="2" />
@@ -169,7 +169,7 @@ g:target &gt; rect { stroke-width: 5; }
       <g id="separate-read-1" data-kind="protocol-field" data-label="Чтение …" data-driver="">
         <rect x="1516" y="1780" width="450" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
         <text x="1741.0" y="1817.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Чтение …</text>
-        <text x="1741.0" y="1849.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">адрес, подтверждения и данные</text>
+        <text x="1741.0" y="1849.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">адрес, данные, ответ</text>
       </g>
       <g id="separate-read-2" data-kind="protocol-field" data-label="P" data-driver="ведущий">
         <polygon points="1978,1792 1990,1780 2050,1780 2062,1792 2062,1858 2050,1870 1990,1870 1978,1858" fill="#e9eef3" stroke="#607487" stroke-width="2" />
@@ -182,84 +182,48 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">I²C: повторный START</text>
-    <a data-navigation="sheet" xlink:href="../../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="interface.svg">
-      <rect x="248" y="123" width="160" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="328.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Интерфейс</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="transaction.svg">
-      <rect x="424" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="510.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Транзакция</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="transfers.svg">
-      <rect x="612" y="123" width="232" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="728.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Чтение и запись</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="repeated-start.svg">
-      <rect x="860" y="123" width="232" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="976.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Повторный START</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../cores/slave/structure.svg">
-      <rect x="1108" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1194.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Ядро slave</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../cores/master/structure.svg">
-      <rect x="1296" y="123" width="184" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1388.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Ядро master</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../overview/bridge.svg">
-      <rect x="1496" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1546.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../../levels.svg">
-      <rect x="1612" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1668.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. Связанные части обмена и пример чтения по указателю регистра.</tspan></text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. Запись указателя → чтение регистра.</tspan></text>
     <g id="combined-read" data-kind="protocol-section" data-layer="L0">
       <rect x="60" y="256" width="2080" height="86" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="290.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Пример: два байта начиная с регистра 0x10</text>
-      <text x="60" y="330.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Условное устройство имеет адрес 0x2A. В этом примере оно поддерживает указатель регистра и его автоувеличение.</text>
+      <text x="60" y="290.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Пример: два байта с регистра 0x10</text>
+      <text x="60" y="330.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Устройство 0x2A; указатель с автоувеличением.</text>
     </g>
     <text x="424.0" y="641.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#607487">Записать указатель регистра</text>
     <text x="1338.0" y="641.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#607487">Прочитать D0 и D1</text>
-    <text x="60" y="760.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">0x10 передаётся как обычный байт данных. Его значение как номера регистра задаёт устройство.</text>
-    <text x="60" y="823.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">После Sr ведущий повторяет адрес 0x2A с направлением R. Устройство выдаёт D0, затем D1.</text>
-    <text x="60" y="886.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Адрес шины выбирает устройство. Указатель регистра выбирает данные внутри него.</text>
+    <text x="60" y="760.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">0x10 — байт данных; устройство трактует его как указатель регистра.</text>
+    <text x="60" y="823.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">После Sr: адрес 0x2A + R → D0 → D1.</text>
+    <text x="60" y="886.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Адрес выбирает устройство; указатель — регистр.</text>
     <g id="restart" data-kind="protocol-section" data-layer="L0">
       <rect x="60" y="1006" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="1040.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Sr — новый START без промежуточного STOP</text>
+      <text x="60" y="1040.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Sr — START без STOP</text>
     </g>
     <text x="205" y="1186.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#607487">SCL</text>
     <text x="205" y="1336.0" font-size="22" font-weight="700" text-anchor="end" style="fill:#3f75ad">SDA</text>
     <text x="915" y="1094.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#233747">Sr</text>
     <text x="380" y="1458.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#233747">SDA отпущена при SCL = 0</text>
     <text x="915" y="1515.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#233747">SDA: 1 → 0 при SCL = 1</text>
-    <text x="1470" y="1195.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Шина остаётся занятой.</text>
-    <text x="1470" y="1226.74" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">После Sr начинается адресная фаза.</text>
-    <text x="1470" y="1258.48" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Адрес и направление могут измениться.</text>
+    <text x="1470" y="1195.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Шина занята.</text>
+    <text x="1470" y="1226.74" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Новая адресная фаза:</text>
+    <text x="1470" y="1258.48" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">адрес и направление могут измениться.</text>
     <g id="stop-between" data-kind="protocol-section" data-layer="L0">
       <rect x="60" y="1636" width="2080" height="52" fill="none" stroke="#607487" stroke-width="0" />
-      <text x="60" y="1670.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Если между частями есть STOP — это две транзакции</text>
+      <text x="60" y="1670.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">STOP между фазами: две транзакции</text>
     </g>
     <text x="1105" y="1825.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#233747">Шина свободна</text>
-    <text x="60" y="2025.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Состояние указателя после STOP определяется устройством. Два отдельных обмена не всегда заменяют обмен с Sr.</text>
-    <text x="60" y="2085.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Число байтов указателя, порядок байтов и автоувеличение нужно смотреть в описании выбранного устройства.</text>
+    <text x="60" y="2025.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">STOP может сбросить указатель. Два обмена не всегда заменяют обмен с Sr.</text>
+    <text x="60" y="2085.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b">Формат указателя и автоувеличение задаёт устройство.</text>
     <a data-navigation="detail" xlink:href="https://www.nxp.com/docs/en/user-guide/UM10204.pdf">
-      <text x="60" y="2190.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">NXP UM10204: раздел 3.1 ↗</text>
+      <text x="60" y="2190.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">NXP UM10204: раздел 3.1</text>
     </a>
     <a data-navigation="detail" xlink:href="https://www.ti.com/lit/an/slva704/slva704.pdf">
-      <text x="655" y="2190.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">TI: Understanding the I²C Bus ↗</text>
+      <text x="655" y="2190.0" font-size="18" font-weight="700" text-anchor="start" style="fill:#3f75ad">TI: Understanding the I²C Bus</text>
     </a>
     <a data-navigation="detail" xlink:href="../cores/slave/structure.svg">
-      <text x="60" y="2254.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Как ведомое ядро обрабатывает транзакции ↗</text>
+      <text x="60" y="2254.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">Как ведомое ядро обрабатывает транзакции</text>
     </a>
     <rect x="60" y="2373" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
     <text x="104" y="2392.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <text x="60" y="2439.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan> — физический интерфейс. Синие поля показывают передаваемые биты. Знак ↗ открывает продолжение.</tspan></text>
+    <text x="60" y="2439.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan> — физический интерфейс. Синие поля — биты на шине.</tspan></text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

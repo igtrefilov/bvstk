@@ -101,14 +101,12 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="80" y="270" width="2040" height="595" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
       <a data-navigation="detail" xlink:href="../i2c/cores/slave/buffers.svg#bram">
         <text x="106" y="307.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM I²C</text>
-        <text x="2096" y="306.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
       </a>
       <text x="106" y="340.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">0x40000000, окно 16 КиБ; пакетные области по 4 КиБ</text>
       <g id="i2c-bank-w0" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_master_0" data-ownership="common" data-parent="i2c-bank" data-target="../i2c/cores/master/structure.svg#core">
         <rect x="110" y="370" width="390" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../i2c/cores/master/structure.svg#core">
           <text x="130" y="394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="482" y="395.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="130" y="428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_master_0</text>
         </a>
       </g>
@@ -116,7 +114,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="690" y="370" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../i2c/cores/master/buffers.svg#bram">
           <text x="710" y="394.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1492" y="395.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="710" y="428.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x0000  Результат master</text>
         </a>
         <text x="710" y="467.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Заголовок 4 байта, затем принятые данные</text>
@@ -135,7 +132,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="690" y="530" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../i2c/cores/slave/buffers.svg#wr-window">
           <text x="710" y="554.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1492" y="555.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="710" y="588.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x1000  Запрос к slave</text>
         </a>
         <text x="710" y="627.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Заголовок с адресом и длиной, затем полезные данные</text>
@@ -154,7 +150,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="690" y="690" width="820" height="132" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../i2c/cores/slave/buffers.svg#rd-window">
           <text x="710" y="714.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1492" y="715.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="710" y="748.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">+0x2000  Ответ slave</text>
         </a>
         <text x="710" y="787.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">PS заполняет окно и устанавливает rd_valid</text>
@@ -169,7 +164,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="80" y="975" width="2040" height="595" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
       <a data-navigation="detail" xlink:href="../mdio/subsystem.svg#memory">
         <text x="106" y="1012.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM MDIO</text>
-        <text x="2096" y="1011.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
       </a>
       <text x="106" y="1045.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">0x42000000, окно 16 КиБ; индекс слова = ((PHY &lt;&lt; 5) | REG) × 4</text>
       <g id="mdio-bank-w0" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_master_0" data-ownership="common" data-parent="mdio-bank">
@@ -225,14 +219,12 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="80" y="1680" width="2040" height="510" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
       <a data-navigation="detail" xlink:href="../spi/subsystem.svg#memory">
         <text x="106" y="1717.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM SPI</text>
-        <text x="2096" y="1716.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
       </a>
       <text x="106" y="1750.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Два аппаратных банка. Действующий драйвер SD использует банк 0.</text>
       <g id="spi-bank0" data-kind="component" data-layer="L0" data-domain="pl" data-label="Банк 0 — 0x44000000" data-ownership="common" data-parent="spi-bank" data-target="../spi/sd-transfer.svg#memory">
         <rect x="110" y="1780" width="960" height="350" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../spi/sd-transfer.svg#memory">
           <text x="130" y="1804.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1052" y="1805.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="130" y="1838.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Банк 0 — 0x44000000</text>
         </a>
         <text x="130" y="1877.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Окно 8 КиБ, axi_bram_ctrl_2</text>
@@ -246,7 +238,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1260" y="1780" width="820" height="220" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#spi-bank1">
           <text x="1280" y="1804.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="2062" y="1805.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba">↗</text>
           <text x="1280" y="1838.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Банк 1 — 0x46000000</text>
         </a>
         <text x="1280" y="1877.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Окно 8 КиБ, axi_bram_ctrl_3</text>
@@ -257,63 +248,7 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">BRAM: карта памяти реализации</text>
-    <a data-navigation="sheet" xlink:href="../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/bridge.svg">
-      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/cache.svg">
-      <rect x="364" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="408.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Кэш</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/subsystems.svg">
-      <rect x="468" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="530.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/exchange.svg">
-      <rect x="608" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="664.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/memory.svg">
-      <rect x="736" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="798.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/protocol/interface.svg">
-      <rect x="876" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="920.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/slave/structure.svg">
-      <rect x="980" y="123" width="160" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1060.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C slave</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/master/structure.svg">
-      <rect x="1156" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1242.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C master</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../mdio/subsystem.svg">
-      <rect x="1344" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1394.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../spi/subsystem.svg">
-      <rect x="1460" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="memory-map.svg">
-      <rect x="1564" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1626.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../ps-interaction/startup.svg">
-      <rect x="1704" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1802.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../levels.svg">
-      <rect x="1916" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1972.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Адреса относятся к аппаратному проекту Burevestnik_21. Смещения внутри окна указаны в байтах.</text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Адреса относятся к аппаратному проекту Burevestnik_21. Смещения внутри окна указаны в байтах.</text>
     <text x="595.0" y="419.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
     <text x="1600.0" y="419.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
     <text x="595.0" y="579.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись</text>
@@ -333,7 +268,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="104" y="2385.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
     <rect x="175" y="2366.6" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
     <text x="219" y="2385.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <text x="60" y="2432.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+    <text x="60" y="2432.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

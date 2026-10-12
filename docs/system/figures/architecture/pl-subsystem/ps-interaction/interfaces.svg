@@ -96,7 +96,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="380" width="590" height="190" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#f-application-operations">
           <text x="120" y="404.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="672" y="405.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="120" y="438.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Команды устройства</text>
         </a>
         <text x="120" y="477.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">i2c_shell и mdio_shell</text>
@@ -106,7 +105,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="730" width="590" height="180" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#f-http-commands">
           <text x="120" y="754.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="672" y="755.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="120" y="788.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">http_ui_bus</text>
         </a>
         <text x="120" y="827.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Операции Web UI и снимок устройства</text>
@@ -115,7 +113,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="1080" width="590" height="225" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#control-api">
           <text x="120" y="1104.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="672" y="1105.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
           <text x="120" y="1138.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">DCP2</text>
         </a>
         <text x="120" y="1177.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Разбор запроса</text>
@@ -126,7 +123,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="1780" width="590" height="225" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="cache.svg#registry">
           <text x="120" y="1804.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="672" y="1805.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="120" y="1838.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Значения для клиента</text>
         </a>
         <text x="120" y="1877.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">HTTP action=cache</text>
@@ -137,7 +133,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="2200" width="590" height="205" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#f-observation">
           <text x="120" y="2224.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="672" y="2225.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="120" y="2258.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Наблюдение и уведомления</text>
         </a>
         <text x="120" y="2297.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_observer и dcp2_notify</text>
@@ -151,7 +146,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1510" y="380" width="590" height="175" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg#n-ipc-client">
           <text x="1530" y="404.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="2082" y="405.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#3f75ad">↗</text>
           <text x="1530" y="438.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Командный клиент I²C</text>
         </a>
         <text x="1530" y="477.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Открытие устройства и devctl</text>
@@ -160,7 +154,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1510" y="715" width="590" height="165" rx="11" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#n-kernel">
           <text x="1530" y="739.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#c65b4e" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
-          <text x="2082" y="740.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#c65b4e">↗</text>
           <text x="1530" y="773.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">IPC ядра</text>
         </a>
         <text x="1530" y="812.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Передача запроса менеджеру</text>
@@ -169,7 +162,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1510" y="1040" width="590" height="215" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#n-resmgr">
           <text x="1530" y="1064.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="2082" y="1065.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
           <text x="1530" y="1098.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_resmgr</text>
         </a>
         <text x="1530" y="1137.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Менеджер ресурса в bvstkd</text>
@@ -180,13 +172,11 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="820" y="1030" width="560" height="570" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#subsystem-services">
         <text x="846" y="1067.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Сервисы подсистем</text>
-        <text x="1356" y="1066.0" font-size="22" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
       </a>
       <g id="i2c-service" data-kind="component" data-layer="L3" data-label="Сервис I²C" data-ownership="common" data-parent="services" data-target="../../architecture_bvstk_l3.svg#service-bvstk_i2c_master_service">
         <rect x="860" y="1140" width="480" height="180" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#service-bvstk_i2c_master_service">
           <text x="880" y="1164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="1322" y="1165.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
           <text x="880" y="1198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сервис I²C</text>
         </a>
         <text x="880" y="1237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Модель, политика и кэш</text>
@@ -196,7 +186,6 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="860" y="1410" width="480" height="145" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="mdio-write.svg#service">
           <text x="880" y="1434.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="1322" y="1435.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
           <text x="880" y="1468.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_service</text>
         </a>
         <text x="880" y="1507.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Политика и кэш PHY</text>
@@ -206,7 +195,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="820" y="1770" width="560" height="210" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#cache-module">
         <text x="840" y="1794.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="1362" y="1795.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
         <text x="840" y="1828.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_cache</text>
       </a>
       <text x="840" y="1867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Каталог, снимки и изменения</text>
@@ -216,7 +204,6 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="820" y="2190" width="560" height="210" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#journal-module">
         <text x="840" y="2214.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="1362" y="2215.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#287f73">↗</text>
         <text x="840" y="2248.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">События операций</text>
       </a>
       <text x="840" y="2287.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Попытка, отказ, завершение, ошибка</text>
@@ -226,63 +213,7 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <text x="60" y="42.0" font-size="16" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
     <text x="60" y="94.0" font-size="36" font-weight="700" text-anchor="start" style="fill:#233747">Программные входы и наблюдение</text>
-    <a data-navigation="sheet" xlink:href="../README.md">
-      <rect x="60" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="146.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Оглавление</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/bridge.svg">
-      <rect x="248" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="298.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Мост</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/cache.svg">
-      <rect x="364" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="408.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Кэш</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/subsystems.svg">
-      <rect x="468" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="530.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Состав</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/exchange.svg">
-      <rect x="608" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="664.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Обмен</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../overview/memory.svg">
-      <rect x="736" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="798.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Память</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/protocol/interface.svg">
-      <rect x="876" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="920.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/slave/structure.svg">
-      <rect x="980" y="123" width="160" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1060.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C slave</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../i2c/cores/master/structure.svg">
-      <rect x="1156" y="123" width="172" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1242.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">I²C master</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../mdio/subsystem.svg">
-      <rect x="1344" y="123" width="100" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1394.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">MDIO</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../spi/subsystem.svg">
-      <rect x="1460" y="123" width="88" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1504.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">SPI</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../reference/memory-map.svg">
-      <rect x="1564" y="123" width="124" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1626.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Адреса</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="startup.svg">
-      <rect x="1704" y="123" width="196" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1802.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747">Программа PS</text>
-    </a>
-    <a data-navigation="sheet" xlink:href="../../levels.svg">
-      <rect x="1916" y="123" width="112" height="43" rx="8" fill="#f6f8fa" stroke="#ced6dd" />
-      <text x="1972.0" y="151.0" font-size="19" font-weight="700" text-anchor="middle" style="fill:#233747" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>–</tspan><tspan style="fill:#3f75ad">L4</tspan></text>
-    </a>
-    <text x="60" y="207.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Команды обращаются к сервисам. Значения кэша и события имеют свои пути к клиенту.</text>
+    <text x="60" y="151.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#576c7b">Команды обращаются к сервисам. Значения кэша и события имеют свои пути к клиенту.</text>
     <text x="1805.0" y="946.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запрос</text>
     <text x="1100.0" y="1671.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Изменения кэша</text>
     <text x="1480" y="2080.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#c65b4e" class="edge-label">События</text>
@@ -300,7 +231,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="219" y="2855.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
     <rect x="290" y="2836.6" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
     <text x="334" y="2855.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-    <text x="60" y="2902.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Заголовки со знаком ↗ открывают продолжение. Цвет обозначает уровень абстракции.</text>
+    <text x="60" y="2902.6" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
