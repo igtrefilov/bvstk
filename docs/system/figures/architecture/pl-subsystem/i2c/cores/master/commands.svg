@@ -83,10 +83,12 @@ g:target &gt; rect { stroke-width: 5; }
         </a>
         <text x="120" y="432.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Устройство и операция</text>
       </g>
-      <g id="driver" data-kind="component" data-layer="L3" data-label="Аппаратный драйвер" data-ownership="common" data-parent="ps">
+      <g id="driver" data-kind="component" data-layer="L3" data-label="Аппаратный драйвер" data-ownership="common" data-parent="ps" data-target="../../drivers/master/transfer.svg#driver">
         <rect x="100" y="655" width="440" height="170" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <text x="120" y="679.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="120" y="713.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Аппаратный драйвер</text>
+        <a data-navigation="detail" xlink:href="../../drivers/master/transfer.svg#driver">
+          <text x="120" y="679.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="120" y="713.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Аппаратный драйвер</text>
+        </a>
         <text x="120" y="752.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_i2c_master_hw_transfer</text>
       </g>
     </g>
@@ -165,6 +167,10 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "master-service",
       "target": "../../../../architecture_bvstk_l3.svg#service-bvstk_i2c_master_service"
+    },
+    {
+      "node": "driver",
+      "target": "../../drivers/master/transfer.svg#driver"
     },
     {
       "node": "engine",

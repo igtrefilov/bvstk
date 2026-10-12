@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 80 2200 1221" role="img" aria-labelledby="title desc" data-content="article-figure" height="1221">
+  <title id="title">Драйвер slave: получение принятой записи</title>
+  <desc id="desc">После публикации фрагмента IRQ slave передаёт работу порту ОС. Порт вызывает общий драйвер для захвата события и чтения BRAM.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="1301" fill="white" />
+  <g id="backgrounds">
+    <path d="M294.02197802197804,305 V1090" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M863.2527472527472,305 V1090" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1411.2087912087914,305 V1090" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1905.9780219780218,305 V1090" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="core" data-to="bram" data-interaction="data" data-direction="forward">
+      <path d="M1411.21,423 L1905.98,423" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1411.21,423 L1905.98,423" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="core" data-to="port" data-interaction="irq" data-direction="forward">
+      <path d="M1411.21,528 L294.022,528" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1411.21,528 L294.022,528" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="port" data-to="driver" data-interaction="call" data-direction="forward">
+      <path d="M294.022,633 L863.253,633" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M294.022,633 L863.253,633" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="driver" data-to="core" data-interaction="mmio" data-direction="forward">
+      <path d="M863.253,738 L1411.21,738" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M863.253,738 L1411.21,738" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="driver" data-to="core" data-interaction="mmio" data-direction="forward">
+      <path d="M863.253,843 L1411.21,843" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M863.253,843 L1411.21,843" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="bram" data-to="driver" data-interaction="data" data-direction="forward">
+      <path d="M1905.98,948 L863.253,948" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1905.98,948 L863.253,948" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="driver" data-to="bram" data-interaction="mmio" data-direction="forward">
+      <path d="M863.253,1053 L1905.98,1053" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M863.253,1053 L1905.98,1053" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="port" data-kind="component" data-layer="L1" data-label="Порт ОС" data-ownership="selected-os" data-target="../events.svg">
+      <rect x="60" y="120" width="468.04395604395603" height="155" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../events.svg">
+        <text x="80" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+        <text x="80" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт ОС</text>
+      </a>
+      <text x="80" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Доставка и обработка IRQ</text>
+    </g>
+    <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_i2c_slave" data-ownership="common" data-target="../platform.svg#slave">
+      <rect x="576.0439560439561" y="120" width="574.4175824175824" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../platform.svg#slave">
+        <text x="596.0439560439561" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="596.0439560439561" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave</text>
+      </a>
+      <text x="596.0439560439561" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Захват события и чтение</text>
+    </g>
+    <g id="core" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_slave_0" data-ownership="common" data-target="../../cores/slave/write.svg#core">
+      <rect x="1198.4615384615386" y="120" width="425.4945054945054" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../../cores/slave/write.svg#core">
+        <text x="1218.4615384615386" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1218.4615384615386" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
+      </a>
+      <text x="1218.4615384615386" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">IRQ и REQ</text>
+    </g>
+    <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM I²C" data-ownership="common" data-target="../../cores/slave/memory-format.svg">
+      <rect x="1671.956043956044" y="120" width="468.04395604395603" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../../cores/slave/memory-format.svg">
+        <text x="1691.956043956044" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1691.956043956044" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM I²C</text>
+      </a>
+      <text x="1691.956043956044" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Запрос: +0x1000</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <g id="publish" data-kind="sequence-step">
+      <rect x="1421.2087912087914" y="346" width="474.7692307692305" height="57" rx="4" fill="white" />
+      <text x="1658.5934065934066" y="370" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Принятые байты и заголовок</text>
+    </g>
+    <g id="irq" data-kind="sequence-step">
+      <rect x="304.02197802197816" y="451" width="1097.1868131868132" height="57" rx="4" fill="white" />
+      <text x="852.6153846153848" y="475" font-size="22" font-weight="400" text-anchor="middle" style="fill:#c65b4e">IRQ slave: DATA_VALID</text>
+    </g>
+    <g id="dispatch" data-kind="sequence-step">
+      <rect x="304.0219780219781" y="556" width="549.2307692307692" height="57" rx="4" fill="white" />
+      <text x="578.6373626373627" y="580" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">hw_capture_irq</text>
+    </g>
+    <g id="capture" data-kind="sequence-step">
+      <rect x="873.2527472527472" y="661" width="527.9560439560441" height="57" rx="4" fill="white" />
+      <text x="1137.2307692307693" y="685" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">capture_irq: прочитать IRQ и REQ</text>
+    </g>
+    <g id="ack" data-kind="sequence-step">
+      <rect x="873.2527472527472" y="766" width="527.9560439560441" height="57" rx="4" fill="white" />
+      <text x="1137.2307692307693" y="790" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Сбросить захваченные IRQ</text>
+    </g>
+    <g id="copy" data-kind="sequence-step">
+      <rect x="873.2527472527472" y="871" width="1022.7252747252746" height="57" rx="4" fill="white" />
+      <text x="1384.6153846153845" y="895" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">read_frame: адрес и байты</text>
+    </g>
+    <g id="release" data-kind="sequence-step">
+      <rect x="873.2527472527472" y="976" width="1022.7252747252746" height="57" rx="4" fill="white" />
+      <text x="1384.6153846153845" y="1000" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">После обработки: clear_frame</text>
+    </g>
+    <text x="294.02197802197804" y="1125.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Порт ОС</text>
+    <text x="863.2527472527472" y="1125.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#287f73">bvstk_i2c_slave</text>
+    <text x="1411.2087912087914" y="1125.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#8760ba">I2C_slave_0</text>
+    <text x="1905.9780219780218" y="1125.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#8760ba">BRAM I²C</text>
+    <path d="M60,1207 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1213.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1207 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1213.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,1207 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="1213.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,1207 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="1213.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="1244" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="1263.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="1244" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="304" y="1263.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="375" y="1244" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1263.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/drivers/pl/i2c/bvstk_i2c_slave.c",
+    "src/ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.c",
+    "src/ports/neutrino-zynq7000/os/i2c/bvstk_i2c_slave_neutrino.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "port",
+      "target": "../events.svg"
+    },
+    {
+      "node": "driver",
+      "target": "../platform.svg#slave"
+    },
+    {
+      "node": "core",
+      "target": "../../cores/slave/write.svg#core"
+    },
+    {
+      "node": "bram",
+      "target": "../../cores/slave/memory-format.svg"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

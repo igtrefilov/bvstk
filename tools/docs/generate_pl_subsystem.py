@@ -22,6 +22,7 @@ from i2c_slave import generate_i2c_slave
 from i2c_master import generate_i2c_master
 from spi_protocol import generate_spi_protocol
 from mdio_protocol import generate_mdio_protocol
+from i2c_drivers import generate_i2c_drivers
 
 ROOT = Path(__file__).resolve().parents[2]
 ARCH = ROOT / "docs/system/figures/architecture"
@@ -1525,6 +1526,7 @@ def main():
     generate_i2c_protocol(Page, el, PALETTE, ARROWS)
     generate_i2c_slave(Page, el, PALETTE, ARROWS)
     generate_i2c_master(Page, el, PALETTE, ARROWS)
+    generate_i2c_drivers(Page, el, PALETTE, ARROWS)
     generate_spi_protocol(Page, el, PALETTE, ARROWS)
     generate_mdio_protocol(Page, el, PALETTE, ARROWS)
     mdio_cores()

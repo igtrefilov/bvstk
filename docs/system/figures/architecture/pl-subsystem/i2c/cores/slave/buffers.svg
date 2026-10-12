@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 190 1800 906" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="906">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1800" viewBox="0 190 1800 906" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="906">
   <title id="title">I²C slave: окна запроса и ответа</title>
   <desc id="desc" />
   <defs>
@@ -109,16 +109,20 @@ g:target &gt; rect { stroke-width: 5; }
       <text x="80" y="773.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">data_ctrl</text>
       <text x="80" y="812.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Чтение ответа</text>
     </g>
-    <g id="consume" data-kind="component" data-layer="L3" data-label="Драйвер PS" data-ownership="common">
+    <g id="consume" data-kind="component" data-layer="L3" data-label="Драйвер PS" data-ownership="common" data-target="../../drivers/slave/write.svg#driver">
       <rect x="1390" y="375" width="350" height="145" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <text x="1410" y="399.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-      <text x="1410" y="433.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер PS</text>
+      <a data-navigation="detail" xlink:href="../../drivers/slave/write.svg#driver">
+        <text x="1410" y="399.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1410" y="433.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер PS</text>
+      </a>
       <text x="1410" y="472.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">После DATA_VALID</text>
     </g>
-    <g id="publish" data-kind="component" data-layer="L3" data-label="Драйвер PS" data-ownership="common">
+    <g id="publish" data-kind="component" data-layer="L3" data-label="Драйвер PS" data-ownership="common" data-target="../../drivers/slave/read.svg#driver">
       <rect x="1390" y="715" width="350" height="145" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <text x="1410" y="739.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-      <text x="1410" y="773.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер PS</text>
+      <a data-navigation="detail" xlink:href="../../drivers/slave/read.svg#driver">
+        <text x="1410" y="739.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1410" y="773.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер PS</text>
+      </a>
       <text x="1410" y="812.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Перед rd_valid</text>
     </g>
   </g>
@@ -151,7 +155,16 @@ g:target &gt; rect { stroke-width: 5; }
     "src/ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.c",
     "src/ports/neutrino-zynq7000/os/i2c/bvstk_i2c_slave_neutrino.c"
   ],
-  "cross_sheet_links": [],
+  "cross_sheet_links": [
+    {
+      "node": "consume",
+      "target": "../../drivers/slave/write.svg#driver"
+    },
+    {
+      "node": "publish",
+      "target": "../../drivers/slave/read.svg#driver"
+    }
+  ],
   "article_notes": []
 }</metadata>
 </svg>

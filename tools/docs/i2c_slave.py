@@ -227,8 +227,10 @@ def buffers(d):
     p.node("rd-data", 905, 745, 265, 110, "Байты ответа", "", parent="rd-window")
     p.node("writer", 60, 375, 340, 145, "data_ctrl", "Запись запроса")
     p.node("reader", 60, 715, 340, 145, "data_ctrl", "Чтение ответа")
-    p.node("consume", 1390, 375, 350, 145, "Драйвер PS", "После DATA_VALID", "L3")
-    p.node("publish", 1390, 715, 350, 145, "Драйвер PS", "Перед rd_valid", "L3")
+    p.node("consume", 1390, 375, 350, 145, "Драйвер PS", "После DATA_VALID", "L3",
+           target="i2c/drivers/slave/write.svg#driver")
+    p.node("publish", 1390, 715, 350, 145, "Драйвер PS", "Перед rd_valid", "L3",
+           target="i2c/drivers/slave/read.svg#driver")
     p.edge("writer", "wr-window", "data", start="E", end="W", b_offset=15)
     p.edge("wr-window", "consume", "data", "Через L1", start="E", end="W", a_offset=15,
            label_xy=(1300, 420))
@@ -248,7 +250,7 @@ def completion(d):
     p.node("data-ctrl", 100, 585, 420, 170, "data_ctrl", "DATA_VALID, RD_REQUEST\nFINAL_PACKET, MEM_OVERFLOW", parent="events")
     p.node("regs", 780, 475, 380, 155, "regs: IRQ и REQ", "Фиксация событий")
     p.node("ps", 1360, 475, 380, 155, "Драйвер PS", "Чтение и подтверждение", "L3",
-           target="ps-interaction/i2c-irq.svg")
+           target="i2c/drivers/events.svg#capture")
     p.edge("engine", "regs", "irq", start="E", end="N",
            via=((660, 410), (970, 410)))
     p.edge("data-ctrl", "regs", "irq", start="E", end="S",

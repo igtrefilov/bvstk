@@ -86,9 +86,9 @@ g:target &gt; rect { stroke-width: 5; }
       <text x="800" y="533.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">regs: IRQ и REQ</text>
       <text x="800" y="572.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Фиксация событий</text>
     </g>
-    <g id="ps" data-kind="component" data-layer="L3" data-label="Драйвер PS" data-ownership="common" data-target="../../../ps-interaction/i2c-irq.svg">
+    <g id="ps" data-kind="component" data-layer="L3" data-label="Драйвер PS" data-ownership="common" data-target="../../drivers/events.svg#capture">
       <rect x="1360" y="475" width="380" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../../../ps-interaction/i2c-irq.svg">
+      <a data-navigation="detail" xlink:href="../../drivers/events.svg#capture">
         <text x="1380" y="499.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
         <text x="1380" y="533.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер PS</text>
       </a>
@@ -129,7 +129,7 @@ g:target &gt; rect { stroke-width: 5; }
   "cross_sheet_links": [
     {
       "node": "ps",
-      "target": "../../../ps-interaction/i2c-irq.svg"
+      "target": "../../drivers/events.svg#capture"
     }
   ],
   "article_notes": []

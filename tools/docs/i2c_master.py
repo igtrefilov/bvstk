@@ -105,7 +105,8 @@ def commands(d):
            "Устройство и операция", "L3", parent="ps",
            target="@architecture_bvstk_l3.svg#service-bvstk_i2c_master_service")
     p.node("driver", 100, 655, 440, 170, "Аппаратный драйвер",
-           "bvstk_i2c_master_hw_transfer", "L3", parent="ps")
+           "bvstk_i2c_master_hw_transfer", "L3", parent="ps",
+           target="i2c/drivers/master/transfer.svg#driver")
     p.edge("master-service", "driver", "call")
     p.frame("core", 740, 240, 1000, 1030, "I2C_master_0")
     p.node("regs", 800, 335, 350, 150, "regs", "TX_FIFO и CSR.start", parent="core")
