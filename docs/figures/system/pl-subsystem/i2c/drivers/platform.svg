@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 60 2200 1401" role="img" aria-labelledby="title desc" data-content="article-figure" height="1401">
+  <title id="title">I²C: общий драйвер и доступ к PL</title>
+  <desc id="desc">Две части драйвера используют один интерфейс MMIO. В каждой сборке работает свой порт ОС.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="1461" fill="white" />
+  <g id="backgrounds">
+    <rect x="460" y="100" width="1280" height="260" rx="16" fill="white" />
+    <rect x="60" y="425" width="590" height="410" rx="16" fill="white" />
+    <rect x="1550" y="425" width="590" height="465" rx="16" fill="white" />
+    <rect x="360" y="1050" width="1480" height="265" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="drivers" data-to="mmio" data-interaction="call" data-direction="forward">
+      <path d="M1100,360 L1100,535" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1100,360 L1100,535" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="mmio" data-to="f-mmio" data-interaction="call" data-direction="forward">
+      <path d="M800,607.5 L605,607.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M800,607.5 L605,607.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="mmio" data-to="n-mmio" data-interaction="call" data-direction="forward">
+      <path d="M1400,607.5 L1595,607.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1400,607.5 L1595,607.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="f-mmio" data-to="hardware" data-interaction="mmio" data-direction="forward">
+      <path d="M355,715 L355,975 L640,975 L640,1050" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M355,715 L355,975 L640,975 L640,1050" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="n-mmio" data-to="hardware" data-interaction="mmio" data-direction="forward">
+      <path d="M1845,765 L1845,975 L1560,975 L1560,1050" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1845,765 L1845,975 L1560,975 L1560,1050" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="drivers" data-kind="functional-group" data-label="Драйверы I²C" data-layer="L3" data-ownership="common">
+      <rect x="460" y="100" width="1280" height="260" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+      <text x="486" y="137.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Драйверы I²C</text>
+      <g id="master" data-kind="component" data-layer="L3" data-label="Ведущая часть" data-ownership="common" data-parent="drivers" data-target="master/transfer.svg#driver">
+        <rect x="510" y="185" width="550" height="130" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="master/transfer.svg#driver">
+          <text x="530" y="209.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="530" y="243.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведущая часть</text>
+        </a>
+        <text x="530" y="282.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_i2c_master</text>
+      </g>
+      <g id="slave" data-kind="component" data-layer="L3" data-label="Ведомая часть" data-ownership="common" data-parent="drivers" data-target="slave/write.svg#driver">
+        <rect x="1140" y="185" width="550" height="130" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="slave/write.svg#driver">
+          <text x="1160" y="209.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="1160" y="243.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведомая часть</text>
+        </a>
+        <text x="1160" y="282.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_i2c_slave</text>
+      </g>
+    </g>
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="60" y="425" width="590" height="410" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="86" y="462.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="f-mmio" data-kind="component" data-layer="L1" data-label="bvstk_platform_freertos" data-ownership="freertos" data-parent="freertos" data-target="../../../architecture/architecture_bvstk_l1.svg#f-port--mmio">
+        <rect x="105" y="535" width="500" height="180" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../../architecture/architecture_bvstk_l1.svg#f-port--mmio">
+          <text x="125" y="559.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="125" y="593.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_platform_freertos</text>
+        </a>
+        <text x="125" y="632.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Xil_In32, Xil_Out32</text>
+      </g>
+    </g>
+    <g id="neutrino" data-kind="ownership-region" data-label="Нейтрино" data-ownership="neutrino">
+      <rect x="1550" y="425" width="590" height="465" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="1576" y="462.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Нейтрино</text>
+      <g id="n-mmio" data-kind="component" data-layer="L1" data-label="bvstk_platform_neutrino" data-ownership="neutrino" data-parent="neutrino" data-target="../../../architecture/architecture_bvstk_l1.svg#n-port">
+        <rect x="1595" y="535" width="500" height="230" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../../architecture/architecture_bvstk_l1.svg#n-port">
+          <text x="1615" y="559.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="1615" y="593.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_platform_neutrino</text>
+        </a>
+        <text x="1615" y="632.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">mmap_device_memory</text>
+        <text x="1615" y="658.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">PROT_NOCACHE</text>
+      </g>
+    </g>
+    <g id="mmio" data-kind="component" data-layer="L1" data-label="bvstk_mmio" data-ownership="common" data-target="../../../architecture/architecture_bvstk_l1.svg#platform-access--mmio">
+      <rect x="800" y="535" width="600" height="145" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../../../architecture/architecture_bvstk_l1.svg#platform-access--mmio">
+        <text x="820" y="559.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+        <text x="820" y="593.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mmio</text>
+      </a>
+      <text x="820" y="632.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">read32, write32</text>
+    </g>
+    <g id="hardware" data-kind="functional-group" data-label="Регистры и память I²C" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="360" y="1050" width="1480" height="265" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <text x="386" y="1087.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">Регистры и память I²C</text>
+      <g id="master-core" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_master_0" data-ownership="common" data-parent="hardware" data-target="../cores/master/structure.svg#core">
+        <rect x="410" y="1140" width="450" height="125" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../cores/master/structure.svg#core">
+          <text x="430" y="1164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="430" y="1198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_master_0</text>
+        </a>
+        <text x="430" y="1237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">CSR, IRQ, TX FIFO</text>
+      </g>
+      <g id="slave-core" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_slave_0" data-ownership="common" data-parent="hardware" data-target="../cores/slave/structure.svg#core">
+        <rect x="935" y="1140" width="450" height="125" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../cores/slave/structure.svg#core">
+          <text x="955" y="1164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="955" y="1198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
+        </a>
+        <text x="955" y="1237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">CSR, IRQ, REQ</text>
+      </g>
+      <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM I²C" data-ownership="common" data-parent="hardware">
+        <rect x="1460" y="1140" width="330" height="125" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="1480" y="1164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1480" y="1219.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM I²C</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M60,1367 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1373.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1367 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1373.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <rect x="60" y="1404" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="1423.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="1404" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="304" y="1423.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="375" y="1404" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1423.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/drivers/pl/i2c/bvstk_i2c_master.c",
+    "src/drivers/pl/i2c/bvstk_i2c_slave.c",
+    "src/ports/freertos-xilinx/os/bvstk_platform_freertos.c",
+    "src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "master",
+      "target": "master/transfer.svg#driver"
+    },
+    {
+      "node": "slave",
+      "target": "slave/write.svg#driver"
+    },
+    {
+      "node": "mmio",
+      "target": "../../../architecture/architecture_bvstk_l1.svg#platform-access--mmio"
+    },
+    {
+      "node": "f-mmio",
+      "target": "../../../architecture/architecture_bvstk_l1.svg#f-port--mmio"
+    },
+    {
+      "node": "n-mmio",
+      "target": "../../../architecture/architecture_bvstk_l1.svg#n-port"
+    },
+    {
+      "node": "master-core",
+      "target": "../cores/master/structure.svg#core"
+    },
+    {
+      "node": "slave-core",
+      "target": "../cores/slave/structure.svg#core"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

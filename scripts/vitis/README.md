@@ -6,7 +6,7 @@
 
 - [Сборка FreeRTOS и вариант с SSH](../../docs/build/freertos.md).
 - [Загрузка через JTAG](../../docs/build/jtag.md).
-- [Отладка](../../docs/build/debug.md).
+- [Отладка](../../docs/development/debugging.md).
 - [Параметры сценариев](../../docs/reference/build-options.md).
 
 Образцы локальных файлов: `build_vitis.conf.example` и

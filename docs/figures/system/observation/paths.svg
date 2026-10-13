@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 80 1800 1113" role="img" aria-labelledby="title desc" height="1113">
+  <title id="title">Состояние и история операции</title>
+  <desc id="desc">Состояние и история операции</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1193" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <g data-kind="interaction" data-from="service" data-to="cache" data-interaction="data" data-direction="forward">
+      <path d="M760,255 L760,365 L385,365 L385,475" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M760,255 L760,365 L385,365 L385,475" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="service" data-to="journal" data-interaction="irq" data-direction="forward">
+      <path d="M1030,255 L1030,365 L1395,365 L1395,475" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1030,255 L1030,365 L1395,365 L1395,475" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cache" data-to="snapshot" data-interaction="data" data-direction="forward">
+      <path d="M385,625 L385,870" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M385,625 L385,870" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="journal" data-to="history" data-interaction="data" data-direction="forward">
+      <path d="M1395,625 L1395,870" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1395,625 L1395,870" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="service" data-kind="component" data-layer="L3" data-label="Сервис устройства" data-ownership="common">
+      <rect x="660" y="120" width="470" height="135" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <text x="680" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="680" y="204.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сервис устройства</text>
+    </g>
+    <g id="cache" data-kind="component" data-layer="L3" data-label="Кэш&#10;значение, источник, время" data-ownership="common">
+      <rect x="100" y="475" width="570" height="150" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <text x="120" y="499.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="120" y="550.44" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Кэш</text>
+      <text x="120" y="583.5600000000001" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">значение, источник, время</text>
+    </g>
+    <g id="journal" data-kind="component" data-layer="L3" data-label="Журнал&#10;попытка, отказ, результат" data-ownership="common">
+      <rect x="1110" y="475" width="570" height="150" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <text x="1130" y="499.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="1130" y="550.44" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Журнал</text>
+      <text x="1130" y="583.5600000000001" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">попытка, отказ, результат</text>
+    </g>
+    <g id="snapshot" data-kind="component" data-layer="L4" data-label="Снимок состояния" data-ownership="common">
+      <rect x="100" y="870" width="570" height="125" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+      <text x="120" y="894.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+      <text x="120" y="949.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Снимок состояния</text>
+    </g>
+    <g id="history" data-kind="component" data-layer="L4" data-label="История с курсором" data-ownership="common">
+      <rect x="1110" y="870" width="570" height="125" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+      <text x="1130" y="894.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+      <text x="1130" y="949.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">История с курсором</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M60,1047 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="1053.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M256,1047 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="338" y="1053.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="1084" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1103.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="175" y="1084" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="219" y="1103.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1150.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Чтение снимка и истории не запускает физический обмен.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/services/cache/bvstk_cache_bridges.c",
+    "src/apps/freertos/runtime/bvstk_observer.c"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

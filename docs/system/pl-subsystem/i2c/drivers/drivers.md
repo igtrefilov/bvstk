@@ -9,7 +9,7 @@
 с регистрами, FIFO и BRAM через L1. Ведущий драйвер потребуется
 после разрешения записи сервисом. Сам драйвер не выбирает политику.
 
-![Общие драйверы I²C, две реализации MMIO и доступные им ядра и BRAM](../../../figures/architecture/pl-subsystem/i2c/drivers/platform.svg)
+![Общие драйверы I²C, две реализации MMIO и доступные им ядра и BRAM](../../../../figures/system/pl-subsystem/i2c/drivers/platform.svg)
 
 *Рисунок 1. I²C: общий драйвер и доступ к PL.*
 

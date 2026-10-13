@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 40 1800 252" role="img" aria-labelledby="title desc" height="252">
+  <title id="title">Запись TREE для файла a.txt</title>
+  <desc id="desc">Запись TREE для файла a.txt</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="292" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions" />
+  <g id="components">
+    <g id="body-0" data-kind="packet-field">
+      <rect x="60" y="80" width="153" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="136.5" y="111.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">entry_len</text>
+      <text x="136.5" y="149" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 13</text>
+    </g>
+    <g id="body-1" data-kind="packet-field">
+      <rect x="225" y="80" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="282.5" y="111.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">type</text>
+      <text x="282.5" y="149" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">01</text>
+    </g>
+    <g id="body-2" data-kind="packet-field">
+      <rect x="352" y="80" width="140" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="422.0" y="111.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">reserved</text>
+      <text x="422.0" y="149" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00</text>
+    </g>
+    <g id="body-3" data-kind="packet-field">
+      <rect x="504" y="80" width="358" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="683.0" y="111.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">size</text>
+      <text x="683.0" y="149" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 00 00 00 00 06</text>
+    </g>
+    <g id="body-4" data-kind="packet-field">
+      <rect x="874" y="80" width="140" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="944.0" y="111.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">path_len</text>
+      <text x="944.0" y="149" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 05</text>
+    </g>
+    <g id="body-5" data-kind="packet-field">
+      <rect x="1026" y="80" width="134" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1093.0" y="111.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">path</text>
+      <text x="1093.0" y="149" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">"a.txt"</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="245.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">HEX; строки в кавычках — UTF-8 без NUL.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/protocols/dcp2/bvstk_dcp2_codec.h",
+    "src/protocols/dcp2/bvstk_dcp2_codec.c",
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "scripts/dcp2/dcp2_client.py",
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "src/apps/freertos/services/dcp2/dcp2_stream_sim.c",
+    "src/protocols/dcp2/bvstk_dcp2_fs.c",
+    "src/protocols/dcp2/bvstk_dcp2_cache.c",
+    "src/services/fs/bvstk_fs_reader.c",
+    "configs/mdio/lan8720/lan8720.json"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

@@ -8,7 +8,7 @@ Bear и принудительную пересборку приложения, 
 остановленным для GDB. Штатный вход — `scripts/vitis/run_jtag.sh --debug`.
 Обёртка `arm-none-eabi-gdb.sh` выбирает компиляторный комплект и рабочий каталог.
 
-[Полная инструкция отладки](../../docs/build/debug.md) описывает VSCode,
+[Полная инструкция отладки](../../docs/development/debugging.md) описывает VSCode,
 ручное подключение и UART.
 [Справочник параметров](../../docs/reference/build-options.md#отладочные-инструменты)
 содержит `VITIS_ARM_GCC_BIN`, `VITIS_ARM_GDB`, `GDB_CWD`

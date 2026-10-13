@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 5 1800 557" role="img" aria-labelledby="title desc" height="557">
+  <title id="title">DCP2 внутри Ethernet, IPv4 и TCP</title>
+  <desc id="desc">Упрощённая вложенность сетевых форматов: Ethernet содержит пакет IPv4, IPv4 — сегмент TCP. Данные TCP несут байты потока DCP2. Размеры полей условные; опции и заполнение Ethernet не показаны.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="562" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions" />
+  <g id="components">
+    <g id="ethernet-header" data-kind="packet-field">
+      <rect x="60" y="300" width="300" height="140" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
+      <text x="210.0" y="360.37" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">Заголовок</text>
+      <text x="210.0" y="397.63" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">Ethernet</text>
+    </g>
+    <g id="ipv4-header" data-kind="packet-field">
+      <rect x="360" y="300" width="320" height="140" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
+      <text x="520.0" y="360.37" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">Заголовок</text>
+      <text x="520.0" y="397.63" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">IPv4</text>
+    </g>
+    <g id="tcp-header" data-kind="packet-field">
+      <rect x="680" y="300" width="320" height="140" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
+      <text x="840.0" y="360.37" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">Заголовок</text>
+      <text x="840.0" y="397.63" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">TCP</text>
+    </g>
+    <g id="tcp-data" data-kind="packet-field">
+      <rect x="1000" y="300" width="600" height="140" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1300.0" y="360.37" font-size="27" font-weight="700" text-anchor="middle" style="fill:#233747">Данные TCP</text>
+      <text x="1300.0" y="397.63" font-size="27" font-weight="700" text-anchor="middle" style="fill:#233747">байты DCP2</text>
+    </g>
+    <g id="ethernet-fcs" data-kind="packet-field">
+      <rect x="1600" y="300" width="140" height="140" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
+      <text x="1670.0" y="379.0" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">FCS</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <g id="ethernet-frame" data-kind="byte-range">
+      <path d="M60,97 V85 H1740 V97" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="900.0" y="69.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">Кадр Ethernet</text>
+    </g>
+    <g id="ipv4-packet" data-kind="byte-range">
+      <path d="M360,167 V155 H1600 V167" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="980.0" y="139.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">Пакет IPv4</text>
+    </g>
+    <g id="tcp-segment" data-kind="byte-range">
+      <path d="M680,237 V225 H1600 V237" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="1140.0" y="209.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">Сегмент TCP</text>
+    </g>
+    <rect x="60" y="495" width="34" height="25" fill="#f2f5f8" stroke="#607487" stroke-width="1.5" />
+    <text x="108" y="515.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Сетевое оформление</text>
+    <rect x="590" y="495" width="34" height="25" fill="#cfe3f3" stroke="#607487" stroke-width="1.5" />
+    <text x="638" y="515.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Данные приложения</text>
+    <text x="1120" y="515.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">FCS — контрольная сумма Ethernet</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/protocols/dcp2/bvstk_dcp2_codec.h",
+    "src/protocols/dcp2/bvstk_dcp2_codec.c",
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "scripts/dcp2/dcp2_client.py"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

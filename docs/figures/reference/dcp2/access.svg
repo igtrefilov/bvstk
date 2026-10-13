@@ -1,0 +1,215 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" viewBox="0 20 2000 1758" role="img" aria-labelledby="title desc" height="1758">
+  <title id="title">Внешний клиент DCP2 и части BVSTK</title>
+  <desc id="desc">Клиент подключается через Ethernet и TCP к серверу L4. Команды устройств проходят через сервисы L3, MEM обращается к разрешённым аппаратным адресам через L1. FS читает файлы. Сервер возвращает результаты и события. Драйверы и порты ОС опущены.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2000" height="1778" fill="white" />
+  <g id="backgrounds">
+    <rect x="500" y="60" width="1460" height="1310" rx="16" fill="white" />
+    <rect x="1015" y="505" width="510" height="400" rx="16" fill="white" />
+    <rect x="590" y="1080" width="960" height="230" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="client" data-to="server" data-interaction="data" data-direction="both">
+      <path d="M380,210 L590,210" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M380,210 L590,210" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="server" data-to="client" data-interaction="irq" data-direction="forward">
+      <path d="M590,280 L380,280" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M590,280 L380,280" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="server" data-to="mem" data-interaction="call" data-direction="forward">
+      <path d="M770,325 L770,575" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M770,325 L770,575" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="server" data-to="services" data-interaction="call" data-direction="forward">
+      <path d="M1130,325 L1130,505" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1130,325 L1130,505" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="services" data-to="server" data-interaction="irq" data-direction="forward">
+      <path d="M1460,505 L1460,325" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1460,505 L1460,325" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="server" data-to="fs" data-interaction="call" data-direction="forward">
+      <path d="M1785,325 L1785,575" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1785,325 L1785,575" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="mem" data-to="registers" data-interaction="mmio" data-direction="forward">
+      <path d="M770,715 L770,1170" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M770,715 L770,1170" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="services" data-to="cores" data-interaction="data" data-direction="both">
+      <path d="M1270,905 L1270,1170" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1270,905 L1270,1170" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="registers" data-to="cores" data-interaction="data" data-direction="both">
+      <path d="M915,1225 L1100,1225" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M915,1225 L1100,1225" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="files" data-to="fs" data-interaction="data" data-direction="forward">
+      <path d="M1785,1160 L1785,715" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1785,1160 L1785,715" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cores" data-to="device" data-interaction="data" data-direction="both">
+      <path d="M1270,1280 L1270,1460" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1270,1280 L1270,1460" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="bvstk" data-kind="system-boundary" data-label="BVSTK" data-ownership="common">
+      <rect x="500" y="60" width="1460" height="1310" rx="16" fill="none" stroke="#233747" stroke-width="2" />
+      <text x="526" y="97.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">BVSTK</text>
+      <g id="server" data-kind="component" data-layer="L4" data-label="Сервер DCP2" data-ownership="common" data-parent="bvstk">
+        <rect x="590" y="170" width="1250" height="155" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="610" y="194.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="1215" y="264.5" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">Сервер DCP2</text>
+      </g>
+      <g id="mem" data-kind="component" data-layer="L1" data-label="Доступ MMIO" data-ownership="common" data-parent="bvstk">
+        <rect x="625" y="575" width="290" height="140" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <text x="645" y="599.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+        <text x="645" y="662.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Доступ MMIO</text>
+      </g>
+      <g id="services" data-kind="functional-group" data-label="Сервисы I²C и MDIO" data-layer="L3" data-ownership="common">
+        <rect x="1015" y="505" width="510" height="400" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+        <text x="1041" y="542.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Сервисы I²C и MDIO</text>
+        <g id="policy" data-kind="component" data-layer="L3" data-label="Политика записи" data-ownership="common" data-parent="services">
+          <rect x="1050" y="590" width="440" height="95" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+          <text x="1070" y="614.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="1070" y="654.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Политика записи</text>
+        </g>
+        <g id="cache" data-kind="component" data-layer="L3" data-label="Кэш" data-ownership="common" data-parent="services">
+          <rect x="1050" y="755" width="205" height="100" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+          <text x="1070" y="779.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="1070" y="822.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Кэш</text>
+        </g>
+        <g id="journal" data-kind="component" data-layer="L3" data-label="Журналы" data-ownership="common" data-parent="services">
+          <rect x="1285" y="755" width="205" height="100" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+          <text x="1305" y="779.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="1305" y="822.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Журналы</text>
+        </g>
+      </g>
+      <g id="fs" data-kind="component" data-layer="L3" data-label="Файловый&#10;сервис" data-ownership="common" data-parent="bvstk">
+        <rect x="1680" y="575" width="210" height="140" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="1700" y="599.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1700" y="645.44" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Файловый</text>
+        <text x="1700" y="678.5600000000001" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">сервис</text>
+      </g>
+      <g id="pl" data-kind="functional-group" data-label="PL" data-layer="L0" data-domain="pl" data-ownership="common">
+        <rect x="590" y="1080" width="960" height="230" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+        <text x="616" y="1117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">PL</text>
+        <g id="registers" data-kind="component" data-layer="L0" data-domain="pl" data-label="Регистры&#10;и BRAM" data-ownership="common" data-parent="pl">
+          <rect x="625" y="1170" width="290" height="110" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+          <text x="645" y="1194.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="645" y="1228.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Регистры</text>
+          <text x="645" y="1261.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">и BRAM</text>
+        </g>
+        <g id="cores" data-kind="component" data-layer="L0" data-domain="pl" data-label="Ядра шин" data-ownership="common" data-parent="pl">
+          <rect x="1100" y="1170" width="340" height="110" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+          <text x="1120" y="1194.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1120" y="1242.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ядра шин</text>
+        </g>
+      </g>
+    </g>
+    <g id="client" data-kind="build-tool">
+      <rect x="40" y="165" width="340" height="160" rx="14" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+      <text x="210.0" y="254.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#233747">Внешний клиент</text>
+    </g>
+    <g id="files" data-kind="artifact">
+      <path d="M1655,1160 H1887 L1915,1188 V1290 H1655 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1887,1160 V1188 H1915" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="1677" y="1208.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Файлы</text>
+    </g>
+    <g id="device" data-kind="component" data-layer="L0" data-label="Устройство" data-ownership="common">
+      <rect x="1100" y="1460" width="340" height="120" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1120" y="1484.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="1120" y="1537.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="440" y="188.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Ethernet</text>
+    <text x="545" y="188.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#3f75ad">TCP</text>
+    <text x="440" y="258.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#c65b4e">События</text>
+    <text x="843" y="470.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#788794">MEM</text>
+    <text x="1847" y="470.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#788794">FS</text>
+    <text x="1860" y="970.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Чтение</text>
+    <text x="1350" y="1403.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Шина</text>
+    <path d="M60,1632 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1638.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1632 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1638.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,1632 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="1638.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,1632 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="1638.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="1669" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1688.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1669" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1688.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="1669" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="419" y="1688.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="490" y="1669" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="534" y="1688.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="605" y="1669" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="649" y="1688.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1735.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Лист — сохранённые файлы. Слева показана программа вне BVSTK.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "src/protocols/dcp2/bvstk_dcp2_cache.c",
+    "src/protocols/dcp2/bvstk_dcp2_fs.c"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

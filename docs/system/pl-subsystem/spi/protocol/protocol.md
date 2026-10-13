@@ -10,7 +10,7 @@
 линией **CS**. Данные идут одновременно в двух направлениях:
 **MOSI** от ведущего к ведомому, **MISO** обратно.
 
-![Ведущий и ведомое устройство SPI, направления SCK, MOSI, MISO и CS](../../../figures/architecture/pl-subsystem/spi/protocol/interface.svg)
+![Ведущий и ведомое устройство SPI, направления SCK, MOSI, MISO и CS](../../../../figures/system/pl-subsystem/spi/protocol/interface.svg)
 
 *Рисунок 1. SPI: линии и участники.*
 
@@ -26,7 +26,7 @@ MISO, чтобы их выходы не мешали выбранному пер
 Если оба участника обмениваются восьмибитными словами, за восемь
 тактов ведущий отправит байт и одновременно получит другой.
 
-![Временная диаграмма SPI: CS, SCK и одновременная передача байтов по MOSI и MISO](../../../figures/architecture/pl-subsystem/spi/protocol/transaction.svg)
+![Временная диаграмма SPI: CS, SCK и одновременная передача байтов по MOSI и MISO](../../../../figures/system/pl-subsystem/spi/protocol/transaction.svg)
 
 *Рисунок 2. SPI: два байта за восемь тактов.*
 
@@ -49,7 +49,7 @@ CS удерживается активным на протяжении всей 
 из двух фронтов такта принимается бит: на первом при CPHA = 0,
 на втором при CPHA = 1.
 
-![Четыре режима SPI с моментами приёма и смены битов](../../../figures/architecture/pl-subsystem/spi/protocol/modes.svg)
+![Четыре режима SPI с моментами приёма и смены битов](../../../../figures/system/pl-subsystem/spi/protocol/modes.svg)
 
 *Рисунок 3. SPI: четыре режима тактирования.*
 
@@ -75,7 +75,7 @@ SPI сам по себе не задаёт код команды и формат
 адреса и байт значения. Обозначения WRITE и READ на рисунке заменяют
 конкретные коды из документации такого устройства.
 
-![Транзакции записи и чтения регистра SPI с командой, адресом и данными](../../../figures/architecture/pl-subsystem/spi/protocol/transfers.svg)
+![Транзакции записи и чтения регистра SPI с командой, адресом и данными](../../../../figures/system/pl-subsystem/spi/protocol/transfers.svg)
 
 *Рисунок 4. SPI: чтение и запись регистра.*
 

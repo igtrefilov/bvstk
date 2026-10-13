@@ -7,7 +7,7 @@ LBA 32 в BRAM: 512 байтов `DE AD BE EF …` и два байта CRC16.
 
 ## Получение блока
 
-![Учёт IRQ, проверка DMA и передача проверенного блока сервису](../../../figures/architecture/pl-subsystem/spi/drivers/master/receive.svg)
+![Учёт IRQ, проверка DMA и передача проверенного блока сервису](../../../../figures/system/pl-subsystem/spi/drivers/master/receive.svg)
 
 *Рисунок 1. Получение блока 32 драйвером.*
 
@@ -24,7 +24,7 @@ IRQ, запись ответа CMD17 и завершение S2MM могут н�
 
 ## Завершение и проверка
 
-![События операции и последовательные проверки перед выдачей блока](../../../figures/architecture/pl-subsystem/spi/drivers/master/completion.svg)
+![События операции и последовательные проверки перед выдачей блока](../../../../figures/system/pl-subsystem/spi/drivers/master/completion.svg)
 
 *Рисунок 2. Условия успешного чтения блока.*
 
@@ -34,7 +34,7 @@ IRQ, запись ответа CMD17 и завершение S2MM могут н�
 или MMIO прерывает ожидание. Отсутствие всех условий к сроку
 завершает вызов ошибкой ожидания.
 
-![Разнесённые во времени признаки готовности одной операции CMD17](../../../figures/architecture/pl-subsystem/spi/drivers/master/readiness.svg)
+![Разнесённые во времени признаки готовности одной операции CMD17](../../../../figures/system/pl-subsystem/spi/drivers/master/readiness.svg)
 
 *Рисунок 3. Независимые признаки завершения аппаратных путей.*
 
@@ -135,7 +135,7 @@ CMD17 допускает итоговое `0xFF` в ячейке ответа, �
 
 ## Подготовка CMD17
 
-![Подготовка буферов, запуск приёма до команды и получение данных CMD17](../../../figures/architecture/pl-subsystem/spi/drivers/master/read.svg)
+![Подготовка буферов, запуск приёма до команды и получение данных CMD17](../../../../figures/system/pl-subsystem/spi/drivers/master/read.svg)
 
 *Рисунок 4. Запуск и выполнение CMD17.*
 
@@ -184,7 +184,7 @@ mutex [сервиса SD](../services/services.md#начало-операции)
 
 ## Запись блока
 
-![Дескриптор CMD24, данные и аппаратный результат записи](../../../figures/architecture/pl-subsystem/spi/drivers/master/write.svg)
+![Дескриптор CMD24, данные и аппаратный результат записи](../../../../figures/system/pl-subsystem/spi/drivers/master/write.svg)
 
 *Рисунок 5. Передача блока CMD24.*
 

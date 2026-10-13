@@ -8,7 +8,7 @@
 
 ## Транзакция на шине
 
-![Адрес записи, номер регистра и значение в кадре I²C](../../figures/architecture/pl-subsystem/i2c/transaction.svg)
+![Адрес записи, номер регистра и значение в кадре I²C](../../../figures/system/pl-subsystem/i2c/transaction.svg)
 
 *Рисунок 1. Внешняя запись регистра 0x10.*
 

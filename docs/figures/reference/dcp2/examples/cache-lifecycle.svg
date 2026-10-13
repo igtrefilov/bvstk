@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 20 1800 1537" role="img" aria-labelledby="title desc" height="1537">
+  <title id="title">Согласование локальной копии с кэшем BVSTK</title>
+  <desc id="desc">Согласование локальной копии с кэшем BVSTK</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1557" fill="white" />
+  <g id="backgrounds">
+    <path d="M300,165 V1400" fill="none" stroke="#bdc8d0" stroke-width="2" stroke-dasharray="5 8" />
+    <path d="M1450,165 V1400" fill="none" stroke="#bdc8d0" stroke-width="2" stroke-dasharray="5 8" />
+  </g>
+  <g id="interactions">
+    <path d="M300,235 L1450,235" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M1450,350 L300,350" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M1450,610 L300,610" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <path d="M1450,725 L300,725" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <path d="M1450,840 L300,840" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <path d="M300,1100 L1450,1100" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M1450,1215 L300,1215" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M1450,1330 L300,1330" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <path d="M60,1448 L125,1448" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M475,1448 L540,1448" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+  </g>
+  <g id="components">
+    <g id="actor-0" data-kind="packet-field">
+      <rect x="95" y="60" width="410" height="105" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
+      <text x="300" y="110.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#233747">Клиент</text>
+    </g>
+    <g id="actor-1" data-kind="packet-field">
+      <rect x="1245" y="60" width="410" height="105" fill="#d9ebff" stroke="#3f75ad" stroke-width="2" />
+      <text x="1450" y="110.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#233747">DCP2</text>
+      <text x="1450" y="145.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    </g>
+    <g id="state-465-0" data-kind="packet-field">
+      <rect x="55" y="430" width="490" height="100" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
+      <text x="300.0" y="471.95" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">reg_00 = 0x1200</text>
+      <text x="300.0" y="503.69" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">reg_01 = 0x0024; ещё 30 записей</text>
+    </g>
+    <g id="state-955-0" data-kind="packet-field">
+      <rect x="55" y="920" width="490" height="100" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
+      <text x="300.0" y="977.82" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">Копия требует обновления</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="875.0" y="215.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">SUBSCRIBE: mdio, lan8720</text>
+    <text x="875.0" y="330.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Снимок S = 2: generation = 1, revision = 10</text>
+    <text x="875.0" y="590.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#c65b4e">RESOURCE: revision = 11, reg_01 = 0x0025</text>
+    <text x="875.0" y="705.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#c65b4e">PRESENCE: revision = 12, недоступно</text>
+    <text x="875.0" y="820.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#c65b4e">RESYNC_REQUIRED: потеря журнала</text>
+    <text x="875.0" y="1080.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Новый SUBSCRIBE</text>
+    <text x="875.0" y="1195.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Новый снимок: S = 3, revision = R′</text>
+    <text x="875.0" y="1310.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#c65b4e">Следующее изменение: revision = R′ + 1</text>
+    <text x="145" y="1455.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Передача данных</text>
+    <text x="560" y="1455.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Событие</text>
+    <text x="1740" y="1455.0" font-size="21" font-weight="400" text-anchor="end" style="fill:#607487">Время сверху вниз</text>
+    <rect x="60" y="1490" width="34" height="25" fill="#d9ebff" stroke="#607487" stroke-width="1.5" />
+    <text x="108" y="1510.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan><tspan>: протокольный интерфейс</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/protocols/dcp2/bvstk_dcp2_codec.h",
+    "src/protocols/dcp2/bvstk_dcp2_codec.c",
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "scripts/dcp2/dcp2_client.py",
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "src/apps/freertos/services/dcp2/dcp2_stream_sim.c",
+    "src/protocols/dcp2/bvstk_dcp2_fs.c",
+    "src/protocols/dcp2/bvstk_dcp2_cache.c",
+    "src/services/fs/bvstk_fs_reader.c",
+    "configs/mdio/lan8720/lan8720.json"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

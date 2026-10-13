@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 15 1800 1382" role="img" aria-labelledby="title desc" height="1382">
+  <title id="title">Снимок CACHE и последующие изменения</title>
+  <desc id="desc">SUBSCRIBE фиксирует снимок S с ревизией R. GET читает его оставшиеся страницы. Только после завершения снимка сервер выдаёт события R+1, R+2 из журнала.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1397" fill="white" />
+  <g id="backgrounds">
+    <path d="M420,130 V1270" fill="none" stroke="#bdc8d0" stroke-width="2" stroke-dasharray="5 8" />
+    <path d="M1380,130 V1270" fill="none" stroke="#bdc8d0" stroke-width="2" stroke-dasharray="5 8" />
+    <rect x="230" y="505" width="1340" height="335" rx="12" fill="none" stroke="#788794" stroke-width="2" />
+  </g>
+  <g id="interactions">
+    <path d="M420,200 L1380,200" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M1380,425 L420,425" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M420,670 L1380,670" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M1380,800 L420,800" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M1380,1100 L420,1100" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <path d="M1380,1250 L420,1250" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <path d="M60,1343 L125,1343" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <path d="M525,1343 L590,1343" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+  </g>
+  <g id="components">
+    <g id="snapshot" data-kind="packet-field">
+      <rect x="1080" y="250" width="600" height="105" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
+      <text x="1380.0" y="294.1" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">Снимок S: revision = R</text>
+      <text x="1380.0" y="327.22" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">Позиция журнала сохранена</text>
+    </g>
+    <g id="snapshot-complete" data-kind="packet-field">
+      <rect x="170" y="910" width="500" height="90" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
+      <text x="420.0" y="963.5" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">Снимок S собран</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="420" y="85.0" font-size="30" font-weight="700" text-anchor="middle" style="fill:#233747">Клиент</text>
+    <text x="1380" y="85.0" font-size="30" font-weight="700" text-anchor="middle" style="fill:#233747">Сервер DCP2</text>
+    <text x="900.0" y="180.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">CACHE_SUBSCRIBE</text>
+    <text x="900.0" y="405.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Первая страница S: R, next</text>
+    <text x="900" y="555.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#233747">Остальные страницы: пока next ≠ 0xFFFF</text>
+    <text x="900.0" y="650.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">CACHE_GET: snapshot_id = S, first = next</text>
+    <text x="900.0" y="780.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Страница S: та же R, новый next</text>
+    <text x="900.0" y="1080.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#c65b4e">revision = R+1, seq = 0</text>
+    <text x="900.0" y="1230.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#c65b4e">revision = R+2, seq = 0</text>
+    <text x="145" y="1350.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Запрос или ответ</text>
+    <text x="610" y="1350.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Событие</text>
+    <text x="1740" y="1350.0" font-size="21" font-weight="400" text-anchor="end" style="fill:#607487">Время идёт сверху вниз</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/protocols/dcp2/bvstk_dcp2_codec.h",
+    "src/protocols/dcp2/bvstk_dcp2_codec.c",
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "scripts/dcp2/dcp2_client.py",
+    "src/protocols/dcp2/bvstk_dcp2_cache.c"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

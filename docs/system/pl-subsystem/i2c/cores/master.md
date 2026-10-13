@@ -10,7 +10,7 @@
 Для записи сервис передаёт два байта: указатель `0x10` и значение
 `0x7B`. Политика проверена до запуска ядра.
 
-![Передача адреса и двух байтов с подтверждениями ведомого](../../../figures/architecture/pl-subsystem/i2c/cores/master/write.svg)
+![Передача адреса и двух байтов с подтверждениями ведомого](../../../../figures/system/pl-subsystem/i2c/cores/master/write.svg)
 
 *Рисунок 1. I²C master: передача записи.*
 
@@ -27,7 +27,7 @@
 
 ## Состав ядра
 
-![Путь команды, автомат шины и приёмные модули master](../../../figures/architecture/pl-subsystem/i2c/cores/master/structure.svg)
+![Путь команды, автомат шины и приёмные модули master](../../../../figures/system/pl-subsystem/i2c/cores/master/structure.svg)
 
 *Рисунок 2. I²C master: состав ядра.*
 
@@ -49,7 +49,7 @@ FIFO позволяет приёмной ветви сохранять данн�
 
 ## Подготовка команды
 
-![Подготовка операции сервисом и загрузка команды драйвером](../../../figures/architecture/pl-subsystem/i2c/cores/master/commands.svg)
+![Подготовка операции сервисом и загрузка команды драйвером](../../../../figures/system/pl-subsystem/i2c/cores/master/commands.svg)
 
 *Рисунок 3. I²C master: подготовка команды.*
 
@@ -72,7 +72,7 @@ FIFO позволяет приёмной ветви сохранять данн�
 Первая записывает указатель, вторая принимает один байт. Ядро получает
 их за один запуск.
 
-![Две фазы обмена из одной очереди команд](../../../figures/architecture/pl-subsystem/i2c/cores/master/repeated-start.svg)
+![Две фазы обмена из одной очереди команд](../../../../figures/system/pl-subsystem/i2c/cores/master/repeated-start.svg)
 
 *Рисунок 4. I²C master: две фазы из одной очереди.*
 
@@ -96,7 +96,7 @@ Engine передаёт адрес с направлением W и указат
 После адреса с направлением R направление данных меняется. Такты
 по-прежнему формирует master, а SDA с данными теперь задаёт устройство.
 
-![Получение двух байтов и передача пакетов в приёмную ветвь](../../../figures/architecture/pl-subsystem/i2c/cores/master/read.svg)
+![Получение двух байтов и передача пакетов в приёмную ветвь](../../../../figures/system/pl-subsystem/i2c/cores/master/read.svg)
 
 *Рисунок 5. I²C master: приём байтов.*
 
@@ -117,7 +117,7 @@ NACK и завершает обмен. В однобайтовом чтении 
 `DATA_VALID`. Здесь происходит преобразование внутренних пакетов
 в представление, которое читает программа.
 
-![Приём пакетов, запись результата и передача готовности в PS](../../../figures/architecture/pl-subsystem/i2c/cores/master/buffers.svg)
+![Приём пакетов, запись результата и передача готовности в PS](../../../../figures/system/pl-subsystem/i2c/cores/master/buffers.svg)
 
 *Рисунок 6. I²C master: приём и публикация результата.*
 
@@ -152,7 +152,7 @@ RX FIFO хранит по одному `packet_view_t` в 32-битном сло
 выполняет его на линиях, нужно различать команду отпустить SCL
 и фактический подъём этой линии.
 
-![Делитель SCL и обратная связь от физических линий](../../../figures/architecture/pl-subsystem/i2c/cores/master/timing.svg)
+![Делитель SCL и обратная связь от физических линий](../../../../figures/system/pl-subsystem/i2c/cores/master/timing.svg)
 
 *Рисунок 7. I²C master: формирование SCL.*
 
@@ -166,7 +166,7 @@ RX FIFO хранит по одному `packet_view_t` в 32-битном сло
 их с тактами ядра. Engine использует полученные признаки спада
 `scl_ne` и фронта `scl_pe` для работы с SDA.
 
-![Изменение и выборка SDA относительно фронтов SCL](../../../figures/architecture/pl-subsystem/i2c/cores/master/sampling.svg)
+![Изменение и выборка SDA относительно фронтов SCL](../../../../figures/system/pl-subsystem/i2c/cores/master/sampling.svg)
 
 *Рисунок 8. I²C master: изменение и выборка SDA.*
 
@@ -182,7 +182,7 @@ RX FIFO хранит по одному `packet_view_t` в 32-битном сло
 её отпустил. На фазе подтверждения ядро ждёт реальный фронт, чтобы
 не прочитать ACK раньше времени.
 
-![Отпускание SCL ядром и фактический подъём после удержания ведомым](../../../figures/architecture/pl-subsystem/i2c/cores/master/clock-stretching.svg)
+![Отпускание SCL ядром и фактический подъём после удержания ведомым](../../../../figures/system/pl-subsystem/i2c/cores/master/clock-stretching.svg)
 
 *Рисунок 9. I²C master: ожидание SCL в READ_ACK.*
 
@@ -197,7 +197,7 @@ RX FIFO хранит по одному `packet_view_t` в 32-битном сло
 
 ## Завершение и восстановление
 
-![Независимые признаки завершения шины и готовности результата](../../../figures/architecture/pl-subsystem/i2c/cores/master/completion.svg)
+![Независимые признаки завершения шины и готовности результата](../../../../figures/system/pl-subsystem/i2c/cores/master/completion.svg)
 
 *Рисунок 10. I²C master: признаки готовности.*
 
@@ -221,7 +221,7 @@ NACK устройства после адреса или записанного 
 
 ### Заголовок команды
 
-![Поля заголовка команды master](../../../figures/architecture/pl-subsystem/i2c/cores/master/command-format.svg)
+![Поля заголовка команды master](../../../../figures/system/pl-subsystem/i2c/cores/master/command-format.svg)
 
 *Рисунок 11. I²C master: заголовок header_t.*
 
@@ -247,7 +247,7 @@ NACK устройства после адреса или записанного 
 
 ### Результат в памяти
 
-![Формат опубликованного результата master](../../../figures/architecture/pl-subsystem/i2c/cores/master/memory-format.svg)
+![Формат опубликованного результата master](../../../../figures/system/pl-subsystem/i2c/cores/master/memory-format.svg)
 
 *Рисунок 12. I²C master: формат результата в BRAM.*
 

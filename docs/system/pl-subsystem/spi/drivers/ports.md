@@ -6,7 +6,7 @@
 `bvstk_sd_master_freertos`. Порт этого пути для Нейтрино
 в рабочую среду не включён.
 
-![Общий сервис и драйвер SD, порт FreeRTOS, IRQ и доступ к PL](../../../figures/architecture/pl-subsystem/spi/drivers/platform.svg)
+![Общий сервис и драйвер SD, порт FreeRTOS, IRQ и доступ к PL](../../../../figures/system/pl-subsystem/spi/drivers/platform.svg)
 
 *Рисунок 1. Общий код SD и порт ОС.*
 
@@ -25,7 +25,7 @@
 
 ## Учёт IRQ
 
-![Подготовка нового события и короткий обработчик IRQ FreeRTOS](../../../figures/architecture/pl-subsystem/spi/drivers/irq.svg)
+![Подготовка нового события и короткий обработчик IRQ FreeRTOS](../../../../figures/system/pl-subsystem/spi/drivers/irq.svg)
 
 *Рисунок 2. Учёт аппаратного события SD.*
 

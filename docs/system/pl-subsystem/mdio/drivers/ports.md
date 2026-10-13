@@ -5,7 +5,7 @@
 время и блокировки. В действующей конфигурации мост MDIO запускает
 FreeRTOS. В рабочую среду `bvstkd` Нейтрино этот путь не включён.
 
-![Общий сервис и драйвер, задача FreeRTOS и аппаратный доступ](../../../figures/architecture/pl-subsystem/mdio/drivers/platform.svg)
+![Общий сервис и драйвер, задача FreeRTOS и аппаратный доступ](../../../../figures/system/pl-subsystem/mdio/drivers/platform.svg)
 
 *Рисунок 1. Общий код MDIO и подключение к ОС.*
 

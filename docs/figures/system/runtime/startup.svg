@@ -1,0 +1,174 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 60 1800 1278" role="img" aria-labelledby="title desc" height="1278">
+  <title id="title">Запуск рабочей среды</title>
+  <desc id="desc">Запуск рабочей среды</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1338" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="100" width="530" height="1040" rx="16" fill="white" />
+    <rect x="1250" y="100" width="490" height="660" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="main" data-to="tasks" data-interaction="call" data-direction="forward">
+      <path d="M325,300 L325,390" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M325,300 L325,390" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="tasks" data-to="runtime" data-interaction="data" data-direction="forward">
+      <path d="M325,540 L325,630" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M325,540 L325,630" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="runtime" data-to="i2c" data-interaction="call" data-direction="forward">
+      <path d="M540,685 L710,685" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M540,685 L710,685" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="runtime" data-to="mdio" data-interaction="call" data-direction="forward">
+      <path d="M540,715 L645,715 L645,895 L710,895" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M540,715 L645,715 L645,895 L710,895" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ifs" data-to="ntfs" data-interaction="call" data-direction="forward">
+      <path d="M1495,300 L1495,390" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1495,300 L1495,390" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ntfs" data-to="daemon" data-interaction="data" data-direction="forward">
+      <path d="M1495,520 L1495,630" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1495,520 L1495,630" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="daemon" data-to="i2c" data-interaction="call" data-direction="forward">
+      <path d="M1300,685 L1130,685" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1300,685 L1130,685" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="main" data-to="sd" data-interaction="call" data-direction="forward">
+      <path d="M110,245 L85,245 L85,1010 L110,1010" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M110,245 L85,245 L85,1010 L110,1010" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="60" y="100" width="530" height="1040" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="86" y="137.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="main" data-kind="component" data-layer="L4" data-label="main" data-ownership="common" data-parent="freertos">
+        <rect x="110" y="190" width="430" height="110" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="130" y="214.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="130" y="262.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">main</text>
+      </g>
+      <g id="tasks" data-kind="component" data-layer="L4" data-label="Задачи носителей&#10;и config_store" data-ownership="common" data-parent="freertos">
+        <rect x="110" y="390" width="430" height="150" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="130" y="414.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="130" y="465.44" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Задачи носителей</text>
+        <text x="130" y="498.56" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">и config_store</text>
+      </g>
+      <g id="runtime" data-kind="component" data-layer="L4" data-label="bvstk_runtime" data-ownership="common" data-parent="freertos">
+        <rect x="110" y="630" width="430" height="110" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="130" y="654.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="130" y="702.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_runtime</text>
+      </g>
+      <g id="sd" data-kind="component" data-layer="L4" data-label="Запуск SD через PL" data-ownership="common" data-parent="freertos">
+        <rect x="110" y="950" width="430" height="120" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="130" y="974.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="130" y="1027.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Запуск SD через PL</text>
+      </g>
+    </g>
+    <g id="neutrino" data-kind="ownership-region" data-label="Нейтрино" data-ownership="neutrino">
+      <rect x="1250" y="100" width="490" height="660" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="1276" y="137.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Нейтрино</text>
+      <g id="ifs" data-kind="component" data-layer="L4" data-label="Сценарий IFS" data-ownership="common" data-parent="neutrino">
+        <rect x="1300" y="190" width="390" height="110" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="1320" y="214.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="1320" y="262.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сценарий IFS</text>
+      </g>
+      <g id="ntfs" data-kind="component" data-layer="L3" data-label="Файловые менеджеры" data-ownership="common" data-parent="neutrino">
+        <rect x="1300" y="390" width="390" height="130" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="1320" y="414.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1320" y="472.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Файловые менеджеры</text>
+      </g>
+      <g id="daemon" data-kind="component" data-layer="L4" data-label="bvstkd" data-ownership="common" data-parent="neutrino">
+        <rect x="1300" y="630" width="390" height="110" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="1320" y="654.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="1320" y="702.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstkd</text>
+      </g>
+    </g>
+    <g id="i2c" data-kind="component" data-layer="L3" data-label="Сервисы I²C" data-ownership="common">
+      <rect x="710" y="615" width="420" height="140" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <text x="730" y="639.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="730" y="702.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сервисы I²C</text>
+    </g>
+    <g id="mdio" data-kind="component" data-layer="L3" data-label="Сервис MDIO" data-ownership="common">
+      <rect x="710" y="825" width="420" height="140" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <text x="730" y="849.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="730" y="912.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сервис MDIO</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="360" y="352.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Создание задач</text>
+    <text x="355" y="588.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Профили готовы</text>
+    <text x="1500" y="574.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Файлы доступны</text>
+    <path d="M60,1192 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1198.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1192 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="1198.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1229" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1248.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="175" y="1229" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="219" y="1248.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1295.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Пунктир — принадлежность ОС. Создание задачи предшествует её готовности.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/apps/freertos/main.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/bvstkd/main.c"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

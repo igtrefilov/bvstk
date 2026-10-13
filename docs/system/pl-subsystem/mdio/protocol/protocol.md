@@ -10,7 +10,7 @@ MDIO служит для чтения и изменения регистров P
 при любой операции. На MDIO запрос передаёт ведущий, ответ при
 чтении — выбранный PHY.
 
-![Соединение ведущего и PHY по MDC и MDIO с подтяжкой линии данных](../../../figures/architecture/pl-subsystem/mdio/protocol/interface.svg)
+![Соединение ведущего и PHY по MDC и MDIO с подтяжкой линии данных](../../../../figures/system/pl-subsystem/mdio/protocol/interface.svg)
 
 *Рисунок 1. MDIO: линии и участники.*
 
@@ -20,7 +20,7 @@ MDIO служит для чтения и изменения регистров P
 
 ## Формат кадра
 
-![Кадры записи и чтения MDIO Clause 22 с адресами, данными и указанием передатчика](../../../figures/architecture/pl-subsystem/mdio/protocol/frame.svg)
+![Кадры записи и чтения MDIO Clause 22 с адресами, данными и указанием передатчика](../../../../figures/system/pl-subsystem/mdio/protocol/frame.svg)
 
 *Рисунок 2. MDIO: кадры Clause 22.*
 
@@ -46,7 +46,7 @@ ST равен `01`. Операция `01` задаёт запись, `10` — ч
 ноль, затем передаёт 16 бит регистра и освобождает линию.
 Последовательность TA записывают как `Z0`.
 
-![Передача MDIO от ведущего к PHY и временная диаграмма выдачи и приёма бита](../../../figures/architecture/pl-subsystem/mdio/protocol/turnaround.svg)
+![Передача MDIO от ведущего к PHY и временная диаграмма выдачи и приёма бита](../../../../figures/system/pl-subsystem/mdio/protocol/turnaround.svg)
 
 *Рисунок 3. MDIO: передача линии при чтении.*
 

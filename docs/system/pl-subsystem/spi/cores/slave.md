@@ -10,7 +10,7 @@
 
 ## Состав ядра
 
-![Внешняя шина, контроллер байтов и два направления AXI Stream](../../../figures/architecture/pl-subsystem/spi/cores/slave/structure.svg)
+![Внешняя шина, контроллер байтов и два направления AXI Stream](../../../../figures/system/pl-subsystem/spi/cores/slave/structure.svg)
 
 *Рисунок 1. Состав SPI slave.*
 
@@ -28,7 +28,7 @@ TX FIFO получает собранные байты MOSI и передаёт 
 
 ## Слова и границы потока
 
-![Упаковка байтов MOSI и обратная разборка слова ответа](../../../figures/architecture/pl-subsystem/spi/cores/slave/packing.svg)
+![Упаковка байтов MOSI и обратная разборка слова ответа](../../../../figures/system/pl-subsystem/spi/cores/slave/packing.svg)
 
 *Рисунок 2. Байты шины и слово потока.*
 

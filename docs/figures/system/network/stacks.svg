@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 60 1800 1138" role="img" aria-labelledby="title desc" height="1138">
+  <title id="title">Сетевые пути двух ОС</title>
+  <desc id="desc">Сетевые пути двух ОС</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1198" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="100" width="770" height="620" rx="16" fill="white" />
+    <rect x="980" y="100" width="760" height="620" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="servers" data-to="lwip" data-interaction="call" data-direction="forward">
+      <path d="M445,335 L445,510" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M445,335 L445,510" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="daemon" data-to="stack" data-interaction="call" data-direction="forward">
+      <path d="M1190,335 L1190,510" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1190,335 L1190,510" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ssh" data-to="stack" data-interaction="call" data-direction="forward">
+      <path d="M1545,335 L1545,510" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1545,335 L1545,510" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="lwip" data-to="eth" data-interaction="data" data-direction="forward">
+      <path d="M445,635 L445,800 L790,800 L790,875" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M445,635 L445,800 L790,800 L790,875" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="stack" data-to="eth" data-interaction="data" data-direction="forward">
+      <path d="M1360,635 L1360,800 L1030,800 L1030,875" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1360,635 L1360,800 L1030,800 L1030,875" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="60" y="100" width="770" height="620" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="86" y="137.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="servers" data-kind="component" data-layer="L4" data-label="Консоль, HTTP, DCP2&#10;SSH при включении" data-ownership="common" data-parent="freertos">
+        <rect x="120" y="190" width="650" height="145" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="140" y="214.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="140" y="262.94" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Консоль, HTTP, DCP2</text>
+        <text x="140" y="296.06" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SSH при включении</text>
+      </g>
+      <g id="lwip" data-kind="component" data-layer="L3" data-label="lwIP" data-ownership="common" data-parent="freertos">
+        <rect x="220" y="510" width="450" height="125" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="240" y="534.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="240" y="589.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">lwIP</text>
+      </g>
+    </g>
+    <g id="neutrino" data-kind="ownership-region" data-label="Нейтрино" data-ownership="neutrino">
+      <rect x="980" y="100" width="760" height="620" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="1006" y="137.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Нейтрино</text>
+      <g id="daemon" data-kind="component" data-layer="L4" data-label="bvstkd&#10;DCP2" data-ownership="common" data-parent="neutrino">
+        <rect x="1040" y="190" width="300" height="145" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="1060" y="214.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="1060" y="262.94" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstkd</text>
+        <text x="1060" y="296.06" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">DCP2</text>
+      </g>
+      <g id="ssh" data-kind="component" data-layer="L4" data-label="OpenSSH" data-ownership="common" data-parent="neutrino">
+        <rect x="1410" y="190" width="270" height="145" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="1430" y="214.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="1430" y="279.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">OpenSSH</text>
+      </g>
+      <g id="stack" data-kind="component" data-layer="L3" data-label="Сетевой стек ОС" data-ownership="common" data-parent="neutrino">
+        <rect x="1090" y="510" width="540" height="125" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="1110" y="534.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1110" y="589.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сетевой стек ОС</text>
+      </g>
+    </g>
+    <g id="eth" data-kind="component" data-layer="L0" data-label="Ethernet PS" data-ownership="common">
+      <rect x="660" y="875" width="500" height="125" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="680" y="899.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="680" y="954.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ethernet PS</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M60,1052 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1058.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1052 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="1058.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1089" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1089" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="219" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="290" y="1089" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="334" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1155.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Пунктир — принадлежность ОС. Драйверы Ethernet опущены.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/apps/freertos/services/lan/bvstk_lan.c",
+    "src/apps/neutrino/bvstkd/main.c"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

@@ -7,7 +7,7 @@
 
 ## Приём блока
 
-![Ответ карты и два направления публикации результата CMD17](../../../figures/architecture/pl-subsystem/spi/cores/master/receive.svg)
+![Ответ карты и два направления публикации результата CMD17](../../../../figures/system/pl-subsystem/spi/cores/master/receive.svg)
 
 *Рисунок 1. Приём блока SD с LBA 32.*
 
@@ -35,7 +35,7 @@ RX FIFO и `axi_stream_master` в S2MM. DMA сохраняет 512 байтов
 
 ## Фазы чтения CMD17
 
-![Байты MOSI и MISO по фазам аппаратной команды CMD17](../../../figures/architecture/pl-subsystem/spi/cores/master/read-phases.svg)
+![Байты MOSI и MISO по фазам аппаратной команды CMD17](../../../../figures/system/pl-subsystem/spi/cores/master/read-phases.svg)
 
 *Рисунок 2. Команда, ожидание ответа и приём данных SD.*
 
@@ -80,7 +80,7 @@ RX FIFO и `axi_stream_master` в S2MM. DMA сохраняет 512 байтов
 В рабочем режиме накопленные четыре байта передаются в RX FIFO
 одним 32-битным словом.
 
-![Первое слово сектора и двухбайтовый хвост CRC16 в потоке S2MM](../../../figures/architecture/pl-subsystem/spi/cores/master/stream.svg)
+![Первое слово сектора и двухбайтовый хвост CRC16 в потоке S2MM](../../../../figures/system/pl-subsystem/spi/cores/master/stream.svg)
 
 *Рисунок 3. Упаковка 512 байтов и CRC16 в AXI Stream.*
 
@@ -116,7 +116,7 @@ CMD17, чтобы поток данных уже имел настроенног
 
 ## Состав и путь команды
 
-![Поток команды, вложенный разбор дескриптора и автомат шины](../../../figures/architecture/pl-subsystem/spi/cores/master/structure.svg)
+![Поток команды, вложенный разбор дескриптора и автомат шины](../../../../figures/system/pl-subsystem/spi/cores/master/structure.svg)
 
 *Рисунок 4. Командный путь SPI master.*
 
@@ -147,7 +147,7 @@ CMD17, чтобы поток данных уже имел настроенног
 | `+0x0400` | `0x20000000` | Аргумент, байты для передачи `00 00 00 20` |
 | `+0x0404` | `0x00003151` | Код `0x51`, байт CRC7 с завершающим битом `0x31` |
 
-![Передача двух слов MM2S и формирование шести байтов CMD17](../../../figures/architecture/pl-subsystem/spi/cores/master/command.svg)
+![Передача двух слов MM2S и формирование шести байтов CMD17](../../../../figures/system/pl-subsystem/spi/cores/master/command.svg)
 
 *Рисунок 5. Преобразование дескриптора LBA 32 в CMD17.*
 
@@ -176,7 +176,7 @@ MM2S доставляет слова через `xpm_fifo_axis` в контро�
 
 ## Подготовка карты
 
-![Начальные такты, команды инициализации и публикация ответов](../../../figures/architecture/pl-subsystem/spi/cores/master/initialization.svg)
+![Начальные такты, команды инициализации и публикация ответов](../../../../figures/system/pl-subsystem/spi/cores/master/initialization.svg)
 
 *Рисунок 6. Аппаратная подготовка SD.*
 
@@ -205,7 +205,7 @@ CMD8 возвращает проверочное поле, ACMD41 показыв
 
 ## Ответ команды и блок данных
 
-![Разделение ответа команды и потока данных карты](../../../figures/architecture/pl-subsystem/spi/cores/master/results.svg)
+![Разделение ответа команды и потока данных карты](../../../../figures/system/pl-subsystem/spi/cores/master/results.svg)
 
 *Рисунок 7. Два пути результата SD-команды.*
 

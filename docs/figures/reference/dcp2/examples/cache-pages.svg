@@ -1,0 +1,690 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 1 1800 1381" role="img" aria-labelledby="title desc" height="1381">
+  <title id="title">Продолжение многостраничного снимка CACHE</title>
+  <desc id="desc">Продолжение многостраничного снимка CACHE</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1382" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions" />
+  <g id="components">
+    <g id="frame-0-0" data-kind="packet-field">
+      <rect x="60" y="105" width="190" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="155.0" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">magic</text>
+      <text x="155.0" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">44 43 50 32</text>
+    </g>
+    <g id="frame-0-1" data-kind="packet-field">
+      <rect x="262" y="105" width="115" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="319.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">ver</text>
+      <text x="319.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 02</text>
+    </g>
+    <g id="frame-0-2" data-kind="packet-field">
+      <rect x="389" y="105" width="127" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="452.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">dcp_len</text>
+      <text x="452.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">0F FD</text>
+    </g>
+    <g id="frame-0-3" data-kind="packet-field">
+      <rect x="528" y="105" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="585.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">srv</text>
+      <text x="585.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">08</text>
+    </g>
+    <g id="frame-0-4" data-kind="packet-field">
+      <rect x="655" y="105" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="712.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">op</text>
+      <text x="712.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">A1</text>
+    </g>
+    <g id="frame-0-5" data-kind="packet-field">
+      <rect x="782" y="105" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="839.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">seq</text>
+      <text x="839.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">08 11</text>
+    </g>
+    <g id="frame-0-6" data-kind="packet-field">
+      <rect x="909" y="105" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="966.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">status</text>
+      <text x="966.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00</text>
+    </g>
+    <g id="frame-0-7" data-kind="packet-field">
+      <rect x="1036" y="105" width="127" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1099.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">version</text>
+      <text x="1099.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">01</text>
+    </g>
+    <g id="frame-0-8" data-kind="packet-field">
+      <rect x="1175" y="105" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1232.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">kind</text>
+      <text x="1232.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00</text>
+    </g>
+    <g id="frame-0-9" data-kind="packet-field">
+      <rect x="1302" y="105" width="231" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1417.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">subscription_id</text>
+      <text x="1417.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 01</text>
+    </g>
+    <g id="frame-0-10" data-kind="packet-field">
+      <rect x="1545" y="105" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1640.0" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">snapshot_id</text>
+      <text x="1640.0" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 21</text>
+    </g>
+    <g id="frame-0-11" data-kind="packet-field">
+      <rect x="60" y="229" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="155.0" y="260.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">generation</text>
+      <text x="155.0" y="298" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 01</text>
+    </g>
+    <g id="frame-0-12" data-kind="packet-field">
+      <rect x="262" y="229" width="358" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="441.0" y="260.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">revision</text>
+      <text x="441.0" y="298" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 00 00 00 01 00</text>
+    </g>
+    <g id="frame-0-13" data-kind="packet-field">
+      <rect x="632" y="229" width="358" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="811.0" y="260.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">captured_ms</text>
+      <text x="811.0" y="298" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 00 00 00 13 88</text>
+    </g>
+    <g id="frame-0-14" data-kind="packet-field">
+      <rect x="1002" y="229" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1059.5" y="260.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">total</text>
+      <text x="1059.5" y="298" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 C8</text>
+    </g>
+    <g id="frame-0-15" data-kind="packet-field">
+      <rect x="1129" y="229" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1186.5" y="260.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">first</text>
+      <text x="1186.5" y="298" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00</text>
+    </g>
+    <g id="frame-0-16" data-kind="packet-field">
+      <rect x="1256" y="229" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1313.5" y="260.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">count</text>
+      <text x="1313.5" y="298" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 A2</text>
+    </g>
+    <g id="frame-0-17" data-kind="packet-field">
+      <rect x="1383" y="229" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1440.5" y="260.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">next</text>
+      <text x="1440.5" y="298" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 A2</text>
+    </g>
+    <g id="frame-0-18" data-kind="packet-field">
+      <rect x="1510" y="229" width="140" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1580.0" y="260.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">presence</text>
+      <text x="1580.0" y="298" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">01</text>
+    </g>
+    <g id="frame-0-19" data-kind="packet-field">
+      <rect x="60" y="353" width="246" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="183.0" y="384.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">resources</text>
+      <text x="183.0" y="422" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">Массив ресурсов</text>
+    </g>
+    <g id="frame-1-0" data-kind="packet-field">
+      <rect x="60" y="568" width="190" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="155.0" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">magic</text>
+      <text x="155.0" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">44 43 50 32</text>
+    </g>
+    <g id="frame-1-1" data-kind="packet-field">
+      <rect x="262" y="568" width="115" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="319.5" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">ver</text>
+      <text x="319.5" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 02</text>
+    </g>
+    <g id="frame-1-2" data-kind="packet-field">
+      <rect x="389" y="568" width="127" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="452.5" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">dcp_len</text>
+      <text x="452.5" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 14</text>
+    </g>
+    <g id="frame-1-3" data-kind="packet-field">
+      <rect x="528" y="568" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="585.5" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">srv</text>
+      <text x="585.5" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">08</text>
+    </g>
+    <g id="frame-1-4" data-kind="packet-field">
+      <rect x="655" y="568" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="712.5" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">op</text>
+      <text x="712.5" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">20</text>
+    </g>
+    <g id="frame-1-5" data-kind="packet-field">
+      <rect x="782" y="568" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="839.5" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">seq</text>
+      <text x="839.5" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">08 12</text>
+    </g>
+    <g id="frame-1-6" data-kind="packet-field">
+      <rect x="909" y="568" width="127" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="972.5" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">version</text>
+      <text x="972.5" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">01</text>
+    </g>
+    <g id="frame-1-7" data-kind="packet-field">
+      <rect x="1048" y="568" width="205" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1150.5" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">subsystem_len</text>
+      <text x="1150.5" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">03</text>
+    </g>
+    <g id="frame-1-8" data-kind="packet-field">
+      <rect x="1265" y="568" width="153" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1341.5" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">subsystem</text>
+      <text x="1341.5" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">"i2c"</text>
+    </g>
+    <g id="frame-1-9" data-kind="packet-field">
+      <rect x="1430" y="568" width="166" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1513.0" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">device_len</text>
+      <text x="1513.0" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">04</text>
+    </g>
+    <g id="frame-1-10" data-kind="packet-field">
+      <rect x="1608" y="568" width="120" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1668.0" y="599.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">device</text>
+      <text x="1668.0" y="637" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">"demo"</text>
+    </g>
+    <g id="frame-1-11" data-kind="packet-field">
+      <rect x="60" y="692" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="155.0" y="723.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">snapshot_id</text>
+      <text x="155.0" y="761" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 21</text>
+    </g>
+    <g id="frame-1-12" data-kind="packet-field">
+      <rect x="262" y="692" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="319.5" y="723.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">first</text>
+      <text x="319.5" y="761" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 A2</text>
+    </g>
+    <g id="frame-2-0" data-kind="packet-field">
+      <rect x="60" y="907" width="190" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="155.0" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">magic</text>
+      <text x="155.0" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">44 43 50 32</text>
+    </g>
+    <g id="frame-2-1" data-kind="packet-field">
+      <rect x="262" y="907" width="115" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="319.5" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">ver</text>
+      <text x="319.5" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 02</text>
+    </g>
+    <g id="frame-2-2" data-kind="packet-field">
+      <rect x="389" y="907" width="127" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="452.5" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">dcp_len</text>
+      <text x="452.5" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">03 E1</text>
+    </g>
+    <g id="frame-2-3" data-kind="packet-field">
+      <rect x="528" y="907" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="585.5" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">srv</text>
+      <text x="585.5" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">08</text>
+    </g>
+    <g id="frame-2-4" data-kind="packet-field">
+      <rect x="655" y="907" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="712.5" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">op</text>
+      <text x="712.5" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">A0</text>
+    </g>
+    <g id="frame-2-5" data-kind="packet-field">
+      <rect x="782" y="907" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="839.5" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">seq</text>
+      <text x="839.5" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">08 12</text>
+    </g>
+    <g id="frame-2-6" data-kind="packet-field">
+      <rect x="909" y="907" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="966.5" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">status</text>
+      <text x="966.5" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00</text>
+    </g>
+    <g id="frame-2-7" data-kind="packet-field">
+      <rect x="1036" y="907" width="127" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1099.5" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">version</text>
+      <text x="1099.5" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">01</text>
+    </g>
+    <g id="frame-2-8" data-kind="packet-field">
+      <rect x="1175" y="907" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1232.5" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">kind</text>
+      <text x="1232.5" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00</text>
+    </g>
+    <g id="frame-2-9" data-kind="packet-field">
+      <rect x="1302" y="907" width="231" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1417.5" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">subscription_id</text>
+      <text x="1417.5" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 01</text>
+    </g>
+    <g id="frame-2-10" data-kind="packet-field">
+      <rect x="1545" y="907" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1640.0" y="938.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">snapshot_id</text>
+      <text x="1640.0" y="976" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 21</text>
+    </g>
+    <g id="frame-2-11" data-kind="packet-field">
+      <rect x="60" y="1031" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="155.0" y="1062.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">generation</text>
+      <text x="155.0" y="1100" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 01</text>
+    </g>
+    <g id="frame-2-12" data-kind="packet-field">
+      <rect x="262" y="1031" width="358" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="441.0" y="1062.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">revision</text>
+      <text x="441.0" y="1100" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 00 00 00 01 00</text>
+    </g>
+    <g id="frame-2-13" data-kind="packet-field">
+      <rect x="632" y="1031" width="358" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="811.0" y="1062.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">captured_ms</text>
+      <text x="811.0" y="1100" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 00 00 00 13 88</text>
+    </g>
+    <g id="frame-2-14" data-kind="packet-field">
+      <rect x="1002" y="1031" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1059.5" y="1062.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">total</text>
+      <text x="1059.5" y="1100" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 C8</text>
+    </g>
+    <g id="frame-2-15" data-kind="packet-field">
+      <rect x="1129" y="1031" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1186.5" y="1062.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">first</text>
+      <text x="1186.5" y="1100" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 A2</text>
+    </g>
+    <g id="frame-2-16" data-kind="packet-field">
+      <rect x="1256" y="1031" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1313.5" y="1062.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">count</text>
+      <text x="1313.5" y="1100" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 26</text>
+    </g>
+    <g id="frame-2-17" data-kind="packet-field">
+      <rect x="1383" y="1031" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1440.5" y="1062.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">next</text>
+      <text x="1440.5" y="1100" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">FF FF</text>
+    </g>
+    <g id="frame-2-18" data-kind="packet-field">
+      <rect x="1510" y="1031" width="140" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1580.0" y="1062.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">presence</text>
+      <text x="1580.0" y="1100" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">01</text>
+    </g>
+    <g id="frame-2-19" data-kind="packet-field">
+      <rect x="60" y="1155" width="246" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="183.0" y="1186.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">resources</text>
+      <text x="183.0" y="1224" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">Массив ресурсов</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="70.0" font-size="29" font-weight="700" text-anchor="start" style="fill:#233747">Первая страница: ответ SUBSCRIBE</text>
+    <text x="60" y="533.0" font-size="29" font-weight="700" text-anchor="start" style="fill:#233747">CACHE_GET: продолжение снимка 0x21</text>
+    <text x="60" y="872.0" font-size="29" font-weight="700" text-anchor="start" style="fill:#233747">Последняя страница: ответ GET</text>
+    <rect x="60" y="1315" width="34" height="25" fill="#eef5fb" stroke="#607487" stroke-width="1.5" />
+    <text x="108" y="1335.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Заголовок</text>
+    <rect x="370" y="1315" width="34" height="25" fill="#cfe3f3" stroke="#607487" stroke-width="1.5" />
+    <text x="418" y="1335.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Полезная нагрузка</text>
+    <text x="860" y="1335.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">HEX; строки в кавычках — UTF-8 без NUL</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/protocols/dcp2/bvstk_dcp2_codec.h",
+    "src/protocols/dcp2/bvstk_dcp2_codec.c",
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "scripts/dcp2/dcp2_client.py",
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "src/apps/freertos/services/dcp2/dcp2_stream_sim.c",
+    "src/protocols/dcp2/bvstk_dcp2_fs.c",
+    "src/protocols/dcp2/bvstk_dcp2_cache.c",
+    "src/services/fs/bvstk_fs_reader.c",
+    "configs/mdio/lan8720/lan8720.json"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": [],
+  "examples": [
+    {
+      "label": "Первая страница: ответ SUBSCRIBE",
+      "length": 4101,
+      "fields": [
+        {
+          "name": "magic",
+          "offset": 0,
+          "size": 4,
+          "hex": "44435032"
+        },
+        {
+          "name": "ver",
+          "offset": 4,
+          "size": 2,
+          "hex": "0002"
+        },
+        {
+          "name": "dcp_len",
+          "offset": 6,
+          "size": 2,
+          "hex": "0ffd"
+        },
+        {
+          "name": "srv",
+          "offset": 8,
+          "size": 1,
+          "hex": "08"
+        },
+        {
+          "name": "op",
+          "offset": 9,
+          "size": 1,
+          "hex": "a1"
+        },
+        {
+          "name": "seq",
+          "offset": 10,
+          "size": 2,
+          "hex": "0811"
+        },
+        {
+          "name": "status",
+          "offset": 12,
+          "size": 2,
+          "hex": "0000"
+        },
+        {
+          "name": "version",
+          "offset": 14,
+          "size": 1,
+          "hex": "01"
+        },
+        {
+          "name": "kind",
+          "offset": 15,
+          "size": 1,
+          "hex": "00"
+        },
+        {
+          "name": "subscription_id",
+          "offset": 16,
+          "size": 2,
+          "hex": "0001"
+        },
+        {
+          "name": "snapshot_id",
+          "offset": 18,
+          "size": 4,
+          "hex": "00000021"
+        },
+        {
+          "name": "generation",
+          "offset": 22,
+          "size": 4,
+          "hex": "00000001"
+        },
+        {
+          "name": "revision",
+          "offset": 26,
+          "size": 8,
+          "hex": "0000000000000100"
+        },
+        {
+          "name": "captured_ms",
+          "offset": 34,
+          "size": 8,
+          "hex": "0000000000001388"
+        },
+        {
+          "name": "total",
+          "offset": 42,
+          "size": 2,
+          "hex": "00c8"
+        },
+        {
+          "name": "first",
+          "offset": 44,
+          "size": 2,
+          "hex": "0000"
+        },
+        {
+          "name": "count",
+          "offset": 46,
+          "size": 2,
+          "hex": "00a2"
+        },
+        {
+          "name": "next",
+          "offset": 48,
+          "size": 2,
+          "hex": "00a2"
+        },
+        {
+          "name": "presence",
+          "offset": 50,
+          "size": 1,
+          "hex": "01"
+        },
+        {
+          "name": "resources",
+          "offset": 51,
+          "size": 4050,
+          "hex": "05726567303008010200000000000000000000000000001388057265673031080102000000000000000100000000000013880572656730320801020000000000000002000000000000138805726567303308010200000000000000030000000000001388057265673034080102000000000000000400000000000013880572656730350801020000000000000005000000000000138805726567303608010200000000000000060000000000001388057265673037080102000000000000000700000000000013880572656730380801020000000000000008000000000000138805726567303908010200000000000000090000000000001388057265673041080102000000000000000a0000000000001388057265673042080102000000000000000b0000000000001388057265673043080102000000000000000c0000000000001388057265673044080102000000000000000d0000000000001388057265673045080102000000000000000e0000000000001388057265673046080102000000000000000f000000000000138805726567313008010200000000000000100000000000001388057265673131080102000000000000001100000000000013880572656731320801020000000000000012000000000000138805726567313308010200000000000000130000000000001388057265673134080102000000000000001400000000000013880572656731350801020000000000000015000000000000138805726567313608010200000000000000160000000000001388057265673137080102000000000000001700000000000013880572656731380801020000000000000018000000000000138805726567313908010200000000000000190000000000001388057265673141080102000000000000001a0000000000001388057265673142080102000000000000001b0000000000001388057265673143080102000000000000001c0000000000001388057265673144080102000000000000001d0000000000001388057265673145080102000000000000001e0000000000001388057265673146080102000000000000001f000000000000138805726567323008010200000000000000200000000000001388057265673231080102000000000000002100000000000013880572656732320801020000000000000022000000000000138805726567323308010200000000000000230000000000001388057265673234080102000000000000002400000000000013880572656732350801020000000000000025000000000000138805726567323608010200000000000000260000000000001388057265673237080102000000000000002700000000000013880572656732380801020000000000000028000000000000138805726567323908010200000000000000290000000000001388057265673241080102000000000000002a0000000000001388057265673242080102000000000000002b0000000000001388057265673243080102000000000000002c0000000000001388057265673244080102000000000000002d0000000000001388057265673245080102000000000000002e0000000000001388057265673246080102000000000000002f000000000000138805726567333008010200000000000000300000000000001388057265673331080102000000000000003100000000000013880572656733320801020000000000000032000000000000138805726567333308010200000000000000330000000000001388057265673334080102000000000000003400000000000013880572656733350801020000000000000035000000000000138805726567333608010200000000000000360000000000001388057265673337080102000000000000003700000000000013880572656733380801020000000000000038000000000000138805726567333908010200000000000000390000000000001388057265673341080102000000000000003a0000000000001388057265673342080102000000000000003b0000000000001388057265673343080102000000000000003c0000000000001388057265673344080102000000000000003d0000000000001388057265673345080102000000000000003e0000000000001388057265673346080102000000000000003f000000000000138805726567343008010200000000000000400000000000001388057265673431080102000000000000004100000000000013880572656734320801020000000000000042000000000000138805726567343308010200000000000000430000000000001388057265673434080102000000000000004400000000000013880572656734350801020000000000000045000000000000138805726567343608010200000000000000460000000000001388057265673437080102000000000000004700000000000013880572656734380801020000000000000048000000000000138805726567343908010200000000000000490000000000001388057265673441080102000000000000004a0000000000001388057265673442080102000000000000004b0000000000001388057265673443080102000000000000004c0000000000001388057265673444080102000000000000004d0000000000001388057265673445080102000000000000004e0000000000001388057265673446080102000000000000004f000000000000138805726567353008010200000000000000500000000000001388057265673531080102000000000000005100000000000013880572656735320801020000000000000052000000000000138805726567353308010200000000000000530000000000001388057265673534080102000000000000005400000000000013880572656735350801020000000000000055000000000000138805726567353608010200000000000000560000000000001388057265673537080102000000000000005700000000000013880572656735380801020000000000000058000000000000138805726567353908010200000000000000590000000000001388057265673541080102000000000000005a0000000000001388057265673542080102000000000000005b0000000000001388057265673543080102000000000000005c0000000000001388057265673544080102000000000000005d0000000000001388057265673545080102000000000000005e0000000000001388057265673546080102000000000000005f000000000000138805726567363008010200000000000000600000000000001388057265673631080102000000000000006100000000000013880572656736320801020000000000000062000000000000138805726567363308010200000000000000630000000000001388057265673634080102000000000000006400000000000013880572656736350801020000000000000065000000000000138805726567363608010200000000000000660000000000001388057265673637080102000000000000006700000000000013880572656736380801020000000000000068000000000000138805726567363908010200000000000000690000000000001388057265673641080102000000000000006a0000000000001388057265673642080102000000000000006b0000000000001388057265673643080102000000000000006c0000000000001388057265673644080102000000000000006d0000000000001388057265673645080102000000000000006e0000000000001388057265673646080102000000000000006f000000000000138805726567373008010200000000000000700000000000001388057265673731080102000000000000007100000000000013880572656737320801020000000000000072000000000000138805726567373308010200000000000000730000000000001388057265673734080102000000000000007400000000000013880572656737350801020000000000000075000000000000138805726567373608010200000000000000760000000000001388057265673737080102000000000000007700000000000013880572656737380801020000000000000078000000000000138805726567373908010200000000000000790000000000001388057265673741080102000000000000007a0000000000001388057265673742080102000000000000007b0000000000001388057265673743080102000000000000007c0000000000001388057265673744080102000000000000007d0000000000001388057265673745080102000000000000007e0000000000001388057265673746080102000000000000007f000000000000138805726567383008010200000000000000800000000000001388057265673831080102000000000000008100000000000013880572656738320801020000000000000082000000000000138805726567383308010200000000000000830000000000001388057265673834080102000000000000008400000000000013880572656738350801020000000000000085000000000000138805726567383608010200000000000000860000000000001388057265673837080102000000000000008700000000000013880572656738380801020000000000000088000000000000138805726567383908010200000000000000890000000000001388057265673841080102000000000000008a0000000000001388057265673842080102000000000000008b0000000000001388057265673843080102000000000000008c0000000000001388057265673844080102000000000000008d0000000000001388057265673845080102000000000000008e0000000000001388057265673846080102000000000000008f000000000000138805726567393008010200000000000000900000000000001388057265673931080102000000000000009100000000000013880572656739320801020000000000000092000000000000138805726567393308010200000000000000930000000000001388057265673934080102000000000000009400000000000013880572656739350801020000000000000095000000000000138805726567393608010200000000000000960000000000001388057265673937080102000000000000009700000000000013880572656739380801020000000000000098000000000000138805726567393908010200000000000000990000000000001388057265673941080102000000000000009a0000000000001388057265673942080102000000000000009b0000000000001388057265673943080102000000000000009c0000000000001388057265673944080102000000000000009d0000000000001388057265673945080102000000000000009e0000000000001388057265673946080102000000000000009f000000000000138805726567413008010200000000000000a0000000000000138805726567413108010200000000000000a10000000000001388"
+        }
+      ]
+    },
+    {
+      "label": "CACHE_GET: продолжение снимка 0x21",
+      "length": 28,
+      "fields": [
+        {
+          "name": "magic",
+          "offset": 0,
+          "size": 4,
+          "hex": "44435032"
+        },
+        {
+          "name": "ver",
+          "offset": 4,
+          "size": 2,
+          "hex": "0002"
+        },
+        {
+          "name": "dcp_len",
+          "offset": 6,
+          "size": 2,
+          "hex": "0014"
+        },
+        {
+          "name": "srv",
+          "offset": 8,
+          "size": 1,
+          "hex": "08"
+        },
+        {
+          "name": "op",
+          "offset": 9,
+          "size": 1,
+          "hex": "20"
+        },
+        {
+          "name": "seq",
+          "offset": 10,
+          "size": 2,
+          "hex": "0812"
+        },
+        {
+          "name": "version",
+          "offset": 12,
+          "size": 1,
+          "hex": "01"
+        },
+        {
+          "name": "subsystem_len",
+          "offset": 13,
+          "size": 1,
+          "hex": "03"
+        },
+        {
+          "name": "subsystem",
+          "offset": 14,
+          "size": 3,
+          "hex": "693263"
+        },
+        {
+          "name": "device_len",
+          "offset": 17,
+          "size": 1,
+          "hex": "04"
+        },
+        {
+          "name": "device",
+          "offset": 18,
+          "size": 4,
+          "hex": "64656d6f"
+        },
+        {
+          "name": "snapshot_id",
+          "offset": 22,
+          "size": 4,
+          "hex": "00000021"
+        },
+        {
+          "name": "first",
+          "offset": 26,
+          "size": 2,
+          "hex": "00a2"
+        }
+      ]
+    },
+    {
+      "label": "Последняя страница: ответ GET",
+      "length": 1001,
+      "fields": [
+        {
+          "name": "magic",
+          "offset": 0,
+          "size": 4,
+          "hex": "44435032"
+        },
+        {
+          "name": "ver",
+          "offset": 4,
+          "size": 2,
+          "hex": "0002"
+        },
+        {
+          "name": "dcp_len",
+          "offset": 6,
+          "size": 2,
+          "hex": "03e1"
+        },
+        {
+          "name": "srv",
+          "offset": 8,
+          "size": 1,
+          "hex": "08"
+        },
+        {
+          "name": "op",
+          "offset": 9,
+          "size": 1,
+          "hex": "a0"
+        },
+        {
+          "name": "seq",
+          "offset": 10,
+          "size": 2,
+          "hex": "0812"
+        },
+        {
+          "name": "status",
+          "offset": 12,
+          "size": 2,
+          "hex": "0000"
+        },
+        {
+          "name": "version",
+          "offset": 14,
+          "size": 1,
+          "hex": "01"
+        },
+        {
+          "name": "kind",
+          "offset": 15,
+          "size": 1,
+          "hex": "00"
+        },
+        {
+          "name": "subscription_id",
+          "offset": 16,
+          "size": 2,
+          "hex": "0001"
+        },
+        {
+          "name": "snapshot_id",
+          "offset": 18,
+          "size": 4,
+          "hex": "00000021"
+        },
+        {
+          "name": "generation",
+          "offset": 22,
+          "size": 4,
+          "hex": "00000001"
+        },
+        {
+          "name": "revision",
+          "offset": 26,
+          "size": 8,
+          "hex": "0000000000000100"
+        },
+        {
+          "name": "captured_ms",
+          "offset": 34,
+          "size": 8,
+          "hex": "0000000000001388"
+        },
+        {
+          "name": "total",
+          "offset": 42,
+          "size": 2,
+          "hex": "00c8"
+        },
+        {
+          "name": "first",
+          "offset": 44,
+          "size": 2,
+          "hex": "00a2"
+        },
+        {
+          "name": "count",
+          "offset": 46,
+          "size": 2,
+          "hex": "0026"
+        },
+        {
+          "name": "next",
+          "offset": 48,
+          "size": 2,
+          "hex": "ffff"
+        },
+        {
+          "name": "presence",
+          "offset": 50,
+          "size": 1,
+          "hex": "01"
+        },
+        {
+          "name": "resources",
+          "offset": 51,
+          "size": 950,
+          "hex": "05726567413208010200000000000000a2000000000000138805726567413308010200000000000000a3000000000000138805726567413408010200000000000000a4000000000000138805726567413508010200000000000000a5000000000000138805726567413608010200000000000000a6000000000000138805726567413708010200000000000000a7000000000000138805726567413808010200000000000000a8000000000000138805726567413908010200000000000000a9000000000000138805726567414108010200000000000000aa000000000000138805726567414208010200000000000000ab000000000000138805726567414308010200000000000000ac000000000000138805726567414408010200000000000000ad000000000000138805726567414508010200000000000000ae000000000000138805726567414608010200000000000000af000000000000138805726567423008010200000000000000b0000000000000138805726567423108010200000000000000b1000000000000138805726567423208010200000000000000b2000000000000138805726567423308010200000000000000b3000000000000138805726567423408010200000000000000b4000000000000138805726567423508010200000000000000b5000000000000138805726567423608010200000000000000b6000000000000138805726567423708010200000000000000b7000000000000138805726567423808010200000000000000b8000000000000138805726567423908010200000000000000b9000000000000138805726567424108010200000000000000ba000000000000138805726567424208010200000000000000bb000000000000138805726567424308010200000000000000bc000000000000138805726567424408010200000000000000bd000000000000138805726567424508010200000000000000be000000000000138805726567424608010200000000000000bf000000000000138805726567433008010200000000000000c0000000000000138805726567433108010200000000000000c1000000000000138805726567433208010200000000000000c2000000000000138805726567433308010200000000000000c3000000000000138805726567433408010200000000000000c4000000000000138805726567433508010200000000000000c5000000000000138805726567433608010200000000000000c6000000000000138805726567433708010200000000000000c70000000000001388"
+        }
+      ]
+    }
+  ]
+}</metadata>
+</svg>

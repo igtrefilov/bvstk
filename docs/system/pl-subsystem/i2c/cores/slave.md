@@ -7,7 +7,7 @@
 
 ## Приём записи
 
-![Приём 10 7B, публикация заголовка и формирование IRQ](../../../figures/architecture/pl-subsystem/i2c/cores/slave/write.svg)
+![Приём 10 7B, публикация заголовка и формирование IRQ](../../../../figures/system/pl-subsystem/i2c/cores/slave/write.svg)
 
 *Рисунок 1. Аппаратный приём записи регистра 0x10.*
 
@@ -40,7 +40,7 @@ STOP и повторный START сохраняют полезный хвост 
 данных. Первый следует тактам внешнего ведущего. Второй обслуживает
 память, которая работает словами и требует отдельных обращений.
 
-![Модули ведомого ядра, регистры и обмен с BRAM](../../../figures/architecture/pl-subsystem/i2c/cores/slave/structure.svg)
+![Модули ведомого ядра, регистры и обмен с BRAM](../../../../figures/system/pl-subsystem/i2c/cores/slave/structure.svg)
 
 *Рисунок 2. I²C slave: состав ядра.*
 
@@ -62,7 +62,7 @@ SDA и SCL, а `sync` синхронизирует их с тактами ядр
 
 ## Выбор адреса и направления
 
-![Обработка входов, выбор адреса и переход к записи или чтению](../../../figures/architecture/pl-subsystem/i2c/cores/slave/addressing.svg)
+![Обработка входов, выбор адреса и переход к записи или чтению](../../../../figures/system/pl-subsystem/i2c/cores/slave/addressing.svg)
 
 *Рисунок 3. I²C slave: выбор адреса.*
 
@@ -86,7 +86,7 @@ SDA и SCL, а `sync` синхронизирует их с тактами ядр
 но само значение регистра ему неизвестно. Здесь аппаратный путь
 встречается с программным сервисом.
 
-![Запрос к PS и подтверждение адреса после готовности первого байта](../../../figures/architecture/pl-subsystem/i2c/cores/slave/read.svg)
+![Запрос к PS и подтверждение адреса после готовности первого байта](../../../../figures/system/pl-subsystem/i2c/cores/slave/read.svg)
 
 *Рисунок 4. I²C slave: первый байт ответа.*
 
@@ -129,7 +129,7 @@ Engine переходит в `WAIT_PACKET` и удерживает SCL. `data_ct
 каждого байта он выдаёт ACK для продолжения либо NACK для окончания.
 Поэтому подготовленное окно и вся транзакция могут иметь разную длину.
 
-![Подготовка следующих байтов и запрос нового окна ответа](../../../figures/architecture/pl-subsystem/i2c/cores/slave/read-continuation.svg)
+![Подготовка следующих байтов и запрос нового окна ответа](../../../../figures/system/pl-subsystem/i2c/cores/slave/read-continuation.svg)
 
 *Рисунок 5. I²C slave: продолжение чтения.*
 
@@ -164,7 +164,7 @@ NACK на этот последний байт. Новое окно могло �
 `0x10`. Для этого он передаёт указатель и меняет направление обмена.
 Две фазы связаны состоянием сервиса PS.
 
-![Завершение записи указателя и подготовка ответа на связанную фазу чтения](../../../figures/architecture/pl-subsystem/i2c/cores/slave/repeated-start.svg)
+![Завершение записи указателя и подготовка ответа на связанную фазу чтения](../../../../figures/system/pl-subsystem/i2c/cores/slave/repeated-start.svg)
 
 *Рисунок 6. I²C slave: указатель и повторный START.*
 
@@ -191,7 +191,7 @@ NACK последует сразу после D0.
 
 ## Окна BRAM
 
-![Владельцы записи и чтения двух окон BRAM](../../../figures/architecture/pl-subsystem/i2c/cores/slave/buffers.svg)
+![Владельцы записи и чтения двух окон BRAM](../../../../figures/system/pl-subsystem/i2c/cores/slave/buffers.svg)
 
 *Рисунок 7. I²C slave: окна запроса и ответа.*
 
@@ -212,7 +212,7 @@ NACK последует сразу после D0.
 При этом завершение чтения, публикация записи и ошибка ожидания
 имеют разные последствия для PS.
 
-![Фиксация событий ядра и подтверждение IRQ программой PS](../../../figures/architecture/pl-subsystem/i2c/cores/slave/completion.svg)
+![Фиксация событий ядра и подтверждение IRQ программой PS](../../../../figures/system/pl-subsystem/i2c/cores/slave/completion.svg)
 
 *Рисунок 8. I²C slave: события и подтверждение IRQ.*
 
@@ -245,7 +245,7 @@ NACK последует сразу после D0.
 | `+0x1000` | Фрагмент внешней записи | `data_ctrl` | Драйвер PS после `DATA_VALID` |
 | `+0x2000` | Окно ответа на внешнее чтение | Драйвер PS | `data_ctrl` после `rd_valid` |
 
-![Расположение заголовка и байтов в словах окна slave](../../../figures/architecture/pl-subsystem/i2c/cores/slave/memory-format.svg)
+![Расположение заголовка и байтов в словах окна slave](../../../../figures/system/pl-subsystem/i2c/cores/slave/memory-format.svg)
 
 *Рисунок 9. I²C slave: формат окна BRAM.*
 

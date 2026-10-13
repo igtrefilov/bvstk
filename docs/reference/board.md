@@ -1,15 +1,12 @@
-# Плата AX7020 и граница PS/PL
+# Плата AX7020
 
 Целевая плата — AX7020 на Zynq-7000. PS включает процессорные ядра и
 стандартную периферию; PL загружается проектным bitstream. BSP Нейтрино
 содержит унаследованные имена `zedboard`, но они не меняют модель физической
 платы и не разрешают использовать её распиновку от ZedBoard.
 
-![Граница PS и PL: регистры, память и прерывания](figures/ps-pl.svg)
-
-Рисунок 1. Основные пути управления; пунктир обозначает прерывание от PL
-к GIC. Рисунок не является электрической схемой, картой выводов корпуса
-или перечнем всех IP Vivado.
+Схема аппаратной границы приведена в [описании платформы](../system/platform/platform.md#mmio-и-память-обмена).
+Ниже перечислены конкретные окна и линии платы.
 
 ## Адресные окна
 
@@ -109,5 +106,5 @@ FreeRTOS компилирует
 Порядок получения и фиксации набора описан в [аппаратной сборке](../build/fpga.md).
 
 Форматы регистров относятся к конкретным драйверам:
-[I²C](../development/drivers/i2c.md), [MDIO](../development/drivers/mdio.md),
-[SPI](../development/drivers/spi.md), [SD](../development/drivers/sd.md).
+[I²C](../system/pl-subsystem/i2c/drivers/drivers.md), [MDIO](../system/pl-subsystem/mdio/drivers/drivers.md),
+[SPI](../system/pl-subsystem/spi/drivers/drivers.md), [SD](../system/pl-subsystem/spi/services/services.md).

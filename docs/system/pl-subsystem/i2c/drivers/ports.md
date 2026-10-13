@@ -51,7 +51,7 @@
 Оба порта в итоге вызывают общий `hw_capture_irq` и общий сервис,
 но момент захвата состояния и исполнитель различаются.
 
-![Доставка IRQ в FreeRTOS и Нейтрино с вызовами общего драйвера и сервиса](../../../figures/architecture/pl-subsystem/i2c/drivers/events.svg)
+![Доставка IRQ в FreeRTOS и Нейтрино с вызовами общего драйвера и сервиса](../../../../figures/system/pl-subsystem/i2c/drivers/events.svg)
 
 *Рисунок 1. I²C slave: доставка и обработка события.*
 

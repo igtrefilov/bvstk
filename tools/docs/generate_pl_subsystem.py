@@ -29,8 +29,8 @@ from spi_details import generate_spi_details
 from transaction_examples import generate_transaction_examples
 
 ROOT = Path(__file__).resolve().parents[2]
-ARCH = ROOT / "docs/system/figures/architecture"
-OUT = ARCH / "pl-subsystem"
+ARCH = ROOT / "docs/figures/system/architecture"
+OUT = ROOT / "docs/figures/system/pl-subsystem"
 NS = "http://www.w3.org/2000/svg"
 XLINK = "http://www.w3.org/1999/xlink"
 ET.register_namespace("", NS)

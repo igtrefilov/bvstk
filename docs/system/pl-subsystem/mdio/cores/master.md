@@ -8,7 +8,7 @@ PHY. После записи сервис запустит чтение кома
 
 ## Состав ядра
 
-![Команда, автомат MDIO и публикация результата через AXI](../../../figures/architecture/pl-subsystem/mdio/cores/master/structure.svg)
+![Команда, автомат MDIO и публикация результата через AXI](../../../../figures/system/pl-subsystem/mdio/cores/master/structure.svg)
 
 *Рисунок 1. Состав MDIO master.*
 
@@ -32,7 +32,7 @@ PHY. После записи сервис запустит чтение кома
 
 ## Передача команды автомату
 
-![Извлечение команды, согласование и передача записи физическому PHY](../../../figures/architecture/pl-subsystem/mdio/cores/master/command.svg)
+![Извлечение команды, согласование и передача записи физическому PHY](../../../../figures/system/pl-subsystem/mdio/cores/master/command.svg)
 
 *Рисунок 2. Выполнение разрешённой записи 0x0120.*
 
@@ -113,7 +113,7 @@ Engine фиксирует бит turnaround во внутреннем `err_flag_
 
 ## Публикация результата
 
-![Запись результата в BRAM, IRQ и подтверждение со стороны PS](../../../figures/architecture/pl-subsystem/mdio/cores/master/result.svg)
+![Запись результата в BRAM, IRQ и подтверждение со стороны PS](../../../../figures/system/pl-subsystem/mdio/cores/master/result.svg)
 
 *Рисунок 3. Публикация прочитанного регистра и освобождение следующего результата.*
 

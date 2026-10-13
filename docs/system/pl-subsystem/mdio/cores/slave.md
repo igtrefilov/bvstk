@@ -13,7 +13,7 @@ REG 4 и DATA `0x0120`. `SMI_slave_0` должно сохранить получ
 не выполняет. Далее рассматривается корректный кадр Clause 22
 из основного примера.
 
-![Разбор полей внешнего кадра и передача собранной операции контроллеру](../../../figures/architecture/pl-subsystem/mdio/cores/slave/decode.svg)
+![Разбор полей внешнего кадра и передача собранной операции контроллеру](../../../../figures/system/pl-subsystem/mdio/cores/slave/decode.svg)
 
 *Рисунок 1. Преобразование кадра в запрос к контроллеру памяти.*
 
@@ -35,7 +35,7 @@ REG 4 и DATA `0x0120`. `SMI_slave_0` должно сохранить получ
 физическому PHY. Дальше адресные поля и данные расходятся:
 первые выбирают ячейку, вторые становятся её содержимым.
 
-![Сохранение 0x0120 в адресованной ячейке и установка IRQ](../../../figures/architecture/pl-subsystem/mdio/cores/slave/write.svg)
+![Сохранение 0x0120 в адресованной ячейке и установка IRQ](../../../../figures/system/pl-subsystem/mdio/cores/slave/write.svg)
 
 *Рисунок 2. Публикация принятой записи PHY 1, REG 4.*
 
@@ -63,7 +63,7 @@ REG 4 и DATA `0x0120`. `SMI_slave_0` должно сохранить получ
 
 ## Состав ядра
 
-![Автомат внешнего кадра и два направления доступа к BRAM](../../../figures/architecture/pl-subsystem/mdio/cores/slave/structure.svg)
+![Автомат внешнего кадра и два направления доступа к BRAM](../../../../figures/system/pl-subsystem/mdio/cores/slave/structure.svg)
 
 *Рисунок 3. Состав MDIO slave.*
 
@@ -85,7 +85,7 @@ MDC проходит через `debouncer` и `sync`, которые выдел
 записей и банка ответов различаются, хотя индекс регистра одинаков:
 новый кадр обращается к `0x42002090`.
 
-![Выбор ячейки ответа до начала передачи поля DATA](../../../figures/architecture/pl-subsystem/mdio/cores/slave/read.svg)
+![Выбор ячейки ответа до начала передачи поля DATA](../../../../figures/system/pl-subsystem/mdio/cores/slave/read.svg)
 
 *Рисунок 4. Подготовка 0x0120 к turnaround внешнего чтения.*
 

@@ -9,7 +9,7 @@
 
 ## Транзакция на шине
 
-![CMD17 с LBA 32 и ответ карты с блоком данных](../../figures/architecture/pl-subsystem/spi/transaction.svg)
+![CMD17 с LBA 32 и ответ карты с блоком данных](../../../figures/system/pl-subsystem/spi/transaction.svg)
 
 *Рисунок 1. Чтение блока SD с LBA 32.*
 
@@ -41,7 +41,7 @@
 
 ## Состав подсистемы
 
-![Ядра SPI, каналы DMA и доступные им области памяти](../../figures/architecture/pl-subsystem/spi/subsystem.svg)
+![Ядра SPI, каналы DMA и доступные им области памяти](../../../figures/system/pl-subsystem/spi/subsystem.svg)
 
 *Рисунок 2. Потоки SPI и память обмена.*
 
@@ -66,4 +66,6 @@ FreeRTOS. В Нейтрино этот путь через PL не запуще�
 и [драйвере](drivers/master.md#инициализация). Запись CMD24
 завершается [перечитыванием и сравнением](services/services.md#запись-с-проверкой).
 Работа с томом описана в [сервисе](services/services.md#том-и-владение-картой)
-и [руководстве PL SD](../../../operations/sd-pl-prototype.md).
+и [руководстве PL SD](../../../operations/sd-pl.md).
+
+Состав аппаратной части собран в [обзоре ядер](cores/cores.md).

@@ -1,0 +1,178 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1480" viewBox="0 40 1480 1546" role="img" aria-labelledby="title desc" height="1546">
+  <title id="title">I²C: ведущий сервис</title>
+  <desc id="desc">Физическое чтение вызывает драйвер напрямую, запись проходит политику. Успех обновляет кэш, ошибка обмена снимает достоверность; отказ политики сохраняет прежний кэш.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1480" height="1586" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="80" width="980" height="1360" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="read" data-to="driver" data-interaction="call" data-direction="forward">
+      <path d="M430,262.5 L1100,262.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M430,262.5 L1100,262.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="write" data-to="policy" data-interaction="call" data-direction="forward">
+      <path d="M430,532.5 L650,532.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M430,532.5 L650,532.5" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="policy" data-to="driver" data-interaction="call" data-direction="forward">
+      <path d="M820,470 L820,375 L1100,375" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M820,470 L820,375 L1100,375" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="policy" data-to="denied" data-interaction="call" data-direction="forward">
+      <path d="M820,595 L820,690" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M820,595 L820,690" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="driver" data-to="result" data-interaction="data" data-direction="forward">
+      <path d="M1265,425 L1265,990 L990,990" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1265,425 L1265,990 L990,990" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="result" data-to="update" data-interaction="data" data-direction="forward">
+      <path d="M650,990 L330,990 L330,1220" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M650,990 L330,990 L330,1220" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="result" data-to="invalidate" data-interaction="data" data-direction="forward">
+      <path d="M820,1060 L820,1220" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M820,1060 L820,1220" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="service" data-kind="functional-group" data-label="bvstk_i2c_master_service" data-layer="L3" data-ownership="common">
+      <rect x="60" y="80" width="980" height="1360" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="../../../architecture/architecture_bvstk_l3.svg#service-bvstk_i2c_master_service">
+        <text x="86" y="117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">bvstk_i2c_master_service</text>
+      </a>
+      <g id="read" data-kind="component" data-layer="L3" data-label="Физическое чтение" data-ownership="common" data-parent="service">
+        <rect x="110" y="200" width="320" height="125" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="130" y="224.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="130" y="258.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Физическое чтение</text>
+        <text x="130" y="297.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">read_from</text>
+      </g>
+      <g id="write" data-kind="component" data-layer="L3" data-label="Запись регистра" data-ownership="common" data-parent="service">
+        <rect x="110" y="470" width="320" height="125" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="130" y="494.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="130" y="528.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Запись регистра</text>
+        <text x="130" y="567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">write</text>
+      </g>
+      <g id="policy" data-kind="component" data-layer="L3" data-label="Политика записи" data-ownership="common" data-source="src/services/i2c/bvstk_i2c_policy.c" data-parent="service">
+        <rect x="650" y="470" width="340" height="125" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="670" y="494.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="670" y="528.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Политика записи</text>
+        <text x="670" y="567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Регистр и значение</text>
+      </g>
+      <g id="denied" data-kind="component" data-layer="L3" data-label="Вернуть отказ" data-ownership="common" data-parent="service">
+        <rect x="650" y="690" width="340" height="150" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="670" y="714.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="670" y="748.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Вернуть отказ</text>
+        <text x="670" y="787.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">ERR_DENIED</text>
+      </g>
+      <g id="result" data-kind="component" data-layer="L3" data-label="Результат обмена" data-ownership="common" data-parent="service">
+        <rect x="650" y="920" width="340" height="140" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="670" y="944.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="670" y="978.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Результат обмена</text>
+        <text x="670" y="1017.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">cache_response</text>
+      </g>
+      <g id="update" data-kind="component" data-layer="L3" data-label="Обновить кэш" data-ownership="common" data-parent="service" data-target="../../overview/cache.svg#cache">
+        <rect x="110" y="1220" width="440" height="160" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../overview/cache.svg#cache">
+          <text x="130" y="1244.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="130" y="1317.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Обновить кэш</text>
+        </a>
+      </g>
+      <g id="invalidate" data-kind="component" data-layer="L3" data-label="Снять достоверность" data-ownership="common" data-parent="service" data-target="../../overview/cache.svg#cache">
+        <rect x="650" y="1220" width="340" height="160" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../overview/cache.svg#cache">
+          <text x="670" y="1244.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="670" y="1278.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Снять достоверность</text>
+        </a>
+        <text x="670" y="1317.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">valid = 0</text>
+      </g>
+    </g>
+    <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master" data-ownership="common" data-target="../drivers/master/transfer.svg#driver">
+      <rect x="1100" y="240" width="330" height="185" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../drivers/master/transfer.svg#driver">
+        <text x="1120" y="264.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1120" y="298.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master</text>
+      </a>
+      <text x="1120" y="337.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">hw_read_reg</text>
+      <text x="1120" y="363.34000000000003" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">hw_write_reg</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="950" y="350.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Разрешено</text>
+    <text x="910" y="644.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Запрещено</text>
+    <text x="405" y="1140.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Успех</text>
+    <text x="885" y="1140.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Ошибка</text>
+    <path d="M60,1492 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1498.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1492 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="1498.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1529" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1548.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/services/i2c/bvstk_i2c_master_service.c",
+    "src/services/i2c/bvstk_i2c_policy.c",
+    "src/services/i2c/bvstk_i2c_cache.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "service",
+      "target": "../../../architecture/architecture_bvstk_l3.svg#service-bvstk_i2c_master_service"
+    },
+    {
+      "node": "driver",
+      "target": "../drivers/master/transfer.svg#driver"
+    },
+    {
+      "node": "update",
+      "target": "../../overview/cache.svg#cache"
+    },
+    {
+      "node": "invalidate",
+      "target": "../../overview/cache.svg#cache"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

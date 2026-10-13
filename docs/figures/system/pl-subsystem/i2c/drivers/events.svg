@@ -1,0 +1,238 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 60 2200 1766" role="img" aria-labelledby="title desc" data-content="article-figure" height="1766">
+  <title id="title">I²C slave: доставка и обработка события</title>
+  <desc id="desc">В FreeRTOS состояние захватывает ISR, в Нейтрино — поток после InterruptWait. Обе реализации вызывают общий драйвер и сервис.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="1826" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="325" width="600" height="1085" rx="16" fill="white" />
+    <rect x="1540" y="285" width="600" height="1395" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="core" data-to="f-isr" data-interaction="irq" data-direction="forward">
+      <path d="M800,177.5 L360,177.5 L360,610" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M800,177.5 L360,177.5 L360,610" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="core" data-to="n-wait" data-interaction="irq" data-direction="forward">
+      <path d="M1400,177.5 L1840,177.5 L1840,365" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1400,177.5 L1840,177.5 L1840,365" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="f-isr" data-to="capture" data-interaction="call" data-direction="forward">
+      <path d="M620,690 L790,690" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M620,690 L790,690" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="n-capture" data-to="capture" data-interaction="call" data-direction="forward">
+      <path d="M1580,690 L1410,690" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1580,690 L1410,690" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="capture" data-to="core" data-interaction="mmio" data-direction="forward">
+      <path d="M1100,610 L1100,255" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1100,610 L1100,255" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="f-isr" data-to="f-queue" data-interaction="irq" data-direction="forward">
+      <path d="M360,770 L360,930" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M360,770 L360,930" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="f-queue" data-to="f-worker" data-interaction="irq" data-direction="forward">
+      <path d="M360,1080 L360,1200" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M360,1080 L360,1200" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="n-wait" data-to="n-capture" data-interaction="irq" data-direction="forward">
+      <path d="M1840,515 L1840,610" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1840,515 L1840,610" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="n-capture" data-to="n-process" data-interaction="call" data-direction="forward">
+      <path d="M1840,770 L1840,1200" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1840,770 L1840,1200" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="f-worker" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M620,1280 L790,1280" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M620,1280 L790,1280" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="n-process" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M1580,1280 L1410,1280" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1580,1280 L1410,1280" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="n-process" data-to="n-unmask" data-interaction="call" data-direction="forward">
+      <path d="M1840,1360 L1840,1490" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1840,1360 L1840,1490" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="core" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_slave_0" data-ownership="common" data-target="../cores/slave/completion.svg#regs">
+      <rect x="800" y="100" width="600" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../cores/slave/completion.svg#regs">
+        <text x="820" y="124.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="820" y="158.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
+      </a>
+      <text x="820" y="197.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">DATA_VALID, RD_REQUEST</text>
+    </g>
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="60" y="325" width="600" height="1085" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="86" y="362.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="f-isr" data-kind="component" data-layer="L1" data-label="slave_isr" data-ownership="freertos" data-source="src/ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.c" data-parent="freertos">
+        <rect x="100" y="610" width="520" height="160" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <text x="120" y="634.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+        <text x="120" y="668.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">slave_isr</text>
+        <text x="120" y="707.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Захват события</text>
+      </g>
+      <g id="f-queue" data-kind="component" data-layer="L2" data-label="Очередь событий" data-ownership="freertos" data-parent="freertos" data-target="../../../architecture/architecture_bvstk_l1.svg#f-interrupt-processing--event">
+        <rect x="100" y="930" width="520" height="150" rx="11" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../../architecture/architecture_bvstk_l1.svg#f-interrupt-processing--event">
+          <text x="120" y="954.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#c65b4e" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
+          <text x="120" y="988.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Очередь событий</text>
+        </a>
+        <text x="120" y="1027.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">xQueueSendFromISR</text>
+      </g>
+      <g id="f-worker" data-kind="component" data-layer="L1" data-label="slave_task" data-ownership="freertos" data-parent="freertos" data-target="../../../architecture/architecture_bvstk_l1.svg#f-interrupt-processing--worker">
+        <rect x="100" y="1200" width="520" height="160" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../../architecture/architecture_bvstk_l1.svg#f-interrupt-processing--worker">
+          <text x="120" y="1224.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="120" y="1258.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">slave_task</text>
+        </a>
+        <text x="120" y="1297.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">xQueueReceive</text>
+      </g>
+    </g>
+    <g id="neutrino" data-kind="ownership-region" data-label="Нейтрино" data-ownership="neutrino">
+      <rect x="1540" y="285" width="600" height="1395" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="1566" y="322.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Нейтрино</text>
+      <g id="n-wait" data-kind="component" data-layer="L2" data-label="Ожидание IRQ" data-ownership="neutrino" data-parent="neutrino" data-target="../../../architecture/architecture_bvstk_l1.svg#n-interrupt-processing--event">
+        <rect x="1580" y="365" width="520" height="150" rx="11" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../../architecture/architecture_bvstk_l1.svg#n-interrupt-processing--event">
+          <text x="1600" y="389.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#c65b4e" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
+          <text x="1600" y="423.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ожидание IRQ</text>
+        </a>
+        <text x="1600" y="462.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SIGEV_INTR, InterruptWait</text>
+      </g>
+      <g id="n-capture" data-kind="component" data-layer="L1" data-label="interrupt_thread" data-ownership="neutrino" data-source="src/ports/neutrino-zynq7000/os/i2c/bvstk_i2c_slave_neutrino.c" data-parent="neutrino">
+        <rect x="1580" y="610" width="520" height="160" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <text x="1600" y="634.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+        <text x="1600" y="668.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">interrupt_thread</text>
+        <text x="1600" y="707.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Захват события</text>
+      </g>
+      <g id="n-process" data-kind="component" data-layer="L1" data-label="Обработка события" data-ownership="neutrino" data-parent="neutrino" data-target="../../../architecture/architecture_bvstk_l1.svg#n-interrupt-processing--worker">
+        <rect x="1580" y="1200" width="520" height="160" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../../../architecture/architecture_bvstk_l1.svg#n-interrupt-processing--worker">
+          <text x="1600" y="1224.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="1600" y="1258.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Обработка события</text>
+        </a>
+        <text x="1600" y="1297.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Под state_mutex</text>
+      </g>
+      <g id="n-unmask" data-kind="component" data-layer="L2" data-label="Размаскирование IRQ" data-ownership="neutrino" data-parent="neutrino">
+        <rect x="1580" y="1490" width="520" height="140" rx="11" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.8" />
+        <text x="1600" y="1514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#c65b4e" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
+        <text x="1600" y="1548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Размаскирование IRQ</text>
+        <text x="1600" y="1587.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">InterruptUnmask</text>
+      </g>
+    </g>
+    <g id="capture" data-kind="component" data-layer="L3" data-label="bvstk_i2c_slave" data-ownership="common" data-target="slave/write.svg#capture">
+      <rect x="790" y="610" width="620" height="160" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="slave/write.svg#capture">
+        <text x="810" y="634.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="810" y="668.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave</text>
+      </a>
+      <text x="810" y="707.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">hw_capture_irq</text>
+    </g>
+    <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_slave_service" data-ownership="common" data-target="slave/read.svg#service">
+      <rect x="790" y="1200" width="620" height="160" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="slave/read.svg#service">
+        <text x="810" y="1224.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="810" y="1258.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave_service</text>
+      </a>
+      <text x="810" y="1297.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">handle_frame</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="1240" y="460.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">IRQ, REQ, сброс</text>
+    <path d="M60,1732 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1738.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1732 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1738.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,1732 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="633" y="1738.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="1769" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="1788.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="1769" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="304" y="1788.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="375" y="1769" width="32" height="24" rx="4" fill="#ffd1c7" stroke="#c65b4e" />
+    <text x="419" y="1788.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
+    <rect x="490" y="1769" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="534" y="1788.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/drivers/pl/i2c/bvstk_i2c_slave.c",
+    "src/ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.c",
+    "src/ports/neutrino-zynq7000/os/i2c/bvstk_i2c_slave_neutrino.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "core",
+      "target": "../cores/slave/completion.svg#regs"
+    },
+    {
+      "node": "capture",
+      "target": "slave/write.svg#capture"
+    },
+    {
+      "node": "f-queue",
+      "target": "../../../architecture/architecture_bvstk_l1.svg#f-interrupt-processing--event"
+    },
+    {
+      "node": "f-worker",
+      "target": "../../../architecture/architecture_bvstk_l1.svg#f-interrupt-processing--worker"
+    },
+    {
+      "node": "n-wait",
+      "target": "../../../architecture/architecture_bvstk_l1.svg#n-interrupt-processing--event"
+    },
+    {
+      "node": "n-process",
+      "target": "../../../architecture/architecture_bvstk_l1.svg#n-interrupt-processing--worker"
+    },
+    {
+      "node": "service",
+      "target": "slave/read.svg#service"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

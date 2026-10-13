@@ -8,7 +8,7 @@
 
 ## Транзакция на шине
 
-![Кадр Clause 22 с PHY 1, REG 4 и DATA 0x0120](../../figures/architecture/pl-subsystem/mdio/transaction.svg)
+![Кадр Clause 22 с PHY 1, REG 4 и DATA 0x0120](../../../figures/system/pl-subsystem/mdio/transaction.svg)
 
 *Рисунок 1. Внешняя запись регистра 4 PHY 1.*
 
@@ -37,7 +37,7 @@
 
 ## Состав подсистемы
 
-![Два участка MDIO, общая память и программный сервис](../../figures/architecture/pl-subsystem/mdio/subsystem.svg)
+![Два участка MDIO, общая память и программный сервис](../../../figures/system/pl-subsystem/mdio/subsystem.svg)
 
 *Рисунок 2. Участники операции MDIO.*
 
@@ -64,3 +64,5 @@
 
 В [SPI и SD](../spi/spi.md) далее прослеживается приём целого блока
 через AXI Stream и DMA.
+
+Состав аппаратной части собран в [обзоре ядер](cores/cores.md).
