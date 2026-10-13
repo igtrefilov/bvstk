@@ -126,56 +126,47 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="500" y="380" width="500" height="175" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l4.svg">
           <text x="520" y="404.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="520" y="438.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Прикладные команды</text>
+          <text x="520" y="484.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Прикладные команды</text>
         </a>
-        <text x="520" y="477.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Операции и настройка подсистемы</text>
       </g>
-      <g id="profile" data-kind="component" data-layer="L4" data-label="Профиль подсистемы" data-ownership="common" data-parent="bridge" data-target="../ps-interaction/startup.svg#profile">
+      <g id="profile" data-kind="component" data-layer="L4" data-label="Профиль подсистемы" data-ownership="common" data-parent="bridge">
         <rect x="1250" y="380" width="450" height="190" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="../ps-interaction/startup.svg#profile">
-          <text x="1270" y="404.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-          <text x="1270" y="438.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Профиль подсистемы</text>
-        </a>
-        <text x="1270" y="477.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Устройства и правила</text>
-        <text x="1270" y="503.34000000000003" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Начальные настройки</text>
+        <text x="1270" y="404.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="1270" y="492.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Профиль подсистемы</text>
       </g>
       <g id="services" data-kind="functional-group" data-label="Сервис подсистемы" data-layer="L3" data-ownership="common">
         <rect x="500" y="690" width="1200" height="410" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_l3.svg#subsystem-services">
           <text x="526" y="727.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Сервис подсистемы</text>
         </a>
-        <g id="operation" data-kind="component" data-layer="L3" data-label="Обработка операций" data-ownership="common" data-parent="services" data-target="exchange.svg#service">
+        <g id="operation" data-kind="component" data-layer="L3" data-label="Обработка операций" data-ownership="common" data-parent="services" data-target="exchange-refresh.svg#service">
           <rect x="540" y="795" width="530" height="220" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="exchange.svg#service">
+          <a data-navigation="detail" xlink:href="exchange-refresh.svg#service">
             <text x="560" y="819.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-            <text x="560" y="853.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Обработка операций</text>
+            <text x="560" y="922.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Обработка операций</text>
           </a>
-          <text x="560" y="892.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Разобрать запрос</text>
-          <text x="560" y="918.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выбрать действие</text>
-          <text x="560" y="944.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подготовить ответ</text>
         </g>
         <g id="policy" data-kind="component" data-layer="L3" data-label="Политика в PS" data-ownership="common" data-parent="services" data-target="bridge.svg#policy">
           <rect x="1280" y="780" width="380" height="110" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
           <a data-navigation="detail" xlink:href="bridge.svg#policy">
             <text x="1300" y="804.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-            <text x="1300" y="838.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Политика в PS</text>
+            <text x="1300" y="852.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Политика в PS</text>
           </a>
         </g>
         <g id="cache" data-kind="component" data-layer="L3" data-label="Кэш значений" data-ownership="common" data-parent="services" data-target="cache.svg#cache">
           <rect x="1280" y="940" width="380" height="110" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
           <a data-navigation="detail" xlink:href="cache.svg#cache">
             <text x="1300" y="964.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-            <text x="1300" y="998.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Кэш значений</text>
+            <text x="1300" y="1012.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Кэш значений</text>
           </a>
         </g>
       </g>
-      <g id="driver" data-kind="component" data-layer="L3" data-label="Драйвер подсистемы" data-ownership="common" data-parent="bridge" data-target="exchange.svg#completion">
+      <g id="driver" data-kind="component" data-layer="L3" data-label="Драйвер подсистемы" data-ownership="common" data-parent="bridge" data-target="exchange-refresh.svg#completion">
         <rect x="600" y="1220" width="620" height="165" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="exchange.svg#completion">
+        <a data-navigation="detail" xlink:href="exchange-refresh.svg#completion">
           <text x="620" y="1244.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="620" y="1278.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер подсистемы</text>
+          <text x="620" y="1319.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер подсистемы</text>
         </a>
-        <text x="620" y="1317.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Команды, буферы и проверка завершения</text>
       </g>
       <g id="platform" data-kind="component" data-layer="L1" data-label="Платформенный доступ" data-ownership="common" data-parent="bridge" data-target="../../architecture_bvstk_l1.svg#platform-access">
         <rect x="600" y="1470" width="620" height="150" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
@@ -183,15 +174,14 @@ g:target &gt; rect { stroke-width: 5; }
           <text x="620" y="1494.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
           <text x="620" y="1528.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Платформенный доступ</text>
         </a>
-        <text x="620" y="1567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">MMIO, память и доставка событий</text>
+        <text x="620" y="1567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">MMIO и события</text>
       </g>
       <g id="ps" data-kind="component" data-layer="L0" data-label="Аппаратная часть PS" data-ownership="common" data-parent="bridge" data-target="../../architecture_bvstk_ps_pl.svg#ps-axi">
         <rect x="600" y="1705" width="620" height="155" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#ps-axi">
           <text x="620" y="1729.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-          <text x="620" y="1763.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Аппаратная часть PS</text>
+          <text x="620" y="1799.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Аппаратная часть PS</text>
         </a>
-        <text x="620" y="1802.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">AXI к PL и доступ к BRAM</text>
       </g>
       <g id="registers" data-kind="component" data-layer="L0" data-domain="pl" data-label="Регистры ядер" data-ownership="common" data-parent="bridge" data-target="../../architecture_bvstk_ps_pl.svg">
         <rect x="1400" y="1690" width="300" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -207,14 +197,12 @@ g:target &gt; rect { stroke-width: 5; }
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg">
           <text x="506" y="2057.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">Ядра и BRAM</text>
         </a>
-        <g id="pl_slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_slave" data-ownership="common" data-parent="pl-subsystem" data-target="exchange.svg#pl_slave">
+        <g id="pl_slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_slave" data-ownership="common" data-parent="pl-subsystem" data-target="exchange-read.svg#pl_slave">
           <rect x="500" y="2110" width="290" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="exchange.svg#pl_slave">
+          <a data-navigation="detail" xlink:href="exchange-read.svg#pl_slave">
             <text x="520" y="2134.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-            <text x="520" y="2168.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_slave</text>
+            <text x="520" y="2219.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_slave</text>
           </a>
-          <text x="520" y="2207.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Приём запроса</text>
-          <text x="520" y="2233.3399999999997" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выдача ответа</text>
         </g>
         <g id="exchange-memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM" data-ownership="common" data-parent="pl-subsystem" data-target="memory.svg#exchange-memory">
           <rect x="935" y="2110" width="330" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -224,13 +212,12 @@ g:target &gt; rect { stroke-width: 5; }
           </a>
           <text x="955" y="2207.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Области обмена</text>
         </g>
-        <g id="pl_master" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_master" data-ownership="common" data-parent="pl-subsystem" data-target="exchange.svg#pl_master">
+        <g id="pl_master" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_master" data-ownership="common" data-parent="pl-subsystem" data-target="exchange-refresh.svg#pl_master">
           <rect x="1430" y="2110" width="270" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="exchange.svg#pl_master">
+          <a data-navigation="detail" xlink:href="exchange-refresh.svg#pl_master">
             <text x="1450" y="2134.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-            <text x="1450" y="2168.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_master</text>
+            <text x="1450" y="2219.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_master</text>
           </a>
-          <text x="1450" y="2207.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Обмен с устройством</text>
         </g>
       </g>
     </g>
@@ -238,19 +225,17 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="60" y="2110" width="300" height="185" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="bridge.svg#host">
         <text x="80" y="2134.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="80" y="2168.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
-        <text x="80" y="2201.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
+        <text x="80" y="2202.94" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
+        <text x="80" y="2236.06" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
       </a>
-      <text x="80" y="2240.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Обращается к BVSTK</text>
     </g>
     <g id="device" data-kind="component" data-layer="L0" data-label="Внешнее ведомое&#10;устройство" data-ownership="common" data-target="bridge.svg#device">
       <rect x="1840" y="2110" width="300" height="185" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="bridge.svg#device">
         <text x="1860" y="2134.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="1860" y="2168.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее ведомое</text>
-        <text x="1860" y="2201.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">устройство</text>
+        <text x="1860" y="2202.94" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее ведомое</text>
+        <text x="1860" y="2236.06" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">устройство</text>
       </a>
-      <text x="1860" y="2240.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выполняет операции</text>
     </g>
   </g>
   <g id="annotations">
@@ -297,16 +282,12 @@ g:target &gt; rect { stroke-width: 5; }
       "target": "../../architecture_bvstk_l4.svg"
     },
     {
-      "node": "profile",
-      "target": "../ps-interaction/startup.svg#profile"
-    },
-    {
       "node": "services",
       "target": "../../architecture_bvstk_l3.svg#subsystem-services"
     },
     {
       "node": "operation",
-      "target": "exchange.svg#service"
+      "target": "exchange-refresh.svg#service"
     },
     {
       "node": "policy",
@@ -318,7 +299,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "driver",
-      "target": "exchange.svg#completion"
+      "target": "exchange-refresh.svg#completion"
     },
     {
       "node": "platform",
@@ -338,7 +319,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "pl_slave",
-      "target": "exchange.svg#pl_slave"
+      "target": "exchange-read.svg#pl_slave"
     },
     {
       "node": "exchange-memory",
@@ -346,7 +327,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "pl_master",
-      "target": "exchange.svg#pl_master"
+      "target": "exchange-refresh.svg#pl_master"
     },
     {
       "node": "host",

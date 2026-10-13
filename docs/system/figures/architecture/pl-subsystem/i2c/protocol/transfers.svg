@@ -48,55 +48,47 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="88" y="328" width="1430" height="150" fill="none" stroke="#607487" stroke-width="0" />
       <g id="write-fields-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
         <polygon points="100,352 112,340 172,340 184,352 184,418 172,430 112,430 100,418" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="142.0" y="377.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
-        <text x="142.0" y="409.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="142.0" y="394" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
         <text x="142.0" y="460.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="write-fields-1" data-kind="protocol-field" data-label="Адрес + W" data-driver="ведущий">
         <rect x="196" y="340" width="240" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
         <a data-navigation="detail" xlink:href="transaction.svg#address">
-          <text x="316.0" y="377.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + W</text>
-          <text x="316.0" y="409.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">7 бит + 0</text>
+          <text x="316.0" y="394" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + W</text>
         </a>
         <text x="316.0" y="460.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="write-fields-2" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
         <rect x="448" y="340" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="495.0" y="377.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="495.0" y="409.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="495.0" y="394" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="495.0" y="460.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="write-fields-3" data-kind="protocol-field" data-label="Данные 0" data-driver="ведущий">
         <rect x="554" y="340" width="260" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="684.0" y="377.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные 0</text>
-        <text x="684.0" y="409.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="684.0" y="394" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные 0</text>
         <text x="684.0" y="460.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="write-fields-4" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
         <rect x="826" y="340" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="873.0" y="377.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="873.0" y="409.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="873.0" y="394" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="873.0" y="460.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="write-fields-5" data-kind="protocol-field" data-label="…" data-driver="">
-        <text x="982.0" y="377.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">…</text>
+        <text x="982.0" y="394" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">…</text>
       </g>
       <g id="write-fields-6" data-kind="protocol-field" data-label="Данные n" data-driver="ведущий">
         <rect x="1044" y="340" width="260" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="1174.0" y="377.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные n</text>
-        <text x="1174.0" y="409.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="1174.0" y="394" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные n</text>
         <text x="1174.0" y="460.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="write-fields-7" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
         <rect x="1316" y="340" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="1363.0" y="377.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="1363.0" y="409.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="1363.0" y="394" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="1363.0" y="460.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="write-fields-8" data-kind="protocol-field" data-label="P" data-driver="ведущий">
         <polygon points="1422,352 1434,340 1494,340 1506,352 1506,418 1494,430 1434,430 1422,418" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="1464.0" y="377.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
-        <text x="1464.0" y="409.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="1464.0" y="394" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
         <text x="1464.0" y="460.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
     </g>
@@ -104,55 +96,47 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="88" y="638" width="1410" height="150" fill="none" stroke="#607487" stroke-width="0" />
       <g id="read-fields-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
         <polygon points="100,662 112,650 172,650 184,662 184,728 172,740 112,740 100,728" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="142.0" y="687.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
-        <text x="142.0" y="719.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="142.0" y="704" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
         <text x="142.0" y="770.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="read-fields-1" data-kind="protocol-field" data-label="Адрес + R" data-driver="ведущий">
         <rect x="196" y="650" width="240" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
         <a data-navigation="detail" xlink:href="transaction.svg#address">
-          <text x="316.0" y="687.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + R</text>
-          <text x="316.0" y="719.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">7 бит + 1</text>
+          <text x="316.0" y="704" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + R</text>
         </a>
         <text x="316.0" y="770.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="read-fields-2" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
         <rect x="448" y="650" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="495.0" y="687.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="495.0" y="719.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="495.0" y="704" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="495.0" y="770.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="read-fields-3" data-kind="protocol-field" data-label="Данные 0" data-driver="ведомый">
         <rect x="554" y="650" width="250" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="679.0" y="687.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные 0</text>
-        <text x="679.0" y="719.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="679.0" y="704" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные 0</text>
         <text x="679.0" y="770.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="read-fields-4" data-kind="protocol-field" data-label="ACK" data-driver="ведущий">
         <rect x="816" y="650" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="863.0" y="687.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="863.0" y="719.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="863.0" y="704" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="863.0" y="770.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="read-fields-5" data-kind="protocol-field" data-label="…" data-driver="">
-        <text x="972.0" y="687.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">…</text>
+        <text x="972.0" y="704" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">…</text>
       </g>
       <g id="read-fields-6" data-kind="protocol-field" data-label="Данные n" data-driver="ведомый">
         <rect x="1034" y="650" width="250" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="1159.0" y="687.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные n</text>
-        <text x="1159.0" y="719.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="1159.0" y="704" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные n</text>
         <text x="1159.0" y="770.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="read-fields-7" data-kind="protocol-field" data-label="NACK" data-driver="ведущий">
         <rect x="1296" y="650" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="1343.0" y="687.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
-        <text x="1343.0" y="719.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="1343.0" y="704" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
         <text x="1343.0" y="770.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="read-fields-8" data-kind="protocol-field" data-label="P" data-driver="ведущий">
         <polygon points="1402,662 1414,650 1474,650 1486,662 1486,728 1474,740 1414,740 1402,728" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="1444.0" y="687.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
-        <text x="1444.0" y="719.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="1444.0" y="704" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
         <text x="1444.0" y="770.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
     </g>
@@ -160,40 +144,34 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="88" y="948" width="930" height="150" fill="none" stroke="#607487" stroke-width="0" />
       <g id="single-read-fields-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
         <polygon points="100,972 112,960 172,960 184,972 184,1038 172,1050 112,1050 100,1038" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="142.0" y="997.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
-        <text x="142.0" y="1029.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="142.0" y="1014" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
         <text x="142.0" y="1080.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="single-read-fields-1" data-kind="protocol-field" data-label="Адрес + R" data-driver="ведущий">
         <rect x="196" y="960" width="240" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
         <a data-navigation="detail" xlink:href="transaction.svg#address">
-          <text x="316.0" y="997.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + R</text>
-          <text x="316.0" y="1029.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">7 бит + 1</text>
+          <text x="316.0" y="1014" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + R</text>
         </a>
         <text x="316.0" y="1080.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="single-read-fields-2" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
         <rect x="448" y="960" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="495.0" y="997.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="495.0" y="1029.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="495.0" y="1014" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="495.0" y="1080.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="single-read-fields-3" data-kind="protocol-field" data-label="Данные" data-driver="ведомый">
         <rect x="554" y="960" width="250" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="679.0" y="997.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные</text>
-        <text x="679.0" y="1029.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="679.0" y="1014" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Данные</text>
         <text x="679.0" y="1080.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="single-read-fields-4" data-kind="protocol-field" data-label="NACK" data-driver="ведущий">
         <rect x="816" y="960" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="863.0" y="997.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
-        <text x="863.0" y="1029.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="863.0" y="1014" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
         <text x="863.0" y="1080.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="single-read-fields-5" data-kind="protocol-field" data-label="P" data-driver="ведущий">
         <polygon points="922,972 934,960 994,960 1006,972 1006,1038 994,1050 934,1050 922,1038" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="964.0" y="997.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
-        <text x="964.0" y="1029.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="964.0" y="1014" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
         <text x="964.0" y="1080.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
     </g>
@@ -201,28 +179,24 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="88" y="1258" width="562" height="150" fill="none" stroke="#607487" stroke-width="0" />
       <g id="nack-fields-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
         <polygon points="100,1282 112,1270 172,1270 184,1282 184,1348 172,1360 112,1360 100,1348" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="142.0" y="1307.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
-        <text x="142.0" y="1339.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="142.0" y="1324" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
         <text x="142.0" y="1390.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="nack-fields-1" data-kind="protocol-field" data-label="Адрес + W" data-driver="ведущий">
         <rect x="196" y="1270" width="240" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
         <a data-navigation="detail" xlink:href="transaction.svg#address">
-          <text x="316.0" y="1307.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + W</text>
-          <text x="316.0" y="1339.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">7 бит + 0</text>
+          <text x="316.0" y="1324" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Адрес + W</text>
         </a>
         <text x="316.0" y="1390.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="nack-fields-2" data-kind="protocol-field" data-label="NACK" data-driver="—">
         <rect x="448" y="1270" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="495.0" y="1307.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
-        <text x="495.0" y="1339.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="495.0" y="1324" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
         <text x="495.0" y="1390.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">—</text>
       </g>
       <g id="nack-fields-3" data-kind="protocol-field" data-label="P" data-driver="ведущий">
         <polygon points="554,1282 566,1270 626,1270 638,1282 638,1348 626,1360 566,1360 554,1348" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="596.0" y="1307.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
-        <text x="596.0" y="1339.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="596.0" y="1324" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
         <text x="596.0" y="1390.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
     </g>
@@ -246,7 +220,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <rect x="60" y="1509" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
     <text x="104" y="1528.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <text x="60" y="1575.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan> — физический интерфейс. Синие поля — биты на шине.</tspan></text>
+    <text x="60" y="1575.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">S — START. P — STOP. Под полями — источник SDA.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

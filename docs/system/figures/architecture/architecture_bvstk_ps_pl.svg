@@ -71,16 +71,14 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
         <g id="cpu" data-kind="component" data-layer="L0" data-hardware-domain="PS" data-ownership="common" data-parent="ps-control" data-label="Cortex-A9" data-entity="architecture_bvstk_ps_pl.svg#cpu" data-entity-ownership="common" data-representation="definition">
           <title>Cortex-A9</title>
           <rect x="120" y="375" width="320" height="96" rx="7" fill="#e9eef3" stroke="#607487" stroke-width="1.4" />
-          <text id="pspl-text-6" x="280.0" y="417.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="290">Cortex-A9</text>
-          <text id="pspl-text-7" x="280.0" y="446.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="288">Чтение и запись</text>
+          <text id="pspl-text-6" x="280.0" y="430.35" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="290">Cortex-A9</text>
         </g>
         <g id="gp0" data-kind="component" data-layer="L0" data-hardware-domain="PS" data-ownership="common" data-parent="ps-control" data-label="M_AXI_GP0" data-entity="architecture_bvstk_ps_pl.svg#gp0" data-entity-ownership="common" data-representation="definition" data-target="architecture_bvstk_l0_l1.svg#h-gp0">
           <title>M_AXI_GP0</title>
           <rect x="560" y="375" width="330" height="96" rx="7" fill="#e9eef3" stroke="#607487" stroke-width="1.4" />
           <a xlink:href="architecture_bvstk_l0_l1.svg#h-gp0" data-ref-node="gp0" aria-label="Открыть блок «M_AXI_GP0» на соседней схеме">
-            <text id="pspl-text-8" x="725.0" y="417.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="300">M_AXI_GP0</text>
+            <text id="pspl-text-8" x="725.0" y="430.35" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="300">M_AXI_GP0</text>
           </a>
-          <text id="pspl-text-9" x="725.0" y="446.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="298">PS инициирует AXI</text>
         </g>
       </g>
       <g id="pl-control" data-kind="functional-group" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="ps-axi" data-label="PL. Адресный доступ" data-entity="architecture_bvstk_ps_pl.svg#pl-control" data-entity-ownership="common" data-representation="definition">
@@ -109,7 +107,6 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
         </g>
       </g>
     </g>
-    <text id="pspl-text-18" x="130" y="651" font-size="19" font-weight="400" text-anchor="start" style="fill:#b56b1d" data-max-width="760">К регистрам контроллеров и DMA</text>
     <text id="pspl-text-19" x="2660" y="642" font-size="19" font-weight="400" text-anchor="end" style="fill:#3f75ad" data-max-width="600">Доступ PS к BRAM</text>
     <g id="register-targets" data-kind="interface-set" data-targets="i2c-master i2c-slave smi-master smi-slave spi-master-regs spi-slave-regs dma0-regs dma1-regs" />
     <g id="memory-targets" data-kind="interface-set" data-targets="i2c-fabric smi-fabric spi-fabric" />
@@ -148,9 +145,7 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
         <g id="i2c-fabric" data-kind="component" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="i2c" data-label="axi_interconnect_1" data-entity="architecture_bvstk_ps_pl.svg#i2c-fabric" data-entity-ownership="common" data-representation="definition">
           <title>axi_interconnect_1</title>
           <rect x="800" y="878" width="440" height="120" rx="7" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.4" />
-          <text id="pspl-text-30" x="1020.0" y="918.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="410">axi_interconnect_1</text>
-          <text id="pspl-text-31" x="1020.0" y="947.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="408">Три входа AXI</text>
-          <text id="pspl-text-32" x="1020.0" y="975.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="408">Выход к локальной BRAM</text>
+          <text id="pspl-text-30" x="1020.0" y="945.35" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="410">axi_interconnect_1</text>
         </g>
         <g id="i2c-memory" data-kind="functional-group" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="i2c" data-label="Буфер I2C" data-entity="architecture_bvstk_ps_pl.svg#i2c-memory" data-entity-ownership="common" data-representation="definition">
           <title>Буфер I2C</title>
@@ -202,9 +197,7 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
         <g id="smi-fabric" data-kind="component" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="smi" data-label="axi_interconnect_0" data-entity="architecture_bvstk_ps_pl.svg#smi-fabric" data-entity-ownership="common" data-representation="definition">
           <title>axi_interconnect_0</title>
           <rect x="800" y="1268" width="440" height="120" rx="7" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.4" />
-          <text id="pspl-text-49" x="1020.0" y="1308.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="410">axi_interconnect_0</text>
-          <text id="pspl-text-50" x="1020.0" y="1337.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="408">Три входа AXI</text>
-          <text id="pspl-text-51" x="1020.0" y="1365.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="408">Выход к локальной BRAM</text>
+          <text id="pspl-text-49" x="1020.0" y="1335.35" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="410">axi_interconnect_0</text>
         </g>
         <g id="smi-memory" data-kind="functional-group" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="smi" data-label="Буфер SMI" data-entity="architecture_bvstk_ps_pl.svg#smi-memory" data-entity-ownership="common" data-representation="definition">
           <title>Буфер SMI</title>
@@ -281,7 +274,7 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
           <title>S_AXI_LITE</title>
           <rect x="1070" y="1800" width="470" height="64" rx="7" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.4" />
           <text id="pspl-text-72" x="1305.0" y="1826.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="440">S_AXI_LITE</text>
-          <text id="pspl-text-73" x="1305.0" y="1855.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="438">Управление, без scatter-gather</text>
+          <text id="pspl-text-73" x="1305.0" y="1855.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="438">Управление</text>
         </g>
         <g id="dma0-s2mm" data-kind="component" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="dma0" data-label="S2MM" data-entity="architecture_bvstk_ps_pl.svg#dma0-s2mm" data-entity-ownership="common" data-representation="definition">
           <title>S2MM</title>
@@ -339,7 +332,7 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
           <title>S_AXI_LITE</title>
           <rect x="1070" y="2330" width="470" height="64" rx="7" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.4" />
           <text id="pspl-text-90" x="1305.0" y="2356.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="440">S_AXI_LITE</text>
-          <text id="pspl-text-91" x="1305.0" y="2385.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="438">Управление, без scatter-gather</text>
+          <text id="pspl-text-91" x="1305.0" y="2385.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="438">Управление</text>
         </g>
         <g id="dma1-s2mm" data-kind="component" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="dma1" data-label="S2MM" data-entity="architecture_bvstk_ps_pl.svg#dma1-s2mm" data-entity-ownership="common" data-representation="definition">
           <title>S2MM</title>
@@ -370,9 +363,8 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
           <title>S_AXI_HP0</title>
           <rect x="230" y="2820" width="540" height="80" rx="7" fill="#e9eef3" stroke="#607487" stroke-width="1.4" />
           <a xlink:href="architecture_bvstk_l0_l1.svg#h-pl-hp0-ddr" data-ref-node="hp0" aria-label="Открыть блок «S_AXI_HP0» на соседней схеме">
-            <text id="pspl-text-105" x="500.0" y="2854.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="510">S_AXI_HP0</text>
+            <text id="pspl-text-105" x="500.0" y="2867.35" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="510">S_AXI_HP0</text>
           </a>
-          <text id="pspl-text-106" x="500.0" y="2883.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="508">PL инициирует доступ к памяти PS</text>
         </g>
         <g id="ddr-ocm" data-kind="component" data-layer="L0" data-hardware-domain="PS" data-ownership="common" data-parent="ps-memory" data-label="DDR и OCM" data-entity="architecture_bvstk_ps_pl.svg#ddr-ocm" data-entity-ownership="common" data-representation="definition">
           <title>DDR и OCM</title>
@@ -429,7 +421,6 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
       <a xlink:href="architecture_bvstk_l0_l1.svg#h-irq-group" data-ref-node="irq-path" aria-label="Открыть блок «L0. Источники IRQ и GIC» на соседней схеме">
         <text id="pspl-text-121" x="174" y="3256" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747" data-max-width="2432">L0. Источники IRQ и GIC</text>
       </a>
-      <text id="pspl-text-122" x="2550" y="3256" font-size="20" font-weight="400" text-anchor="end" style="fill:#c65b4e" data-max-width="1100">Продолжение красных отметок IRQ</text>
       <g id="irq-sources" data-kind="functional-group" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="irq-path" data-label="Источники PL" data-entity="architecture_bvstk_ps_pl.svg#irq-sources" data-entity-ownership="common" data-representation="definition" data-target="architecture_bvstk_l0_l1.svg#h-i2c-irq">
         <title>Источники PL</title>
         <rect x="190" y="3300" width="760" height="770" rx="11" fill="#fcfaff" stroke="#8760ba" stroke-width="1.7" />
@@ -501,8 +492,6 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
         <title>xlconcat_0</title>
         <rect x="1190" y="3350" width="460" height="720" rx="7" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.4" />
         <text id="pspl-text-136" x="1420.0" y="3690.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="430">xlconcat_0</text>
-        <text id="pspl-text-137" x="1420.0" y="3719.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="428">Десять отдельных линий</text>
-        <text id="pspl-text-138" x="1420.0" y="3747.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="428">Объединение в IRQ_F2P</text>
         <text id="pspl-text-140" x="1210" y="3399" font-size="16" font-weight="700" text-anchor="start" style="fill:#c65b4e" data-max-width="70">2</text>
         <text id="pspl-text-142" x="1210" y="3467" font-size="16" font-weight="700" text-anchor="start" style="fill:#c65b4e" data-max-width="70">8</text>
         <text id="pspl-text-144" x="1210" y="3535" font-size="16" font-weight="700" text-anchor="start" style="fill:#c65b4e" data-max-width="70">0</text>
@@ -521,8 +510,7 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
         <g id="irq-f2p" data-kind="component" data-layer="L0" data-hardware-domain="PS" data-ownership="common" data-parent="irq-ps" data-label="IRQ_F2P" data-entity="architecture_bvstk_ps_pl.svg#irq-f2p" data-entity-ownership="common" data-representation="definition">
           <title>IRQ_F2P</title>
           <rect x="1810" y="3460" width="340" height="96" rx="7" fill="#e9eef3" stroke="#607487" stroke-width="1.4" />
-          <text id="pspl-text-160" x="1980.0" y="3502.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="310">IRQ_F2P</text>
-          <text id="pspl-text-161" x="1980.0" y="3531.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="308">Вектор PL</text>
+          <text id="pspl-text-160" x="1980.0" y="3515.35" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="310">IRQ_F2P</text>
         </g>
         <g id="gic" data-kind="component" data-layer="L0" data-hardware-domain="PS" data-ownership="common" data-parent="irq-ps" data-label="GIC" data-entity="architecture_bvstk_ps_pl.svg#gic" data-entity-ownership="common" data-representation="definition" data-target="architecture_bvstk_l0_l1.svg#h-gic">
           <title>GIC</title>
@@ -538,10 +526,8 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
             <text id="pspl-text-163" x="2410.0" y="3766.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="250">Cortex-A9</text>
           </a>
         </g>
-        <text id="pspl-text-165" x="1810" y="3890" font-size="20" font-weight="400" text-anchor="start" style="fill:#576c7b" data-max-width="720">Обработчики FreeRTOS и Нейтрино</text>
         <a xlink:href="architecture_bvstk_l0_l1.svg#h-irq-group" data-ref-node="irq-ps" aria-label="Открыть блок «Источники IRQ и GIC» на соседней схеме">
-          <text id="pspl-text-166" x="1810" y="3925" font-size="20" font-weight="700" text-anchor="start" style="fill:#607487" data-max-width="720">Продолжение на L0–L1 →</text>
-        </a>
+          </a>
       </g>
     </g>
     <g id="clock-reset" data-kind="functional-group" data-layer="L0" data-hardware-domain="PS" data-ownership="common" data-label="Тактирование и сброс" data-entity="architecture_bvstk_ps_pl.svg#clock-reset" data-entity-ownership="common" data-representation="definition">
@@ -566,8 +552,7 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
       <g id="reset-controller" data-kind="component" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="clock-reset" data-label="proc_sys_reset_1" data-entity="architecture_bvstk_ps_pl.svg#reset-controller" data-entity-ownership="common" data-representation="definition">
         <title>proc_sys_reset_1</title>
         <rect x="1040" y="4320" width="620" height="96" rx="7" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.4" />
-        <text id="pspl-text-171" x="1350.0" y="4362.5" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="590">proc_sys_reset_1</text>
-        <text id="pspl-text-172" x="1350.0" y="4391.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#576c7b" data-max-width="588">Сброс периферии и interconnect</text>
+        <text id="pspl-text-171" x="1350.0" y="4375.35" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747" font-family="DejaVu Sans Mono,monospace" data-max-width="590">proc_sys_reset_1</text>
       </g>
       <g id="pl-clock-ports" data-kind="interface-set" data-layer="L0" data-hardware-domain="PL" data-ownership="common" data-parent="clock-reset" data-label="Контроллеры и AXI" data-entity="architecture_bvstk_ps_pl.svg#pl-clock-ports" data-entity-ownership="common" data-representation="definition" data-target="#local-buffers" data-targets="local-buffers pl-dma pl-control irq-concat">
         <title>Контроллеры и AXI</title>
@@ -724,7 +709,7 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
     <g id="spi-master-memory-access" data-kind="interaction" data-interaction="data" data-from="spi-master-memory" data-to="spi-fabric">
       <path d="M 350 1975 L 350.0 2131.0 Q 350 2140 359.0 2140.0 L 1611.0 2140.0 Q 1620 2140 1620.0 2131.0 L 1620.0 2099.0 Q 1620 2090 1629.0 2090.0 L 1820 2090" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
       <path d="M 350 1975 L 350.0 2131.0 Q 350 2140 359.0 2140.0 L 1611.0 2140.0 Q 1620 2140 1620.0 2131.0 L 1620.0 2099.0 Q 1620 2090 1629.0 2090.0 L 1820 2090" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linecap="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
-      <text id="pspl-text-102" x="820" y="2123" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" data-max-width="800" class="edge-label">M_AXI: доступ к памяти</text>
+      <text id="pspl-text-102" x="820" y="2123" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" data-max-width="800" class="edge-label">M_AXI</text>
     </g>
     <g id="dma1-writes" data-kind="interaction" data-interaction="data" data-from="dma1-s2mm" data-to="spi-fabric">
       <path d="M 1540 2465 L 1681.0 2465.0 Q 1690 2465 1690.0 2456.0 L 1690.0 2139.0 Q 1690 2130 1699.0 2130.0 L 1820 2130" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
@@ -743,7 +728,7 @@ FCLK_CLK0 тактирует контроллеры и AXI; FCLK_RESET0_N пос
     <g id="fabric-hp0" data-kind="interaction" data-interaction="data" data-from="spi-fabric" data-to="hp0">
       <path d="M 1840 2210 L 1840.0 2631.0 Q 1840 2640 1831.0 2640.0 L 509.0 2640.0 Q 500 2640 500.0 2649.0 L 500 2820" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />
       <path d="M 1840 2210 L 1840.0 2631.0 Q 1840 2640 1831.0 2640.0 L 509.0 2640.0 Q 500 2640 500.0 2649.0 L 500 2820" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linecap="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
-      <text id="pspl-text-109" x="520" y="2700" font-size="18" font-weight="400" text-anchor="start" style="fill:#3f75ad" data-max-width="800" class="edge-label">Адресный путь к памяти PS</text>
+      <text id="pspl-text-109" x="520" y="2700" font-size="18" font-weight="400" text-anchor="start" style="fill:#3f75ad" data-max-width="800" class="edge-label">AXI</text>
     </g>
     <g id="hp0-memory" data-kind="interaction" data-interaction="data" data-from="hp0" data-to="ddr-ocm">
       <path d="M 500 2900 L 500 2980" fill="none" stroke="white" stroke-width="9.5" stroke-linejoin="round" />

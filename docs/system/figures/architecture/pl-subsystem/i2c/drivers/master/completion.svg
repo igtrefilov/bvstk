@@ -106,7 +106,7 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <g id="publish" data-kind="sequence-step">
       <rect x="928.4186046511629" y="346" width="478.23255813953494" height="57" rx="4" fill="white" />
-      <text x="1167.5348837209303" y="370" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Результат обмена: 0x34</text>
+      <text x="1167.5348837209303" y="370" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Результат: 0x34</text>
     </g>
     <g id="irq" data-kind="sequence-step">
       <rect x="928.4186046511629" y="451" width="976.4651162790698" height="57" rx="4" fill="white" />
@@ -122,7 +122,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="result" data-kind="sequence-step">
       <rect x="362.65116279069775" y="766" width="1044.0" height="57" rx="4" fill="white" />
-      <text x="884.6511627906978" y="790" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Забрать 0x34</text>
+      <text x="884.6511627906978" y="790" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0x34</text>
     </g>
     <path d="M60,947 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
     <text x="142" y="953.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>

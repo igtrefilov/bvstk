@@ -91,7 +91,7 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="660" y="270" width="880" height="165" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <text x="680" y="294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
       <text x="680" y="328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий SPI</text>
-      <text x="680" y="367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SCK, CS и MOSI; принимает MISO</text>
+      <text x="680" y="367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SCK и CS</text>
     </g>
     <g id="core" data-kind="functional-group" data-label="SPI_Slave_0" data-layer="L0" data-domain="pl" data-ownership="common">
       <rect x="80" y="590" width="2040" height="1390" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
@@ -103,57 +103,53 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="650" y="710" width="900" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="670" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="670" y="768.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_slave_engine</text>
-        <text x="670" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Сдвиг данных по внешнему SCK</text>
-        <text x="670" y="833.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Границы байтов и транзакции по CS</text>
+        <text x="670" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Биты ↔ байты</text>
       </g>
       <g id="ctrl" data-kind="component" data-layer="L0" data-domain="pl" data-label="spi_slave_ctrl" data-ownership="common" data-parent="core">
         <rect x="650" y="1050" width="900" height="225" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="670" y="1074.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="670" y="1108.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_slave_ctrl</text>
-        <text x="670" y="1147.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Разбор и сборка 32-битных слов</text>
-        <text x="670" y="1173.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">CSR, состояние FIFO и IRQ</text>
-        <text x="670" y="1199.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Доступ PS через axi_lite_slave_native</text>
+        <text x="670" y="1147.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Байты ↔ слова</text>
+        <text x="670" y="1173.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">axi_lite_slave_native</text>
       </g>
       <g id="rx-from-axis" data-kind="component" data-layer="L0" data-domain="pl" data-label="FIFO ответа внешнему ведущему" data-ownership="common" data-parent="core">
         <rect x="180" y="1470" width="760" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="200" y="1494.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="200" y="1528.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">FIFO ответа внешнему ведущему</text>
-        <text x="200" y="1567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">rx_xpm_fifo_sync_inst в RTL</text>
+        <text x="200" y="1567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">rx_xpm_fifo_sync_inst</text>
       </g>
       <g id="tx-to-axis" data-kind="component" data-layer="L0" data-domain="pl" data-label="FIFO принятого MOSI" data-ownership="common" data-parent="core">
         <rect x="1260" y="1470" width="760" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="1280" y="1494.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="1280" y="1528.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">FIFO принятого MOSI</text>
-        <text x="1280" y="1567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">tx_xpm_fifo_sync_inst в RTL</text>
+        <text x="1280" y="1567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">tx_xpm_fifo_sync_inst</text>
       </g>
       <g id="axis-in" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_stream_slave" data-ownership="common" data-parent="core">
         <rect x="180" y="1770" width="760" height="145" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="200" y="1794.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="200" y="1828.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_stream_slave</text>
-        <text x="200" y="1867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">axi_str_s: данные из DMA</text>
+        <text x="200" y="1867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">axi_str_s</text>
       </g>
       <g id="axis-out" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_stream_master" data-ownership="common" data-parent="core">
         <rect x="1260" y="1770" width="760" height="145" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="1280" y="1794.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="1280" y="1828.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_stream_master</text>
-        <text x="1280" y="1867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">axi_str_m: данные в DMA</text>
+        <text x="1280" y="1867.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">axi_str_m</text>
       </g>
     </g>
     <g id="dma-tx" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_dma_1: MM2S" data-ownership="common" data-target="subsystem.svg#dma1-tx">
       <rect x="180" y="2150" width="760" height="150" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="subsystem.svg#dma1-tx">
         <text x="200" y="2174.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="200" y="2208.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_1: MM2S</text>
+        <text x="200" y="2242.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_1: MM2S</text>
       </a>
-      <text x="200" y="2247.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Читает подготовленные данные из памяти</text>
     </g>
     <g id="dma-rx" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_dma_1: S2MM" data-ownership="common" data-target="subsystem.svg#dma1-rx">
       <rect x="1260" y="2150" width="760" height="150" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="subsystem.svg#dma1-rx">
         <text x="1280" y="2174.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1280" y="2208.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_1: S2MM</text>
+        <text x="1280" y="2242.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_1: S2MM</text>
       </a>
-      <text x="1280" y="2247.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Записывает принятые данные в память</text>
     </g>
   </g>
   <g id="annotations">

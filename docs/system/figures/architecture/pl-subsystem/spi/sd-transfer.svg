@@ -104,7 +104,7 @@ g:target &gt; rect { stroke-width: 5; }
           <text x="120.0" y="329.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
           <text x="120.0" y="363.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт SD FreeRTOS</text>
         </a>
-        <text x="120.0" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_sd_pl и обработчик IRQ</text>
+        <text x="120.0" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_sd_pl</text>
       </g>
     </g>
     <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_sd_master" data-ownership="common" data-target="../../architecture_bvstk_l3.svg#driver-bvstk_sd_master">
@@ -115,57 +115,53 @@ g:target &gt; rect { stroke-width: 5; }
       </a>
       <text x="635.5" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Через bvstk_sd_service</text>
     </g>
-    <g id="memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM банка 0" data-ownership="common" data-target="../reference/memory-map.svg#spi-bank0">
+    <g id="memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM банка 0" data-ownership="common">
       <rect x="1131.0" y="305" width="473.5" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../reference/memory-map.svg#spi-bank0">
-        <text x="1151.0" y="329.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1151.0" y="363.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM банка 0</text>
-      </a>
-      <text x="1151.0" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">TX +0x400, RX +0x1000</text>
+      <text x="1151.0" y="329.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="1151.0" y="404.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM банка 0</text>
     </g>
     <g id="hardware" data-kind="component" data-layer="L0" data-domain="pl" data-label="SPI и axi_dma_0" data-ownership="common" data-target="subsystem.svg#master">
       <rect x="1646.5" y="305" width="473.5" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="subsystem.svg#master">
         <text x="1666.5" y="329.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1666.5" y="363.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SPI и axi_dma_0</text>
+        <text x="1666.5" y="404.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SPI и axi_dma_0</text>
       </a>
-      <text x="1666.5" y="402.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Потоки и аппаратная команда</text>
     </g>
   </g>
   <g id="annotations">
     <rect x="63" y="499" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="530.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#788794">01</text>
-    <text x="130" y="530.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Запросить блок карты</text>
+    <text x="130" y="530.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Чтение блока</text>
     <rect x="63" y="625" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="656.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">02</text>
-    <text x="130" y="656.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Подготовить SPI и сбросить DMA</text>
+    <text x="130" y="656.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Настройка SPI, сброс DMA</text>
     <rect x="63" y="751" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="782.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">03</text>
-    <text x="130" y="782.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Записать дескриптор CMD17</text>
+    <text x="130" y="782.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Дескриптор CMD17</text>
     <rect x="63" y="877" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="908.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">04</text>
-    <text x="130" y="908.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Сначала запустить приём S2MM</text>
+    <text x="130" y="908.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Запуск S2MM</text>
     <rect x="63" y="1003" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1034.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">05</text>
-    <text x="130" y="1034.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Запустить MM2S и команду SPI</text>
+    <text x="130" y="1034.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Запуск MM2S и SPI</text>
     <rect x="63" y="1129" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1160.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">06</text>
-    <text x="130" y="1160.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">DMA передаёт команду в SPI master</text>
+    <text x="130" y="1160.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Команда</text>
     <rect x="63" y="1255" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1286.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">07</text>
-    <text x="130" y="1286.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Сохранить ответ и принятый блок</text>
+    <text x="130" y="1286.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Ответ и блок</text>
     <rect x="63" y="1381" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1412.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#c65b4e">08</text>
-    <text x="130" y="1412.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Зафиксировать новое аппаратное прерывание</text>
+    <text x="130" y="1412.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">IRQ</text>
     <rect x="63" y="1507" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1538.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#b56b1d">09</text>
-    <text x="130" y="1538.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Проверить завершение</text>
+    <text x="130" y="1538.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Проверка завершения</text>
     <rect x="63" y="1633" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1664.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">10</text>
-    <text x="130" y="1664.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Забрать и проверить блок</text>
+    <text x="130" y="1664.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Блок и проверка CRC16</text>
     <rect x="63" y="1759" width="2074" height="63" rx="5" fill="white" opacity=".96" />
     <text x="76" y="1790.0" font-size="21" font-weight="700" text-anchor="start" style="fill:#3f75ad">11</text>
-    <text x="130" y="1790.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Вернуть блок или причину ошибки</text>
+    <text x="130" y="1790.0" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Блок или ошибка</text>
     <path d="M60,1988 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
     <text x="142" y="1994.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
     <path d="M245,1988 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
@@ -196,10 +192,6 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "driver",
       "target": "../../architecture_bvstk_l3.svg#driver-bvstk_sd_master"
-    },
-    {
-      "node": "memory",
-      "target": "../reference/memory-map.svg#spi-bank0"
     },
     {
       "node": "hardware",

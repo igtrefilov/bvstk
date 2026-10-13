@@ -39,6 +39,8 @@ Chromium; путь к браузеру при нестандартной уст�
 ## Схемы архитектуры
 
 Обзоры и подробные схемы хранятся в `system/figures/architecture/`.
+Полные карты уровней включены в [главу об архитектуре](system/architecture/architecture.md);
+основной путь статьи начинается с простого примера моста.
 Эти SVG редактируются непосредственно. Ссылки в названиях блоков
 связывают соответствующие части разных рисунков.
 
@@ -60,15 +62,22 @@ Chromium; путь к браузеру при нестандартной уст�
 Глава [о подсистемах PL](system/pl-subsystem/pl-subsystem.md)
 раскрывает устройство PL и взаимодействие с программой PS.
 Рисунки включены в текст соответствующих разделов статьи.
-В комплекте 58 рисунков:
+В комплекте 57 рисунков:
 
 | Раздел | Содержание |
 |---|---|
 | [BVSTK как мост](system/figures/architecture/pl-subsystem/overview/bridge.svg) | Два участка шины, промежуточная BRAM, передача или остановка транзакции по решению политики |
 | [Кэш и подготовка ответов](system/figures/architecture/pl-subsystem/overview/cache.svg) | Обновление значений, обработка записи, достоверность и публикация в BRAM |
 | [Состав подсистемы](system/figures/architecture/pl-subsystem/overview/subsystems.svg) | Ответственность сервиса, драйвера, платформы и аппаратных ядер |
-| [Порядок операций](system/figures/architecture/pl-subsystem/overview/exchange.svg) | Готовый ответ, получение нового значения и обработка записи |
+| [Готовый ответ](system/figures/architecture/pl-subsystem/overview/exchange-read.svg) | Выдача значения, уже опубликованного в BRAM |
+| [Обновление значения](system/figures/architecture/pl-subsystem/overview/exchange-refresh.svg) | Чтение физического устройства и подготовка ответа |
+| [Внешняя запись](system/figures/architecture/pl-subsystem/overview/exchange-write.svg) | Приём запроса, проверка политики и разрешённая операция |
 | [Области обмена](system/figures/architecture/pl-subsystem/overview/memory.svg) | Кто записывает и читает данные, как определяется готовность |
+| [Два обмена I²C](system/figures/architecture/pl-subsystem/i2c/exchange.svg) | Предварительное чтение через master и последующий ответ из кэша через slave |
+| [Срок ответа I²C](system/figures/architecture/pl-subsystem/i2c/miss-deadline.svg) | Сопоставление ожидания slave с длительностью физического чтения |
+| [Состояние сервиса I²C](system/figures/architecture/pl-subsystem/i2c/services/read-state.svg) | Указатель регистра, разрешение чтения и подготовка окон |
+| [Ведущий сервис I²C](system/figures/architecture/pl-subsystem/i2c/services/master-operations.svg) | Физическое чтение, политика записи и обновление кэша по результату |
+| [Копии значения MDIO](system/figures/architecture/pl-subsystem/mdio/value-lifetime.svg) | Изменение физического регистра, публикация в BRAM и обновление кэша |
 | [I²C](system/figures/architecture/pl-subsystem/i2c/protocol/interface.svg) | Интерфейс, формат транзакции, чтение, запись и повторный START |
 | [Ведомое ядро I²C](system/figures/architecture/pl-subsystem/i2c/cores/slave/structure.svg) | Состав ядра, обработка адреса, запись, чтение, повторный START, окна BRAM и завершение |
 | [Ведущее ядро I²C](system/figures/architecture/pl-subsystem/i2c/cores/master/structure.svg) | Команды TX FIFO, обмен на шине, приёмные буферы, тактирование и завершение |
@@ -77,8 +86,6 @@ Chromium; путь к браузеру при нестандартной уст�
 | [MDIO](system/figures/architecture/pl-subsystem/mdio/subsystem.svg) | Кадр Clause 22, последние записи и подготовленные ответы |
 | [Протокол SPI](system/figures/architecture/pl-subsystem/spi/protocol/interface.svg) | Линии, одновременная передача, режимы CPOL и CPHA, чтение и запись |
 | [SPI и SD](system/figures/architecture/pl-subsystem/spi/subsystem.svg) | Потоки, DMA, оба ядра SPI и чтение блока SD |
-| [Карта памяти реализации](system/figures/architecture/pl-subsystem/reference/memory-map.svg) | Адреса BRAM и области обмена конкретных подсистем |
-| [Программа PS](system/figures/architecture/pl-subsystem/ps-interaction/startup.svg) | Профили, IRQ, политика, кэш, команды и сохранение настроек |
 
 Цвета слоёв и типы стрелок совпадают с общим архитектурным рядом.
 Ссылки в заголовках ведут к соответствующим блокам соседних листов.
@@ -114,6 +121,8 @@ Chromium; путь к браузеру при нестандартной уст�
 Схемы ведущего ядра — в [i2c_master.py](../tools/docs/i2c_master.py).
 Общие элементы последовательностей и форматов слов — в [i2c_core.py](../tools/docs/i2c_core.py).
 Схемы драйверов и портов ОС — в [i2c_drivers.py](../tools/docs/i2c_drivers.py).
+Сценарии статьи, состояние сервиса и изменение копий значения —
+в [article_flows.py](../tools/docs/article_flows.py).
 Тексты и координаты редактируются в этих файлах:
 
 ```sh

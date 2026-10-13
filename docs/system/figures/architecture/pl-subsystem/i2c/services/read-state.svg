@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" viewBox="0 40 1200 1148" role="img" aria-labelledby="title desc" height="1148">
+  <title id="title">I²C: состояние ведомого сервиса</title>
+  <desc id="desc">Запись одного указателя разрешает чтение. Запросы готовят окна. Завершение, ошибка и новая запись снимают прежнее разрешение.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1200" height="1188" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="80" width="1080" height="910" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <path d="M580,340 L580,480" stroke="#788794" stroke-width="2.7" fill="none" marker-end="url(#call-arrow)" data-from="unarmed" data-to="armed" />
+    <path d="M580,625 L580,785" stroke="#788794" stroke-width="2.7" fill="none" marker-end="url(#call-arrow)" data-from="armed" data-to="window" />
+    <path d="M790,855 L1040,855 L1040,552.5 L790,552.5" stroke="#788794" stroke-width="2.7" fill="none" marker-end="url(#call-arrow)" data-from="window" data-to="armed" />
+    <path d="M370,552.5 L170,552.5 L170,267.5 L370,267.5" stroke="#788794" stroke-width="2.7" fill="none" marker-end="url(#call-arrow)" data-from="armed" data-to="unarmed" />
+    <path d="M580,925 L580,955 L1100,955 L1100,155 L580,155 L580,195" stroke="#788794" stroke-width="2.7" fill="none" marker-end="url(#call-arrow)" data-from="window" data-to="unarmed" />
+  </g>
+  <g id="components">
+    <g id="service" data-kind="functional-group" data-label="bvstk_i2c_slave_service" data-layer="L3" data-ownership="common">
+      <rect x="60" y="80" width="1080" height="910" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+      <text x="86" y="117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">bvstk_i2c_slave_service</text>
+      <g id="unarmed" data-kind="component" data-layer="L3" data-label="Чтение закрыто" data-ownership="common" data-parent="service">
+        <rect x="370" y="195" width="420" height="145" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="390" y="219.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="390" y="253.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Чтение закрыто</text>
+        <text x="390" y="292.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">read_armed = 0</text>
+      </g>
+      <g id="armed" data-kind="component" data-layer="L3" data-label="Чтение разрешено" data-ownership="common" data-parent="service">
+        <rect x="370" y="480" width="420" height="145" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="390" y="504.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="390" y="538.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Чтение разрешено</text>
+        <text x="390" y="577.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">read_armed = 1</text>
+      </g>
+      <g id="window" data-kind="component" data-layer="L3" data-label="Подготовить окно" data-ownership="common" data-parent="service" data-target="master-operations.svg#read">
+        <rect x="370" y="785" width="420" height="140" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="master-operations.svg#read">
+          <text x="390" y="809.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="390" y="843.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Подготовить окно</text>
+        </a>
+        <text x="390" y="882.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Кэш или сервис master</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="600" y="394.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">Только указатель</text>
+    <text x="600" y="428.0" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Указатель = регистр</text>
+    <text x="600" y="710.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#c65b4e">RD_REQUEST</text>
+    <text x="925" y="658.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#233747">Окно готово</text>
+    <text x="925" y="688.36" font-size="22" font-weight="400" text-anchor="middle" style="fill:#233747">Указатель += N</text>
+    <text x="195" y="369.0" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Завершение,</text>
+    <text x="195" y="399.36" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">ошибка,</text>
+    <text x="195" y="429.72" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">новая запись</text>
+    <text x="925" y="935.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">Ошибка</text>
+    <rect x="60" y="1079" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1098.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1145.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Серые стрелки — переходы. N — длина окна.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/services/i2c/bvstk_i2c_slave_service.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "window",
+      "target": "master-operations.svg#read"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

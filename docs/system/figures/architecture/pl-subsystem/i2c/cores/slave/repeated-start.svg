@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 193 2200 1993" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1993">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 193 2200 2045" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="2045">
   <title id="title">I²C slave: указатель и повторный START</title>
   <desc id="desc" />
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2186" fill="white" />
+  <rect width="2200" height="2238" fill="white" />
   <g id="backgrounds">
     <rect x="80" y="755" width="900" height="300" rx="16" fill="white" />
     <rect x="1220" y="755" width="900" height="300" rx="16" fill="white" />
@@ -84,22 +84,19 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="58" y="208" width="1670" height="150" fill="none" stroke="#607487" stroke-width="0" />
       <g id="wire-0" data-kind="protocol-field" data-label="S" data-driver="ведущий">
         <polygon points="70,232 82,220 142,220 154,232 154,298 142,310 82,310 70,298" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="112.0" y="257.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
-        <text x="112.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="112.0" y="274" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">S</text>
         <text x="112.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="wire-1" data-kind="protocol-field" data-label="0x2A + W" data-driver="ведущий">
         <rect x="166" y="220" width="195" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
         <a data-navigation="detail" xlink:href="../../protocol/transaction.svg#address">
-          <text x="263.5" y="257.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x2A + W</text>
-          <text x="263.5" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">байт 0x54</text>
+          <text x="263.5" y="274" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x2A + W</text>
         </a>
         <text x="263.5" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="wire-2" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
         <rect x="373" y="220" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="420.0" y="257.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="420.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="420.0" y="274" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="420.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="wire-3" data-kind="protocol-field" data-label="0x10" data-driver="ведущий">
@@ -110,58 +107,49 @@ g:target &gt; rect { stroke-width: 5; }
       </g>
       <g id="wire-4" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
         <rect x="621" y="220" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="668.0" y="257.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="668.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="668.0" y="274" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="668.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="wire-5" data-kind="protocol-field" data-label="Sr" data-driver="ведущий">
         <polygon points="727,232 739,220 799,220 811,232 811,298 799,310 739,310 727,298" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="769.0" y="257.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">Sr</text>
-        <text x="769.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">START</text>
+        <text x="769.0" y="274" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">Sr</text>
         <text x="769.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="wire-6" data-kind="protocol-field" data-label="0x2A + R" data-driver="ведущий">
         <rect x="823" y="220" width="195" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
         <a data-navigation="detail" xlink:href="../../protocol/transaction.svg#address">
-          <text x="920.5" y="257.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x2A + R</text>
-          <text x="920.5" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">байт 0x55</text>
+          <text x="920.5" y="274" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x2A + R</text>
         </a>
         <text x="920.5" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="wire-7" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
         <rect x="1030" y="220" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="1077.0" y="257.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="1077.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="1077.0" y="274" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="1077.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="wire-8" data-kind="protocol-field" data-label="D0" data-driver="ведомый">
         <rect x="1136" y="220" width="130" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="1201.0" y="257.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">D0</text>
-        <text x="1201.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="1201.0" y="274" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">D0</text>
         <text x="1201.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="wire-9" data-kind="protocol-field" data-label="ACK" data-driver="ведущий">
         <rect x="1278" y="220" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="1325.0" y="257.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-        <text x="1325.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="1325.0" y="274" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="1325.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="wire-10" data-kind="protocol-field" data-label="D1" data-driver="ведомый">
         <rect x="1384" y="220" width="130" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="1449.0" y="257.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">D1</text>
-        <text x="1449.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">8 бит</text>
+        <text x="1449.0" y="274" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">D1</text>
         <text x="1449.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
       <g id="wire-11" data-kind="protocol-field" data-label="NACK" data-driver="ведущий">
         <rect x="1526" y="220" width="94" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="1573.0" y="257.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
-        <text x="1573.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">1 бит</text>
+        <text x="1573.0" y="274" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">NACK</text>
         <text x="1573.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="wire-12" data-kind="protocol-field" data-label="P" data-driver="ведущий">
         <polygon points="1632,232 1644,220 1704,220 1716,232 1716,298 1704,310 1644,310 1632,298" fill="#e9eef3" stroke="#607487" stroke-width="2" />
-        <text x="1674.0" y="257.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
-        <text x="1674.0" y="289.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#576c7b">STOP</text>
+        <text x="1674.0" y="274" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">P</text>
         <text x="1674.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
     </g>
@@ -201,7 +189,7 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="640" y="1264.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
         <text x="640" y="1298.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave_service</text>
       </a>
-      <text x="640" y="1337.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Сохранить указатель 0x10 → подготовить ответ</text>
+      <text x="640" y="1337.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Указатель 0x10</text>
     </g>
     <g id="reply" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM: ответ +0x2000" data-ownership="common" data-target="buffers.svg#rd-window">
       <rect x="620" y="1580" width="960" height="150" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -244,6 +232,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="219" y="2148.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
     <rect x="375" y="2129" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
     <text x="419" y="2148.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="2195.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">S — START. Sr — повторный START. P — STOP. Под полями — источник SDA.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

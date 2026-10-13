@@ -20,13 +20,13 @@ def structure(d):
     p.node("platform", 820, 310, 400, 220, "Доступ PS", "MMIO", "L1",
            target="@architecture_bvstk_l1.svg#platform-access")
     p.node("irq-pin", 1550, 310, 510, 220, "IRQ → GIC",
-           "PS ожидает опросом регистров", "L0", target=sheet("completion", "regs"))
+           "Без обработчика PS", "L0", target=sheet("completion", "regs"))
     p.edge("ps", "platform", "call")
 
     p.frame("core", 100, 670, 2000, 1630, "I2C_master_0", target="@architecture_bvstk_ps_pl.svg#i2c-master")
-    p.node("axi-s", 140, 810, 320, 190, "axi_lite_slave_native", "Порт s_axi", parent="core")
+    p.node("axi-s", 140, 810, 320, 190, "axi_lite_slave_native", "s_axi", parent="core")
     p.node("regs", 590, 810, 350, 190, "regs", "CSR, IRQ, TIMEOUT\nВход TX_FIFO", parent="core", target=sheet("completion", "regs"))
-    p.node("tx-fifo", 1070, 810, 360, 190, "TX FIFO", "xpm_fifo_sync\nКоманды и данные", parent="core", target=sheet("commands", "fifo"))
+    p.node("tx-fifo", 1070, 810, 360, 190, "TX FIFO", "xpm_fifo_sync", parent="core", target=sheet("commands", "fifo"))
     p.node("tx-data-ctrl", 1590, 810, 440, 190, "tx_data_ctrl", "header_t → packet_view_t", parent="core", target=sheet("commands", "parser"))
     p.edge("platform", "axi-s", "mmio", "MMIO", start="S", end="N", b_offset=120,
            via=((1020, 610), (420, 610)), label_xy=(780, 588), bidirectional=True)
@@ -40,7 +40,7 @@ def structure(d):
 
     p.frame("engine", 1170, 1260, 860, 640, "i2c_master_engine", parent="core", target=sheet("timing", "engine"))
     p.node("fsm", 1220, 1350, 400, 455, "Автомат I²C",
-           "Адрес, байты и ACK\nSTART, RESTART и STOP", parent="engine", target=sheet("write", "address"))
+           "START, RESTART, STOP", parent="engine", target=sheet("write", "address"))
     p.node("clock", 1710, 1350, 280, 180, "Такты SCL", "div_cnt, divisor\nscl_oe", parent="engine", target=sheet("timing", "clock"))
     p.node("inputs", 1710, 1625, 280, 180, "Входы", "debouncer → sync\nSDA и SCL", parent="engine", target=sheet("sampling"))
     p.edge("clock", "fsm", "clock", start="W", end="E", b_offset=-137.5)
@@ -51,9 +51,9 @@ def structure(d):
            via=((1220, 1110), (765, 1110)), label_xy=(990, 1088))
 
     p.node("rx-data-ctrl", 690, 1350, 340, 180, "rx_data_ctrl", "rx_valid и rx_ready", parent="core", target=sheet("buffers", "rx-data-ctrl"))
-    p.node("rx-fifo", 690, 1660, 340, 180, "RX FIFO", "xpm_fifo_sync\nПакеты байтов", parent="core", target=sheet("buffers", "rx-fifo"))
+    p.node("rx-fifo", 690, 1660, 340, 180, "RX FIFO", "xpm_fifo_sync", parent="core", target=sheet("buffers", "rx-fifo"))
     p.node("rx-fifo-mux", 140, 1660, 370, 180, "rx_fifo_mux", "Пакеты → слова BRAM", parent="core", target=sheet("buffers", "writer"))
-    p.node("axi-m", 140, 2050, 370, 180, "axi_lite_master_native", "m_axi: запись в BRAM", parent="core")
+    p.node("axi-m", 140, 2050, 370, 180, "axi_lite_master_native", "m_axi", parent="core")
     p.edge("engine", "rx-data-ctrl", "data", start="W", end="E", a_offset=-140)
     p.edge("rx-data-ctrl", "rx-fifo", "data")
     p.edge("rx-fifo", "rx-fifo-mux", "data")
@@ -63,7 +63,7 @@ def structure(d):
 
     p.node("bram", 140, 2460, 620, 220, "BRAM I²C: результат master",
            "0x40000000\nЗаголовок и данные", target=sheet("buffers", "bram"))
-    p.node("device", 1220, 2460, 760, 220, "Ведомое устройство", "Шина I²C", "L0",
+    p.node("device", 1220, 2460, 760, 220, "Ведомое устройство", "", "L0",
            target="i2c/protocol/interface.svg#target")
     p.edge("axi-m", "bram", "data", start="S", end="N", b_offset=-125)
     p.edge("engine", "device", "data", "SDA и SCL", label_xy=(1725, 2195), bidirectional=True)
@@ -78,18 +78,18 @@ def timing(d):
     p.node("speed", 100, 460, 360, 250, "packet.speed",
            "Выбор divisor", parent="engine", target=sheet("command-format", "header"))
     p.node("clock", 600, 460, 400, 250, "div_cnt и divisor",
-           "divisor выбирается в START\nПолупериод: divisor тактов", parent="engine")
+           "Полупериод SCL", parent="engine")
     p.node("output", 1140, 460, 400, 250, "Выход SCL",
-           "scl_oe = 1: тянуть в 0\nscl_oe = 0: отпустить", parent="engine")
+           "scl_oe", parent="engine")
     p.node("scl", 1750, 460, 390, 250, "Линия SCL",
-           "Подтяжка к 1\nВедомый может удерживать 0", "L0", target=sheet("clock-stretching"))
+           "", "L0", target=sheet("clock-stretching"))
     p.edge("speed", "clock", "mmio")
     p.edge("clock", "output", "clock")
     p.edge("output", "scl", "clock")
     p.node("inputs", 1140, 920, 400, 220, "debouncer и sync",
            "SCL: scl_pe и scl_ne\nSDA: уровень", parent="engine")
     p.node("fsm", 100, 920, 900, 220, "Автомат I²C",
-           "READ_ACK: ожидание SCL ↑\nREAD_BYTE: выборка SDA по scl_pe", parent="engine")
+           "READ_ACK\nREAD_BYTE", parent="engine")
     p.edge("scl", "inputs", "data", "scl_i", start="S", end="N",
            via=((1945, 810), (1340, 810)), label_xy=(1840, 787))
     p.edge("inputs", "fsm", "data")
@@ -102,8 +102,8 @@ def commands(d):
     p = d.p
     p.frame("ps", 60, 240, 520, 640, "Программа PS", "L3")
     p.node("master-service", 100, 335, 440, 150, "bvstk_i2c_master_service",
-           "Устройство и операция", "L3", parent="ps",
-           target="@architecture_bvstk_l3.svg#service-bvstk_i2c_master_service")
+           "", "L3", parent="ps",
+           target="i2c/services/master-operations.svg#service")
     p.node("driver", 100, 655, 440, 170, "Аппаратный драйвер",
            "bvstk_i2c_master_hw_transfer", "L3", parent="ps",
            target="i2c/drivers/master/transfer.svg#driver")
@@ -135,7 +135,7 @@ def write(d):
                           field("0x7B", 170), ack(), condition("P")])
     start = d.actors([
         ("tx", "tx_data_ctrl", "Команда из TX FIFO", "PL", sheet("commands", "parser"), 1),
-        ("engine", "i2c_master_engine", "Автомат шины", "PL", sheet("structure", "engine"), 1.2),
+        ("engine", "i2c_master_engine", "", "PL", sheet("structure", "engine"), 1.2),
         ("device", "Ведомое устройство", "SDA и SCL", "L0", "i2c/protocol/interface.svg#target", 1),
     ], core=("tx", "engine"), core_title="I2C_master_0")
     d.sequence(start, [
@@ -154,7 +154,7 @@ def read(d):
                           ack("ведущий"), field("D1", 160, "ведомый"), ack("ведущий", True), condition("P")])
     start = d.actors([
         ("tx", "tx_data_ctrl", "Длина команды: 2", "PL", sheet("commands", "parser"), 1),
-        ("engine", "i2c_master_engine", "Автомат шины", "PL", sheet("structure", "engine"), 1.2),
+        ("engine", "i2c_master_engine", "", "PL", sheet("structure", "engine"), 1.2),
         ("rx", "rx_data_ctrl", "Далее RX FIFO и BRAM", "PL", sheet("buffers", "receive"), 1.1),
         ("device", "Ведомое устройство", "SDA и SCL", "L0", "i2c/protocol/interface.svg#target", 1.1),
     ], core=("tx", "engine", "rx"), core_title="I2C_master_0")
@@ -174,7 +174,7 @@ def repeated_start(d):
     p = d.p
     p.node("master-service", 60, 250, 620, 160, "bvstk_i2c_master_service",
            "read_reg: регистр 0x10, один байт", "L3",
-           target="ps-interaction/i2c-irq.svg#master-service")
+           target="i2c/services/master-operations.svg#read")
     p.frame("queue", 850, 180, 890, 660, "TX FIFO: один запуск")
     p.node("write-header", 900, 275, 790, 125, "Заголовок W", "1 байт, restart = 1", parent="queue")
     p.node("pointer-word", 900, 475, 790, 125, "Данные записи", "Указатель 0x10", parent="queue")
@@ -198,7 +198,8 @@ def repeated_start(d):
     p.edge("write-phase", "restart", "data")
     p.edge("restart", "read-phase", "data")
     p.node("result", 1200, 1520, 500, 150, "RX FIFO → BRAM", "D0 → DATA_VALID", target=sheet("buffers"))
-    p.node("master-service-result", 60, 1520, 620, 150, "bvstk_i2c_master_service", "Кэш и возврат D0", "L3")
+    p.node("master-service-result", 60, 1520, 620, 150, "bvstk_i2c_master_service", "Кэш и возврат D0", "L3",
+           target="i2c/services/master-operations.svg#result")
     p.edge("read-phase", "result", "data")
     p.edge("result", "master-service-result", "data", "После DATA_VALID", label_xy=(940, 1570))
 
@@ -228,7 +229,7 @@ def buffers(d):
            label_xy=(1185, 1010))
     p.node("regs", 100, 970, 440, 135, "regs: IRQ", "DATA_VALID", parent="receive")
     p.edge("publish", "regs", "irq")
-    p.node("ps", 1280, 1340, 460, 170, "Драйвер PS", "Готовность и чтение", "L3",
+    p.node("ps", 1280, 1340, 460, 170, "Драйвер PS", "", "L3",
            target=sheet("completion", "driver"))
     p.edge("bram", "ps", "data", "Через L1", start="S", end="N", label_xy=(1630, 1270))
     p.edge("ps", "regs", "mmio", "Опрос через L1", start="W", end="S",
@@ -276,8 +277,8 @@ def clock_stretching(d):
 def completion(d):
     p = d.p
     p.node("engine", 60, 250, 470, 170, "i2c_master_engine", "core_state и ERR_ACK")
-    p.node("writer", 60, 615, 470, 170, "rx_fifo_mux", "DATA_VALID после записи BRAM")
-    p.node("regs", 875, 440, 350, 180, "regs: CSR и IRQ", "Состояние и события")
+    p.node("writer", 60, 615, 470, 170, "rx_fifo_mux", "DATA_VALID")
+    p.node("regs", 875, 440, 350, 180, "regs: CSR и IRQ", "")
     p.edge("engine", "regs", "irq", "ERR_ACK", start="E", end="N", a_offset=-35,
            via=((665, 300), (1050, 300)), label_xy=(910, 275))
     p.edge("engine", "regs", "mmio", "core_state", start="E", end="W", a_offset=55,

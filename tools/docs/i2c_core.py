@@ -77,7 +77,9 @@ class CoreDrawing(ProtocolDrawing):
                    color=self.arrows[kind][0])
             for a, b in pairs:
                 xa, xb = self.centers[a], self.centers[b]
-                p.path(a, b, ((xa, yy+53), (xb, yy+53)), kind)
+                points = ((xa, yy+53), (xb, yy+53)) if a != b else (
+                    (xa, yy+43), (xa+70, yy+43), (xa+70, yy+65), (xa, yy+65))
+                p.path(a, b, points, kind)
         if len(rows) >= 7:
             for key, (title, layer) in self.actor_labels.items():
                 p.text(p.notes, self.centers[key], bottom+20, title, 20,

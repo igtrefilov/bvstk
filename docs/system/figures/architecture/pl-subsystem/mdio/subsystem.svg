@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 240 2200 1938" role="img" aria-labelledby="title desc" height="1938">
-  <title id="title">Подсистема MDIO: аппаратура и программный мост</title>
-  <desc id="desc">Роли внешней шины и AXI подписаны отдельно. Оба ядра обращаются к общей BRAM.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1800" viewBox="0 30 1800 1389" role="img" aria-labelledby="title desc" height="1389">
+  <title id="title">MDIO: аппаратура и программный мост</title>
+  <desc id="desc">Внешний ведущий слева, физический PHY справа. Сервис управляет отдельными обменами через драйвер и BRAM.</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -40,196 +40,159 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2178" fill="white" />
+  <rect width="1800" height="1419" fill="white" />
   <g id="backgrounds">
-    <rect x="60" y="590" width="2080" height="1100" rx="16" fill="white" />
-    <rect x="440" y="1380" width="1320" height="240" rx="16" fill="white" />
+    <rect x="595" y="70" width="610" height="510" rx="16" fill="white" />
+    <rect x="305" y="690" width="1190" height="355" rx="16" fill="white" />
   </g>
   <g id="interactions">
-    <g data-kind="interaction" data-from="software" data-to="ps" data-interaction="mmio" data-direction="forward">
-      <path d="M760,362.5 L1410,362.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M760,362.5 L1410,362.5" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    <g data-kind="interaction" data-from="service" data-to="driver" data-interaction="call" data-direction="forward">
+      <path d="M900,295 L900,395" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M900,295 L900,395" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="ps" data-to="master" data-interaction="mmio" data-direction="forward">
-      <path d="M1585,445 L1585,535 L520,535 L520,705" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1585,445 L1585,535 L520,535 L520,705" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    <g data-kind="interaction" data-from="driver" data-to="slave" data-interaction="mmio" data-direction="forward">
+      <path d="M650,460 L500,460 L500,790" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M650,460 L500,460 L500,790" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="ps" data-to="slave" data-interaction="mmio" data-direction="forward">
-      <path d="M1765,445 L1765,535 L1680,535 L1680,705" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1765,445 L1765,535 L1680,535 L1680,705" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    <g data-kind="interaction" data-from="driver" data-to="master" data-interaction="mmio" data-direction="forward">
+      <path d="M1150,460 L1300,460 L1300,790" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1150,460 L1300,460 L1300,790" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="master" data-to="fabric" data-interaction="data" data-direction="forward">
-      <path d="M520,910 L520,1010 L870,1010 L870,1110" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M520,910 L520,1010 L870,1010 L870,1110" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    <g data-kind="interaction" data-from="driver" data-to="memory" data-interaction="data" data-direction="both">
+      <path d="M900,525 L900,790" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M900,525 L900,790" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="slave" data-to="fabric" data-interaction="data" data-direction="forward">
-      <path d="M1680,910 L1680,1030 L1330,1030 L1330,1110" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1680,910 L1680,1030 L1330,1030 L1330,1110" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    <g data-kind="interaction" data-from="slave" data-to="memory" data-interaction="data" data-direction="both">
+      <path d="M650,880 L750,880" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M650,880 L750,880" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="fabric" data-to="slave" data-interaction="data" data-direction="forward">
-      <path d="M1560,1187.5 L1970,1187.5 L1970,975 L1915,975 L1915,910" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1560,1187.5 L1970,1187.5 L1970,975 L1915,975 L1915,910" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    <g data-kind="interaction" data-from="master" data-to="memory" data-interaction="data" data-direction="forward">
+      <path d="M1150,880 L1050,880" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1150,880 L1050,880" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="ps" data-to="fabric" data-interaction="data" data-direction="both">
-      <path d="M2120,362.5 L2180,362.5 L2180,1320 L1640,1320 L1640,1237.5 L1560,1237.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M2120,362.5 L2180,362.5 L2180,1320 L1640,1320 L1640,1237.5 L1560,1237.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+    <g id="host-bus" data-kind="bus" data-layer="L0" data-members="external-host slave" data-label="Шина ведущего">
+      <title>Шина ведущего</title>
+      <path d="M90,1160 H560" fill="none" stroke="#607487" stroke-width="5" stroke-linecap="round" />
+      <path d="M147.5,970 V1160" fill="none" stroke="#607487" stroke-width="3" />
+      <circle cx="147.5" cy="1160" r="5" fill="#607487" />
+      <path d="M500.0,970 V1160" fill="none" stroke="#607487" stroke-width="3" />
+      <circle cx="500.0" cy="1160" r="5" fill="#607487" />
     </g>
-    <g data-kind="interaction" data-from="fabric" data-to="memory" data-interaction="data" data-direction="both">
-      <path d="M1100,1265 L1100,1380" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1100,1265 L1100,1380" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="bram-controller" data-to="bram-array" data-interaction="data" data-direction="both">
-      <path d="M1045,1536 L1175,1536" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1045,1536 L1175,1536" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="master" data-to="external-target" data-interaction="data" data-direction="both">
-      <path d="M140,807.5 L95,807.5 L95,1905 L140,1905" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M140,807.5 L95,807.5 L95,1905 L140,1905" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+    <g id="device-bus" data-kind="bus" data-layer="L0" data-members="master external-target" data-label="Шина PHY">
+      <title>Шина PHY</title>
+      <path d="M1240,1160 H1710" fill="none" stroke="#607487" stroke-width="5" stroke-linecap="round" />
+      <path d="M1300.0,970 V1160" fill="none" stroke="#607487" stroke-width="3" />
+      <circle cx="1300.0" cy="1160" r="5" fill="#607487" />
+      <path d="M1652.5,970 V1160" fill="none" stroke="#607487" stroke-width="3" />
+      <circle cx="1652.5" cy="1160" r="5" fill="#607487" />
     </g>
     <g data-kind="interaction" data-from="external-host" data-to="slave" data-interaction="data" data-direction="both">
-      <path d="M2060,1905 L2110,1905 L2110,807.5 L2060,807.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M2060,1905 L2110,1905 L2110,807.5 L2060,807.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+      <path d="M147.5,1105 L500,1105" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M147.5,1105 L500,1105" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="master" data-to="external-target" data-interaction="data" data-direction="both">
+      <path d="M1300,1105 L1652.5,1105" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1300,1105 L1652.5,1105" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
     </g>
   </g>
   <g id="components">
-    <g id="software" data-kind="component" data-layer="L3" data-label="Сервис и драйверы" data-ownership="common" data-target="../ps-interaction/mdio-write.svg#service">
-      <rect x="80" y="280" width="680" height="165" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../ps-interaction/mdio-write.svg#service">
-        <text x="100" y="304.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="100" y="338.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сервис и драйверы</text>
-      </a>
-      <text x="100" y="377.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Политика, кэш и операции с устройством</text>
-    </g>
-    <g id="ps" data-kind="component" data-layer="L0" data-label="PS и AXI к PL" data-ownership="common" data-target="../../architecture_bvstk_ps_pl.svg#ps-axi">
-      <rect x="1410" y="280" width="710" height="165" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#ps-axi">
-        <text x="1430" y="304.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="1430" y="338.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">PS и AXI к PL</text>
-      </a>
-      <text x="1430" y="377.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">MMIO к регистрам и окну BRAM</text>
-    </g>
-    <g id="subsystem" data-kind="functional-group" data-label="Подсистема MDIO" data-layer="L0" data-domain="pl" data-ownership="common">
-      <rect x="60" y="590" width="2080" height="1100" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
-      <a data-navigation="detail" xlink:href="../overview/subsystems.svg#pl-subsystem">
-        <text x="86" y="627.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">Подсистема MDIO</text>
-      </a>
-      <text x="86" y="660.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">SMI_master_0 и SMI_slave_0</text>
-      <g id="master" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_master_0" data-ownership="common" data-parent="subsystem" data-target="master.svg#core">
-        <rect x="140" y="705" width="760" height="205" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="master.svg#core">
-          <text x="160" y="729.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="160" y="763.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_master_0</text>
-        </a>
-        <text x="160" y="802.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ведущий MDIO</text>
-        <text x="160" y="828.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">S_AXI: регистры; M_AXI: запись результатов</text>
+    <g id="software" data-kind="functional-group" data-label="Программа PS" data-layer="L3" data-ownership="common">
+      <rect x="595" y="70" width="610" height="510" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+      <text x="621" y="107.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Программа PS</text>
+      <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_mdio_service" data-ownership="common" data-parent="software">
+        <rect x="650" y="155" width="500" height="140" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="670" y="179.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="670" y="213.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_service</text>
+        <text x="670" y="252.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Политика и кэш</text>
       </g>
+      <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_mdio_core" data-ownership="common" data-parent="software">
+        <rect x="650" y="395" width="500" height="130" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <text x="670" y="419.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="670" y="453.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_core</text>
+        <text x="670" y="492.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747" xml:space="preserve"><tspan>Доступ к PL через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
+      </g>
+    </g>
+    <g id="subsystem" data-kind="functional-group" data-label="MDIO" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="305" y="690" width="1190" height="355" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#smi-fabric">
+        <text x="331" y="727.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">MDIO</text>
+      </a>
       <g id="slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_slave_0" data-ownership="common" data-parent="subsystem" data-target="slave.svg#core">
-        <rect x="1300" y="705" width="760" height="205" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <rect x="350" y="790" width="300" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="slave.svg#core">
-          <text x="1320" y="729.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1320" y="763.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_slave_0</text>
+          <text x="370" y="814.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="370" y="897.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_slave_0</text>
         </a>
-        <text x="1320" y="802.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ведомый MDIO</text>
-        <text x="1320" y="828.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">S_AXI: регистры; M_AXI: запросы и ответы</text>
       </g>
-      <g id="fabric" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_interconnect_0" data-ownership="common" data-parent="subsystem" data-target="../../architecture_bvstk_ps_pl.svg#smi-fabric">
-        <rect x="640" y="1110" width="920" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#smi-fabric">
-          <text x="660" y="1134.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="660" y="1168.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_interconnect_0</text>
-        </a>
-        <text x="660" y="1207.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Входы: master, slave и PS</text>
+      <g id="memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM MDIO" data-ownership="common" data-parent="subsystem">
+        <rect x="750" y="790" width="300" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="770" y="814.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="770" y="848.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM MDIO</text>
+        <text x="770" y="887.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">0x42000000</text>
+        <text x="770" y="913.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">16 КиБ</text>
       </g>
-      <g id="memory" data-kind="functional-group" data-label="BRAM MDIO" data-layer="L0" data-domain="pl" data-ownership="common">
-        <rect x="440" y="1380" width="1320" height="240" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
-        <a data-navigation="detail" xlink:href="../reference/memory-map.svg#mdio-bank">
-          <text x="466" y="1417.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM MDIO</text>
+      <g id="master" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_master_0" data-ownership="common" data-parent="subsystem" data-target="master.svg#core">
+        <rect x="1150" y="790" width="300" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="master.svg#core">
+          <text x="1170" y="814.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1170" y="897.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_master_0</text>
         </a>
-        <text x="466" y="1450.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">0x42000000, 16 КиБ</text>
-        <g id="bram-controller" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_bram_ctrl_1" data-ownership="common" data-parent="memory">
-          <rect x="485" y="1490" width="560" height="92" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-          <text x="505" y="1514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="505" y="1548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_bram_ctrl_1</text>
-        </g>
-        <g id="bram-array" data-kind="component" data-layer="L0" data-domain="pl" data-label="blk_mem_gen_0" data-ownership="common" data-parent="memory">
-          <rect x="1175" y="1490" width="540" height="92" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-          <text x="1195" y="1514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1195" y="1548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">blk_mem_gen_0</text>
-        </g>
       </g>
     </g>
-    <g id="external-target" data-kind="component" data-layer="L0" data-label="Внешнее ведомое устройство" data-ownership="common">
-      <rect x="140" y="1830" width="760" height="150" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
-      <text x="160" y="1854.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-      <text x="160" y="1888.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее ведомое устройство</text>
-      <text x="160" y="1927.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Физические регистры устройства</text>
+    <g id="external-host" data-kind="component" data-layer="L0" data-label="Внешний&#10;ведущий" data-ownership="common">
+      <rect x="30" y="790" width="235" height="180" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="50" y="814.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="50" y="880.44" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
+      <text x="50" y="913.5600000000001" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
     </g>
-    <g id="external-host" data-kind="component" data-layer="L0" data-label="Внешний ведущий" data-ownership="common">
-      <rect x="1300" y="1830" width="760" height="150" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
-      <text x="1320" y="1854.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-      <text x="1320" y="1888.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий</text>
-      <text x="1320" y="1927.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Инициатор обращения к мосту</text>
+    <g id="external-target" data-kind="component" data-layer="L0" data-label="Физический&#10;PHY" data-ownership="common">
+      <rect x="1535" y="790" width="235" height="180" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1555" y="814.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="1555" y="880.44" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Физический</text>
+      <text x="1555" y="913.5600000000001" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">PHY</text>
     </g>
   </g>
   <g id="annotations">
-    <text x="1085.0" y="348.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label" xml:space="preserve"><tspan>Через </tspan><tspan style="fill:#b56b1d">L1</tspan><tspan>: bvstk_mmio</tspan></text>
-    <text x="695.0" y="996.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Результат</text>
-    <text x="1505.0" y="1016.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запрос</text>
-    <text x="1970.0" y="1067.25" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Ответ</text>
-    <text x="1920" y="1360.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Доступ CPU к BRAM</text>
-    <text x="150" y="1750.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MDIO</text>
-    <text x="2030" y="1750.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MDIO</text>
-    <path d="M60,2032 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="142" y="2038.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M366,2032 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="448" y="2038.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="2069" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2088.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2069" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2088.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="2069" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="2088.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2135.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <text x="410" y="620.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">Регистры</text>
+    <text x="1390" y="620.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">Регистры</text>
+    <text x="950" y="650.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">BRAM</text>
+    <text x="325.0" y="1215.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Шина ведущего</text>
+    <text x="1475.0" y="1215.0" font-size="20" font-weight="700" text-anchor="middle" style="fill:#607487">Шина PHY</text>
+    <path d="M60,1273.0 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1279.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1273.0 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1279.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,1273.0 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="1279.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1310.0" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1329.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1310.0" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1329.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="1310.0" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1329.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1376.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Серые линии внизу — два независимых участка MDIO.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
   "sources": [
     "../hw_platform/fpga/Burevestnik_21.tcl",
-    "../hw_platform/fpga/ip_repo/SMI_master/src/top_mdio_master.sv",
-    "../hw_platform/fpga/ip_repo/SMI_slave/src/top_mdio_slave.sv"
+    "src/services/mdio/bvstk_mdio_service.c",
+    "src/drivers/pl/mdio/bvstk_mdio_core.c"
   ],
   "cross_sheet_links": [
     {
-      "node": "software",
-      "target": "../ps-interaction/mdio-write.svg#service"
-    },
-    {
-      "node": "ps",
-      "target": "../../architecture_bvstk_ps_pl.svg#ps-axi"
-    },
-    {
       "node": "subsystem",
-      "target": "../overview/subsystems.svg#pl-subsystem"
-    },
-    {
-      "node": "master",
-      "target": "master.svg#core"
+      "target": "../../architecture_bvstk_ps_pl.svg#smi-fabric"
     },
     {
       "node": "slave",
       "target": "slave.svg#core"
     },
     {
-      "node": "fabric",
-      "target": "../../architecture_bvstk_ps_pl.svg#smi-fabric"
-    },
-    {
-      "node": "memory",
-      "target": "../reference/memory-map.svg#mdio-bank"
+      "node": "master",
+      "target": "master.svg#core"
     }
   ],
-  "article_notes": [
-    "Программный мост работает в FreeRTOS: входные записи проверяются задачей mdio, ответы внешнему ведущему заранее подготовлены в BRAM."
-  ]
+  "article_notes": []
 }</metadata>
 </svg>

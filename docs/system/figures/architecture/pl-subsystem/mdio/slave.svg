@@ -95,8 +95,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="host" data-kind="component" data-layer="L0" data-label="Внешний ведущий MDIO" data-ownership="common">
       <rect x="760" y="260" width="680" height="165" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <text x="780" y="284.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-      <text x="780" y="318.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий MDIO</text>
-      <text x="780" y="357.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Формирует MDC и кадр Clause 22</text>
+      <text x="780" y="359.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий MDIO</text>
     </g>
     <g id="core" data-kind="functional-group" data-label="SMI_slave_0" data-layer="L0" data-domain="pl" data-ownership="common">
       <rect x="130" y="550" width="1940" height="1270" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
@@ -108,59 +107,46 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="640" y="670" width="920" height="190" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="660" y="694.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="660" y="728.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">mdio_slave_engine</text>
-        <text x="660" y="767.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Разбор OP, PHY и REG</text>
-        <text x="660" y="793.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Приём записи или выдача 16-битного ответа</text>
+        <text x="660" y="767.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Clause 22</text>
       </g>
       <g id="data-ctrl" data-kind="functional-group" data-label="mdio_data_ctrl" data-layer="L0" data-domain="pl" data-ownership="common">
         <rect x="180" y="1020" width="1840" height="735" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
         <text x="206" y="1057.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">mdio_data_ctrl</text>
-        <text x="206" y="1090.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Адресация BRAM, состояние и регистры для PS</text>
         <g id="write" data-kind="component" data-layer="L0" data-domain="pl" data-label="Входящая запись" data-ownership="common" data-parent="data-ctrl">
           <rect x="250" y="1140" width="690" height="215" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="270" y="1164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="270" y="1198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Входящая запись</text>
-          <text x="270" y="1237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">BRAM +0x1000 + индекс</text>
-          <text x="270" y="1263.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Последнее значение регистра</text>
-          <text x="270" y="1289.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">После записи устанавливается IRQ</text>
+          <text x="270" y="1237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Банк записей: +0x1000</text>
         </g>
         <g id="read" data-kind="component" data-layer="L0" data-domain="pl" data-label="Внешнее чтение" data-ownership="common" data-parent="data-ctrl">
           <rect x="1260" y="1140" width="690" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="1280" y="1164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="1280" y="1198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее чтение</text>
-          <text x="1280" y="1237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">BRAM +0x2000 + индекс</text>
-          <text x="1280" y="1263.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выдать ранее подготовленное значение</text>
+          <text x="1280" y="1237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Банк ответов: +0x2000</text>
         </g>
         <g id="axi" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_lite_master_native" data-ownership="common" data-parent="data-ctrl">
           <rect x="640" y="1520" width="920" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="660" y="1544.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="660" y="1578.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_lite_master_native</text>
-          <text x="660" y="1617.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Запись принятого значения и чтение ответа</text>
+          <text x="660" y="1617.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">M_AXI</text>
         </g>
       </g>
     </g>
-    <g id="memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM MDIO" data-ownership="common" data-target="../reference/memory-map.svg#mdio-bank">
+    <g id="memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM MDIO" data-ownership="common">
       <rect x="670" y="1950" width="860" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../reference/memory-map.svg#mdio-bank">
-        <text x="690" y="1974.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="690" y="2008.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM MDIO</text>
-      </a>
-      <text x="690" y="2047.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Отдельные банки принятых записей и ответов</text>
+      <text x="690" y="1974.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="690" y="2049.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM MDIO</text>
     </g>
-    <g id="consume" data-kind="component" data-layer="L3" data-label="Обработка принятой записи" data-ownership="common" data-target="../ps-interaction/mdio-write.svg#service">
+    <g id="consume" data-kind="component" data-layer="L3" data-label="Обработка принятой записи" data-ownership="common">
       <rect x="110" y="2270" width="800" height="195" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../ps-interaction/mdio-write.svg#service">
-        <text x="130" y="2294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="130" y="2328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Обработка принятой записи</text>
-      </a>
+      <text x="130" y="2294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="130" y="2328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Обработка принятой записи</text>
       <text x="130" y="2367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Задача PS, профиль и политика</text>
     </g>
-    <g id="publish" data-kind="component" data-layer="L3" data-label="Подготовка ответов" data-ownership="common" data-target="../ps-interaction/cache.svg#cache">
+    <g id="publish" data-kind="component" data-layer="L3" data-label="Подготовка ответов" data-ownership="common">
       <rect x="1290" y="2270" width="800" height="195" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../ps-interaction/cache.svg#cache">
-        <text x="1310" y="2294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="1310" y="2328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Подготовка ответов</text>
-      </a>
-      <text x="1310" y="2367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Обновление кэша и публикация в BRAM</text>
+      <text x="1310" y="2294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="1310" y="2384.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Подготовка ответов</text>
     </g>
   </g>
   <g id="annotations">
@@ -192,18 +178,6 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "core",
       "target": "subsystem.svg#slave"
-    },
-    {
-      "node": "memory",
-      "target": "../reference/memory-map.svg#mdio-bank"
-    },
-    {
-      "node": "consume",
-      "target": "../ps-interaction/mdio-write.svg#service"
-    },
-    {
-      "node": "publish",
-      "target": "../ps-interaction/cache.svg#cache"
     }
   ],
   "article_notes": [

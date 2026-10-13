@@ -52,12 +52,12 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="master" data-kind="component" data-layer="L0" data-label="Ведущий" data-ownership="common">
       <rect x="60" y="260" width="330" height="430" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <text x="80" y="284.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-      <text x="80" y="318.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведущий</text>
+      <text x="80" y="492.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведущий</text>
     </g>
     <g id="slave" data-kind="component" data-layer="L0" data-label="Ведомое устройство" data-ownership="common">
       <rect x="1180" y="260" width="360" height="430" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <text x="1200" y="284.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-      <text x="1200" y="318.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведомое устройство</text>
+      <text x="1200" y="492.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведомое устройство</text>
     </g>
   </g>
   <g id="annotations">

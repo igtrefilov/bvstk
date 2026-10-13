@@ -84,15 +84,14 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="80" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
         <text x="80" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт ОС</text>
       </a>
-      <text x="80" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Доставка и обработка IRQ</text>
+      <text x="80" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">IRQ</text>
     </g>
     <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_i2c_slave" data-ownership="common" data-target="../platform.svg#slave">
       <rect x="576.0439560439561" y="120" width="574.4175824175824" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../platform.svg#slave">
         <text x="596.0439560439561" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="596.0439560439561" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave</text>
+        <text x="596.0439560439561" y="214.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave</text>
       </a>
-      <text x="596.0439560439561" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Захват события и чтение</text>
     </g>
     <g id="core" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_slave_0" data-ownership="common" data-target="../../cores/slave/write.svg#core">
       <rect x="1198.4615384615386" y="120" width="425.4945054945054" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -126,11 +125,11 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="capture" data-kind="sequence-step">
       <rect x="873.2527472527472" y="661" width="527.9560439560441" height="57" rx="4" fill="white" />
-      <text x="1137.2307692307693" y="685" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">capture_irq: прочитать IRQ и REQ</text>
+      <text x="1137.2307692307693" y="685" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">capture_irq: IRQ и REQ</text>
     </g>
     <g id="ack" data-kind="sequence-step">
       <rect x="873.2527472527472" y="766" width="527.9560439560441" height="57" rx="4" fill="white" />
-      <text x="1137.2307692307693" y="790" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Сбросить захваченные IRQ</text>
+      <text x="1137.2307692307693" y="790" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Сброс захваченных IRQ</text>
     </g>
     <g id="copy" data-kind="sequence-step">
       <rect x="873.2527472527472" y="871" width="1022.7252747252746" height="57" rx="4" fill="white" />

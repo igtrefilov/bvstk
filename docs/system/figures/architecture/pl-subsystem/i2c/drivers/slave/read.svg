@@ -81,11 +81,11 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="80" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
         <text x="80" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт ОС</text>
       </a>
-      <text x="80" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Доставка и обработка IRQ</text>
+      <text x="80" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">IRQ</text>
     </g>
-    <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_slave_service" data-ownership="common" data-target="../../../ps-interaction/reads.svg#i-service">
+    <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_slave_service" data-ownership="common" data-target="../../services/read-state.svg#service">
       <rect x="469.1826086956522" y="120" width="459.6869565217391" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../../../ps-interaction/reads.svg#i-service">
+      <a data-navigation="detail" xlink:href="../../services/read-state.svg#service">
         <text x="489.1826086956522" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
         <text x="489.1826086956522" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave_service</text>
       </a>
@@ -95,9 +95,8 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="976.8695652173913" y="120" width="410.4347826086956" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../platform.svg#slave">
         <text x="996.8695652173913" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="996.8695652173913" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave</text>
+        <text x="996.8695652173913" y="214.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave</text>
       </a>
-      <text x="996.8695652173913" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Публикация ответа</text>
     </g>
     <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM I²C" data-ownership="common" data-target="../../cores/slave/buffers.svg#rd-window">
       <rect x="1435.304347826087" y="120" width="328.3478260869565" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -111,9 +110,8 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="1811.6521739130435" y="120" width="328.3478260869565" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../cores/slave/read.svg#core">
         <text x="1831.6521739130435" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1831.6521739130435" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
+        <text x="1831.6521739130435" y="214.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
       </a>
-      <text x="1831.6521739130435" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Чтение окна</text>
     </g>
   </g>
   <g id="annotations">
@@ -140,8 +138,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="fetch" data-kind="sequence-step">
       <rect x="1609.4782608695652" y="871" width="356.3478260869565" height="57" rx="4" fill="white" />
-      <text x="1787.6521739130435" y="895" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Забрать окно для выдачи по</text>
-      <text x="1787.6521739130435" y="921" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">SDA</text>
+      <text x="1787.6521739130435" y="895" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Окно ответа</text>
     </g>
     <path d="M60,1052 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
     <text x="142" y="1058.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
@@ -171,7 +168,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "service",
-      "target": "../../../ps-interaction/reads.svg#i-service"
+      "target": "../../services/read-state.svg#service"
     },
     {
       "node": "driver",

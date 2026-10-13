@@ -84,9 +84,9 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="components">
-    <g id="master-service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-target="../../../ps-interaction/i2c-irq.svg#master-service">
+    <g id="master-service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-target="../../services/master-operations.svg#read">
       <rect x="60" y="250" width="620" height="160" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../../../ps-interaction/i2c-irq.svg#master-service">
+      <a data-navigation="detail" xlink:href="../../services/master-operations.svg#read">
         <text x="80" y="274.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
         <text x="80" y="308.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master_service</text>
       </a>
@@ -154,10 +154,12 @@ g:target &gt; rect { stroke-width: 5; }
       </a>
       <text x="1220" y="1617.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">D0 → DATA_VALID</text>
     </g>
-    <g id="master-service-result" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common">
+    <g id="master-service-result" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-target="../../services/master-operations.svg#result">
       <rect x="60" y="1520" width="620" height="150" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <text x="80" y="1544.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-      <text x="80" y="1578.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master_service</text>
+      <a data-navigation="detail" xlink:href="../../services/master-operations.svg#result">
+        <text x="80" y="1544.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="80" y="1578.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master_service</text>
+      </a>
       <text x="80" y="1617.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Кэш и возврат D0</text>
     </g>
   </g>
@@ -202,7 +204,7 @@ g:target &gt; rect { stroke-width: 5; }
   "cross_sheet_links": [
     {
       "node": "master-service",
-      "target": "../../../ps-interaction/i2c-irq.svg#master-service"
+      "target": "../../services/master-operations.svg#read"
     },
     {
       "node": "write-phase",
@@ -215,6 +217,10 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "result",
       "target": "buffers.svg"
+    },
+    {
+      "node": "master-service-result",
+      "target": "../../services/master-operations.svg#result"
     }
   ],
   "article_notes": []

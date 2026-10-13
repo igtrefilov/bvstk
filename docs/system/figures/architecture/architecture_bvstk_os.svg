@@ -13,17 +13,15 @@
       <title>L4. Приложение</title>
       <rect x="100" y="350" width="680" height="140" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
       <a data-navigation="detail" data-ref-node="f-apps" xlink:href="architecture_bvstk_l4.svg#freertos-region">
-        <text x="440.0" y="422.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L4. Приложение</text>
+        <text x="440.0" y="429.8" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L4. Приложение</text>
       </a>
-      <text x="440.0" y="460.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Запуск и пользовательские функции</text>
     </g>
     <g id="f-services" data-kind="layer-summary" data-layer="L3" data-ownership="freertos" data-label="L3. Системные службы" data-target="architecture_bvstk_l3.svg#freertos-region">
       <title>L3. Системные службы</title>
       <rect x="100" y="580" width="680" height="140" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
       <a data-navigation="detail" data-ref-node="f-services" xlink:href="architecture_bvstk_l3.svg#freertos-region">
-        <text x="440.0" y="652.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L3. Системные службы</text>
+        <text x="440.0" y="659.8" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L3. Системные службы</text>
       </a>
-      <text x="440.0" y="690.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Ввод, сеть и файлы</text>
     </g>
     <g id="f-kernel" data-kind="layer-summary" data-layer="L2" data-ownership="freertos" data-label="L2. Ядро ОС" data-target="architecture_bvstk_l1.svg#f-kernel">
       <title>L2. Ядро ОС</title>
@@ -47,17 +45,15 @@
       <title>L4. Прикладные процессы</title>
       <rect x="2020" y="350" width="680" height="140" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
       <a data-navigation="detail" data-ref-node="n-apps" xlink:href="architecture_bvstk_l4.svg#neutrino-region">
-        <text x="2360.0" y="422.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L4. Прикладные процессы</text>
+        <text x="2360.0" y="429.8" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L4. Прикладные процессы</text>
       </a>
-      <text x="2360.0" y="460.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Сервис и командные программы</text>
     </g>
     <g id="n-services" data-kind="layer-summary" data-layer="L3" data-ownership="neutrino" data-label="L3. Службы и менеджеры" data-target="architecture_bvstk_l3.svg#neutrino-region">
       <title>L3. Службы и менеджеры</title>
       <rect x="2020" y="580" width="680" height="140" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
       <a data-navigation="detail" data-ref-node="n-services" xlink:href="architecture_bvstk_l3.svg#neutrino-region">
-        <text x="2360.0" y="652.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L3. Службы и менеджеры</text>
+        <text x="2360.0" y="659.8" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L3. Службы и менеджеры</text>
       </a>
-      <text x="2360.0" y="690.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Сеть, файлы и обслуживание устройств</text>
     </g>
     <g id="n-kernel" data-kind="layer-summary" data-layer="L2" data-ownership="neutrino" data-label="L2. Ядро ОС" data-target="architecture_bvstk_l1.svg#n-kernel">
       <title>L2. Ядро ОС</title>
@@ -80,17 +76,15 @@
       <title>L4. Общая прикладная логика</title>
       <rect x="1020" y="350" width="760" height="140" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
       <a data-navigation="detail" data-ref-node="common-app" xlink:href="architecture_bvstk_l4.svg#common-region">
-        <text x="1400.0" y="422.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L4. Общая прикладная логика</text>
+        <text x="1400.0" y="429.8" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L4. Общая прикладная логика</text>
       </a>
-      <text x="1400.0" y="460.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Настройки и обработка ввода</text>
     </g>
     <g id="common-services" data-kind="layer-summary" data-layer="L3" data-ownership="common" data-label="L3. Логика подсистем" data-target="architecture_bvstk_l3.svg#common-region">
       <title>L3. Логика подсистем</title>
       <rect x="1020" y="580" width="760" height="140" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
       <a data-navigation="detail" data-ref-node="common-services" xlink:href="architecture_bvstk_l3.svg#common-region">
-        <text x="1400.0" y="652.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L3. Логика подсистем</text>
+        <text x="1400.0" y="659.8" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L3. Логика подсистем</text>
       </a>
-      <text x="1400.0" y="690.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Протоколы, сервисы и драйверы</text>
     </g>
     <g id="common-platform" data-kind="layer-summary" data-layer="L1" data-ownership="common" data-label="L1. Интерфейсы платформы" data-target="architecture_bvstk_l1.svg#common-region">
       <title>L1. Интерфейсы платформы</title>
@@ -105,7 +99,7 @@
       <a data-navigation="detail" data-ref-node="hardware" xlink:href="architecture_bvstk_l0_l1.svg#hardware-panel">
         <text x="1400.0" y="1402.0" font-size="28" font-weight="700" text-anchor="middle" style="fill:#233747">L0. Аппаратура</text>
       </a>
-      <text x="1400.0" y="1440.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">Процессорная система PS и программируемая логика PL</text>
+      <text x="1400.0" y="1440.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#576c7b">PS и PL</text>
     </g>
   </g>
   <view id="os-kernels" viewBox="60 750 2680 230" />

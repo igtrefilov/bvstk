@@ -1,0 +1,142 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1400" viewBox="0 30 1400 856" role="img" aria-labelledby="title desc" data-content="article-figure" height="856">
+  <title id="title">Выдача подготовленного ответа</title>
+  <desc id="desc">Порядок обмена между участниками; подробности приведены в статье.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1400" height="886" fill="white" />
+  <g id="backgrounds">
+    <path d="M257.33333333333337,255 V725" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M700.0,255 V725" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1142.6666666666667,255 V725" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="host" data-to="pl_slave" data-interaction="data" data-direction="forward">
+      <path d="M257.333,373 L700,373" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M257.333,373 L700,373" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="pl_slave" data-to="memory" data-interaction="mmio" data-direction="forward">
+      <path d="M700,478 L1142.67,478" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M700,478 L1142.67,478" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="memory" data-to="pl_slave" data-interaction="data" data-direction="forward">
+      <path d="M1142.67,583 L700,583" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1142.67,583 L700,583" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="pl_slave" data-to="host" data-interaction="data" data-direction="forward">
+      <path d="M700,688 L257.333,688" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M700,688 L257.333,688" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="host" data-kind="component" data-layer="L0" data-label="Внешний&#10;ведущий" data-ownership="common" data-target="bridge.svg#host">
+      <rect x="60" y="70" width="394.6666666666667" height="155" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="bridge.svg#host">
+        <text x="80" y="94.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="80" y="147.94" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
+        <text x="80" y="181.06" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
+      </a>
+    </g>
+    <g id="pl_slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_slave" data-ownership="common" data-target="subsystems.svg#pl_slave">
+      <rect x="502.6666666666667" y="70" width="394.6666666666667" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="subsystems.svg#pl_slave">
+        <text x="522.6666666666667" y="94.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="522.6666666666667" y="164.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_slave</text>
+      </a>
+    </g>
+    <g id="memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM" data-ownership="common" data-target="memory.svg#exchange-memory">
+      <rect x="945.3333333333334" y="70" width="394.6666666666667" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="memory.svg#exchange-memory">
+        <text x="965.3333333333334" y="94.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="965.3333333333334" y="164.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM</text>
+      </a>
+    </g>
+  </g>
+  <g id="annotations">
+    <g id="read-request" data-kind="sequence-step">
+      <rect x="267.33333333333337" y="296" width="422.66666666666663" height="57" rx="4" fill="white" />
+      <text x="478.6666666666667" y="320" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Чтение</text>
+    </g>
+    <g id="reply-address" data-kind="sequence-step">
+      <rect x="710.0" y="401" width="422.66666666666674" height="57" rx="4" fill="white" />
+      <text x="921.3333333333334" y="425" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Адрес ответа</text>
+    </g>
+    <g id="reply-buffer" data-kind="sequence-step">
+      <rect x="710.0" y="506" width="422.66666666666674" height="57" rx="4" fill="white" />
+      <text x="921.3333333333334" y="530" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Значение</text>
+    </g>
+    <g id="send-reply" data-kind="sequence-step">
+      <rect x="267.33333333333337" y="611" width="422.66666666666663" height="57" rx="4" fill="white" />
+      <text x="478.6666666666667" y="635" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Ответ</text>
+    </g>
+    <path d="M60,792 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="142" y="798.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M366,792 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="448" y="798.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="829" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="848.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="829" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="848.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/Burevestnik_21.tcl",
+    "src/services/i2c/bvstk_i2c_slave_service.c",
+    "src/services/i2c/bvstk_i2c_master_service.c",
+    "src/services/mdio/bvstk_mdio_service.c",
+    "src/shared/config/bvstk_device_profile.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "host",
+      "target": "bridge.svg#host"
+    },
+    {
+      "node": "pl_slave",
+      "target": "subsystems.svg#pl_slave"
+    },
+    {
+      "node": "memory",
+      "target": "memory.svg#exchange-memory"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

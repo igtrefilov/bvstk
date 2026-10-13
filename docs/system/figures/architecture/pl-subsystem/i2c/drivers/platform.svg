@@ -99,8 +99,7 @@ g:target &gt; rect { stroke-width: 5; }
           <text x="125" y="559.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
           <text x="125" y="593.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_platform_freertos</text>
         </a>
-        <text x="125" y="632.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Физический адрес</text>
-        <text x="125" y="658.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Xil_In32 и Xil_Out32</text>
+        <text x="125" y="632.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Xil_In32, Xil_Out32</text>
       </g>
     </g>
     <g id="neutrino" data-kind="ownership-region" data-label="Нейтрино" data-ownership="neutrino">
@@ -114,7 +113,6 @@ g:target &gt; rect { stroke-width: 5; }
         </a>
         <text x="1615" y="632.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">mmap_device_memory</text>
         <text x="1615" y="658.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">PROT_NOCACHE</text>
-        <text x="1615" y="684.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Чтение и запись по отображению</text>
       </g>
     </g>
     <g id="mmio" data-kind="component" data-layer="L1" data-label="bvstk_mmio" data-ownership="common" data-target="../../../architecture_bvstk_l1.svg#platform-access--mmio">
@@ -123,7 +121,7 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="820" y="559.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
         <text x="820" y="593.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mmio</text>
       </a>
-      <text x="820" y="632.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Открытие области, read32, write32</text>
+      <text x="820" y="632.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">read32, write32</text>
     </g>
     <g id="hardware" data-kind="functional-group" data-label="Регистры и память I²C" data-layer="L0" data-domain="pl" data-ownership="common">
       <rect x="360" y="1050" width="1480" height="265" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
@@ -144,13 +142,10 @@ g:target &gt; rect { stroke-width: 5; }
         </a>
         <text x="955" y="1237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">CSR, IRQ, REQ</text>
       </g>
-      <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM I²C" data-ownership="common" data-parent="hardware" data-target="../../reference/memory-map.svg#i2c-bank">
+      <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM I²C" data-ownership="common" data-parent="hardware">
         <rect x="1460" y="1140" width="330" height="125" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="../../reference/memory-map.svg#i2c-bank">
-          <text x="1480" y="1164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1480" y="1198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM I²C</text>
-        </a>
-        <text x="1480" y="1237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Три окна</text>
+        <text x="1480" y="1164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1480" y="1219.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM I²C</text>
       </g>
     </g>
   </g>
@@ -202,10 +197,6 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "slave-core",
       "target": "../cores/slave/structure.svg#core"
-    },
-    {
-      "node": "bram",
-      "target": "../../reference/memory-map.svg#i2c-bank"
     }
   ],
   "article_notes": []

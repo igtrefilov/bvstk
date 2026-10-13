@@ -99,112 +99,85 @@ g:target &gt; rect { stroke-width: 5; }
         <a data-navigation="detail" xlink:href="subsystems.svg#driver">
           <text x="526" y="407.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Драйвер подсистемы</text>
         </a>
-        <text x="526" y="440.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>Доступ к памяти и состоянию ядер через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
-        <g id="take-request" data-kind="component" data-layer="L3" data-label="Получить запрос" data-ownership="common" data-parent="driver" data-target="exchange.svg#take-request">
+        <g id="take-request" data-kind="component" data-layer="L3" data-label="Получить запрос" data-ownership="common" data-parent="driver" data-target="exchange-write.svg#take-request">
           <rect x="540" y="485" width="330" height="240" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="exchange.svg#take-request">
+          <a data-navigation="detail" xlink:href="exchange-write.svg#take-request">
             <text x="560" y="509.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-            <text x="560" y="543.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Получить запрос</text>
+            <text x="560" y="622.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Получить запрос</text>
           </a>
-          <text x="560" y="582.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Проверить готовность</text>
-          <text x="560" y="608.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Прочитать данные</text>
-          <text x="560" y="634.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подтвердить приём</text>
         </g>
-        <g id="publish" data-kind="component" data-layer="L3" data-label="Опубликовать ответ" data-ownership="common" data-parent="driver" data-target="exchange.svg#publish-reply">
+        <g id="publish" data-kind="component" data-layer="L3" data-label="Опубликовать ответ" data-ownership="common" data-parent="driver" data-target="exchange-refresh.svg#publish-reply">
           <rect x="980" y="485" width="280" height="270" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="exchange.svg#publish-reply">
+          <a data-navigation="detail" xlink:href="exchange-refresh.svg#publish-reply">
             <text x="1000" y="509.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-            <text x="1000" y="543.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Опубликовать</text>
-            <text x="1000" y="576.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ответ</text>
+            <text x="1000" y="620.44" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Опубликовать</text>
+            <text x="1000" y="653.5600000000001" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ответ</text>
           </a>
-          <text x="1000" y="615.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Записать данные</text>
-          <text x="1000" y="641.46" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Обозначить</text>
-          <text x="1000" y="667.6800000000001" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">готовность,</text>
-          <text x="1000" y="693.9" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">если это требует ядро</text>
         </g>
-        <g id="take-result" data-kind="component" data-layer="L3" data-label="Получить результат" data-ownership="common" data-parent="driver" data-target="exchange.svg#result-buffer">
+        <g id="take-result" data-kind="component" data-layer="L3" data-label="Получить результат" data-ownership="common" data-parent="driver" data-target="exchange-refresh.svg#result-buffer">
           <rect x="1400" y="485" width="260" height="285" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="exchange.svg#result-buffer">
+          <a data-navigation="detail" xlink:href="exchange-refresh.svg#result-buffer">
             <text x="1420" y="509.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-            <text x="1420" y="543.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Получить</text>
-            <text x="1420" y="576.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">результат</text>
+            <text x="1420" y="627.94" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Получить</text>
+            <text x="1420" y="661.0600000000001" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">результат</text>
           </a>
-          <text x="1420" y="615.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Проверить</text>
-          <text x="1420" y="641.46" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">завершение</text>
-          <text x="1420" y="667.6800000000001" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Прочитать данные</text>
-          <text x="1420" y="693.9" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подтвердить приём</text>
         </g>
       </g>
       <g id="exchange-memory" data-kind="functional-group" data-label="BRAM" data-layer="L0" data-domain="pl" data-ownership="common">
         <rect x="800" y="1080" width="620" height="370" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
-        <a data-navigation="detail" xlink:href="../reference/memory-map.svg">
-          <text x="826" y="1117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM</text>
-        </a>
-        <g id="request-buffer" data-kind="component" data-layer="L0" data-domain="pl" data-label="Запрос" data-ownership="common" data-parent="exchange-memory" data-target="exchange.svg#request-buffer">
+        <text x="826" y="1117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">BRAM</text>
+        <g id="request-buffer" data-kind="component" data-layer="L0" data-domain="pl" data-label="Запрос" data-ownership="common" data-parent="exchange-memory" data-target="exchange-write.svg#request-buffer">
           <rect x="830" y="1160" width="170" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="exchange.svg#request-buffer">
+          <a data-navigation="detail" xlink:href="exchange-write.svg#request-buffer">
             <text x="850" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-            <text x="850" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Запрос</text>
+            <text x="850" y="1282.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Запрос</text>
           </a>
-          <text x="850" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Внешнее</text>
-          <text x="850" y="1283.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">обращение</text>
         </g>
-        <g id="reply-buffer" data-kind="component" data-layer="L0" data-domain="pl" data-label="Ответ" data-ownership="common" data-parent="exchange-memory" data-target="exchange.svg#reply-buffer">
+        <g id="reply-buffer" data-kind="component" data-layer="L0" data-domain="pl" data-label="Ответ" data-ownership="common" data-parent="exchange-memory" data-target="exchange-read.svg#reply-buffer">
           <rect x="1025" y="1160" width="170" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="exchange.svg#reply-buffer">
+          <a data-navigation="detail" xlink:href="exchange-read.svg#reply-buffer">
             <text x="1045" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-            <text x="1045" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ответ</text>
+            <text x="1045" y="1282.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ответ</text>
           </a>
-          <text x="1045" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Внешнему</text>
-          <text x="1045" y="1283.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">ведущему</text>
         </g>
-        <g id="result-buffer" data-kind="component" data-layer="L0" data-domain="pl" data-label="Результат" data-ownership="common" data-parent="exchange-memory" data-target="exchange.svg#result-buffer">
+        <g id="result-buffer" data-kind="component" data-layer="L0" data-domain="pl" data-label="Результат" data-ownership="common" data-parent="exchange-memory" data-target="exchange-refresh.svg#result-buffer">
           <rect x="1220" y="1160" width="170" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-          <a data-navigation="detail" xlink:href="exchange.svg#result-buffer">
+          <a data-navigation="detail" xlink:href="exchange-refresh.svg#result-buffer">
             <text x="1240" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-            <text x="1240" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Результат</text>
+            <text x="1240" y="1282.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Результат</text>
           </a>
-          <text x="1240" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Данные</text>
-          <text x="1240" y="1283.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">устройства</text>
         </g>
       </g>
       <g id="pl_slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_slave" data-ownership="common" data-parent="bridge" data-target="subsystems.svg#pl_slave">
         <rect x="480" y="1160" width="250" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="subsystems.svg#pl_slave">
           <text x="500" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="500" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_slave</text>
+          <text x="500" y="1282.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_slave</text>
         </a>
-        <text x="500" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Приём запроса</text>
-        <text x="500" y="1283.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выдача ответа</text>
       </g>
       <g id="pl_master" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_master" data-ownership="common" data-parent="bridge" data-target="subsystems.svg#pl_master">
         <rect x="1500" y="1160" width="220" height="210" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="subsystems.svg#pl_master">
           <text x="1520" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1520" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_master</text>
+          <text x="1520" y="1282.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_master</text>
         </a>
-        <text x="1520" y="1257.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Получение</text>
-        <text x="1520" y="1283.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">результата</text>
       </g>
     </g>
     <g id="host" data-kind="component" data-layer="L0" data-label="Внешний&#10;ведущий" data-ownership="common" data-target="bridge.svg#host">
       <rect x="60" y="1160" width="300" height="210" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="bridge.svg#host">
         <text x="80" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="80" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
-        <text x="80" y="1251.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
+        <text x="80" y="1265.44" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
+        <text x="80" y="1298.56" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
       </a>
-      <text x="80" y="1290.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Передаёт запрос</text>
-      <text x="80" y="1316.46" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Получает ответ</text>
     </g>
     <g id="device" data-kind="component" data-layer="L0" data-label="Внешнее ведомое&#10;устройство" data-ownership="common" data-target="bridge.svg#device">
       <rect x="1840" y="1160" width="300" height="210" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="bridge.svg#device">
         <text x="1860" y="1184.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="1860" y="1218.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее ведомое</text>
-        <text x="1860" y="1251.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">устройство</text>
+        <text x="1860" y="1265.44" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее ведомое</text>
+        <text x="1860" y="1298.56" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">устройство</text>
       </a>
-      <text x="1860" y="1290.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Участвует в обмене</text>
     </g>
   </g>
   <g id="annotations">
@@ -245,31 +218,27 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "take-request",
-      "target": "exchange.svg#take-request"
+      "target": "exchange-write.svg#take-request"
     },
     {
       "node": "publish",
-      "target": "exchange.svg#publish-reply"
+      "target": "exchange-refresh.svg#publish-reply"
     },
     {
       "node": "take-result",
-      "target": "exchange.svg#result-buffer"
-    },
-    {
-      "node": "exchange-memory",
-      "target": "../reference/memory-map.svg"
+      "target": "exchange-refresh.svg#result-buffer"
     },
     {
       "node": "request-buffer",
-      "target": "exchange.svg#request-buffer"
+      "target": "exchange-write.svg#request-buffer"
     },
     {
       "node": "reply-buffer",
-      "target": "exchange.svg#reply-buffer"
+      "target": "exchange-read.svg#reply-buffer"
     },
     {
       "node": "result-buffer",
-      "target": "exchange.svg#result-buffer"
+      "target": "exchange-refresh.svg#result-buffer"
     },
     {
       "node": "pl_slave",

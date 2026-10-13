@@ -21,11 +21,11 @@ def structure(d):
     p.node("regs", 500, 490, 470, 195, "regs",
            "Карта адресов\nCSR, REQ и IRQ", target=sheet("completion", "regs"), parent="core")
     p.node("axi-s", 1180, 490, 440, 195, "axi_lite_slave_native",
-           "s_axi: регистры", parent="core")
+           "s_axi", parent="core")
     p.node("platform", 1760, 490, 340, 195, "Доступ PS", "MMIO и доставка IRQ", "L1",
            target="@architecture_bvstk_l1.svg#platform-access")
     p.node("ps", 1760, 850, 340, 215, "Сервис и драйвер PS",
-           "Указатель регистра\nПодготовка ответа", "L3", target="ps-interaction/i2c-irq.svg#service")
+           "", "L3", target="i2c/services/read-state.svg#service")
     p.edge("ps", "platform", "call")
     p.edge("platform", "axi-s", "mmio", start="W", end="E")
     p.edge("axi-s", "regs", "mmio", start="W", end="E")
@@ -37,20 +37,20 @@ def structure(d):
     p.node("inputs", 510, 1010, 500, 155, "Входные сигналы",
            "debouncer → sync\nSDA и SCL", parent="engine", target=sheet("addressing", "inputs"))
     p.node("fsm", 510, 1280, 500, 215, "Автомат I²C",
-           "Адрес, данные и ACK\nWAIT_PACKET: удержание SCL",
+           "WAIT_PACKET: SCL = 0",
            parent="engine", target=sheet("read", "wait-first"))
     p.edge("inputs", "fsm", "data")
     p.frame("data-ctrl", 1180, 920, 480, 665, "data_ctrl", parent="core", target=sheet("buffers", "writer"))
     p.node("rx-pkt", 1220, 1010, 400, 155, "Событие rx_pkt",
-           "packet_view_t\nrx_full: событие готово", parent="data-ctrl", target=sheet("write", "capture"))
+           "packet_view_t, rx_full", parent="data-ctrl", target=sheet("write", "capture"))
     p.node("word", 1220, 1310, 400, 185, "Буфер data4bytes",
-           "Упаковка байтов\nОбмен с BRAM", parent="data-ctrl", target=sheet("memory-format", "packing"))
+           "Упаковка байтов", parent="data-ctrl", target=sheet("memory-format", "packing"))
     p.edge("rx-pkt", "word", "data")
     p.edge("fsm", "rx-pkt", "data", "Событие", start="E", end="W", a_offset=-65,
            via=((1110, 1322.5), (1110, 1087.5)), label_xy=(1115, 1210))
     p.edge("word", "fsm", "data", "Байт ответа", start="W", end="E", a_offset=50, b_offset=65,
            label_xy=(1115, 1500))
-    p.node("host", 60, 1010, 300, 155, "Внешний ведущий", "Шина I²C", "L0",
+    p.node("host", 60, 1010, 300, 155, "Внешний ведущий", "", "L0",
            target="i2c/protocol/interface.svg#controller")
     p.edge("host", "inputs", "data", start="E", end="W")
     p.edge("fsm", "host", "data", "SDA и удержание SCL", start="W", end="S",
@@ -64,7 +64,7 @@ def structure(d):
     p.edge("data-ctrl", "regs", "irq", "События data_ctrl", start="N", end="S", a_offset=-150, b_offset=185,
            via=((1270, 737), (920, 737)), label_xy=(1150, 716))
     p.node("axi-m", 1180, 1715, 480, 160, "axi_lite_master_native",
-           "m_axi: обмен с BRAM", parent="core")
+           "m_axi", parent="core")
     p.edge("word", "axi-m", "data", start="S", end="N", bidirectional=True)
     p.node("bram", 1180, 2110, 480, 195, "BRAM I²C",
            "Запрос: +0x1000\nОтвет: +0x2000", target=sheet("buffers", "bram"))
@@ -76,11 +76,11 @@ def structure(d):
 
 def addressing(d):
     p = d.p
-    p.node("pins", 60, 312.5, 310, 150, "SDA и SCL", "Шина I²C", "L0")
+    p.node("pins", 60, 312.5, 310, 150, "SDA и SCL", "", "L0")
     p.frame("engine", 450, 190, 1270, 1090, "i2c_slave_engine")
     p.frame("inputs", 490, 255, 1190, 220, "Обработка входов", parent="engine")
-    p.node("debouncer", 540, 325, 400, 125, "debouncer", "Фильтрация", parent="inputs")
-    p.node("sync", 1210, 325, 410, 125, "sync", "Синхронизация с clk", parent="inputs")
+    p.node("debouncer", 540, 325, 400, 125, "debouncer", "", parent="inputs")
+    p.node("sync", 1210, 325, 410, 125, "sync", "", parent="inputs")
     p.edge("pins", "debouncer", "data", start="E", end="W")
     p.edge("debouncer", "sync", "data")
     p.node("start", 1210, 565, 410, 140, "IDLE → ADDR", "START", parent="engine")
@@ -92,12 +92,12 @@ def addressing(d):
     p.node("ignored", 510, 835, 330, 140, "IDLE", "SDA отпущена", parent="engine")
     p.edge("address", "ignored", "data", "Адрес не выбран", start="S", end="N",
            a_offset=-90, via=((810, 765), (675, 765)), label_xy=(650, 743))
-    p.node("direction", 970, 835, 470, 140, "OP_CODE", "Направление и событие start", parent="engine")
+    p.node("direction", 970, 835, 470, 140, "OP_CODE", "start, rw", parent="engine")
     p.edge("address", "direction", "data", "Адрес выбран", start="S", end="N", a_offset=90,
            via=((990, 765), (1205, 765)), label_xy=(1100, 743))
     p.node("write", 550, 1100, 450, 140, "WRITE_ACK", "ACK адреса → WRITE_BYTE", parent="engine",
            target=sheet("write"))
-    p.node("read", 1170, 1100, 480, 140, "WAIT_PACKET", "SCL = 0 до первого байта", parent="engine",
+    p.node("read", 1170, 1100, 480, 140, "WAIT_PACKET", "SCL = 0", parent="engine",
            target=sheet("read"))
     p.edge("direction", "write", "data", "W = 0", start="S", end="N", a_offset=-120,
            via=((1085, 1035), (775, 1035)), label_xy=(875, 1010))
@@ -107,11 +107,11 @@ def addressing(d):
 
 def participants(d):
     return d.actors([
-        ("host", "Ведущий", "Внешняя шина", "L0", "i2c/protocol/transfers.svg", 1),
-        ("engine", "i2c_slave_engine", "Биты и ACK", "PL", sheet("structure", "engine"), 1.25),
-        ("data-ctrl", "data_ctrl", "Байты и слова", "PL", sheet("structure", "data-ctrl"), 1),
-        ("bram", "BRAM I²C", "Запрос и ответ", "PL", sheet("buffers", "bram"), .9),
-        ("ps", "Программа PS", "Сервис и драйвер", "L3", "ps-interaction/i2c-irq.svg#service", 1.1),
+        ("host", "Ведущий", "", "L0", "i2c/protocol/transfers.svg", 1),
+        ("engine", "i2c_slave_engine", "", "PL", sheet("structure", "engine"), 1.25),
+        ("data-ctrl", "data_ctrl", "", "PL", sheet("structure", "data-ctrl"), 1),
+        ("bram", "BRAM I²C", "", "PL", sheet("buffers", "bram"), .9),
+        ("ps", "Программа PS", "Сервис и драйвер", "L3", "i2c/services/read-state.svg#service", 1.1),
     ], core=("engine", "data-ctrl"), core_title="I2C_slave_0")
 
 
@@ -168,7 +168,7 @@ def read_continuation(d):
     p.node("request", 440, 1110, 450, 145, "RD_REQ", "Ожидание rd_valid", parent="data-ctrl")
     p.edge("next", "request", "data", "Окно выдано", label_xy=(800, 975))
     p.node("ps", 1430, 1110, 310, 145, "Программа PS", "Новое окно", "L3",
-           target="ps-interaction/i2c-irq.svg#service")
+           target="i2c/services/read-state.svg#service")
     p.edge("request", "ps", "irq", "RD_REQUEST", label_xy=(1150, 1150))
     p.edge("ps", "bram", "data", "Ответ через L1", start="N", end="S",
            label_xy=(1700, 975))
@@ -198,7 +198,7 @@ def repeated_start(d):
     p.edge("pointer-event", "read-phase", "data", start="S", end="N", a_offset=150,
            via=((1250, 670), (1670, 670)))
     p.node("pointer", 620, 1240, 960, 185, "bvstk_i2c_slave_service",
-           "Сохранить указатель 0x10 → подготовить ответ", "L3",
+           "Указатель 0x10", "L3",
            target="@architecture_bvstk_l3.svg#service-bvstk_i2c_slave_service")
     p.edge("write-event", "pointer", "irq", "DATA_VALID", start="S", end="N", b_offset=-300,
            via=((530, 1140), (800, 1140)), label_xy=(480, 1120))
@@ -248,8 +248,8 @@ def completion(d):
     p.frame("events", 60, 250, 500, 550, "События ядра")
     p.node("engine", 100, 335, 420, 150, "i2c_slave_engine", "ERR_ACK", parent="events")
     p.node("data-ctrl", 100, 585, 420, 170, "data_ctrl", "DATA_VALID, RD_REQUEST\nFINAL_PACKET, MEM_OVERFLOW", parent="events")
-    p.node("regs", 780, 475, 380, 155, "regs: IRQ и REQ", "Фиксация событий")
-    p.node("ps", 1360, 475, 380, 155, "Драйвер PS", "Чтение и подтверждение", "L3",
+    p.node("regs", 780, 475, 380, 155, "regs: IRQ и REQ", "")
+    p.node("ps", 1360, 475, 380, 155, "Драйвер PS", "", "L3",
            target="i2c/drivers/events.svg#capture")
     p.edge("engine", "regs", "irq", start="E", end="N",
            via=((660, 410), (970, 410)))

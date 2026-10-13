@@ -149,9 +149,8 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="1280" y="1340" width="460" height="170" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="completion.svg#driver">
         <text x="1300" y="1364.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="1300" y="1398.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер PS</text>
+        <text x="1300" y="1442.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Драйвер PS</text>
       </a>
-      <text x="1300" y="1437.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Готовность и чтение</text>
     </g>
   </g>
   <g id="annotations">

@@ -135,9 +135,9 @@ g:target &gt; rect { stroke-width: 5; }
       </a>
       <text x="1450" y="787.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Окно ответа</text>
     </g>
-    <g id="ps" data-kind="component" data-layer="L3" data-label="Программа PS" data-ownership="common" data-target="../../../ps-interaction/i2c-irq.svg#service">
+    <g id="ps" data-kind="component" data-layer="L3" data-label="Программа PS" data-ownership="common" data-target="../../services/read-state.svg#service">
       <rect x="1430" y="1110" width="310" height="145" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../../../ps-interaction/i2c-irq.svg#service">
+      <a data-navigation="detail" xlink:href="../../services/read-state.svg#service">
         <text x="1450" y="1134.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
         <text x="1450" y="1168.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Программа PS</text>
       </a>
@@ -195,7 +195,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "ps",
-      "target": "../../../ps-interaction/i2c-irq.svg#service"
+      "target": "../../services/read-state.svg#service"
     }
   ],
   "article_notes": []

@@ -75,13 +75,12 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="ps" data-kind="functional-group" data-label="Программа PS" data-layer="L3" data-ownership="common">
       <rect x="60" y="240" width="520" height="640" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
       <text x="86" y="277.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Программа PS</text>
-      <g id="master-service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-parent="ps" data-target="../../../../architecture_bvstk_l3.svg#service-bvstk_i2c_master_service">
+      <g id="master-service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-parent="ps" data-target="../../services/master-operations.svg#service">
         <rect x="100" y="335" width="440" height="150" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="../../../../architecture_bvstk_l3.svg#service-bvstk_i2c_master_service">
+        <a data-navigation="detail" xlink:href="../../services/master-operations.svg#service">
           <text x="120" y="359.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="120" y="393.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master_service</text>
+          <text x="120" y="427.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master_service</text>
         </a>
-        <text x="120" y="432.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Устройство и операция</text>
       </g>
       <g id="driver" data-kind="component" data-layer="L3" data-label="Аппаратный драйвер" data-ownership="common" data-parent="ps" data-target="../../drivers/master/transfer.svg#driver">
         <rect x="100" y="655" width="440" height="170" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
@@ -166,7 +165,7 @@ g:target &gt; rect { stroke-width: 5; }
   "cross_sheet_links": [
     {
       "node": "master-service",
-      "target": "../../../../architecture_bvstk_l3.svg#service-bvstk_i2c_master_service"
+      "target": "../../services/master-operations.svg#service"
     },
     {
       "node": "driver",

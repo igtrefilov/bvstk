@@ -73,13 +73,12 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="components">
-    <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-target="../../cores/master/commands.svg#master-service">
+    <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master_service" data-ownership="common" data-target="../../services/master-operations.svg#service">
       <rect x="60" y="120" width="591.36" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../../cores/master/commands.svg#master-service">
+      <a data-navigation="detail" xlink:href="../../services/master-operations.svg#service">
         <text x="80" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="80" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master_service</text>
+        <text x="80" y="214.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_master_service</text>
       </a>
-      <text x="80" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Запрос регистра</text>
     </g>
     <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_i2c_master" data-ownership="common" data-target="completion.svg#driver">
       <rect x="699.36" y="120" width="528.0" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
@@ -105,7 +104,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="clear-irq" data-kind="sequence-step">
       <rect x="973.3599999999999" y="451" width="524.32" height="57" rx="4" fill="white" />
-      <text x="1235.52" y="475" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Сбросить старые IRQ</text>
+      <text x="1235.52" y="475" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Сброс старых IRQ</text>
     </g>
     <g id="write-header" data-kind="sequence-step">
       <rect x="973.3599999999999" y="556" width="524.32" height="57" rx="4" fill="white" />
@@ -113,7 +112,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="pointer" data-kind="sequence-step">
       <rect x="973.3599999999999" y="661" width="524.32" height="57" rx="4" fill="white" />
-      <text x="1235.52" y="685" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Байт регистра 0x10 в TX FIFO</text>
+      <text x="1235.52" y="685" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">TX FIFO: 0x10</text>
     </g>
     <g id="read-header" data-kind="sequence-step">
       <rect x="973.3599999999999" y="766" width="524.32" height="57" rx="4" fill="white" />
@@ -143,7 +142,7 @@ g:target &gt; rect { stroke-width: 5; }
   "cross_sheet_links": [
     {
       "node": "service",
-      "target": "../../cores/master/commands.svg#master-service"
+      "target": "../../services/master-operations.svg#service"
     },
     {
       "node": "driver",

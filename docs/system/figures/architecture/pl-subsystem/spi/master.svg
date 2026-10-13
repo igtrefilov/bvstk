@@ -108,17 +108,15 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="80" y="270" width="720" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="subsystem.svg#dma0-tx">
         <text x="100" y="294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="100" y="328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_0: MM2S</text>
+        <text x="100" y="369.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_0: MM2S</text>
       </a>
-      <text x="100" y="367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Поток команд и данных из памяти</text>
     </g>
     <g id="ps" data-kind="component" data-layer="L0" data-label="PS: настройка SPI" data-ownership="common" data-target="../../architecture_bvstk_ps_pl.svg#ps-axi">
       <rect x="1400" y="270" width="720" height="165" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#ps-axi">
         <text x="1420" y="294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="1420" y="328.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">PS: настройка SPI</text>
+        <text x="1420" y="369.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">PS: настройка SPI</text>
       </a>
-      <text x="1420" y="367.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Режим, делитель, запуск</text>
     </g>
     <g id="core" data-kind="functional-group" data-label="SPI_master_0" data-layer="L0" data-domain="pl" data-ownership="common">
       <rect x="60" y="580" width="2080" height="1800" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
@@ -130,14 +128,13 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="110" y="705" width="660" height="160" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="130" y="729.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="130" y="763.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">xpm_fifo_axis</text>
-        <text x="130" y="802.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Приём AXI Stream, tvalid и tready</text>
+        <text x="130" y="802.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">AXI Stream</text>
       </g>
       <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="spi_regs" data-ownership="common" data-parent="core">
         <rect x="1410" y="705" width="650" height="190" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="1430" y="729.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="1430" y="763.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_regs</text>
-        <text x="1430" y="802.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Через axi_lite_slave_native</text>
-        <text x="1430" y="828.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">CSR, режим, задержка, SD и делитель</text>
+        <text x="1430" y="802.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">axi_lite_slave_native</text>
       </g>
       <g id="ctrl" data-kind="functional-group" data-label="spi_master_ctrl" data-layer="L0" data-domain="pl" data-ownership="common">
         <rect x="100" y="1010" width="1000" height="530" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
@@ -146,66 +143,58 @@ g:target &gt; rect { stroke-width: 5; }
           <rect x="145" y="1100" width="910" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="165" y="1124.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="165" y="1158.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Управление потоком</text>
-          <text x="165" y="1197.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Разбор слов, выдача байтов, сборка RX</text>
+          <text x="165" y="1197.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Слова ↔ байты</text>
         </g>
         <g id="parser" data-kind="component" data-layer="L0" data-domain="pl" data-label="spi_dma_2words_parser" data-ownership="common" data-parent="ctrl">
           <rect x="145" y="1350" width="910" height="150" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="165" y="1374.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="165" y="1408.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_dma_2words_parser</text>
-          <text x="165" y="1447.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Два слова: argument, затем opcode и CRC7</text>
+          <text x="165" y="1447.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Дескриптор SD</text>
         </g>
       </g>
       <g id="sd-command" data-kind="component" data-layer="L0" data-domain="pl" data-label="sd_ini_tx_cmds" data-ownership="common" data-parent="core">
         <rect x="1350" y="1090" width="710" height="230" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="1370" y="1114.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="1370" y="1148.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">sd_ini_tx_cmds</text>
-        <text x="1370" y="1187.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Последовательность команды SD</text>
-        <text x="1370" y="1213.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ответ, полезные данные и CRC</text>
-        <text x="1370" y="1239.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выбор передачи в engine</text>
+        <text x="1370" y="1187.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Команда SD</text>
       </g>
       <g id="engine" data-kind="component" data-layer="L0" data-domain="pl" data-label="spi_master_engine" data-ownership="common" data-parent="core">
         <rect x="1350" y="1650" width="710" height="195" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="1370" y="1674.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="1370" y="1708.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_master_engine</text>
-        <text x="1370" y="1747.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SCK и CS</text>
-        <text x="1370" y="1773.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выдача MOSI, захват MISO</text>
+        <text x="1370" y="1747.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SCK, CS, MOSI, MISO</text>
       </g>
       <g id="init" data-kind="component" data-layer="L0" data-domain="pl" data-label="spi_sd_ini" data-ownership="common" data-parent="core">
         <rect x="130" y="1700" width="820" height="175" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="150" y="1724.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="150" y="1758.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_sd_ini</text>
-        <text x="150" y="1797.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Отдельный режим начальной последовательности SD</text>
+        <text x="150" y="1797.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Инициализация SD</text>
       </g>
       <g id="rx-fifo" data-kind="component" data-layer="L0" data-domain="pl" data-label="RX FIFO и axi_stream_master" data-ownership="common" data-parent="core">
         <rect x="130" y="2040" width="820" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="150" y="2064.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="150" y="2098.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">RX FIFO и axi_stream_master</text>
-        <text x="150" y="2137.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">xpm_fifo_sync, упаковка принятых данных</text>
+        <text x="150" y="2137.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">xpm_fifo_sync</text>
       </g>
-      <g id="replies" data-kind="component" data-layer="L0" data-domain="pl" data-label="Запись ответов SD" data-ownership="common" data-parent="core" data-target="../reference/memory-map.svg#spi-bank0">
+      <g id="replies" data-kind="component" data-layer="L0" data-domain="pl" data-label="Запись ответов SD" data-ownership="common" data-parent="core">
         <rect x="1330" y="2040" width="730" height="225" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="../reference/memory-map.svg#spi-bank0">
-          <text x="1350" y="2064.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1350" y="2098.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Запись ответов SD</text>
-        </a>
+        <text x="1350" y="2064.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1350" y="2098.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Запись ответов SD</text>
         <text x="1350" y="2137.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">spi_regs и axi_lite_master_native</text>
-        <text x="1350" y="2163.3399999999997" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ответ команды в BRAM через M_AXI</text>
       </g>
     </g>
     <g id="pins" data-kind="component" data-layer="L0" data-label="Внешняя шина SPI" data-ownership="common">
       <rect x="1360" y="2510" width="750" height="185" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <text x="1380" y="2534.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
       <text x="1380" y="2568.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешняя шина SPI</text>
-      <text x="1380" y="2607.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">MOSI, MISO, SCK и CS</text>
-      <text x="1380" y="2633.3399999999997" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">При sd_ini_en выбирается выход spi_sd_ini.</text>
+      <text x="1380" y="2607.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">MOSI, MISO, SCK, CS</text>
     </g>
     <g id="dma-out" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_dma_0: S2MM" data-ownership="common" data-target="subsystem.svg#dma0-rx">
       <rect x="130" y="2510" width="820" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="subsystem.svg#dma0-rx">
         <text x="150" y="2534.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="150" y="2568.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_0: S2MM</text>
+        <text x="150" y="2604.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_0: S2MM</text>
       </a>
-      <text x="150" y="2607.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Принятый поток записывается в память</text>
     </g>
   </g>
   <g id="annotations">
@@ -248,10 +237,6 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "core",
       "target": "subsystem.svg#master"
-    },
-    {
-      "node": "replies",
-      "target": "../reference/memory-map.svg#spi-bank0"
     },
     {
       "node": "dma-out",

@@ -79,17 +79,15 @@ src/ports/freertos-xilinx/os/bvstk_sync_freertos.h</title>
       <g id="f-kernel" data-kind="component" data-layer="L2" data-ownership="freertos" data-parent="f-system-port" data-source="">
         <title>L2. Ядро ОС</title>
         <rect x="108" y="836" width="644" height="102" rx="7" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.4" />
-        <text id="text-34" x="430.0" y="881.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" style="fill:#233747">L2. Ядро ОС</text>
-        <text id="text-35" x="430.0" y="910.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">Задачи, тики и семафоры</text>
+        <text id="text-34" x="430.0" y="894.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" style="fill:#233747">L2. Ядро ОС</text>
       </g>
     </g>
     <g id="f-application-operations" data-kind="component" data-layer="L4" data-ownership="freertos" data-source="" data-label="mem_shell" data-target="architecture_bvstk_l4.svg#f-command-mem_shell" data-entity="architecture_bvstk_l4.svg#f-command-mem_shell" data-entity-ownership="freertos" data-representation="reference">
       <title>L4. mem_shell</title>
       <rect x="80" y="1060" width="700" height="104" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l4.svg#f-command-mem_shell" data-ref-node="f-application-operations" aria-label="Открыть блок «mem_shell» на схеме L4">
-        <text id="text-63" x="430.0" y="1106.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L4. mem_shell</text>
+        <text id="text-63" x="430.0" y="1119.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L4. mem_shell</text>
       </a>
-      <text id="text-64" x="430.0" y="1135.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">Чтение и запись регистров.</text>
     </g>
     <g id="f-port" data-kind="functional-group" data-layer="L1" data-ownership="freertos" data-source="" data-label="Реализация MMIO" data-entity="architecture_bvstk_l1.svg#f-port" data-entity-ownership="freertos" data-representation="definition">
       <title>Реализация MMIO</title>
@@ -122,13 +120,13 @@ src/ports/freertos-xilinx/os/bvstk_platform_freertos.c</title>
           <title>Xil_In32</title>
           <rect x="132" y="1404" width="280" height="62" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
           <text id="text-73" x="272.0" y="1429.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">Xil_In32</text>
-          <text id="text-74" x="272.0" y="1458.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="252" style="fill:#576c7b">Также Xil_In8</text>
+          <text id="text-74" x="272.0" y="1458.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="252" style="fill:#576c7b">Xil_In8</text>
         </g>
         <g id="f-xil-out" data-kind="component" data-layer="L1" data-ownership="freertos" data-parent="f-mmio-bsp" data-source="">
           <title>Xil_Out32</title>
           <rect x="448" y="1404" width="280" height="62" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
           <text id="text-75" x="588.0" y="1429.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">Xil_Out32</text>
-          <text id="text-76" x="588.0" y="1458.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="252" style="fill:#576c7b">Также Xil_Out8</text>
+          <text id="text-76" x="588.0" y="1458.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="252" style="fill:#576c7b">Xil_Out8</text>
         </g>
       </g>
       <g id="f-media-context" data-alias-for="f-port" />
@@ -232,10 +230,8 @@ src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.h
 src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.c</title>
         <rect x="108" y="3182" width="644" height="130" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
         <a xlink:href="architecture_bvstk_l3.svg#f-sd-adapter" data-ref-node="f-media-sd-pl" data-navigation="return" aria-label="Вернуться к блоку «bvstk_sd_pl» на соседней схеме">
-          <text id="text-134" x="430.0" y="3227.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" class="code" style="fill:#233747">bvstk_sd_pl</text>
+          <text id="text-134" x="430.0" y="3254.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" class="code" style="fill:#233747">bvstk_sd_pl</text>
         </a>
-        <text id="text-135" x="430.0" y="3256.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">PL SD: вызов сервиса</text>
-        <text id="text-136" x="430.0" y="3283.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">Границы тома и номера секторов</text>
       </g>
     </g>
     <g id="f-network-stack" data-kind="component" data-layer="L3" data-ownership="freertos" data-source="" data-label="Сетевой стек" data-target="architecture_bvstk_l3.svg#f-network-stack" data-entity="architecture_bvstk_l3.svg#f-network-stack" data-entity-ownership="freertos" data-representation="reference">
@@ -276,8 +272,7 @@ src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.c</title>
       <g id="f-uart-port" data-kind="component" data-layer="L1" data-ownership="freertos" data-parent="f-uart" data-source="">
         <title>XUartPs</title>
         <rect x="108" y="4122" width="644" height="68" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
-        <text id="text-171" x="430.0" y="4150.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" class="code" style="fill:#233747">XUartPs</text>
-        <text id="text-172" x="430.0" y="4179.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">Доступ к регистрам контроллера</text>
+        <text id="text-171" x="430.0" y="4163.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" class="code" style="fill:#233747">XUartPs</text>
       </g>
     </g>
   </g>
@@ -314,16 +309,15 @@ src/ports/neutrino-zynq7000/os/bvstk_sync_neutrino.h</title>
         <title>L2. Ядро ОС</title>
         <rect x="2048" y="836" width="644" height="102" rx="7" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.4" />
         <text id="text-44" x="2370.0" y="881.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" style="fill:#233747">L2. Ядро ОС</text>
-        <text id="text-45" x="2370.0" y="910.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">procnto: потоки, часы и синхронизация</text>
+        <text id="text-45" x="2370.0" y="910.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">procnto</text>
       </g>
     </g>
     <g id="n-application-operations" data-kind="component" data-layer="L4" data-ownership="neutrino" data-source="" data-label="bvstkctl" data-target="architecture_bvstk_l4.svg#n-bvstkctl" data-entity="architecture_bvstk_l4.svg#n-bvstkctl" data-entity-ownership="neutrino" data-representation="reference">
       <title>L4. bvstkctl</title>
       <rect x="2020" y="1060" width="700" height="104" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l4.svg#n-bvstkctl" data-ref-node="n-application-operations" aria-label="Открыть блок «bvstkctl» на схеме L4">
-        <text id="text-65" x="2370.0" y="1106.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L4. bvstkctl</text>
+        <text id="text-65" x="2370.0" y="1119.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L4. bvstkctl</text>
       </a>
-      <text id="text-66" x="2370.0" y="1135.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">Доступ к регионам PL.</text>
     </g>
     <g id="n-port" data-kind="functional-group" data-layer="L1" data-ownership="neutrino" data-source="" data-label="Реализация MMIO" data-entity="architecture_bvstk_l1.svg#n-port" data-entity-ownership="neutrino" data-representation="definition">
       <title>Реализация MMIO</title>
@@ -339,7 +333,7 @@ src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c</title>
         <a xlink:href="architecture_bvstk_l0_l1.svg#n-region-group" data-ref-node="n-port--mapping" data-navigation="return" aria-label="Вернуться к блоку «bvstk_platform_neutrino» на соседней схеме">
           <text id="text-78" x="2370.0" y="1378.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" class="code" style="fill:#233747">bvstk_platform_neutrino</text>
         </a>
-        <text id="text-79" x="2370.0" y="1407.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">Открытие и закрытие отображения</text>
+        <text id="text-79" x="2370.0" y="1407.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">Отображение MMIO</text>
       </g>
       <g id="n-memory-api" data-kind="component" data-layer="L2" data-ownership="neutrino" data-parent="n-port" data-source="" data-label="Отображение памяти" data-entity="architecture_bvstk_l1.svg#n-memory-api" data-entity-ownership="neutrino" data-representation="definition">
         <title>L2. Отображение памяти</title>
@@ -355,7 +349,7 @@ src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c</title>
         <a xlink:href="architecture_bvstk_l0_l1.svg#n-mmio-node-group" data-ref-node="n-port--registers" data-navigation="return" aria-label="Вернуться к блоку «Доступ к отображённой памяти» на соседней схеме">
           <text id="text-82" x="2370.0" y="1674.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" style="fill:#233747">Доступ к отображённой памяти</text>
         </a>
-        <text id="text-83" x="2370.0" y="1703.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">volatile, затем барьер памяти</text>
+        <text id="text-83" x="2370.0" y="1703.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">volatile и барьеры</text>
       </g>
       <g id="n-media-context" data-alias-for="n-port" />
     </g>
@@ -438,7 +432,7 @@ src/ports/neutrino-zynq7000/storage/bvstk_qspi_raw.c</title>
         <a xlink:href="architecture_bvstk_l0_l1.svg#n-qspi-group" data-ref-node="n-media-qspi" data-navigation="return" aria-label="Вернуться к блоку «bvstk_qspi_raw» на соседней схеме">
           <text id="text-140" x="2370.0" y="3083.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" class="code" style="fill:#233747">bvstk_qspi_raw</text>
         </a>
-        <text id="text-141" x="2370.0" y="3112.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">Отображение регистров и чтение QSPI</text>
+        <text id="text-141" x="2370.0" y="3112.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">QSPI</text>
       </g>
       <g id="n-media-sd" data-kind="component" data-layer="L1" data-ownership="neutrino" data-parent="n-media-access" data-source="src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c" data-label="bvstk_sd_raw" data-entity="architecture_bvstk_l1.svg#n-media-sd" data-entity-ownership="neutrino" data-representation="definition">
         <title>bvstk_sd_raw
@@ -447,7 +441,7 @@ src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c</title>
         <a xlink:href="architecture_bvstk_l0_l1.svg#n-sd-map-group" data-ref-node="n-media-sd" data-navigation="return" aria-label="Вернуться к блоку «bvstk_sd_raw» на соседней схеме">
           <text id="text-142" x="2370.0" y="3246.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" class="code" style="fill:#233747">bvstk_sd_raw</text>
         </a>
-        <text id="text-143" x="2370.0" y="3275.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">PS SD: PIO и опрос завершения</text>
+        <text id="text-143" x="2370.0" y="3275.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">PS SD, PIO</text>
       </g>
     </g>
     <g id="n-network-stack" data-kind="component" data-layer="L3" data-ownership="neutrino" data-source="" data-label="Сетевой стек" data-target="architecture_bvstk_l3.svg#n-network-stack" data-entity="architecture_bvstk_l3.svg#n-network-stack" data-entity-ownership="neutrino" data-representation="reference">
@@ -480,8 +474,7 @@ src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c</title>
       <g id="n-uart-port" data-kind="component" data-layer="L1" data-ownership="neutrino" data-parent="n-uart" data-source="">
         <title>UART BSP</title>
         <rect x="2048" y="4122" width="644" height="68" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
-        <text id="text-174" x="2370.0" y="4150.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" style="fill:#233747">UART BSP</text>
-        <text id="text-175" x="2370.0" y="4179.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">Доступ к регистрам контроллера</text>
+        <text id="text-174" x="2370.0" y="4163.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" style="fill:#233747">UART BSP</text>
       </g>
     </g>
   </g>
@@ -491,17 +484,15 @@ src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c</title>
       <title>L3. Сервисы подсистем</title>
       <rect x="1000" y="290" width="384" height="124" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l3.svg#subsystem-services" data-ref-node="system-callers" aria-label="Открыть блок «Сервисы подсистем» на схеме L3">
-        <text id="text-11" x="1192.0" y="346.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" style="fill:#233747">L3. Сервисы подсистем</text>
+        <text id="text-11" x="1192.0" y="359.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" style="fill:#233747">L3. Сервисы подсистем</text>
       </a>
-      <text id="text-12" x="1192.0" y="375.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="356" style="fill:#576c7b">Время и блокировки</text>
     </g>
     <g id="system-driver-callers" data-kind="component" data-layer="L3" data-ownership="common" data-source="" data-label="Драйверы устройств" data-target="architecture_bvstk_l3.svg#device-drivers" data-entity="architecture_bvstk_l3.svg#device-drivers" data-entity-ownership="common" data-representation="reference">
       <title>L3. Драйверы устройств</title>
       <rect x="1416" y="290" width="384" height="124" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l3.svg#device-drivers" data-ref-node="system-driver-callers" aria-label="Открыть блок «Драйверы устройств» на схеме L3">
-        <text id="text-13" x="1608.0" y="346.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" style="fill:#233747">L3. Драйверы устройств</text>
+        <text id="text-13" x="1608.0" y="359.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" style="fill:#233747">L3. Драйверы устройств</text>
       </a>
-      <text id="text-14" x="1608.0" y="375.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="356" style="fill:#576c7b">Ожидание и блокировки</text>
     </g>
     <g id="system-interfaces" data-kind="functional-group" data-layer="L1" data-ownership="common" data-source="" data-label="Системные интерфейсы" data-entity="architecture_bvstk_l1.svg#system-interfaces" data-entity-ownership="common" data-representation="definition">
       <title>Системные интерфейсы</title>
@@ -528,7 +519,7 @@ src/shared/interfaces/bvstk_sync.h</title>
 src/shared/interfaces/bvstk_output.h</title>
         <rect x="1028" y="738" width="744" height="80" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
         <text id="text-24" x="1400.0" y="772.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="714" class="code" style="fill:#233747">bvstk_output_t</text>
-        <text id="text-25" x="1400.0" y="801.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="716" style="fill:#576c7b">Вывод результата вызывающему коду</text>
+        <text id="text-25" x="1400.0" y="801.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="716" style="fill:#576c7b">Вывод</text>
         <g id="f-output" data-alias-for="platform-access--output" />
         <g id="n-output" data-alias-for="platform-access--output" />
       </g>
@@ -537,9 +528,8 @@ src/shared/interfaces/bvstk_output.h</title>
       <title>L3. Драйверы устройств</title>
       <rect x="1000" y="950" width="800" height="108" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l3.svg#device-drivers" data-ref-node="drivers" aria-label="Открыть блок «Драйверы устройств» на схеме L3">
-        <text id="text-50" x="1400.0" y="998.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Драйверы устройств</text>
+        <text id="text-50" x="1400.0" y="1011.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Драйверы устройств</text>
       </a>
-      <text id="text-51" x="1400.0" y="1027.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Транзакции с устройствами.</text>
     </g>
     <g id="platform-access" data-kind="functional-group" data-layer="L1" data-ownership="common" data-source="" data-label="Доступ к регистрам" data-entity="architecture_bvstk_l1.svg#platform-access" data-entity-ownership="common" data-representation="definition">
       <title>Доступ к регистрам</title>
@@ -559,15 +549,13 @@ src/hardware/boards/ax7020/bvstk_pl_regions.c</title>
           <a xlink:href="architecture_bvstk_l0_l1.svg#common-region-catalog" data-ref-node="platform-access--catalog" data-navigation="return" aria-label="Вернуться к блоку «bvstk_pl_regions» на соседней схеме">
             <text id="text-54" x="1220.0" y="1290.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="306" class="code" style="fill:#233747">bvstk_pl_regions</text>
           </a>
-          <text id="text-55" x="1220.0" y="1319.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="308" style="fill:#576c7b">Базы и размеры регионов</text>
           <g id="c-region-catalog" data-alias-for="platform-access--catalog" />
         </g>
         <g id="platform-hw-config" data-kind="component" data-layer="L1" data-ownership="common" data-parent="platform-catalog" data-source="src/hardware/boards/ax7020/bvstk_hw_config.h">
           <title>bvstk_hw_config
 src/hardware/boards/ax7020/bvstk_hw_config.h</title>
           <rect x="1412" y="1254" width="336" height="84" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
-          <text id="text-56" x="1580.0" y="1290.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="306" class="code" style="fill:#233747">bvstk_hw_config</text>
-          <text id="text-57" x="1580.0" y="1319.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="308" style="fill:#576c7b">Наличие аппаратных узлов</text>
+          <text id="text-56" x="1580.0" y="1303.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="306" class="code" style="fill:#233747">bvstk_hw_config</text>
         </g>
       </g>
       <g id="platform-access--pl-access" data-kind="component" data-layer="L1" data-ownership="common" data-parent="platform-access" data-source="src/shared/pl/access/bvstk_pl_service.h;src/shared/pl/access/bvstk_pl_service.c" data-label="bvstk_pl_service" data-entity="architecture_bvstk_l1.svg#platform-access--pl-access" data-entity-ownership="common" data-representation="definition">
@@ -578,58 +566,50 @@ src/shared/pl/access/bvstk_pl_service.c</title>
         <a xlink:href="architecture_bvstk_l0_l1.svg#common-pl-access" data-ref-node="platform-access--pl-access" data-navigation="return" aria-label="Вернуться к блоку «bvstk_pl_service» на соседней схеме">
           <text id="text-58" x="1400.0" y="1460.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_pl_service</text>
         </a>
-        <text id="text-59" x="1400.0" y="1489.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">Поиск региона и доступ по смещению</text>
         <g id="c-region-service" data-alias-for="platform-access--pl-access" />
       </g>
       <g id="platform-access--mmio" data-kind="component" data-layer="L1" data-ownership="common" data-parent="platform-access" data-source="src/shared/interfaces/bvstk_mmio.h">
         <title>bvstk_mmio
 src/shared/interfaces/bvstk_mmio.h</title>
         <rect x="1052" y="1578" width="696" height="104" rx="7" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.4" />
-        <text id="text-60" x="1400.0" y="1610.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_mmio</text>
-        <text id="text-61" x="1400.0" y="1639.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">region_open, read32, write32</text>
-        <text id="text-62" x="1400.0" y="1666.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">Проверка границ и выравнивания</text>
+        <text id="text-60" x="1400.0" y="1624.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_mmio</text>
+        <text id="text-61" x="1400.0" y="1649.8" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">region_open, read32, write32</text>
       </g>
     </g>
     <g id="hardware" data-kind="component" data-layer="L0" data-ownership="common" data-source="" data-label="Регистры и память Zynq" data-target="architecture_bvstk_l0_l1.svg#hardware-panel" data-entity="architecture_bvstk_l0_l1.svg#hardware-panel" data-entity-ownership="common" data-representation="reference">
       <title>L0. Регистры и память Zynq</title>
       <rect x="1000" y="1870" width="800" height="174" rx="7" fill="#e9eef3" stroke="#607487" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l0_l1.svg#hardware-panel" data-ref-node="hardware" aria-label="Открыть блок «Регистры и память Zynq» на схеме L0–L1">
-        <text id="text-86" x="1400.0" y="1937.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. Регистры и память Zynq</text>
+        <text id="text-86" x="1400.0" y="1964.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. Регистры и память Zynq</text>
       </a>
-      <text id="text-87" x="1400.0" y="1966.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">CPU, PS-контроллеры, AXI и узлы PL.</text>
-      <text id="text-88" x="1400.0" y="1993.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Аппаратные пути раскрыты на L0–L1.</text>
     </g>
     <g id="hardware-irq" data-kind="component" data-layer="L0" data-ownership="common" data-source="" data-label="Источники IRQ и GIC" data-target="architecture_bvstk_l0_l1.svg#h-irq-group" data-entity="architecture_bvstk_l0_l1.svg#h-irq-group" data-entity-ownership="common" data-representation="reference">
       <title>L0. Источники IRQ и GIC</title>
       <rect x="1000" y="2170" width="800" height="160" rx="7" fill="#e9eef3" stroke="#607487" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l0_l1.svg#h-irq-group" data-ref-node="hardware-irq" aria-label="Открыть блок «Источники IRQ и GIC» на схеме L0–L1">
-        <text id="text-103" x="1400.0" y="2244.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. Источники IRQ и GIC</text>
+        <text id="text-103" x="1400.0" y="2257.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. Источники IRQ и GIC</text>
       </a>
-      <text id="text-104" x="1400.0" y="2273.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">PL, системный таймер и контроллеры PS.</text>
     </g>
     <g id="subsystem-services" data-kind="component" data-layer="L3" data-ownership="common" data-source="" data-label="Сервисы подсистем" data-target="architecture_bvstk_l3.svg#subsystem-services" data-entity="architecture_bvstk_l3.svg#subsystem-services" data-entity-ownership="common" data-representation="reference">
       <title>L3. Сервисы подсистем</title>
       <rect x="1000" y="2500" width="800" height="160" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l3.svg#subsystem-services" data-ref-node="subsystem-services" aria-label="Открыть блок «Сервисы подсистем» на схеме L3">
-        <text id="text-123" x="1400.0" y="2574.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Сервисы подсистем</text>
+        <text id="text-123" x="1400.0" y="2587.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Сервисы подсистем</text>
       </a>
-      <text id="text-124" x="1400.0" y="2603.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Обработка запроса устройства в задаче или потоке.</text>
     </g>
     <g id="storage-hardware" data-kind="component" data-layer="L0" data-ownership="common" data-source="" data-label="Регистры и память Zynq" data-target="architecture_bvstk_l0_l1.svg#hardware-panel" data-entity="architecture_bvstk_l0_l1.svg#hardware-panel" data-entity-ownership="common" data-representation="reference">
       <title>L0. Регистры и память Zynq</title>
       <rect x="1000" y="3030" width="800" height="168" rx="7" fill="#e9eef3" stroke="#607487" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l0_l1.svg#hardware-panel" data-ref-node="storage-hardware" aria-label="Открыть блок «Регистры и память Zynq» на схеме L0–L1">
-        <text id="text-144" x="1400.0" y="3108.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. Регистры и память Zynq</text>
+        <text id="text-144" x="1400.0" y="3121.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. Регистры и память Zynq</text>
       </a>
-      <text id="text-145" x="1400.0" y="3137.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Контроллеры PS и аппаратные пути PL.</text>
     </g>
     <g id="sd-service" data-kind="component" data-layer="L3" data-ownership="common" data-source="" data-label="bvstk_sd_service" data-target="architecture_bvstk_l3.svg#service-bvstk_sd_service" data-entity="architecture_bvstk_l3.svg#service-bvstk_sd_service" data-entity-ownership="common" data-representation="reference">
       <title>L3. bvstk_sd_service</title>
       <rect x="1000" y="3260" width="800" height="110" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l3.svg#service-bvstk_sd_service" data-ref-node="sd-service" aria-label="Открыть блок «bvstk_sd_service» на схеме L3">
-        <text id="text-148" x="1400.0" y="3309.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. bvstk_sd_service</text>
+        <text id="text-148" x="1400.0" y="3322.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. bvstk_sd_service</text>
       </a>
-      <text id="text-149" x="1400.0" y="3338.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Инициализация карты, чтение и запись блоков</text>
     </g>
     <g id="volume-geometry" data-kind="component" data-layer="L3" data-ownership="common" data-source="" data-label="Границы и адресация тома" data-target="architecture_bvstk_l3.svg#volume-geometry" data-entity="architecture_bvstk_l3.svg#volume-geometry" data-entity-ownership="common" data-representation="reference">
       <title>L3. Границы и адресация тома</title>
@@ -643,17 +623,15 @@ src/shared/interfaces/bvstk_mmio.h</title>
       <title>L0. Ethernet</title>
       <rect x="1000" y="3660" width="800" height="190" rx="7" fill="#e9eef3" stroke="#607487" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l0_l1.svg#h-ethernet-group" data-ref-node="ethernet-hardware" aria-label="Открыть блок «Ethernet» на схеме L0–L1">
-        <text id="text-162" x="1400.0" y="3749.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. Ethernet</text>
+        <text id="text-162" x="1400.0" y="3762.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. Ethernet</text>
       </a>
-      <text id="text-163" x="1400.0" y="3778.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Регистры MAC, DMA и буферы в DDR.</text>
     </g>
     <g id="uart-hardware" data-kind="component" data-layer="L0" data-ownership="common" data-source="" data-label="UART" data-target="architecture_bvstk_l0_l1.svg#h-uart" data-entity="architecture_bvstk_l0_l1.svg#h-uart" data-entity-ownership="common" data-representation="reference">
       <title>L0. UART</title>
       <rect x="1000" y="4060" width="800" height="158" rx="7" fill="#e9eef3" stroke="#607487" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l0_l1.svg#h-uart" data-ref-node="uart-hardware" aria-label="Открыть блок «UART» на схеме L0–L1">
-        <text id="text-176" x="1400.0" y="4133.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. UART</text>
+        <text id="text-176" x="1400.0" y="4146.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L0. UART</text>
       </a>
-      <text id="text-177" x="1400.0" y="4162.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Контроллер PS.</text>
     </g>
   </g>
   <line x1="60" y1="4314" x2="2740" y2="4314" stroke="#ccd5dc" />

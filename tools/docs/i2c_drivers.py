@@ -33,14 +33,14 @@ def platform(d):
     owned(p, "freertos", 60, 425, 590, 410, "FreeRTOS")
     owned(p, "neutrino", 1550, 425, 590, 465, "Нейтрино")
     p.node("mmio", 800, 535, 600, 145, "bvstk_mmio",
-           "Открытие области, read32, write32", "L1",
+           "read32, write32", "L1",
            target="@architecture_bvstk_l1.svg#platform-access--mmio")
     p.edge("drivers", "mmio", "call")
     p.node("f-mmio", 105, 535, 500, 180, "bvstk_platform_freertos",
-           "Физический адрес\nXil_In32 и Xil_Out32", "L1", parent="freertos",
+           "Xil_In32, Xil_Out32", "L1", parent="freertos",
            ownership="freertos", target="@architecture_bvstk_l1.svg#f-port--mmio")
     p.node("n-mmio", 1595, 535, 500, 230, "bvstk_platform_neutrino",
-           "mmap_device_memory\nPROT_NOCACHE\nЧтение и запись по отображению", "L1", parent="neutrino",
+           "mmap_device_memory\nPROT_NOCACHE", "L1", parent="neutrino",
            ownership="neutrino", target="@architecture_bvstk_l1.svg#n-port")
     p.edge("mmio", "f-mmio", "call", start="W", end="E", b_offset=-17.5)
     p.edge("mmio", "n-mmio", "call", start="E", end="W", b_offset=-42.5)
@@ -53,8 +53,7 @@ def platform(d):
            "CSR, IRQ, REQ", parent="hardware",
            target="i2c/cores/slave/structure.svg#core")
     p.node("bram", 1460, 1140, 330, 125, "BRAM I²C",
-           "Три окна", parent="hardware",
-           target="reference/memory-map.svg#i2c-bank")
+           "", parent="hardware")
     p.edge("f-mmio", "hardware", "mmio", start="S", end="N", b_offset=-460,
            via=((355, 975), (640, 975)))
     p.edge("n-mmio", "hardware", "mmio", start="S", end="N", b_offset=460,
@@ -63,15 +62,15 @@ def platform(d):
 
 def master_transfer(d):
     y = d.actors([
-        ("service", "bvstk_i2c_master_service", "Запрос регистра", "L3", "i2c/cores/master/commands.svg#master-service", 1.4),
+        ("service", "bvstk_i2c_master_service", "", "L3", "i2c/services/master-operations.svg#service", 1.4),
         ("driver", "bvstk_i2c_master", "hw_transfer", "L3", BASE + "master/completion.svg#driver", 1.25),
         ("core", "I2C_master_0", "TX FIFO и регистры", "PL", "i2c/cores/master/commands.svg#core", 1.1),
     ], y=120)
     d.sequence(y, [
         ("request", "service", "driver", "call", "read_reg: 0x2A, регистр 0x10"),
-        ("clear-irq", "driver", "core", "mmio", "Сбросить старые IRQ"),
+        ("clear-irq", "driver", "core", "mmio", "Сброс старых IRQ"),
         ("write-header", "driver", "core", "mmio", "Заголовок записи: restart = 1"),
-        ("pointer", "driver", "core", "data", "Байт регистра 0x10 в TX FIFO"),
+        ("pointer", "driver", "core", "data", "TX FIFO: 0x10"),
         ("read-header", "driver", "core", "mmio", "Заголовок чтения: один байт"),
         ("start", "driver", "core", "mmio", "CSR: START"),
     ])
@@ -86,19 +85,19 @@ def master_completion(d):
         ("gic", "GIC", "Без обработчика master", "L0", "@architecture_bvstk_ps_pl.svg#irq-i2c-master", 1),
     ], y=120)
     d.sequence(y, [
-        ("publish", "core", "bram", "data", "Результат обмена: 0x34"),
+        ("publish", "core", "bram", "data", "Результат: 0x34"),
         ("irq", "core", "gic", "irq", "IRQ master: DATA_VALID"),
         ("poll", "driver", "core", "mmio", "Опрос CSR и регистра IRQ"),
         ("ready", "core", "driver", "mmio", "Свободен, DATA_VALID = 1"),
-        ("result", "bram", "driver", "data", "Забрать 0x34"),
+        ("result", "bram", "driver", "data", "0x34"),
     ])
 
 
 def slave_write(d):
     d.canvas(2200)
     y = d.actors([
-        ("port", "Порт ОС", "Доставка и обработка IRQ", "L1", BASE + "events.svg", 1.1),
-        ("driver", "bvstk_i2c_slave", "Захват события и чтение", "L3", BASE + "platform.svg#slave", 1.35),
+        ("port", "Порт ОС", "IRQ", "L1", BASE + "events.svg", 1.1),
+        ("driver", "bvstk_i2c_slave", "", "L3", BASE + "platform.svg#slave", 1.35),
         ("core", "I2C_slave_0", "IRQ и REQ", "PL", "i2c/cores/slave/write.svg#core", 1),
         ("bram", "BRAM I²C", "Запрос: +0x1000", "PL", "i2c/cores/slave/memory-format.svg", 1.1),
     ], y=120)
@@ -107,8 +106,8 @@ def slave_write(d):
         ("publish", "core", "bram", "data", "Принятые байты и заголовок"),
         ("irq", "core", "port", "irq", "IRQ slave: DATA_VALID"),
         ("dispatch", "port", "driver", "call", "hw_capture_irq"),
-        ("capture", "driver", "core", "mmio", "capture_irq: прочитать IRQ и REQ"),
-        ("ack", "driver", "core", "mmio", "Сбросить захваченные IRQ"),
+        ("capture", "driver", "core", "mmio", "capture_irq: IRQ и REQ"),
+        ("ack", "driver", "core", "mmio", "Сброс захваченных IRQ"),
         ("copy", "bram", "driver", "data", "read_frame: адрес и байты"),
         ("release", "driver", "bram", "mmio", "После обработки: clear_frame"),
     ])
@@ -117,11 +116,11 @@ def slave_write(d):
 def slave_read(d):
     d.canvas(2200)
     y = d.actors([
-        ("port", "Порт ОС", "Доставка и обработка IRQ", "L1", BASE + "events.svg", 1.1),
-        ("service", "bvstk_i2c_slave_service", "Подготовка окна", "L3", "ps-interaction/reads.svg#i-service", 1.4),
-        ("driver", "bvstk_i2c_slave", "Публикация ответа", "L3", BASE + "platform.svg#slave", 1.25),
+        ("port", "Порт ОС", "IRQ", "L1", BASE + "events.svg", 1.1),
+        ("service", "bvstk_i2c_slave_service", "Подготовка окна", "L3", "i2c/services/read-state.svg#service", 1.4),
+        ("driver", "bvstk_i2c_slave", "", "L3", BASE + "platform.svg#slave", 1.25),
         ("bram", "BRAM I²C", "Ответ: +0x2000", "PL", "i2c/cores/slave/buffers.svg#rd-window", 1),
-        ("core", "I2C_slave_0", "Чтение окна", "PL", "i2c/cores/slave/read.svg#core", 1),
+        ("core", "I2C_slave_0", "", "PL", "i2c/cores/slave/read.svg#core", 1),
     ], y=120)
     d.p.nodes["port"].group.set("data-ownership", "selected-os")
     d.sequence(y, [
@@ -130,7 +129,7 @@ def slave_read(d):
         ("window", "service", "driver", "data", "Окно ответа через порт ОС"),
         ("write", "driver", "bram", "data", "write_read_window: заголовок и байты"),
         ("valid", "driver", "core", "mmio", "accept_read: CSR.rd_valid"),
-        ("fetch", "bram", "core", "data", "Забрать окно для выдачи по SDA"),
+        ("fetch", "bram", "core", "data", "Окно ответа"),
     ])
 
 
@@ -161,7 +160,7 @@ def events(d):
     p.node("n-process", 1580, 1200, 520, 160, "Обработка события",
            "Под state_mutex", "L1", parent="neutrino", ownership="neutrino",
            target="@architecture_bvstk_l1.svg#n-interrupt-processing--worker")
-    p.node("n-unmask", 1580, 1490, 520, 140, "Разрешить следующий IRQ",
+    p.node("n-unmask", 1580, 1490, 520, 140, "Размаскирование IRQ",
            "InterruptUnmask", "L2", parent="neutrino", ownership="neutrino")
     p.node("service", 790, 1200, 620, 160, "bvstk_i2c_slave_service",
            "handle_frame", "L3", target=BASE + "slave/read.svg#service")

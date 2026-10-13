@@ -1,0 +1,106 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" viewBox="0 40 1400 1183" role="img" aria-labelledby="title desc" height="1183">
+  <title id="title">MDIO: изменение регистра и его копий</title>
+  <desc id="desc">Устройство меняет значение раньше PS. Успешное чтение публикуется в BRAM, затем обновляет кэш сервиса.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1400" height="1223" fill="white" />
+  <g id="backgrounds">
+    <path d="M65,430 L1350,430" stroke="#a6b1bb" stroke-width="1.3" stroke-dasharray="3 7" fill="none" />
+    <path d="M65,575 L1350,575" stroke="#a6b1bb" stroke-width="1.3" stroke-dasharray="3 7" fill="none" />
+    <path d="M65,720 L1350,720" stroke="#a6b1bb" stroke-width="1.3" stroke-dasharray="3 7" fill="none" />
+    <path d="M65,865 L1350,865" stroke="#a6b1bb" stroke-width="1.3" stroke-dasharray="3 7" fill="none" />
+  </g>
+  <g id="interactions">
+    <path d="M40,230 L40,1005" stroke="#607487" stroke-width="2" fill="none" />
+    <path d="M34,995 L40,1005 L46,995" stroke="#607487" stroke-width="2" fill="none" />
+  </g>
+  <g id="components">
+    <g id="device" data-kind="component" data-layer="L0" data-label="Регистр PHY" data-ownership="common">
+      <rect x="445" y="80" width="250" height="105" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="465" y="104.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="465" y="149.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Регистр PHY</text>
+    </g>
+    <rect id="device-0" x="485" y="220" width="170" height="210" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+    <rect id="device-1" x="485" y="430" width="170" height="575" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+    <g id="cache" data-kind="component" data-layer="L3" data-label="Кэш PS" data-ownership="common">
+      <rect x="775" y="80" width="250" height="105" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <text x="795" y="104.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="795" y="149.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Кэш PS</text>
+    </g>
+    <rect id="cache-0" x="815" y="220" width="170" height="645" fill="#d9f0ea" stroke="#287f73" stroke-width="2" />
+    <rect id="cache-1" x="815" y="865" width="170" height="140" fill="#d9f0ea" stroke="#287f73" stroke-width="2" />
+    <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="Ответ BRAM" data-ownership="common">
+      <rect x="1105" y="80" width="250" height="105" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <text x="1125" y="104.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="1125" y="149.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ответ BRAM</text>
+    </g>
+    <rect id="bram-0" x="1145" y="220" width="170" height="500" fill="#e6dcf5" stroke="#8760ba" stroke-width="2" />
+    <rect id="bram-1" x="1145" y="720" width="170" height="285" fill="#e6dcf5" stroke="#8760ba" stroke-width="2" />
+  </g>
+  <g id="annotations">
+    <text x="570" y="268.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#607487">0x0034</text>
+    <text x="570" y="478.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#607487">0x0056</text>
+    <text x="900" y="268.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#287f73">0x0034</text>
+    <text x="900" y="913.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#287f73">0x0056</text>
+    <text x="1230" y="268.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#8760ba">0x0034</text>
+    <text x="1230" y="768.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#8760ba">0x0056</text>
+    <text x="90" y="412.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">PHY меняет регистр</text>
+    <text x="90" y="557.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">Результат master</text>
+    <text x="90" y="702.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">PS публикует ответ</text>
+    <text x="90" y="847.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">PS обновляет кэш</text>
+    <text x="65" y="290.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">После прошлого</text>
+    <text x="65" y="323.12" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">опроса</text>
+    <rect x="60" y="1114" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1133.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1114" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1133.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="375" y="1114" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1133.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1180.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт сверху вниз; масштаб условный. Цвет обозначает уровень.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/services/mdio/bvstk_mdio_service.c"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

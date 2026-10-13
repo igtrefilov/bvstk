@@ -77,13 +77,12 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="60" y="615" width="470" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <text x="80" y="639.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
       <text x="80" y="673.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">rx_fifo_mux</text>
-      <text x="80" y="712.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">DATA_VALID после записи BRAM</text>
+      <text x="80" y="712.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">DATA_VALID</text>
     </g>
     <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="regs: CSR и IRQ" data-ownership="common">
       <rect x="875" y="440" width="350" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <text x="895" y="464.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-      <text x="895" y="498.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">regs: CSR и IRQ</text>
-      <text x="895" y="537.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Состояние и события</text>
+      <text x="895" y="547.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">regs: CSR и IRQ</text>
     </g>
     <g id="driver" data-kind="functional-group" data-label="Драйвер PS" data-layer="L3" data-ownership="common">
       <rect x="1320" y="210" width="420" height="730" rx="16" fill="none" stroke="#287f73" stroke-width="2" />

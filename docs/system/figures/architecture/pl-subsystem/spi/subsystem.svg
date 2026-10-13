@@ -106,41 +106,33 @@ g:target &gt; rect { stroke-width: 5; }
       <rect x="600" y="260" width="1000" height="170" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#ps-axi">
         <text x="620" y="284.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="620" y="318.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">PS и AXI к PL</text>
+        <text x="620" y="362.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">PS и AXI к PL</text>
       </a>
-      <text x="620" y="357.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">MMIO к регистрам SPI и DMA, доступ к BRAM</text>
     </g>
     <g id="subsystem" data-kind="functional-group" data-label="Подсистема SPI" data-layer="L0" data-domain="pl" data-ownership="common">
       <rect x="60" y="590" width="2080" height="1320" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
       <a data-navigation="detail" xlink:href="../overview/subsystems.svg#pl-subsystem">
         <text x="86" y="627.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">Подсистема SPI</text>
       </a>
-      <text x="86" y="660.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Два ядра, два DMA и общий адресный interconnect</text>
       <g id="master" data-kind="component" data-layer="L0" data-domain="pl" data-label="SPI_master_0" data-ownership="common" data-parent="subsystem" data-target="master.svg#core">
         <rect x="150" y="710" width="680" height="220" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="master.svg#core">
           <text x="170" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="170" y="768.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SPI_master_0</text>
+          <text x="170" y="837.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SPI_master_0</text>
         </a>
-        <text x="170" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ведущий SPI</text>
-        <text x="170" y="833.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">AXI Stream в обе стороны</text>
-        <text x="170" y="859.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Дополнительный M_AXI для ответов SD</text>
       </g>
       <g id="slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="SPI_Slave_0" data-ownership="common" data-parent="subsystem" data-target="slave.svg#core">
         <rect x="1370" y="710" width="680" height="190" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="slave.svg#core">
           <text x="1390" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1390" y="768.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SPI_Slave_0</text>
+          <text x="1390" y="822.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SPI_Slave_0</text>
         </a>
-        <text x="1390" y="807.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ведомый SPI</text>
-        <text x="1390" y="833.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">AXI Stream в обе стороны</text>
       </g>
       <g id="dma0" data-kind="functional-group" data-label="axi_dma_0" data-layer="L0" data-domain="pl" data-ownership="common">
         <rect x="120" y="1110" width="790" height="310" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#dma0">
           <text x="146" y="1147.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">axi_dma_0</text>
         </a>
-        <text x="146" y="1180.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Simple DMA, SG выключен</text>
         <g id="dma0-tx" data-kind="component" data-layer="L0" data-domain="pl" data-label="MM2S" data-ownership="common" data-parent="dma0">
           <rect x="155" y="1210" width="310" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="175" y="1234.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
@@ -159,7 +151,6 @@ g:target &gt; rect { stroke-width: 5; }
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#dma1">
           <text x="1316" y="1147.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">axi_dma_1</text>
         </a>
-        <text x="1316" y="1180.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Simple DMA, SG выключен</text>
         <g id="dma1-tx" data-kind="component" data-layer="L0" data-domain="pl" data-label="MM2S" data-ownership="common" data-parent="dma1">
           <rect x="1325" y="1210" width="310" height="165" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="1345" y="1234.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
@@ -177,20 +168,16 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="620" y="1650" width="960" height="175" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#spi-fabric">
           <text x="640" y="1674.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="640" y="1708.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_interconnect_3</text>
+          <text x="640" y="1754.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_interconnect_3</text>
         </a>
-        <text x="640" y="1747.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Инициаторы: PS, четыре канала DMA, SPI master</text>
       </g>
     </g>
-    <g id="memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM обмена" data-ownership="common" data-target="../reference/memory-map.svg#spi-bank">
+    <g id="memory" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM обмена" data-ownership="common">
       <rect x="100" y="2050" width="1000" height="240" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../reference/memory-map.svg#spi-bank">
-        <text x="120" y="2074.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="120" y="2108.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM обмена</text>
-      </a>
-      <text x="120" y="2147.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Банк 0: 0x44000000, окно 8 КиБ</text>
-      <text x="120" y="2173.3399999999997" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Банк 1: 0x46000000, окно 8 КиБ</text>
-      <text x="120" y="2199.56" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Доступны PS и обоим DMA</text>
+      <text x="120" y="2074.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="120" y="2108.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM обмена</text>
+      <text x="120" y="2147.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Банк 0</text>
+      <text x="120" y="2173.3399999999997" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Банк 1</text>
     </g>
     <g id="hp0" data-kind="component" data-layer="L0" data-label="S_AXI_HP0" data-ownership="common" data-target="../../architecture_bvstk_ps_pl.svg#hp0">
       <rect x="1360" y="2050" width="740" height="180" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
@@ -198,7 +185,7 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="1380" y="2074.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
         <text x="1380" y="2108.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">S_AXI_HP0</text>
       </a>
-      <text x="1380" y="2147.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Аппаратный путь к DDR и нижней OCM</text>
+      <text x="1380" y="2147.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">DDR и OCM</text>
     </g>
     <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-layer="L3" data-ownership="freertos">
       <rect x="350" y="2460" width="1500" height="300" rx="16" fill="none" stroke="#8495a3" stroke-width="2" stroke-dasharray="10 7" />
@@ -209,7 +196,7 @@ g:target &gt; rect { stroke-width: 5; }
           <text x="430" y="2564.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
           <text x="430" y="2598.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Действующий путь SD</text>
         </a>
-        <text x="430" y="2637.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_sd_service: чтение и запись блоков карты</text>
+        <text x="430" y="2637.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_sd_service</text>
       </g>
     </g>
   </g>
@@ -218,7 +205,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="720.0" y="1056.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MISO</text>
     <text x="1480.0" y="1041.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MISO</text>
     <text x="1890.0" y="1041.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MOSI</text>
-    <text x="1910" y="1800.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Доступ CPU к BRAM</text>
+    <text x="1910" y="1800.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Доступ PS</text>
     <text x="1120" y="1460.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">M_AXI</text>
     <path d="M60,2812 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
     <text x="142" y="2818.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
@@ -267,10 +254,6 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "fabric",
       "target": "../../architecture_bvstk_ps_pl.svg#spi-fabric"
-    },
-    {
-      "node": "memory",
-      "target": "../reference/memory-map.svg#spi-bank"
     },
     {
       "node": "hp0",

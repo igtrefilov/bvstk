@@ -155,10 +155,10 @@ g:target &gt; rect { stroke-width: 5; }
         </a>
         <text x="1600" y="1297.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Под state_mutex</text>
       </g>
-      <g id="n-unmask" data-kind="component" data-layer="L2" data-label="Разрешить следующий IRQ" data-ownership="neutrino" data-parent="neutrino">
+      <g id="n-unmask" data-kind="component" data-layer="L2" data-label="Размаскирование IRQ" data-ownership="neutrino" data-parent="neutrino">
         <rect x="1580" y="1490" width="520" height="140" rx="11" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.8" />
         <text x="1600" y="1514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#c65b4e" xml:space="preserve"><tspan style="fill:#c65b4e">L2</tspan></text>
-        <text x="1600" y="1548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Разрешить следующий IRQ</text>
+        <text x="1600" y="1548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Размаскирование IRQ</text>
         <text x="1600" y="1587.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">InterruptUnmask</text>
       </g>
     </g>

@@ -68,6 +68,16 @@ class ProtocolDrawing:
 
     def strip(self, key, y, fields, x=100, gap=12):
         """Place wire fields in time order, with their SDA owner underneath."""
+        # The introductory format explains field widths. Later figures reuse
+        # that notation without printing the same definitions in every cell.
+        compact = self.p.name != "i2c/protocol/transaction.svg"
+        if compact:
+            conditions = getattr(self.p, "i2c_conditions", set())
+            conditions.update(item["label"] for item in fields if item["kind"] == "condition")
+            self.p.i2c_conditions = conditions
+            definitions = [("S", "START"), ("Sr", "повторный START"), ("P", "STOP")]
+            self.p.legend_note = ". ".join(f"{key} — {label}" for key, label in definitions
+                                           if key in conditions) + ". Под полями — источник SDA."
         total = sum(item["width"] for item in fields)+gap*(len(fields)-1)
         if x+total > 2140:
             raise ValueError(f"I2C strip exceeds page width: {self.p.name}#{key}")
@@ -88,8 +98,15 @@ class ProtocolDrawing:
             content = self.p.link(cell, item["target"]) if item["target"] else cell
             self.p.text(content, x+w/2, y+37, item["label"], 24 if kind != "ack" else 20,
                         bold=True, anchor="middle", color=self.ink if kind == "condition" else self.data)
-            if item["detail"]:
-                self.p.text(content, x+w/2, y+69, item["detail"], 17, anchor="middle", color="#576c7b")
+            detail = item["detail"]
+            if compact and (detail in ("START", "STOP", "1 бит", "8 бит", "7 бит + 0", "7 бит + 1")
+                            or detail.startswith("байт 0x")):
+                detail = ""
+            if detail:
+                self.p.text(content, x+w/2, y+69, detail, 17, anchor="middle", color="#576c7b")
+            elif compact:
+                # Center labels after removing the repeated second line.
+                content.find("{http://www.w3.org/2000/svg}text").set("y", str(y+54))
             if item["driver"]:
                 self.p.text(cell, x+w/2, y+120, item["driver"], 17, anchor="middle", color=self.ink)
             if item["target"]:
@@ -124,7 +141,7 @@ def interface_sheet(d):
     d.line(((1970, 340), (2070, 340)))
     d.text(2020, 315, "VDD", 22, bold=True, anchor="middle")
     for key, x, w, title, body in (
-        ("controller", 260, 470, "Ведущий", "START и STOP\nАдрес и направление"),
+        ("controller", 260, 470, "Ведущий", ""),
         ("target", 970, 470, "Ведомое устройство", "Адрес 0x2A"),
         ("other-target", 1620, 470, "Другое устройство", "Адрес 0x50"),
     ):
@@ -159,7 +176,7 @@ def interface_sheet(d):
 
 def transaction_sheet(d):
     p, el = d.p, d.el
-    d.heading("format", 285, "От START до STOP", "Время идёт вправо. Под полями — кто задаёт SDA.")
+    d.heading("format", 285, "Транзакция", "Время идёт вправо. Под полями — кто задаёт SDA.")
     d.strip("frame", 385, [
         condition("S"), field("Адрес", 300, detail="7 бит", target="i2c/protocol/transaction.svg#address"),
         field("R/W", 126, detail="1 бит"), ack(),
@@ -168,17 +185,15 @@ def transaction_sheet(d):
         field("ACK или NACK", 202, "получатель", "1 бит", "ack"), condition("P"),
     ])
 
-    d.heading("conditions", 700, "START и STOP формирует ведущий")
+    d.heading("conditions", 700, "START и STOP")
     d.text(235, 770, "S — START", 25, bold=True)
     d.trace("SCL", 235, 825, [(0, 1), (590, 1), (590, 0), (760, 0)])
     d.trace("SDA", 235, 945, [(0, 1), (340, 1), (340, 0), (760, 0)], color=d.data)
     d.line(((575, 800), (575, 1025)), width=1.5, dash="5 6")
-    d.text(235, 1070, "SDA: 1 → 0 при SCL = 1", 22)
     d.text(1315, 770, "P — STOP", 25, bold=True)
     d.trace("SCL", 1315, 825, [(0, 0), (150, 0), (150, 1), (760, 1)])
     d.trace("SDA", 1315, 945, [(0, 0), (420, 0), (420, 1), (760, 1)], color=d.data)
     d.line(((1735, 800), (1735, 1025)), width=1.5, dash="5 6")
-    d.text(1315, 1070, "SDA: 0 → 1 при SCL = 1", 22)
 
     d.heading("byte", 1200, "Восемь бит и подтверждение", "Пример: 0x54 → ACK.")
     origin, pitch = 260, 193
@@ -200,22 +215,21 @@ def transaction_sheet(d):
     data.append((9*pitch, previous))
     d.trace("SCL", origin, 1350, clock)
     d.trace("SDA", origin, 1465, data, color=d.data)
-    d.bracket(origin, origin+8*pitch-12, 1610, "1–8: передатчик, старший бит первым")
+    d.bracket(origin, origin+8*pitch-12, 1610, "1–8: передатчик")
     d.bracket(origin+8*pitch+6, origin+9*pitch, 1610, "9: получатель")
     p.note(1720, "9-й такт: передатчик отпускает SDA. Ответ получателя: 0 — ACK, 1 — NACK.")
     p.note(1775, "Все такты формирует ведущий. При чтении он же подтверждает данные.")
 
-    d.heading("address", 1900, "Первый байт: 7-битный адрес и направление")
+    d.heading("address", 1900, "Адресный байт")
     bits = [0, 1, 0, 1, 0, 1, 0, 0]
     for i, bit in enumerate(bits):
-        xx = 115+138*i
-        el(p.blocks, "rect", x=xx, y=1970, width=120, height=100, rx=4,
+        xx = 115+238*i
+        el(p.blocks, "rect", x=xx, y=1970, width=210, height=100, rx=4,
            fill="white", stroke=d.data, stroke_width=2)
-        d.text(xx+60, 1950, f"A{6-i}" if i < 7 else "R/W", 20, anchor="middle")
-        d.text(xx+60, 2036, str(bit), 30, bold=True, anchor="middle", color=d.data)
-    d.bracket(115, 1063, 2102, "Адрес устройства 0x2A")
-    d.text(1310, 1980, "W = 0: ведущий → ведомый\nR = 1: ведомый → ведущий", 23, width=800)
-    d.text(1310, 2100, "Адрес 0x2A:\nW → 0x54, R → 0x55", 23, width=800)
+        d.text(xx+105, 1950, f"A{6-i}" if i < 7 else "R/W", 20, anchor="middle")
+        d.text(xx+105, 2036, str(bit), 30, bold=True, anchor="middle", color=d.data)
+    d.bracket(115, 1753, 2102, "Адрес 0x2A")
+    d.bracket(1781, 1991, 2102, "W = 0")
     p.note(2220, "Первый байт: 7 бит адреса + 1 бит направления.")
 
 
@@ -254,8 +268,8 @@ def repeated_start_sheet(d):
         address(True, width=226, example=True), ack(), field("D0", 150, "ведомый"),
         ack("ведущий"), field("D1", 150, "ведомый"), ack("ведущий", nack=True), condition("P"),
     ], x=90, gap=10)
-    d.bracket(positions[0][0], positions[4][1], 510, "Записать указатель регистра")
-    d.bracket(positions[6][0], positions[-1][1], 510, "Прочитать D0 и D1")
+    d.bracket(positions[0][0], positions[4][1], 510, "Указатель регистра")
+    d.bracket(positions[6][0], positions[-1][1], 510, "Чтение D0 и D1")
 
     d.heading("restart", 660, "Повторный START")
     el(p.under, "rect", x=620, y=740, width=530, height=290, fill=d.fill)
@@ -263,8 +277,6 @@ def repeated_start_sheet(d):
     d.trace("SDA", 235, 920, [(0, 0), (145, 0), (145, 1), (680, 1), (680, 0), (1090, 0)], color=d.data)
     d.line(((915, 720), (915, 1030)), width=1.5, dash="5 6")
     d.text(915, 714, "Sr", 25, bold=True, anchor="middle")
-    d.text(380, 1078, "SDA отпущена при SCL = 0", 20, anchor="middle")
-    d.text(915, 1135, "SDA: 1 → 0 при SCL = 1", 20, anchor="middle")
 
     d.heading("stop-between", 1250, "Две отдельные транзакции")
     d.strip("separate-write", 1340, [condition("S"), field("Запись …", 450, "", "адрес, данные, ACK"), condition("P")], x=100)

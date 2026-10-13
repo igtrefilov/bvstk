@@ -88,15 +88,13 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="600" y="460" width="400" height="250" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="620" y="484.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="620" y="518.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">div_cnt и divisor</text>
-        <text x="620" y="557.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">divisor выбирается в START</text>
-        <text x="620" y="583.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Полупериод: divisor тактов</text>
+        <text x="620" y="557.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Полупериод SCL</text>
       </g>
       <g id="output" data-kind="component" data-layer="L0" data-domain="pl" data-label="Выход SCL" data-ownership="common" data-parent="engine">
         <rect x="1140" y="460" width="400" height="250" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="1160" y="484.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="1160" y="518.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Выход SCL</text>
-        <text x="1160" y="557.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">scl_oe = 1: тянуть в 0</text>
-        <text x="1160" y="583.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">scl_oe = 0: отпустить</text>
+        <text x="1160" y="557.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">scl_oe</text>
       </g>
       <g id="inputs" data-kind="component" data-layer="L0" data-domain="pl" data-label="debouncer и sync" data-ownership="common" data-parent="engine">
         <rect x="1140" y="920" width="400" height="220" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -109,18 +107,16 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="100" y="920" width="900" height="220" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="120" y="944.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="120" y="978.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Автомат I²C</text>
-        <text x="120" y="1017.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">READ_ACK: ожидание SCL ↑</text>
-        <text x="120" y="1043.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">READ_BYTE: выборка SDA по scl_pe</text>
+        <text x="120" y="1017.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">READ_ACK</text>
+        <text x="120" y="1043.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">READ_BYTE</text>
       </g>
     </g>
     <g id="scl" data-kind="component" data-layer="L0" data-label="Линия SCL" data-ownership="common" data-target="clock-stretching.svg">
       <rect x="1750" y="460" width="390" height="250" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="clock-stretching.svg">
         <text x="1770" y="484.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="1770" y="518.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Линия SCL</text>
+        <text x="1770" y="602.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Линия SCL</text>
       </a>
-      <text x="1770" y="557.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подтяжка к 1</text>
-      <text x="1770" y="583.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ведомый может удерживать 0</text>
     </g>
   </g>
   <g id="annotations">

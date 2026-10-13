@@ -49,16 +49,14 @@
 src/apps/freertos/services/http/http_server.h
 src/apps/freertos/services/http/http_server.c</title>
           <rect x="132" y="414" width="280" height="80" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-13" x="272.0" y="448.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">http_server</text>
-          <text id="text-14" x="272.0" y="477.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="252" style="fill:#576c7b">HTTP-запросы</text>
+          <text id="text-13" x="272.0" y="461.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">http_server</text>
         </g>
         <g id="f-dcp2-server" data-kind="component" data-layer="L3" data-ownership="freertos" data-parent="f-network-servers" data-source="src/apps/freertos/services/dcp2/dcp2_server.c;src/apps/freertos/services/dcp2/dcp2_server.h">
           <title>dcp2_server
 src/apps/freertos/services/dcp2/dcp2_server.c
 src/apps/freertos/services/dcp2/dcp2_server.h</title>
           <rect x="448" y="414" width="280" height="80" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-15" x="588.0" y="448.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">dcp2_server</text>
-          <text id="text-16" x="588.0" y="477.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="252" style="fill:#576c7b">DCP2-запросы</text>
+          <text id="text-15" x="588.0" y="461.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="250" class="code" style="fill:#233747">dcp2_server</text>
         </g>
       </g>
       <g id="f-console-transports" data-kind="functional-group" data-layer="L3" data-ownership="freertos" data-parent="f-request-handlers" data-source="">
@@ -71,17 +69,15 @@ src/apps/freertos/services/uart-console/bvstk_uart_console.h
 src/apps/freertos/services/uart-console/bvstk_uart_console.c</title>
           <rect x="132" y="638" width="340" height="64" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
           <a xlink:href="architecture_bvstk_l1.svg#f-uart-caller" data-ref-node="f-transport-0" data-navigation="return" aria-label="Вернуться к блоку «bvstk_uart_console» на соседней схеме">
-            <text id="text-18" x="302.0" y="664.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="310" class="code" style="fill:#233747">bvstk_uart_console</text>
+            <text id="text-18" x="302.0" y="677.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="310" class="code" style="fill:#233747">bvstk_uart_console</text>
           </a>
-          <text id="text-19" x="302.0" y="693.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="312" style="fill:#576c7b">UART</text>
         </g>
         <g id="f-transport-1" data-kind="component" data-layer="L3" data-ownership="freertos" data-parent="f-console-transports" data-source="src/apps/freertos/services/tcp-console/bvstk_tcp_server.h;src/apps/freertos/services/tcp-console/bvstk_tcp_server.c">
           <title>bvstk_tcp_server
 src/apps/freertos/services/tcp-console/bvstk_tcp_server.h
 src/apps/freertos/services/tcp-console/bvstk_tcp_server.c</title>
           <rect x="132" y="722" width="596" height="64" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-20" x="430.0" y="748.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">bvstk_tcp_server</text>
-          <text id="text-21" x="430.0" y="777.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">TCP</text>
+          <text id="text-20" x="430.0" y="761.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">bvstk_tcp_server</text>
         </g>
         <g id="f-transport-2" data-kind="component" data-layer="L3" data-ownership="freertos" data-parent="f-console-transports" data-source="src/apps/freertos/services/ssh/bvstk_ssh_server.h;src/apps/freertos/services/ssh/bvstk_ssh_server.c">
           <title>bvstk_ssh_server
@@ -111,13 +107,12 @@ src/apps/freertos/services/lan/bvstk_lan.h
 src/apps/freertos/services/lan/bvstk_lan.c</title>
           <rect x="132" y="1006" width="596" height="64" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
           <text id="text-26" x="430.0" y="1032.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">bvstk_lan</text>
-          <text id="text-27" x="430.0" y="1061.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Подключение интерфейса и адресация</text>
+          <text id="text-27" x="430.0" y="1061.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Настройка сети</text>
         </g>
         <g id="f-lwip" data-kind="component" data-layer="L3" data-ownership="freertos" data-parent="f-network-stack" data-source="">
           <title>lwIP</title>
           <rect x="132" y="1120" width="340" height="60" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-28" x="302.0" y="1144.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="310" class="code" style="fill:#233747">lwIP</text>
-          <text id="text-29" x="302.0" y="1173.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="312" style="fill:#576c7b">TCP, UDP, сокеты</text>
+          <text id="text-28" x="302.0" y="1157.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="310" class="code" style="fill:#233747">lwIP</text>
         </g>
         <g id="f-ip-caller" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-network-stack" data-source="" data-label="ip_shell" data-target="architecture_bvstk_l4.svg#f-command-ip_shell" data-entity="architecture_bvstk_l4.svg#f-command-ip_shell" data-entity-ownership="freertos" data-representation="reference">
           <title>L4. ip_shell</title>
@@ -139,10 +134,9 @@ src/apps/freertos/services/lan/bvstk_lan.c</title>
       <title>L4. Пользовательские интерфейсы</title>
       <rect x="80" y="1450" width="700" height="132" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l4.svg#f-application-operations" data-ref-node="f-application-operations" aria-label="Открыть блок «Пользовательские интерфейсы» на схеме L4">
-        <text id="text-90" x="430.0" y="1496.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L4. Пользовательские интерфейсы</text>
+        <text id="text-90" x="430.0" y="1510.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L4. Пользовательские интерфейсы</text>
       </a>
-      <text id="text-91" x="430.0" y="1525.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">console_dispatch, http_ui</text>
-      <text id="text-92" x="430.0" y="1552.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">Вызовы сервисов из приложения.</text>
+      <text id="text-91" x="430.0" y="1535.8" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">console_dispatch, http_ui</text>
     </g>
     <g id="f-irq" data-kind="component" data-layer="L1" data-ownership="freertos" data-source="" data-label="Доставка прерываний" data-target="architecture_bvstk_l1.svg#f-interrupt-processing" data-entity="architecture_bvstk_l1.svg#f-interrupt-processing" data-entity-ownership="freertos" data-representation="reference">
       <title>L1. Доставка прерываний</title>
@@ -194,10 +188,9 @@ src/apps/freertos/services/dcp2/dcp2_notify.h</title>
       <title>L4. Web UI</title>
       <rect x="80" y="2740" width="700" height="130" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l4.svg#f-web" data-ref-node="f-observation-ui" aria-label="Открыть блок «Web UI» на схеме L4">
-        <text id="text-123" x="430.0" y="2785.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L4. Web UI</text>
+        <text id="text-123" x="430.0" y="2799.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L4. Web UI</text>
       </a>
-      <text id="text-124" x="430.0" y="2814.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">http_ui_observe</text>
-      <text id="text-125" x="430.0" y="2841.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">Представление снимков состояния.</text>
+      <text id="text-124" x="430.0" y="2824.8" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">http_ui_observe</text>
     </g>
     <g id="f-file-callers" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-source="">
       <title>Файловые операции</title>
@@ -277,7 +270,7 @@ src/apps/freertos/storage/fs/fs_shared.h</title>
       <a xlink:href="architecture_bvstk_l4.svg#n-kernel" data-ref-node="n-kernel" aria-label="Открыть блок «IPC» на схеме L4">
         <text id="text-49" x="2370.0" y="524.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L2. IPC</text>
       </a>
-      <text id="text-50" x="2370.0" y="553.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">devctl, доставка сообщения в bvstkd</text>
+      <text id="text-50" x="2370.0" y="553.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">devctl</text>
     </g>
     <g id="n-request-handlers" data-kind="functional-group" data-layer="L3" data-ownership="neutrino" data-source="">
       <title>Входы процесса bvstkd</title>
@@ -305,7 +298,7 @@ src/apps/neutrino/i2c/bvstk_i2c_resmgr.c</title>
           <title>bvstkd</title>
           <rect x="2072" y="968" width="596" height="56" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
           <text id="text-55" x="2370.0" y="990.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">bvstkd</text>
-          <text id="text-56" x="2370.0" y="1019.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Сокет и цикл обработки соединения</text>
+          <text id="text-56" x="2370.0" y="1019.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">DCP2</text>
         </g>
       </g>
     </g>
@@ -318,8 +311,7 @@ src/apps/neutrino/i2c/bvstk_i2c_resmgr.c</title>
       <g id="n-io-pkt" data-kind="component" data-layer="L3" data-ownership="neutrino" data-parent="n-network-stack" data-source="">
         <title>io-pkt-v4-hc</title>
         <rect x="2048" y="1282" width="644" height="76" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-        <text id="text-59" x="2370.0" y="1314.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" class="code" style="fill:#233747">io-pkt-v4-hc</text>
-        <text id="text-60" x="2370.0" y="1343.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="616" style="fill:#576c7b">Сокеты и протоколы сети</text>
+        <text id="text-59" x="2370.0" y="1327.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="614" class="code" style="fill:#233747">io-pkt-v4-hc</text>
       </g>
       <g id="n-ethernet-driver" data-kind="component" data-layer="L3" data-ownership="neutrino" data-parent="n-network-stack" data-source="">
         <title>devnp-zynq7000</title>
@@ -372,13 +364,13 @@ src/apps/neutrino/i2c/bvstk_i2c_resmgr.c</title>
           <title>fs-dos</title>
           <rect x="2072" y="2994" width="596" height="80" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
           <text id="text-173" x="2370.0" y="3028.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">fs-dos</text>
-          <text id="text-174" x="2370.0" y="3057.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Файловая система FAT</text>
+          <text id="text-174" x="2370.0" y="3057.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">FAT</text>
         </g>
         <g id="n-loopback" data-kind="component" data-layer="L3" data-ownership="neutrino" data-parent="n-native-files" data-source="">
           <title>devb-loopback</title>
           <rect x="2072" y="3130" width="596" height="68" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
           <text id="text-175" x="2370.0" y="3158.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">devb-loopback</text>
-          <text id="text-176" x="2370.0" y="3187.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Блочный доступ через псевдофайл</text>
+          <text id="text-176" x="2370.0" y="3187.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Блочный доступ</text>
         </g>
       </g>
       <g id="n-media-managers" data-kind="functional-group" data-layer="L3" data-ownership="neutrino" data-parent="n-system-services" data-source="">
@@ -462,15 +454,14 @@ src/protocols/dcp2/bvstk_dcp2_codec.h
 src/protocols/dcp2/bvstk_dcp2_codec.c</title>
           <rect x="1052" y="774" width="696" height="72" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
           <text id="text-41" x="1400.0" y="804.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_dcp2_codec</text>
-          <text id="text-42" x="1400.0" y="833.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">Разбор кадра и кодирование ответа</text>
+          <text id="text-42" x="1400.0" y="833.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">Кодек сообщений</text>
         </g>
         <g id="dcp2-dispatch" data-kind="component" data-layer="L3" data-ownership="common" data-parent="dcp2-control" data-source="src/protocols/dcp2/bvstk_dcp2_control.h;src/protocols/dcp2/bvstk_dcp2_control.c">
           <title>bvstk_dcp2_control
 src/protocols/dcp2/bvstk_dcp2_control.h
 src/protocols/dcp2/bvstk_dcp2_control.c</title>
           <rect x="1052" y="902" width="696" height="70" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-43" x="1400.0" y="931.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_dcp2_control</text>
-          <text id="text-44" x="1400.0" y="960.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">Вызов API управления</text>
+          <text id="text-43" x="1400.0" y="944.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_dcp2_control</text>
         </g>
       </g>
     </g>
@@ -485,8 +476,7 @@ src/protocols/dcp2/bvstk_dcp2_control.c</title>
 src/services/control/bvstk_control_api.c
 src/services/control/bvstk_control_api.h</title>
         <rect x="1028" y="1242" width="660" height="76" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-        <text id="text-65" x="1358.0" y="1274.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="630" class="code" style="fill:#233747">bvstk_control_api</text>
-        <text id="text-66" x="1358.0" y="1303.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="632" style="fill:#576c7b">Команды PL, I2C, MDIO и SPI</text>
+        <text id="text-65" x="1358.0" y="1287.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="630" class="code" style="fill:#233747">bvstk_control_api</text>
       </g>
       <g id="subsystem-operations" data-kind="functional-group" data-layer="L3" data-ownership="common" data-parent="subsystem-services" data-source="">
         <title>Обработка запросов к устройствам</title>
@@ -497,18 +487,16 @@ src/services/control/bvstk_control_api.h</title>
 src/services/i2c/bvstk_i2c_slave_service.c
 src/services/i2c/bvstk_i2c_slave_service.h</title>
           <rect x="1052" y="1436" width="300" height="102" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-68" x="1202.0" y="1467.5" font-size="19.5" font-weight="700" text-anchor="middle" data-max-width="270" class="code" style="fill:#233747">bvstk_i2c_slave_service</text>
-          <text id="text-69" x="1202.0" y="1496.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="272" style="fill:#576c7b">Приём кадра</text>
-          <text id="text-70" x="1202.0" y="1523.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="272" style="fill:#576c7b">Подготовка ответа</text>
+          <text id="text-68" x="1202.0" y="1481.33" font-size="19.5" font-weight="700" text-anchor="middle" data-max-width="270" class="code" style="fill:#233747">bvstk_i2c_slave_service</text>
+          <text id="text-70" x="1202.0" y="1506.55" font-size="18" font-weight="400" text-anchor="middle" data-max-width="272" style="fill:#576c7b">Подготовка ответа</text>
         </g>
         <g id="service-bvstk_i2c_master_service" data-kind="component" data-layer="L3" data-ownership="common" data-parent="subsystem-operations" data-source="src/services/i2c/bvstk_i2c_master_service.h;src/services/i2c/bvstk_i2c_master_service.c">
           <title>bvstk_i2c_master_service
 src/services/i2c/bvstk_i2c_master_service.h
 src/services/i2c/bvstk_i2c_master_service.c</title>
           <rect x="1052" y="1644" width="300" height="126" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-71" x="1202.0" y="1687.5" font-size="18.68" font-weight="700" text-anchor="middle" data-max-width="270" class="code" style="fill:#233747">bvstk_i2c_master_service</text>
-          <text id="text-72" x="1202.0" y="1716.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="272" style="fill:#576c7b">Чтение и запись</text>
-          <text id="text-73" x="1202.0" y="1743.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="272" style="fill:#576c7b">устройства</text>
+          <text id="text-71" x="1202.0" y="1701.04" font-size="18.68" font-weight="700" text-anchor="middle" data-max-width="270" class="code" style="fill:#233747">bvstk_i2c_master_service</text>
+          <text id="text-72" x="1202.0" y="1726.14" font-size="18" font-weight="400" text-anchor="middle" data-max-width="272" style="fill:#576c7b">Обмен с устройством</text>
         </g>
         <g id="subsystem-state" data-kind="functional-group" data-layer="L3" data-ownership="common" data-parent="subsystem-operations" data-source="">
           <title>Данные и правила</title>
@@ -519,24 +507,21 @@ src/services/i2c/bvstk_i2c_master_service.c</title>
 src/services/i2c/bvstk_i2c_devices.h
 src/services/i2c/bvstk_i2c_devices.c</title>
             <rect x="1444" y="1498" width="196" height="76" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-            <text id="text-75" x="1542.0" y="1530.0" font-size="16.22" font-weight="700" text-anchor="middle" data-max-width="166" class="code" style="fill:#233747">bvstk_i2c_devices</text>
-            <text id="text-76" x="1542.0" y="1559.0" font-size="15.51" font-weight="400" text-anchor="middle" data-max-width="168" style="fill:#576c7b">Описание устройств</text>
+            <text id="text-75" x="1542.0" y="1541.677" font-size="16.22" font-weight="700" text-anchor="middle" data-max-width="166" class="code" style="fill:#233747">bvstk_i2c_devices</text>
           </g>
           <g id="state-bvstk_i2c_cache" data-kind="component" data-layer="L3" data-ownership="common" data-parent="subsystem-state" data-source="src/services/i2c/bvstk_i2c_cache.c;src/services/i2c/bvstk_i2c_cache.h">
             <title>bvstk_i2c_cache
 src/services/i2c/bvstk_i2c_cache.c
 src/services/i2c/bvstk_i2c_cache.h</title>
             <rect x="1444" y="1596" width="196" height="76" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-            <text id="text-77" x="1542.0" y="1628.0" font-size="18.38" font-weight="700" text-anchor="middle" data-max-width="166" class="code" style="fill:#233747">bvstk_i2c_cache</text>
-            <text id="text-78" x="1542.0" y="1657.0" font-size="15.66" font-weight="400" text-anchor="middle" data-max-width="168" style="fill:#576c7b">Значения регистров</text>
+            <text id="text-77" x="1542.0" y="1640.433" font-size="18.38" font-weight="700" text-anchor="middle" data-max-width="166" class="code" style="fill:#233747">bvstk_i2c_cache</text>
           </g>
           <g id="state-bvstk_i2c_policy" data-kind="component" data-layer="L3" data-ownership="common" data-parent="subsystem-state" data-source="src/services/i2c/bvstk_i2c_policy.c;src/services/i2c/bvstk_i2c_policy.h">
             <title>bvstk_i2c_policy
 src/services/i2c/bvstk_i2c_policy.c
 src/services/i2c/bvstk_i2c_policy.h</title>
             <rect x="1444" y="1694" width="196" height="76" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-            <text id="text-79" x="1542.0" y="1726.0" font-size="17.23" font-weight="700" text-anchor="middle" data-max-width="166" class="code" style="fill:#233747">bvstk_i2c_policy</text>
-            <text id="text-80" x="1542.0" y="1755.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="168" style="fill:#576c7b">Правила записи</text>
+            <text id="text-79" x="1542.0" y="1738.0305" font-size="17.23" font-weight="700" text-anchor="middle" data-max-width="166" class="code" style="fill:#233747">bvstk_i2c_policy</text>
           </g>
         </g>
       </g>
@@ -549,8 +534,7 @@ src/services/i2c/bvstk_i2c_policy.h</title>
 src/services/mdio/bvstk_mdio_service.c
 src/services/mdio/bvstk_mdio_service.h</title>
           <rect x="1052" y="1944" width="612" height="80" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-83" x="1358.0" y="1978.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="582" class="code" style="fill:#233747">bvstk_mdio_service</text>
-          <text id="text-84" x="1358.0" y="2007.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="584" style="fill:#576c7b">Модель устройств, кэш и правила записи</text>
+          <text id="text-83" x="1358.0" y="1991.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="582" class="code" style="fill:#233747">bvstk_mdio_service</text>
         </g>
       </g>
       <g id="service-bvstk_sd_service" data-kind="component" data-layer="L3" data-ownership="common" data-parent="subsystem-services" data-source="src/services/sd/bvstk_sd_service.c;src/services/sd/bvstk_sd_service.h" data-label="bvstk_sd_service" data-entity="architecture_bvstk_l3.svg#service-bvstk_sd_service" data-entity-ownership="common" data-representation="definition">
@@ -559,10 +543,9 @@ src/services/sd/bvstk_sd_service.c
 src/services/sd/bvstk_sd_service.h</title>
         <rect x="1028" y="2108" width="660" height="104" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
         <a xlink:href="architecture_bvstk_l1.svg#sd-service" data-ref-node="service-bvstk_sd_service" data-navigation="return" aria-label="Вернуться к блоку «bvstk_sd_service» на соседней схеме">
-          <text id="text-85" x="1358.0" y="2140.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="630" class="code" style="fill:#233747">bvstk_sd_service</text>
+          <text id="text-85" x="1358.0" y="2154.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="630" class="code" style="fill:#233747">bvstk_sd_service</text>
         </a>
-        <text id="text-86" x="1358.0" y="2169.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="632" style="fill:#576c7b">Инициализация карты</text>
-        <text id="text-87" x="1358.0" y="2196.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="632" style="fill:#576c7b">Чтение и запись блоков</text>
+        <text id="text-87" x="1358.0" y="2179.8" font-size="18" font-weight="400" text-anchor="middle" data-max-width="632" style="fill:#576c7b">Операции SD</text>
       </g>
     </g>
     <g id="event-models" data-kind="functional-group" data-layer="L3" data-ownership="common" data-source="">
@@ -610,32 +593,28 @@ src/services/cache/bvstk_cache.h</title>
 src/drivers/pl/i2c/bvstk_i2c_master.h
 src/drivers/pl/i2c/bvstk_i2c_master.c</title>
           <rect x="1052" y="2894" width="384" height="72" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-129" x="1244.0" y="2924.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" class="code" style="fill:#233747">bvstk_i2c_master</text>
-          <text id="text-130" x="1244.0" y="2953.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="356" style="fill:#576c7b">Запросы к устройствам</text>
+          <text id="text-129" x="1244.0" y="2937.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" class="code" style="fill:#233747">bvstk_i2c_master</text>
         </g>
         <g id="driver-bvstk_i2c_slave" data-kind="component" data-layer="L3" data-ownership="common" data-parent="register-transactions" data-source="src/drivers/pl/i2c/bvstk_i2c_slave.c;src/drivers/pl/i2c/bvstk_i2c_slave.h">
           <title>bvstk_i2c_slave
 src/drivers/pl/i2c/bvstk_i2c_slave.c
 src/drivers/pl/i2c/bvstk_i2c_slave.h</title>
           <rect x="1052" y="2994" width="384" height="72" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-131" x="1244.0" y="3024.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" class="code" style="fill:#233747">bvstk_i2c_slave</text>
-          <text id="text-132" x="1244.0" y="3053.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="356" style="fill:#576c7b">Приём кадров и выдача ответа</text>
+          <text id="text-131" x="1244.0" y="3037.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" class="code" style="fill:#233747">bvstk_i2c_slave</text>
         </g>
         <g id="driver-bvstk_mdio_core" data-kind="component" data-layer="L3" data-ownership="common" data-parent="register-transactions" data-source="src/drivers/pl/mdio/bvstk_mdio_core.h;src/drivers/pl/mdio/bvstk_mdio_core.c">
           <title>bvstk_mdio_core
 src/drivers/pl/mdio/bvstk_mdio_core.h
 src/drivers/pl/mdio/bvstk_mdio_core.c</title>
           <rect x="1052" y="3094" width="384" height="72" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-133" x="1244.0" y="3124.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" class="code" style="fill:#233747">bvstk_mdio_core</text>
-          <text id="text-134" x="1244.0" y="3153.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="356" style="fill:#576c7b">Доступ к регистрам</text>
+          <text id="text-133" x="1244.0" y="3137.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" class="code" style="fill:#233747">bvstk_mdio_core</text>
         </g>
         <g id="driver-bvstk_spi_core" data-kind="component" data-layer="L3" data-ownership="common" data-parent="register-transactions" data-source="src/drivers/pl/spi/bvstk_spi_core.h;src/drivers/pl/spi/bvstk_spi_core.c">
           <title>bvstk_spi_core
 src/drivers/pl/spi/bvstk_spi_core.h
 src/drivers/pl/spi/bvstk_spi_core.c</title>
           <rect x="1052" y="3194" width="384" height="72" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
-          <text id="text-135" x="1244.0" y="3224.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" class="code" style="fill:#233747">bvstk_spi_core</text>
-          <text id="text-136" x="1244.0" y="3253.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="356" style="fill:#576c7b">Передача слов</text>
+          <text id="text-135" x="1244.0" y="3237.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="354" class="code" style="fill:#233747">bvstk_spi_core</text>
         </g>
       </g>
       <g id="card-controllers" data-kind="functional-group" data-layer="L3" data-ownership="common" data-parent="device-drivers" data-source="">
@@ -681,7 +660,7 @@ src/drivers/pl/sd/bvstk_sd_controller.h</title>
         <a xlink:href="architecture_bvstk_l1.svg#system-interfaces" data-ref-node="platform-system" aria-label="Открыть блок «Системные интерфейсы» на схеме L1">
           <text id="text-149" x="1592.0" y="3519.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="330" style="fill:#233747">L1. Системные интерфейсы</text>
         </a>
-        <text id="text-150" x="1592.0" y="3548.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="332" style="fill:#576c7b">Время и ожидание</text>
+        <text id="text-150" x="1592.0" y="3548.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="332" style="fill:#576c7b">Время</text>
         <text id="text-151" x="1592.0" y="3575.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="332" style="fill:#576c7b">Блокировки и вывод</text>
       </g>
     </g>
@@ -697,7 +676,7 @@ src/services/sd/bvstk_sd_volume.h
 src/services/sd/bvstk_sd_volume.c</title>
         <rect x="1028" y="3742" width="744" height="78" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
         <text id="text-166" x="1400.0" y="3775.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="714" class="code" style="fill:#233747">bvstk_sd_volume</text>
-        <text id="text-167" x="1400.0" y="3804.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="716" style="fill:#576c7b">Поиск FAT-тома, перевод номера сектора в LBA</text>
+        <text id="text-167" x="1400.0" y="3804.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="716" style="fill:#576c7b">Адресация секторов</text>
       </g>
     </g>
   </g>

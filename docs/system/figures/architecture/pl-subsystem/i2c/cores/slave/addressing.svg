@@ -87,8 +87,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="pins" data-kind="component" data-layer="L0" data-label="SDA и SCL" data-ownership="common">
       <rect x="60" y="312.5" width="310" height="150" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <text x="80" y="336.5" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-      <text x="80" y="370.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SDA и SCL</text>
-      <text x="80" y="409.62" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Шина I²C</text>
+      <text x="80" y="404.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SDA и SCL</text>
     </g>
     <g id="engine" data-kind="functional-group" data-label="i2c_slave_engine" data-layer="L0" data-domain="pl" data-ownership="common">
       <rect x="450" y="190" width="1270" height="1090" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
@@ -99,14 +98,12 @@ g:target &gt; rect { stroke-width: 5; }
         <g id="debouncer" data-kind="component" data-layer="L0" data-domain="pl" data-label="debouncer" data-ownership="common" data-parent="inputs">
           <rect x="540" y="325" width="400" height="125" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="560" y="349.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="560" y="383.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">debouncer</text>
-          <text x="560" y="422.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Фильтрация</text>
+          <text x="560" y="404.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">debouncer</text>
         </g>
         <g id="sync" data-kind="component" data-layer="L0" data-domain="pl" data-label="sync" data-ownership="common" data-parent="inputs">
           <rect x="1210" y="325" width="410" height="125" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
           <text x="1230" y="349.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1230" y="383.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">sync</text>
-          <text x="1230" y="422.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Синхронизация с clk</text>
+          <text x="1230" y="404.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">sync</text>
         </g>
       </g>
       <g id="start" data-kind="component" data-layer="L0" data-domain="pl" data-label="IDLE → ADDR" data-ownership="common" data-parent="engine">
@@ -131,7 +128,7 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="970" y="835" width="470" height="140" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="990" y="859.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="990" y="893.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">OP_CODE</text>
-        <text x="990" y="932.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Направление и событие start</text>
+        <text x="990" y="932.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">start, rw</text>
       </g>
       <g id="write" data-kind="component" data-layer="L0" data-domain="pl" data-label="WRITE_ACK" data-ownership="common" data-parent="engine" data-target="write.svg">
         <rect x="550" y="1100" width="450" height="140" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -147,7 +144,7 @@ g:target &gt; rect { stroke-width: 5; }
           <text x="1190" y="1124.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="1190" y="1158.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">WAIT_PACKET</text>
         </a>
-        <text x="1190" y="1197.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SCL = 0 до первого байта</text>
+        <text x="1190" y="1197.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">SCL = 0</text>
       </g>
     </g>
     <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="regs" data-ownership="common">

@@ -52,16 +52,14 @@ src/apps/freertos</title>
 src/apps/freertos/main.c
 src/apps/freertos/main.h</title>
           <rect x="132" y="414" width="232" height="88" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-13" x="248.0" y="452.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="202" class="code" style="fill:#233747">main</text>
-          <text id="text-14" x="248.0" y="481.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="204" style="fill:#576c7b">Точка входа</text>
+          <text id="text-13" x="248.0" y="465.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="202" class="code" style="fill:#233747">main</text>
         </g>
         <g id="f-runtime" data-kind="component" data-layer="L4" data-ownership="freertos" data-parent="f-startup" data-source="src/apps/freertos/runtime/bvstk_runtime.c;src/apps/freertos/runtime/bvstk_runtime.h">
           <title>bvstk_runtime
 src/apps/freertos/runtime/bvstk_runtime.c
 src/apps/freertos/runtime/bvstk_runtime.h</title>
           <rect x="424" y="414" width="304" height="88" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-15" x="576.0" y="452.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="274" class="code" style="fill:#233747">bvstk_runtime</text>
-          <text id="text-16" x="576.0" y="481.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="276" style="fill:#576c7b">Экземпляры сервисов</text>
+          <text id="text-15" x="576.0" y="465.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="274" class="code" style="fill:#233747">bvstk_runtime</text>
         </g>
       </g>
       <g id="f-configuration" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-application-start" data-source="" data-label="Хранение настроек" data-entity="architecture_bvstk_l4.svg#f-configuration" data-entity-ownership="freertos" data-representation="definition">
@@ -75,8 +73,7 @@ src/apps/freertos/runtime/bvstk_runtime.h</title>
 src/apps/freertos/config/config_store.h
 src/apps/freertos/config/config_store.c</title>
           <rect x="132" y="648" width="308" height="124" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-18" x="286.0" y="704.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="278" class="code" style="fill:#233747">config_store</text>
-          <text id="text-19" x="286.0" y="733.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="280" style="fill:#576c7b">Загрузка и сохранение</text>
+          <text id="text-18" x="286.0" y="717.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="278" class="code" style="fill:#233747">config_store</text>
         </g>
         <g id="f-files" data-kind="component" data-layer="L3" data-ownership="freertos" data-parent="f-configuration" data-source="" data-label="Файловый стек" data-target="architecture_bvstk_l3.svg#f-system-services" data-entity="architecture_bvstk_l3.svg#f-system-services" data-entity-ownership="freertos" data-representation="reference">
           <title>L3. Файловый стек</title>
@@ -111,8 +108,7 @@ src/apps/freertos/config/config_store.c</title>
           <title>console_dispatch
 src/apps/freertos/console/console_dispatch.c</title>
           <rect x="132" y="1422.0" width="596" height="76" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-53" x="430.0" y="1454.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">console_dispatch</text>
-          <text id="text-54" x="430.0" y="1483.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="568" style="fill:#576c7b">Выбор обработчика команды</text>
+          <text id="text-53" x="430.0" y="1467.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="566" class="code" style="fill:#233747">console_dispatch</text>
         </g>
         <g id="f-command-handlers" data-kind="functional-group" data-layer="L4" data-ownership="freertos" data-parent="f-console" data-source="">
           <title>Обработчики команд</title>
@@ -285,16 +281,14 @@ src/apps/neutrino</title>
         <g id="n-main" data-kind="component" data-layer="L4" data-ownership="neutrino" data-parent="n-startup" data-source="">
           <title>bvstkd</title>
           <rect x="2072" y="414" width="232" height="88" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-25" x="2188.0" y="452.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="202" class="code" style="fill:#233747">bvstkd</text>
-          <text id="text-26" x="2188.0" y="481.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="204" style="fill:#576c7b">Точка входа</text>
+          <text id="text-25" x="2188.0" y="465.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="202" class="code" style="fill:#233747">bvstkd</text>
         </g>
         <g id="n-runtime" data-kind="component" data-layer="L4" data-ownership="neutrino" data-parent="n-startup" data-source="src/apps/neutrino/runtime/bvstk_i2c_runtime.c;src/apps/neutrino/runtime/bvstk_i2c_runtime.h">
           <title>bvstk_i2c_runtime
 src/apps/neutrino/runtime/bvstk_i2c_runtime.c
 src/apps/neutrino/runtime/bvstk_i2c_runtime.h</title>
           <rect x="2364" y="414" width="304" height="88" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-27" x="2516.0" y="452.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="274" class="code" style="fill:#233747">bvstk_i2c_runtime</text>
-          <text id="text-28" x="2516.0" y="481.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="276" style="fill:#576c7b">Экземпляры сервисов</text>
+          <text id="text-27" x="2516.0" y="465.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="274" class="code" style="fill:#233747">bvstk_i2c_runtime</text>
         </g>
       </g>
       <g id="n-configuration" data-kind="functional-group" data-layer="L4" data-ownership="neutrino" data-parent="n-application-start" data-source="" data-label="Хранение настроек" data-entity="architecture_bvstk_l4.svg#n-configuration" data-entity-ownership="neutrino" data-representation="definition">
@@ -308,8 +302,7 @@ src/apps/neutrino/runtime/bvstk_i2c_runtime.h</title>
 src/apps/neutrino/config/bvstk_i2c_config_store.c
 src/apps/neutrino/config/bvstk_i2c_config_store.h</title>
           <rect x="2072" y="648" width="308" height="124" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-30" x="2226.0" y="704.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="278" class="code" style="fill:#233747">bvstk_i2c_config_store</text>
-          <text id="text-31" x="2226.0" y="733.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="280" style="fill:#576c7b">Загрузка и сохранение</text>
+          <text id="text-30" x="2226.0" y="717.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="278" class="code" style="fill:#233747">bvstk_i2c_config_store</text>
         </g>
         <g id="n-files" data-kind="component" data-layer="L3" data-ownership="neutrino" data-parent="n-configuration" data-source="" data-label="Файловый стек" data-target="architecture_bvstk_l3.svg#n-system-services" data-entity="architecture_bvstk_l3.svg#n-system-services" data-entity-ownership="neutrino" data-representation="reference">
           <title>L3. Файловый стек</title>
@@ -361,9 +354,8 @@ src/apps/neutrino/config/bvstk_i2c_config_store.h</title>
 src/apps/neutrino/i2c/bvstk_i2c_client.h
 src/apps/neutrino/i2c/bvstk_i2c_client.c</title>
         <rect x="2072" y="1790.0" width="282" height="106" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-        <text id="text-102" x="2213.0" y="1823.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="252" class="code" style="fill:#233747">bvstk_i2c_client</text>
-        <text id="text-103" x="2213.0" y="1852.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="254" style="fill:#576c7b">Открытие устройства</text>
-        <text id="text-104" x="2213.0" y="1879.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="254" style="fill:#576c7b">Запрос devctl</text>
+        <text id="text-102" x="2213.0" y="1837.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="252" class="code" style="fill:#233747">bvstk_i2c_client</text>
+        <text id="text-104" x="2213.0" y="1862.8" font-size="18" font-weight="400" text-anchor="middle" data-max-width="254" style="fill:#576c7b">devctl</text>
       </g>
       <g id="n-direct-mmio" data-kind="component" data-layer="L1" data-ownership="neutrino" data-parent="n-application-operations" data-source="" data-label="Доступ к регистрам" data-target="architecture_bvstk_l1.svg#platform-access" data-entity="architecture_bvstk_l1.svg#platform-access" data-entity-ownership="common" data-representation="reference">
         <title>L1. Доступ к регистрам</title>
@@ -380,7 +372,7 @@ src/apps/neutrino/i2c/bvstk_i2c_client.c</title>
       <a xlink:href="architecture_bvstk_l3.svg#n-kernel" data-ref-node="n-kernel" aria-label="Открыть блок «IPC» на схеме L3">
         <text id="text-108" x="2370.0" y="2135.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L2. IPC</text>
       </a>
-      <text id="text-109" x="2370.0" y="2164.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">procnto: передача запроса менеджеру ресурсов</text>
+      <text id="text-109" x="2370.0" y="2164.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">procnto</text>
     </g>
     <g id="n-request-handlers" data-kind="component" data-layer="L3" data-ownership="neutrino" data-source="" data-label="Менеджер ресурсов" data-target="architecture_bvstk_l3.svg#n-resource-manager" data-entity="architecture_bvstk_l3.svg#n-resource-manager" data-entity-ownership="neutrino" data-representation="reference">
       <title>L3. Менеджер ресурсов</title>
@@ -389,7 +381,7 @@ src/apps/neutrino/i2c/bvstk_i2c_client.c</title>
         <text id="text-111" x="2370.0" y="2353.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="670" style="fill:#233747">L3. Менеджер ресурсов</text>
       </a>
       <text id="text-112" x="2370.0" y="2382.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">bvstk_i2c_resmgr</text>
-      <text id="text-113" x="2370.0" y="2409.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">В процессе bvstkd</text>
+      <text id="text-113" x="2370.0" y="2409.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="672" style="fill:#576c7b">bvstkd</text>
     </g>
   </g>
   <g id="common-region" data-kind="ownership-region" data-ownership="common">
@@ -398,10 +390,8 @@ src/apps/neutrino/i2c/bvstk_i2c_client.c</title>
       <title>L3. Сервисы подсистем</title>
       <rect x="1000" y="330" width="800" height="168" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l3.svg#subsystem-services" data-ref-node="created-services" aria-label="Открыть блок «Сервисы подсистем» на схеме L3">
-        <text id="text-35" x="1400.0" y="394.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Сервисы подсистем</text>
+        <text id="text-35" x="1400.0" y="421.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Сервисы подсистем</text>
       </a>
-      <text id="text-36" x="1400.0" y="423.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Runtime создаёт и связывает экземпляры.</text>
-      <text id="text-37" x="1400.0" y="450.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Состав раскрыт на схеме сервисов.</text>
     </g>
     <g id="configuration" data-kind="functional-group" data-layer="L4" data-ownership="common" data-source="">
       <title>Общие настройки</title>
@@ -446,8 +436,7 @@ src/shared/config/bvstk_mdio_config_codec.h</title>
 src/shared/cli/bvstk_line_editor.c
 src/shared/cli/bvstk_line_editor.h</title>
           <rect x="1052" y="1422.0" width="696" height="82" rx="7" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.4" />
-          <text id="text-85" x="1400.0" y="1457.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_line_editor</text>
-          <text id="text-86" x="1400.0" y="1486.0" font-size="18" font-weight="400" text-anchor="middle" data-max-width="668" style="fill:#576c7b">Редактирование строки</text>
+          <text id="text-85" x="1400.0" y="1470.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="666" class="code" style="fill:#233747">bvstk_line_editor</text>
         </g>
         <g id="completion" data-kind="functional-group" data-layer="L4" data-ownership="common" data-parent="shared-cli" data-source="">
           <title>Дополнение команд</title>
@@ -493,10 +482,8 @@ src/shared/protocols/http/bvstk_http_input.c</title>
       <title>L3. Сервисы подсистем</title>
       <rect x="1000" y="2300.0" width="800" height="146" rx="7" fill="#d9f0ea" stroke="#287f73" stroke-width="1.4" />
       <a xlink:href="architecture_bvstk_l3.svg#subsystem-services" data-ref-node="subsystem-services" aria-label="Открыть блок «Сервисы подсистем» на схеме L3">
-        <text id="text-115" x="1400.0" y="2353.5" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Сервисы подсистем</text>
+        <text id="text-115" x="1400.0" y="2380.0" font-size="20" font-weight="700" text-anchor="middle" data-max-width="770" style="fill:#233747">L3. Сервисы подсистем</text>
       </a>
-      <text id="text-116" x="1400.0" y="2382.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Операции, состояние и правила доступа.</text>
-      <text id="text-117" x="1400.0" y="2409.5" font-size="18" font-weight="400" text-anchor="middle" data-max-width="772" style="fill:#576c7b">Конкретные сервисы раскрыты на L3.</text>
     </g>
   </g>
   <line x1="60" y1="3124" x2="2740" y2="3124" stroke="#ccd5dc" />

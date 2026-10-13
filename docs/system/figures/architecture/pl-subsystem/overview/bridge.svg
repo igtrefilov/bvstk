@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 240 2200 1134" role="img" aria-labelledby="title desc" height="1134">
   <title id="title">BVSTK: мост между устройствами</title>
-  <desc id="desc">Два участка шины соединены через BVSTK. Политика решает, передавать ли транзакцию дальше.</desc>
+  <desc id="desc">Два участка шины соединены через BVSTK. Политика записи решает, выполнять ли изменение устройства.</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -96,22 +96,19 @@ g:target &gt; rect { stroke-width: 5; }
       <a data-navigation="detail" xlink:href="subsystems.svg">
         <text x="446" y="317.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">BVSTK</text>
       </a>
-      <g id="policy" data-kind="component" data-layer="L3" data-label="Политика в PS" data-ownership="common" data-parent="bridge" data-target="subsystems.svg#policy">
+      <g id="policy" data-kind="component" data-layer="L3" data-label="Политика записи в PS" data-ownership="common" data-parent="bridge" data-target="subsystems.svg#policy">
         <rect x="945" y="385" width="755" height="205" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="subsystems.svg#policy">
           <text x="965" y="409.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="965" y="443.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Политика в PS</text>
+          <text x="965" y="504.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Политика записи в PS</text>
         </a>
-        <text x="965" y="482.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Проверка транзакции T</text>
       </g>
       <g id="pl_slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_slave" data-ownership="common" data-parent="bridge" data-target="subsystems.svg#pl_slave">
         <rect x="500" y="730" width="290" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="subsystems.svg#pl_slave">
           <text x="520" y="754.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="520" y="788.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_slave</text>
+          <text x="520" y="839.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_slave</text>
         </a>
-        <text x="520" y="827.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Приём запроса</text>
-        <text x="520" y="853.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выдача ответа</text>
       </g>
       <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM" data-ownership="common" data-parent="bridge" data-target="memory.svg#exchange-memory">
         <rect x="935" y="730" width="330" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -119,35 +116,31 @@ g:target &gt; rect { stroke-width: 5; }
           <text x="955" y="754.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="955" y="788.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM</text>
         </a>
-        <text x="955" y="827.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Промежуточная память</text>
-        <text x="955" y="853.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Запросы и ответы</text>
+        <text x="955" y="827.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Запросы и ответы</text>
       </g>
       <g id="pl_master" data-kind="component" data-layer="L0" data-domain="pl" data-label="pl_master" data-ownership="common" data-parent="bridge" data-target="subsystems.svg#pl_master">
         <rect x="1430" y="730" width="270" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <a data-navigation="detail" xlink:href="subsystems.svg#pl_master">
           <text x="1450" y="754.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-          <text x="1450" y="788.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_master</text>
+          <text x="1450" y="839.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">pl_master</text>
         </a>
-        <text x="1450" y="827.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Обмен с устройством</text>
       </g>
     </g>
     <g id="host" data-kind="component" data-layer="L0" data-label="Внешний&#10;ведущий" data-ownership="common" data-target="subsystems.svg#host">
       <rect x="60" y="730" width="300" height="185" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="subsystems.svg#host">
         <text x="80" y="754.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="80" y="788.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
-        <text x="80" y="821.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
+        <text x="80" y="822.94" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний</text>
+        <text x="80" y="856.0600000000001" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ведущий</text>
       </a>
-      <text x="80" y="860.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Начинает транзакцию</text>
     </g>
     <g id="device" data-kind="component" data-layer="L0" data-label="Внешнее ведомое&#10;устройство" data-ownership="common" data-target="subsystems.svg#device">
       <rect x="1840" y="730" width="300" height="185" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="subsystems.svg#device">
         <text x="1860" y="754.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="1860" y="788.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее ведомое</text>
-        <text x="1860" y="821.12" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">устройство</text>
+        <text x="1860" y="822.94" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее ведомое</text>
+        <text x="1860" y="856.0600000000001" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">устройство</text>
       </a>
-      <text x="1860" y="860.24" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Выполняет операцию</text>
     </g>
   </g>
   <g id="annotations">
@@ -166,8 +159,8 @@ g:target &gt; rect { stroke-width: 5; }
       <polygon points="1734,1039 1805,1039 1826,1068 1805,1097 1734,1097" fill="white" stroke="#3f75ad" stroke-width="2.5" stroke-linejoin="round" />
       <text x="1776" y="1077.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#3f75ad">T</text>
     </g>
-    <text x="420" y="1020.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Входящая транзакция</text>
-    <text x="1780" y="1020.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Транзакция пропущена</text>
+    <text x="420" y="1020.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Запрос записи</text>
+    <text x="1780" y="1020.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Разрешённая запись</text>
     <text x="727" y="432.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запрещено</text>
     <g id="transaction-denied" data-kind="transaction" data-transaction="T" data-state="blocked">
       <title>Транзакция T остановлена</title>
@@ -177,7 +170,6 @@ g:target &gt; rect { stroke-width: 5; }
       <path d="M698,515.5 L756,459.5" fill="none" stroke="#233747" stroke-width="4" />
     </g>
     <path d="M532,463.5 V511.5" stroke="#233747" stroke-width="6" stroke-linecap="round" />
-    <text x="727" y="560.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#233747">Транзакция остановлена</text>
     <path d="M60,1228.0 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
     <text x="142" y="1234.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
     <path d="M366,1228.0 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
@@ -188,7 +180,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="219" y="1284.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
     <rect x="375" y="1265.0" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
     <text x="419" y="1284.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="1331.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">T — транзакция. Серая линия — шина.</text>
+    <text x="60" y="1331.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">T — запрос записи. Серая линия — шина.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -228,7 +220,7 @@ g:target &gt; rect { stroke-width: 5; }
     }
   ],
   "article_notes": [
-    "T — условная транзакция: адрес, операция и данные. Шина показана серой линией, движение T — синей стрелкой."
+    "T — запрос записи: адрес и данные. Шина показана серой линией, движение T — синей стрелкой."
   ]
 }</metadata>
 </svg>

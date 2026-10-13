@@ -136,7 +136,7 @@ g:target &gt; rect { stroke-width: 5; }
         <rect x="1180" y="490" width="440" height="195" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="1200" y="514.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="1200" y="548.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_lite_slave_native</text>
-        <text x="1200" y="587.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">s_axi: регистры</text>
+        <text x="1200" y="587.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">s_axi</text>
       </g>
       <g id="engine" data-kind="functional-group" data-label="i2c_slave_engine" data-layer="L0" data-domain="pl" data-ownership="common">
         <rect x="475" y="920" width="570" height="650" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
@@ -158,8 +158,7 @@ g:target &gt; rect { stroke-width: 5; }
             <text x="530" y="1304.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
             <text x="530" y="1338.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Автомат I²C</text>
           </a>
-          <text x="530" y="1377.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Адрес, данные и ACK</text>
-          <text x="530" y="1403.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">WAIT_PACKET: удержание SCL</text>
+          <text x="530" y="1377.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">WAIT_PACKET: SCL = 0</text>
         </g>
       </g>
       <g id="data-ctrl" data-kind="functional-group" data-label="data_ctrl" data-layer="L0" data-domain="pl" data-ownership="common">
@@ -173,8 +172,7 @@ g:target &gt; rect { stroke-width: 5; }
             <text x="1240" y="1034.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
             <text x="1240" y="1068.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Событие rx_pkt</text>
           </a>
-          <text x="1240" y="1107.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">packet_view_t</text>
-          <text x="1240" y="1133.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">rx_full: событие готово</text>
+          <text x="1240" y="1107.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">packet_view_t, rx_full</text>
         </g>
         <g id="word" data-kind="component" data-layer="L0" data-domain="pl" data-label="Буфер data4bytes" data-ownership="common" data-parent="data-ctrl" data-target="memory-format.svg#packing">
           <rect x="1220" y="1310" width="400" height="185" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -183,14 +181,13 @@ g:target &gt; rect { stroke-width: 5; }
             <text x="1240" y="1368.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Буфер data4bytes</text>
           </a>
           <text x="1240" y="1407.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Упаковка байтов</text>
-          <text x="1240" y="1433.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Обмен с BRAM</text>
         </g>
       </g>
       <g id="axi-m" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_lite_master_native" data-ownership="common" data-parent="core">
         <rect x="1180" y="1715" width="480" height="160" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
         <text x="1200" y="1739.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
         <text x="1200" y="1773.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_lite_master_native</text>
-        <text x="1200" y="1812.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">m_axi: обмен с BRAM</text>
+        <text x="1200" y="1812.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">m_axi</text>
       </g>
     </g>
     <g id="platform" data-kind="component" data-layer="L1" data-label="Доступ PS" data-ownership="common" data-target="../../../../architecture_bvstk_l1.svg#platform-access">
@@ -201,22 +198,19 @@ g:target &gt; rect { stroke-width: 5; }
       </a>
       <text x="1780" y="587.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">MMIO и доставка IRQ</text>
     </g>
-    <g id="ps" data-kind="component" data-layer="L3" data-label="Сервис и драйвер PS" data-ownership="common" data-target="../../../ps-interaction/i2c-irq.svg#service">
+    <g id="ps" data-kind="component" data-layer="L3" data-label="Сервис и драйвер PS" data-ownership="common" data-target="../../services/read-state.svg#service">
       <rect x="1760" y="850" width="340" height="215" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../../../ps-interaction/i2c-irq.svg#service">
+      <a data-navigation="detail" xlink:href="../../services/read-state.svg#service">
         <text x="1780" y="874.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="1780" y="908.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сервис и драйвер PS</text>
+        <text x="1780" y="974.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сервис и драйвер PS</text>
       </a>
-      <text x="1780" y="947.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Указатель регистра</text>
-      <text x="1780" y="973.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подготовка ответа</text>
     </g>
     <g id="host" data-kind="component" data-layer="L0" data-label="Внешний ведущий" data-ownership="common" data-target="../../protocol/interface.svg#controller">
       <rect x="60" y="1010" width="300" height="155" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../protocol/interface.svg#controller">
         <text x="80" y="1034.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-        <text x="80" y="1068.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий</text>
+        <text x="80" y="1104.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий</text>
       </a>
-      <text x="80" y="1107.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Шина I²C</text>
     </g>
     <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM I²C" data-ownership="common" data-target="buffers.svg#bram">
       <rect x="1180" y="2110" width="480" height="195" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
@@ -290,7 +284,7 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "ps",
-      "target": "../../../ps-interaction/i2c-irq.svg#service"
+      "target": "../../services/read-state.svg#service"
     },
     {
       "node": "engine",

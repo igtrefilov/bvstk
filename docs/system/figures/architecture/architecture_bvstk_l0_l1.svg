@@ -198,8 +198,7 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     </g>
     <g id="f-irq-attach-group">
       <rect id="f-irq-attach" class="node l1" x="54" y="2274.0" width="400" height="90" rx="8" data-layer="L1" />
-      <text id="f-irq-attach-text-0" class="body" x="254" y="2353.0" text-anchor="middle">ISR + PL Slave</text>
-      <text id="f-irq-attach-title" class="node-title" x="254" y="2304.0" text-anchor="middle">Подключение IRQ</text>
+      <text id="f-irq-attach-text-0" class="body" x="254" y="2326.0" text-anchor="middle">ISR + PL Slave</text>
     </g>
     <g id="f-irq-api-group" data-l1-ref="f-bsp--cpu" data-layer="L1" data-ownership="freertos" data-label="Порт Cortex-A9" data-target="architecture_bvstk_l1.svg#f-bsp--cpu" data-entity="architecture_bvstk_l1.svg#f-bsp--cpu" data-entity-ownership="freertos" data-representation="reference">
       <rect id="f-irq-api" class="node l1" x="54" y="2414.0" width="400" height="90" rx="8" data-layer="L1" />
@@ -248,7 +247,7 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     <g id="n-mmio-node-group" data-l1-ref="n-port--registers" data-layer="L1" data-ownership="neutrino" data-label="Доступ к отображённой памяти" data-target="architecture_bvstk_l1.svg#n-port--registers" data-entity="architecture_bvstk_l1.svg#n-port--registers" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-mmio" class="node l1" x="1844" y="1104.0" width="400" height="88" rx="8" data-layer="L1" />
       <a xlink:href="architecture_bvstk_l1.svg#n-port--registers" data-ref-node="n-mmio-node-group" aria-label="Открыть блок «Доступ к отображённой памяти» на схеме L1">
-        <text id="n-mmio-title" class="node-title" x="2044" y="1144.5" text-anchor="middle" style="font-size:19px">Доступ к отображённой памяти</text>
+        <text id="n-mmio-title" class="node-title" x="2044" y="1144.5" text-anchor="middle" style="font-size:19px">MMIO</text>
       </a>
       <text id="n-direct-memory-body" x="2044" y="1170.5" class="body" text-anchor="middle">volatile и барьеры</text>
     </g>
@@ -323,8 +322,7 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     </g>
     <g id="n-irq-attach-group">
       <rect id="n-irq-attach" class="node l1" x="1844" y="2274.0" width="400" height="90" rx="8" data-layer="L1" />
-      <text id="n-irq-attach-text-0" class="body" x="2044" y="2353.0" text-anchor="middle">PL Slave event</text>
-      <text id="n-irq-attach-title" class="node-title" x="2044" y="2304.0" text-anchor="middle">Подключение IRQ</text>
+      <text id="n-irq-attach-text-0" class="body" x="2044" y="2326.0" text-anchor="middle">PL Slave event</text>
     </g>
     <g id="n-irq-api-group" data-l1-ref="n-interrupt-processing--attach" data-layer="L1" data-ownership="neutrino" data-label="Подключение события IRQ" data-target="architecture_bvstk_l1.svg#n-interrupt-processing--attach" data-entity="architecture_bvstk_l1.svg#n-interrupt-processing--attach" data-entity-ownership="neutrino" data-representation="reference">
       <rect id="n-irq-api" class="node l1" x="1844" y="2414.0" width="400" height="90" rx="8" data-layer="L1" />
@@ -457,8 +455,7 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     </g>
     <g id="h-ddr-descriptors-group">
       <rect id="h-ddr-descriptors" class="node l0" x="1175" y="1834.0" width="465" height="85" rx="8" data-layer="L0" />
-      <text id="h-ddr-descriptors-title" class="node-title" x="1407.5" y="1873.0" text-anchor="middle">Дескрипторы</text>
-      <text id="h-ddr-descriptors-text-0" class="body" x="1407.5" y="1899.0" text-anchor="middle">Адреса + состояние</text>
+      <text id="h-ddr-descriptors-title" class="node-title" x="1407.5" y="1883.5" text-anchor="middle">Дескрипторы</text>
     </g>
     <path id="h-sd-ddr" class="link data" d="M 900 1716 V 1759 H 1080 V 1834" data-from="h-sd-adma" data-to="h-ddr-buffers" />
     <text id="h-sd-ddr-label-0" class="axi-label" x="985" y="1781.0" text-anchor="middle">ADMA</text>
@@ -645,17 +642,15 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
       <g id="common-pl-access" data-kind="component" data-layer="L1" data-ownership="common" data-label="bvstk_pl_service" data-target="architecture_bvstk_l1.svg#platform-access--pl-access" data-entity="architecture_bvstk_l1.svg#platform-access--pl-access" data-entity-ownership="common" data-representation="reference">
         <rect x="870" y="444" width="560" height="116" rx="8" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
         <a xlink:href="architecture_bvstk_l1.svg#platform-access--pl-access" data-ref-node="common-pl-access" aria-label="Открыть блок «bvstk_pl_service» на схеме L1">
-          <text id="common-pl-access-title" x="1150.0" y="475" class="node-title" text-anchor="middle">bvstk_pl_service</text>
+          <text id="common-pl-access-title" x="1150.0" y="509.0" class="node-title" text-anchor="middle">bvstk_pl_service</text>
         </a>
-        <text id="common-pl-access-body" x="1150.0" y="505" class="body" text-anchor="middle">Поиск региона и доступ по смещению</text>
       </g>
     </g>
     <g id="n-platform-reference" data-kind="component" data-layer="L4" data-ownership="neutrino" data-label="bvstkctl" data-target="architecture_bvstk_l4.svg#n-bvstkctl" data-entity="architecture_bvstk_l4.svg#n-bvstkctl" data-entity-ownership="neutrino" data-representation="reference">
       <rect x="1828" y="444" width="434" height="116" rx="8" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
       <a xlink:href="architecture_bvstk_l4.svg#n-bvstkctl" data-ref-node="n-platform-reference" aria-label="Открыть блок «bvstkctl» на схеме L4">
-        <text id="n-platform-reference-title" x="2045.0" y="475" class="node-title" text-anchor="middle">L4. bvstkctl</text>
+        <text id="n-platform-reference-title" x="2045.0" y="509.0" class="node-title" text-anchor="middle">L4. bvstkctl</text>
       </a>
-      <text id="n-platform-reference-body" x="2045.0" y="505" class="body" text-anchor="middle">Операции с регионами PL</text>
     </g>
     <path id="catalog-supplies-region" d="M 1150 394 V 444" fill="none" stroke="#3f75ad" stroke-width="3.5" stroke-linejoin="round" data-kind="interaction" data-from="common-region-catalog" data-to="common-pl-access" data-interaction="data" marker-start="url(#axi-source)" marker-end="url(#axi-arrow)" />
     <path id="n-uses-common-access" d="M 1828 502 H 1430" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="n-platform-reference" data-to="common-pl-access" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
@@ -672,9 +667,8 @@ text { font-family:"Noto Sans","DejaVu Sans",sans-serif; fill:#172a3a; stroke:no
     <g id="subsystem-services" data-kind="component" data-layer="L3" data-ownership="common" data-label="Сервисы подсистем" data-target="architecture_bvstk_l3.svg#subsystem-services" data-entity="architecture_bvstk_l3.svg#subsystem-services" data-entity-ownership="common" data-representation="reference">
       <rect x="760" y="3400" width="780" height="112" rx="8" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
       <a xlink:href="architecture_bvstk_l3.svg#subsystem-services" data-ref-node="subsystem-services" aria-label="Открыть блок «Сервисы подсистем» на схеме L3">
-        <text id="subsystem-services-title" x="1150.0" y="3431" class="node-title" text-anchor="middle">L3. Сервисы подсистем</text>
+        <text id="subsystem-services-title" x="1150.0" y="3463.0" class="node-title" text-anchor="middle">L3. Сервисы подсистем</text>
       </a>
-      <text id="subsystem-services-body" x="1150.0" y="3461" class="body" text-anchor="middle">Обработка запроса устройства</text>
     </g>
     <path id="f-worker-to-services" d="M 254 3254 V 3456 H 760" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="f-irq-handler" data-to="subsystem-services" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     <path id="n-worker-to-services" d="M 2044 3168 V 3456 H 1540" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" data-kind="interaction" data-from="n-irq-handler" data-to="subsystem-services" data-interaction="call" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />

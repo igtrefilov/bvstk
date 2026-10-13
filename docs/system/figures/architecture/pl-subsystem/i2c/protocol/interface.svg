@@ -87,9 +87,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="controller" data-kind="component" data-layer="L0" data-label="Ведущий" data-ownership="common">
       <rect x="260" y="635" width="470" height="200" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
       <text x="280" y="659.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-      <text x="280" y="693.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведущий</text>
-      <text x="280" y="732.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">START и STOP</text>
-      <text x="280" y="758.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Адрес и направление</text>
+      <text x="280" y="752.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ведущий</text>
     </g>
     <g id="target" data-kind="component" data-layer="L0" data-label="Ведомое устройство" data-ownership="common">
       <rect x="970" y="635" width="470" height="200" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />

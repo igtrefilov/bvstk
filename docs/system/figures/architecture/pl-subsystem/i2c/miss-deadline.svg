@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" viewBox="0 35 1400 764" role="img" aria-labelledby="title desc" height="764">
+  <title id="title">I²C: промах кэша и срок ответа</title>
+  <desc id="desc">При 100 кГц 36 тактов master занимают около 360 мкс. Предел ожидания slave равен 100 мкс даже при немедленном старте master.</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1400" height="799" fill="white" />
+  <g id="backgrounds">
+    <path d="M440,120 L440,200" stroke="#c65b4e" stroke-width="2" stroke-dasharray="9 6" fill="none" />
+    <path d="M640,145 L640,515" stroke="#c65b4e" stroke-width="2" stroke-dasharray="9 6" fill="none" />
+    <path d="M440,550 L1240,550" stroke="#607487" stroke-width="2" fill="none" />
+    <path d="M440,540 L440,560" stroke="#607487" stroke-width="2" fill="none" />
+    <path d="M640,540 L640,560" stroke="#607487" stroke-width="2" fill="none" />
+    <path d="M840,540 L840,560" stroke="#607487" stroke-width="2" fill="none" />
+    <path d="M1040,540 L1040,560" stroke="#607487" stroke-width="2" fill="none" />
+    <path d="M1240,540 L1240,560" stroke="#607487" stroke-width="2" fill="none" />
+  </g>
+  <g id="interactions" />
+  <g id="components">
+    <rect id="slave-wait" x="440" y="210" width="200" height="80" rx="8" fill="#e6dcf5" stroke="#8760ba" stroke-width="2" />
+    <rect id="master-read" x="440" y="375" width="720" height="80" rx="8" fill="#e6dcf5" stroke="#8760ba" stroke-width="2" />
+  </g>
+  <g id="annotations">
+    <text x="440" y="100.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#c65b4e">RD_REQUEST</text>
+    <text x="65" y="245.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#8760ba">I2C_slave_0</text>
+    <text x="65" y="280.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Первый байт</text>
+    <text x="540" y="258.0" font-size="26" font-weight="400" text-anchor="middle" style="fill:#233747">SCL = 0</text>
+    <text x="665" y="258.0" font-size="25" font-weight="400" text-anchor="start" style="fill:#c65b4e">NACK адреса</text>
+    <text x="660" y="165.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#c65b4e">100 мкс</text>
+    <text x="65" y="410.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#8760ba">I2C_master_0</text>
+    <text x="65" y="445.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Чтение регистра</text>
+    <text x="830" y="425.0" font-size="26" font-weight="400" text-anchor="middle" style="fill:#233747">36 тактов при 100 кГц</text>
+    <text x="1160" y="495.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">≈ 360 мкс</text>
+    <text x="440" y="595.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">0</text>
+    <text x="640" y="595.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">100</text>
+    <text x="840" y="595.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">200</text>
+    <text x="1040" y="595.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">300</text>
+    <text x="1240" y="595.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">400</text>
+    <text x="1310" y="595.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">мкс</text>
+    <rect x="60" y="690.9" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="709.9" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="756.9" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Оценка без задержек PS. Красный пунктир — конец ожидания slave.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/ip_repo/i2c_slave/i2c/slave/rtl/i2c_slave_wrapper.sv",
+    "../hw_platform/fpga/Burevestnik_21.tcl",
+    "src/drivers/pl/i2c/bvstk_i2c_master.c"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

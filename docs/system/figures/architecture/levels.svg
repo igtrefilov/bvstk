@@ -1,49 +1,44 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="980" viewBox="0 209 2800 980" id="bvstk-levels-overview" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1300" height="730" viewBox="0 0 1300 730" id="bvstk-levels-overview" role="img" aria-labelledby="title desc">
   <title id="title">Уровни абстракции BVSTK</title>
   <desc id="desc">Декларация пяти уровней абстракции BVSTK. L4 — приложения; L3 — сервисы и драйверы; L2 — ядро ОС; L1 — платформа; L0 — аппаратура. Каждая строка определяет область ответственности уровня. Порядок строк не задаёт порядок вызовов. Названия открывают соответствующие подробные схемы. Цвета совпадают со всем рядом архитектурных схем.</desc>
   <defs>
     <style>text{font-family:DejaVu Sans,sans-serif;fill:#233747;} a{cursor:pointer;} a:hover text{text-decoration:underline;} g:target&gt;rect{stroke-width:4;}</style>
   </defs>
-  <rect id="page" x="0" y="0" width="2800" height="1330" fill="white" />
+  <rect id="page" x="0" y="0" width="1300" height="730" fill="white" />
   <g id="level-l4" data-kind="layer-definition" data-layer="L4" data-label="Приложения">
-    <rect x="180" y="250" width="2440" height="146" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
+    <rect x="60" y="40" width="1180" height="106" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.7" />
     <a data-navigation="level" xlink:href="architecture_bvstk_l4.svg">
-      <text x="228" y="338" font-size="40" font-weight="700" text-anchor="start" style="fill:#3f75ad">L4</text>
-      <text x="416" y="336" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Приложения</text>
+      <text x="105" y="107" font-size="40" font-weight="700" text-anchor="start" style="fill:#3f75ad">L4</text>
+      <text x="290" y="107" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Приложения</text>
     </a>
-    <text x="1260" y="335" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Пользовательские функции и управление системой.</text>
   </g>
   <g id="level-l3" data-kind="layer-definition" data-layer="L3" data-label="Сервисы и драйверы">
-    <rect x="180" y="438" width="2440" height="146" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
+    <rect x="60" y="172" width="1180" height="106" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="1.7" />
     <a data-navigation="level" xlink:href="architecture_bvstk_l3.svg">
-      <text x="228" y="526" font-size="40" font-weight="700" text-anchor="start" style="fill:#287f73">L3</text>
-      <text x="416" y="524" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Сервисы и драйверы</text>
+      <text x="105" y="239" font-size="40" font-weight="700" text-anchor="start" style="fill:#287f73">L3</text>
+      <text x="290" y="239" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Сервисы и драйверы</text>
     </a>
-    <text x="1260" y="523" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Логика подсистем, протоколы, сеть и файловые системы.</text>
   </g>
   <g id="level-l2" data-kind="layer-definition" data-layer="L2" data-label="Ядро ОС">
-    <rect x="180" y="626" width="2440" height="146" rx="10" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
+    <rect x="60" y="304" width="1180" height="106" rx="10" fill="#ffd1c7" stroke="#c65b4e" stroke-width="1.7" />
     <a data-navigation="level" xlink:href="architecture_bvstk_os.svg#os-kernels">
-      <text x="228" y="714" font-size="40" font-weight="700" text-anchor="start" style="fill:#c65b4e">L2</text>
-      <text x="416" y="712" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Ядро ОС</text>
+      <text x="105" y="371" font-size="40" font-weight="700" text-anchor="start" style="fill:#c65b4e">L2</text>
+      <text x="290" y="371" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Ядро ОС</text>
     </a>
-    <text x="1260" y="711" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Планирование, синхронизация и обмен сообщениями.</text>
   </g>
   <g id="level-l1" data-kind="layer-definition" data-layer="L1" data-label="Платформа">
-    <rect x="180" y="814" width="2440" height="146" rx="10" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
+    <rect x="60" y="436" width="1180" height="106" rx="10" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.7" />
     <a data-navigation="level" xlink:href="architecture_bvstk_l1.svg">
-      <text x="228" y="902" font-size="40" font-weight="700" text-anchor="start" style="fill:#b56b1d">L1</text>
-      <text x="416" y="900" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Платформа</text>
+      <text x="105" y="503" font-size="40" font-weight="700" text-anchor="start" style="fill:#b56b1d">L1</text>
+      <text x="290" y="503" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Платформа</text>
     </a>
-    <text x="1260" y="899" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Общие интерфейсы, порты ОС и BSP.</text>
   </g>
   <g id="level-l0" data-kind="layer-definition" data-layer="L0" data-label="Аппаратура">
-    <rect x="180" y="1002" width="2440" height="146" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="1.7" />
+    <rect x="60" y="568" width="1180" height="106" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="1.7" />
     <a data-navigation="level" xlink:href="architecture_bvstk_l0_l1.svg#hardware-panel">
-      <text x="228" y="1090" font-size="40" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
-      <text x="416" y="1088" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Аппаратура</text>
+      <text x="105" y="635" font-size="40" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="290" y="635" font-size="34" font-weight="700" text-anchor="start" style="fill:#233747">Аппаратура</text>
     </a>
-    <text x="1260" y="1087" font-size="27" font-weight="400" text-anchor="start" style="fill:#233747">Процессор, память и периферия.</text>
   </g>
 </svg>
