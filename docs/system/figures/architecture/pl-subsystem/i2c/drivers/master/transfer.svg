@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1800" viewBox="0 80 1800 1066" role="img" aria-labelledby="title desc" data-content="article-figure" height="1066">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1800" viewBox="0 80 1800 1118" role="img" aria-labelledby="title desc" data-content="article-figure" height="1118">
   <title id="title">Драйвер master: чтение регистра</title>
   <desc id="desc">Сервис запрашивает чтение у устройства 0x2A. Драйвер готовит запись указателя 0x10 и чтение одного байта до START.</desc>
   <defs>
@@ -40,7 +40,7 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="1800" height="1146" fill="white" />
+  <rect width="1800" height="1198" fill="white" />
   <g id="backgrounds">
     <path d="M355.68,305 V985" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
     <path d="M963.36,305 V985" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
@@ -132,6 +132,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="104" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
     <rect x="260" y="1089" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
     <text x="304" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1155.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт сверху вниз; масштаб условный.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

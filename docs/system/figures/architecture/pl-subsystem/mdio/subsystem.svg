@@ -99,16 +99,20 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="software" data-kind="functional-group" data-label="Программа PS" data-layer="L3" data-ownership="common">
       <rect x="595" y="70" width="610" height="510" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
       <text x="621" y="107.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Программа PS</text>
-      <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_mdio_service" data-ownership="common" data-parent="software">
+      <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_mdio_service" data-ownership="common" data-parent="software" data-target="services/step.svg#service">
         <rect x="650" y="155" width="500" height="140" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <text x="670" y="179.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="670" y="213.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_service</text>
+        <a data-navigation="detail" xlink:href="services/step.svg#service">
+          <text x="670" y="179.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="670" y="213.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_service</text>
+        </a>
         <text x="670" y="252.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Политика и кэш</text>
       </g>
-      <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_mdio_core" data-ownership="common" data-parent="software">
+      <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_mdio_core" data-ownership="common" data-parent="software" data-target="drivers/platform.svg#driver">
         <rect x="650" y="395" width="500" height="130" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <text x="670" y="419.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="670" y="453.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_core</text>
+        <a data-navigation="detail" xlink:href="drivers/platform.svg#driver">
+          <text x="670" y="419.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="670" y="453.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_mdio_core</text>
+        </a>
         <text x="670" y="492.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747" xml:space="preserve"><tspan>Доступ к PL через </tspan><tspan style="fill:#b56b1d">L1</tspan></text>
       </g>
     </g>
@@ -117,9 +121,9 @@ g:target &gt; rect { stroke-width: 5; }
       <a data-navigation="detail" xlink:href="../../architecture_bvstk_ps_pl.svg#smi-fabric">
         <text x="331" y="727.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">MDIO</text>
       </a>
-      <g id="slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_slave_0" data-ownership="common" data-parent="subsystem" data-target="slave.svg#core">
+      <g id="slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_slave_0" data-ownership="common" data-parent="subsystem" data-target="cores/slave/structure.svg#core">
         <rect x="350" y="790" width="300" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="slave.svg#core">
+        <a data-navigation="detail" xlink:href="cores/slave/structure.svg#core">
           <text x="370" y="814.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="370" y="897.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_slave_0</text>
         </a>
@@ -131,9 +135,9 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="770" y="887.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">0x42000000</text>
         <text x="770" y="913.34" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">16 КиБ</text>
       </g>
-      <g id="master" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_master_0" data-ownership="common" data-parent="subsystem" data-target="master.svg#core">
+      <g id="master" data-kind="component" data-layer="L0" data-domain="pl" data-label="SMI_master_0" data-ownership="common" data-parent="subsystem" data-target="cores/master/structure.svg#core">
         <rect x="1150" y="790" width="300" height="180" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="master.svg#core">
+        <a data-navigation="detail" xlink:href="cores/master/structure.svg#core">
           <text x="1170" y="814.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="1170" y="897.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SMI_master_0</text>
         </a>
@@ -181,16 +185,24 @@ g:target &gt; rect { stroke-width: 5; }
   ],
   "cross_sheet_links": [
     {
+      "node": "service",
+      "target": "services/step.svg#service"
+    },
+    {
+      "node": "driver",
+      "target": "drivers/platform.svg#driver"
+    },
+    {
       "node": "subsystem",
       "target": "../../architecture_bvstk_ps_pl.svg#smi-fabric"
     },
     {
       "node": "slave",
-      "target": "slave.svg#core"
+      "target": "cores/slave/structure.svg#core"
     },
     {
       "node": "master",
-      "target": "master.svg#core"
+      "target": "cores/master/structure.svg#core"
     }
   ],
   "article_notes": []

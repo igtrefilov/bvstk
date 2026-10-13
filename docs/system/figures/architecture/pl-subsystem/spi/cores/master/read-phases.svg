@@ -1,0 +1,156 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2100" viewBox="0 95 2100 1063" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1063">
+  <title id="title">Фазы аппаратного чтения CMD17</title>
+  <desc id="desc">Фазы аппаратного чтения CMD17</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2100" height="1158" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="505" width="1980" height="365" rx="16" fill="white" />
+    <path d="M362.5,430 V495 M362.5,580 V620" stroke="#8495a3" stroke-width="1.4" stroke-dasharray="5 7" fill="none" />
+    <path d="M655.5,430 V495 M655.5,580 V620" stroke="#8495a3" stroke-width="1.4" stroke-dasharray="5 7" fill="none" />
+    <path d="M928.5,430 V495 M928.5,580 V620" stroke="#8495a3" stroke-width="1.4" stroke-dasharray="5 7" fill="none" />
+    <path d="M1251.5,430 V495 M1251.5,580 V620" stroke="#8495a3" stroke-width="1.4" stroke-dasharray="5 7" fill="none" />
+    <path d="M1554.5,430 V495 M1554.5,580 V620" stroke="#8495a3" stroke-width="1.4" stroke-dasharray="5 7" fill="none" />
+    <path d="M1797.5,430 V495 M1797.5,580 V620" stroke="#8495a3" stroke-width="1.4" stroke-dasharray="5 7" fill="none" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="command" data-to="end" data-interaction="data" data-direction="forward">
+      <path d="M210,960 L2010,960" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M210,960 L2010,960" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="mosi" data-kind="wire-phases" data-layer="L0">
+      <rect x="210" y="135" width="305" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="362.5" y="190.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">51 00 00 00 20 31</text>
+      <rect x="533" y="135" width="245" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="655.5" y="190.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">FF …</text>
+      <rect x="796" y="135" width="265" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="928.5" y="190.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">FF …</text>
+      <rect x="1079" y="135" width="345" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1251.5" y="190.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">FF …</text>
+      <rect x="1442" y="135" width="225" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1554.5" y="190.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">FF FF</text>
+      <rect x="1685" y="135" width="225" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1797.5" y="190.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">FF</text>
+    </g>
+    <g id="miso" data-kind="wire-phases" data-layer="L0">
+      <rect x="210" y="320" width="305" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="362.5" y="375.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">—</text>
+      <rect x="533" y="320" width="245" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="655.5" y="375.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">FF … 00</text>
+      <rect x="796" y="320" width="265" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="928.5" y="375.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">FF … FE</text>
+      <rect x="1079" y="320" width="345" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1251.5" y="375.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">DE AD BE EF …</text>
+      <rect x="1442" y="320" width="225" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1554.5" y="375.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">C_H C_L</text>
+      <rect x="1685" y="320" width="225" height="100" rx="8" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1797.5" y="375.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#233747">FF</text>
+    </g>
+    <g id="core" data-kind="functional-group" data-label="SPI_master_0: sd_ini_tx_cmds" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="60" y="505" width="1980" height="365" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="structure.svg#commands">
+        <text x="86" y="542.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">SPI_master_0: sd_ini_tx_cmds</text>
+      </a>
+      <g id="command" data-kind="component" data-layer="L0" data-domain="pl" data-label="Команда" data-ownership="common" data-parent="core">
+        <rect x="210" y="630" width="305" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="230" y="654.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="230" y="688.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Команда</text>
+        <text x="230" y="727.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">BYTE_1_…BYTE_6_</text>
+      </g>
+      <g id="r1" data-kind="component" data-layer="L0" data-domain="pl" data-label="R1" data-ownership="common" data-parent="core">
+        <rect x="533" y="630" width="245" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="553" y="654.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="553" y="688.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">R1</text>
+        <text x="553" y="727.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">etc_byte_</text>
+      </g>
+      <g id="token" data-kind="component" data-layer="L0" data-domain="pl" data-label="Маркер" data-ownership="common" data-parent="core">
+        <rect x="796" y="630" width="265" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="816" y="654.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="816" y="688.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Маркер</text>
+        <text x="816" y="727.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">BYTE_FE_</text>
+      </g>
+      <g id="data" data-kind="component" data-layer="L0" data-domain="pl" data-label="512 байтов" data-ownership="common" data-parent="core">
+        <rect x="1079" y="630" width="345" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="1099" y="654.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1099" y="688.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">512 байтов</text>
+        <text x="1099" y="727.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">DATA_RX_</text>
+      </g>
+      <g id="crc" data-kind="component" data-layer="L0" data-domain="pl" data-label="CRC16" data-ownership="common" data-parent="core">
+        <rect x="1442" y="630" width="225" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="1462" y="654.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1462" y="688.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">CRC16</text>
+        <text x="1462" y="727.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">DATA_RX_</text>
+      </g>
+      <g id="end" data-kind="component" data-layer="L0" data-domain="pl" data-label="Конец" data-ownership="common" data-parent="core">
+        <rect x="1685" y="630" width="225" height="170" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="1705" y="654.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1705" y="688.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Конец</text>
+        <text x="1705" y="727.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">BYTE_FF_2</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="190.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#607487">MOSI</text>
+    <text x="60" y="375.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#607487">MISO</text>
+    <path d="M60,1012 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="1018.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1049" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1068.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1049" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1068.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="1115.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время слева направо. FF … — ожидание. C_H и C_L — CRC16. Прочерк — данные не используются. Масштаб условный.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/ip_repo/SPI_master/src/sd_ini_tx_cmds.sv",
+    "../hw_platform/fpga/ip_repo/SPI_master/src/spi_master_ctrl.sv"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "core",
+      "target": "structure.svg#commands"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

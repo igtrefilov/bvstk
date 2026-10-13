@@ -151,7 +151,7 @@ g:target &gt; rect { stroke-width: 5; }
       <text x="1020.0" y="635" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Запрос</text>
     </g>
     <g id="check-policy" data-kind="sequence-step">
-      <rect x="1054.0" y="716" width="260" height="57" rx="4" fill="white" />
+      <rect x="964.0" y="716" width="440" height="57" rx="4" fill="white" />
       <text x="1184.0" y="740" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">Политика записи</text>
     </g>
     <g id="launch-write" data-kind="sequence-step">
@@ -167,7 +167,7 @@ g:target &gt; rect { stroke-width: 5; }
       <text x="1348.0" y="1055" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Проверка состояния</text>
     </g>
     <g id="write-result" data-kind="sequence-step">
-      <rect x="1054.0" y="1136" width="260" height="57" rx="4" fill="white" />
+      <rect x="964.0" y="1136" width="440" height="57" rx="4" fill="white" />
       <text x="1184.0" y="1160" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">Обновление кэша</text>
     </g>
     <text x="200.0" y="1285.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#607487">Внешний</text>

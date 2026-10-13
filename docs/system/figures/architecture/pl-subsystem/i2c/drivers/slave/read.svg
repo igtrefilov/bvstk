@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 80 2200 1066" role="img" aria-labelledby="title desc" data-content="article-figure" height="1066">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 28 2200 1450" role="img" aria-labelledby="title desc" data-content="article-figure" height="1450">
   <title id="title">Драйвер slave: публикация окна ответа</title>
   <desc id="desc">IRQ slave с RD_REQUEST начинает обработку в PS. Порт вызывает сервис, затем передаёт окно драйверу. Запись BRAM предшествует rd_valid.</desc>
   <defs>
@@ -40,120 +40,148 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="1146" fill="white" />
+  <rect width="2200" height="1478" fill="white" />
   <g id="backgrounds">
-    <path d="M240.5913043478261,305 V985" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
-    <path d="M699.0260869565218,305 V985" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
-    <path d="M1182.086956521739,305 V985" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
-    <path d="M1599.4782608695652,305 V985" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
-    <path d="M1975.8260869565217,305 V985" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <rect x="42" y="68" width="397.1826086956522" height="250" rx="16" fill="white" />
+    <path d="M240.5913043478261,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M699.0260869565218,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1182.086956521739,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1599.4782608695652,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1975.8260869565217,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
   </g>
   <g id="interactions">
     <g data-kind="interaction" data-from="core" data-to="port" data-interaction="irq" data-direction="forward">
-      <path d="M1975.83,423 L240.591,423" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1975.83,423 L240.591,423" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+      <path d="M1975.83,443 L240.591,443" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1975.83,443 L240.591,443" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="port" data-to="port" data-interaction="irq" data-direction="forward">
+      <path d="M240.591,538 L310.591,538 L310.591,560 L240.591,560" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M240.591,538 L310.591,538 L310.591,560 L240.591,560" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
     </g>
     <g data-kind="interaction" data-from="port" data-to="service" data-interaction="call" data-direction="forward">
-      <path d="M240.591,528 L699.026,528" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M240.591,528 L699.026,528" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+      <path d="M240.591,653 L699.026,653" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M240.591,653 L699.026,653" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="service" data-to="driver" data-interaction="data" data-direction="forward">
-      <path d="M699.026,633 L1182.09,633" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M699.026,633 L1182.09,633" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    <g data-kind="interaction" data-from="service" data-to="port" data-interaction="data" data-direction="forward">
+      <path d="M699.026,758 L240.591,758" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M699.026,758 L240.591,758" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="port" data-to="driver" data-interaction="call" data-direction="forward">
+      <path d="M240.591,863 L1182.09,863" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M240.591,863 L1182.09,863" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
     </g>
     <g data-kind="interaction" data-from="driver" data-to="bram" data-interaction="data" data-direction="forward">
-      <path d="M1182.09,738 L1599.48,738" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1182.09,738 L1599.48,738" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+      <path d="M1182.09,968 L1599.48,968" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1182.09,968 L1599.48,968" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
     </g>
     <g data-kind="interaction" data-from="driver" data-to="core" data-interaction="mmio" data-direction="forward">
-      <path d="M1182.09,843 L1975.83,843" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1182.09,843 L1975.83,843" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+      <path d="M1182.09,1073 L1975.83,1073" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1182.09,1073 L1975.83,1073" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
     </g>
     <g data-kind="interaction" data-from="bram" data-to="core" data-interaction="data" data-direction="forward">
-      <path d="M1599.48,948 L1975.83,948" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1599.48,948 L1975.83,948" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+      <path d="M1599.48,1178 L1975.83,1178" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1599.48,1178 L1975.83,1178" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
     </g>
   </g>
   <g id="components">
-    <g id="port" data-kind="component" data-layer="L1" data-label="Порт ОС" data-ownership="selected-os" data-target="../events.svg">
-      <rect x="60" y="120" width="361.1826086956522" height="155" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
-      <a data-navigation="detail" xlink:href="../events.svg">
-        <text x="80" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-        <text x="80" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт ОС</text>
-      </a>
-      <text x="80" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">IRQ</text>
-    </g>
     <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_i2c_slave_service" data-ownership="common" data-target="../../services/read-state.svg#service">
-      <rect x="469.1826086956522" y="120" width="459.6869565217391" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <rect x="469.1826086956522" y="140" width="459.6869565217391" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../services/read-state.svg#service">
-        <text x="489.1826086956522" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="489.1826086956522" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave_service</text>
+        <text x="489.1826086956522" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="489.1826086956522" y="198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave_service</text>
       </a>
-      <text x="489.1826086956522" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подготовка окна</text>
+      <text x="489.1826086956522" y="237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Подготовка окна</text>
     </g>
     <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_i2c_slave" data-ownership="common" data-target="../platform.svg#slave">
-      <rect x="976.8695652173913" y="120" width="410.4347826086956" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <rect x="976.8695652173913" y="140" width="410.4347826086956" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../platform.svg#slave">
-        <text x="996.8695652173913" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="996.8695652173913" y="214.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave</text>
+        <text x="996.8695652173913" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="996.8695652173913" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_i2c_slave</text>
       </a>
     </g>
     <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM I²C" data-ownership="common" data-target="../../cores/slave/buffers.svg#rd-window">
-      <rect x="1435.304347826087" y="120" width="328.3478260869565" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <rect x="1435.304347826087" y="140" width="328.3478260869565" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../cores/slave/buffers.svg#rd-window">
-        <text x="1455.304347826087" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1455.304347826087" y="178.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM I²C</text>
+        <text x="1455.304347826087" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1455.304347826087" y="198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM I²C</text>
       </a>
-      <text x="1455.304347826087" y="217.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ответ: +0x2000</text>
+      <text x="1455.304347826087" y="237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ответ: +0x2000</text>
     </g>
     <g id="core" data-kind="component" data-layer="L0" data-domain="pl" data-label="I2C_slave_0" data-ownership="common" data-target="../../cores/slave/read.svg#core">
-      <rect x="1811.6521739130435" y="120" width="328.3478260869565" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <rect x="1811.6521739130435" y="140" width="328.3478260869565" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../../cores/slave/read.svg#core">
-        <text x="1831.6521739130435" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
-        <text x="1831.6521739130435" y="214.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
+        <text x="1831.6521739130435" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1831.6521739130435" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">I2C_slave_0</text>
       </a>
+    </g>
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="42" y="68" width="397.1826086956522" height="250" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="68" y="105.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="port" data-kind="component" data-layer="L1" data-label="Порт I²C slave" data-ownership="freertos" data-target="../events.svg" data-parent="freertos">
+        <rect x="60" y="140" width="361.1826086956522" height="155" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../events.svg">
+          <text x="80" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="80" y="198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт I²C slave</text>
+        </a>
+        <text x="80" y="237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">ISR и slave_task</text>
+      </g>
     </g>
   </g>
   <g id="annotations">
     <g id="irq" data-kind="sequence-step">
-      <rect x="250.59130434782605" y="346" width="1715.2347826086957" height="57" rx="4" fill="white" />
-      <text x="1108.208695652174" y="370" font-size="22" font-weight="400" text-anchor="middle" style="fill:#c65b4e">IRQ slave: RD_REQUEST</text>
+      <rect x="250.59130434782605" y="366" width="1715.2347826086957" height="57" rx="4" fill="white" />
+      <text x="1108.208695652174" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#c65b4e">IRQ slave: RD_REQUEST</text>
+    </g>
+    <g id="event" data-kind="sequence-step">
+      <rect x="20.59130434782611" y="471" width="440" height="57" rx="4" fill="white" />
+      <text x="240.5913043478261" y="495" font-size="22" font-weight="400" text-anchor="middle" style="fill:#c65b4e">Захват события → slave_task</text>
     </g>
     <g id="dispatch" data-kind="sequence-step">
-      <rect x="250.59130434782608" y="451" width="438.4347826086957" height="57" rx="4" fill="white" />
-      <text x="469.8086956521739" y="475" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">handle_frame: подготовить окно</text>
+      <rect x="250.59130434782608" y="576" width="438.4347826086957" height="57" rx="4" fill="white" />
+      <text x="469.8086956521739" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">handle_frame: подготовить окно</text>
     </g>
     <g id="window" data-kind="sequence-step">
-      <rect x="709.0260869565218" y="556" width="463.0608695652172" height="57" rx="4" fill="white" />
-      <text x="940.5565217391304" y="580" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Окно ответа через порт ОС</text>
+      <rect x="250.59130434782608" y="681" width="438.4347826086957" height="57" rx="4" fill="white" />
+      <text x="469.8086956521739" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Окно ответа: первый байт 0x7B</text>
+    </g>
+    <g id="publish" data-kind="sequence-step">
+      <rect x="250.59130434782605" y="786" width="921.495652173913" height="57" rx="4" fill="white" />
+      <text x="711.3391304347825" y="810" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">write_read_window, затем accept_read</text>
     </g>
     <g id="write" data-kind="sequence-step">
-      <rect x="1192.086956521739" y="661" width="397.39130434782624" height="57" rx="4" fill="white" />
-      <text x="1390.782608695652" y="685" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">write_read_window: заголовок и</text>
-      <text x="1390.782608695652" y="711" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">байты</text>
+      <rect x="1192.086956521739" y="891" width="397.39130434782624" height="57" rx="4" fill="white" />
+      <text x="1390.782608695652" y="915" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">write_read_window: заголовок и</text>
+      <text x="1390.782608695652" y="941" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">байты</text>
     </g>
     <g id="valid" data-kind="sequence-step">
-      <rect x="1192.086956521739" y="766" width="773.7391304347827" height="57" rx="4" fill="white" />
-      <text x="1578.9565217391305" y="790" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">accept_read: CSR.rd_valid</text>
+      <rect x="1192.086956521739" y="996" width="773.7391304347827" height="57" rx="4" fill="white" />
+      <text x="1578.9565217391305" y="1020" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">accept_read: CSR.rd_valid</text>
     </g>
     <g id="fetch" data-kind="sequence-step">
-      <rect x="1609.4782608695652" y="871" width="356.3478260869565" height="57" rx="4" fill="white" />
-      <text x="1787.6521739130435" y="895" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Окно ответа</text>
+      <rect x="1609.4782608695652" y="1101" width="356.3478260869565" height="57" rx="4" fill="white" />
+      <text x="1787.6521739130435" y="1125" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Окно ответа: первый байт</text>
+      <text x="1787.6521739130435" y="1151" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0x7B</text>
     </g>
-    <path d="M60,1052 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="1058.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,1052 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="327" y="1058.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M551,1052 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="633" y="1058.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <path d="M747,1052 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
-    <text x="829" y="1058.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
-    <rect x="60" y="1089" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="104" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="260" y="1089" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
-    <text x="304" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
-    <rect x="375" y="1089" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="240.5913043478261" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Порт I²C slave</text>
+    <text x="699.0260869565218" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#287f73">bvstk_i2c_slave_service</text>
+    <text x="1182.086956521739" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#287f73">bvstk_i2c_slave</text>
+    <text x="1599.4782608695652" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#8760ba">BRAM I²C</text>
+    <text x="1975.8260869565217" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#8760ba">I2C_slave_0</text>
+    <path d="M60,1332 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1332 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,1332 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,1332 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="1369" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="1369" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="304" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="375" y="1369" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1435.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт сверху вниз; масштаб условный.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 220 2200 2738" role="img" aria-labelledby="title desc" height="2738">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 220 2200 2268" role="img" aria-labelledby="title desc" height="2268">
   <title id="title">Подсистема SPI: потоки, DMA и память</title>
   <desc id="desc">Аппаратный состав SPI раскрыт отдельно от его текущего использования для SD.</desc>
   <defs>
@@ -40,12 +40,11 @@ g:target &gt; rect { stroke-width: 5; }
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
   </defs>
-  <rect width="2200" height="2958" fill="white" />
+  <rect width="2200" height="2488" fill="white" />
   <g id="backgrounds">
     <rect x="60" y="590" width="2080" height="1320" rx="16" fill="white" />
     <rect x="120" y="1110" width="790" height="310" rx="16" fill="white" />
     <rect x="1290" y="1110" width="790" height="310" rx="16" fill="white" />
-    <rect x="350" y="2460" width="1500" height="300" rx="16" fill="white" />
   </g>
   <g id="interactions">
     <g data-kind="interaction" data-from="ps" data-to="master" data-interaction="mmio" data-direction="forward">
@@ -81,12 +80,12 @@ g:target &gt; rect { stroke-width: 5; }
       <path d="M1685,1420 L1685,1540 L1380,1540 L1380,1650" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
     </g>
     <g data-kind="interaction" data-from="ps" data-to="fabric" data-interaction="data" data-direction="both">
-      <path d="M1600,345 L2180,345 L2180,1880 L1660,1880 L1660,1737.5 L1580,1737.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1600,345 L2180,345 L2180,1880 L1660,1880 L1660,1737.5 L1580,1737.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
+      <path d="M1600,345 L2180,345 L2180,1737.5 L1580,1737.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1600,345 L2180,345 L2180,1737.5 L1580,1737.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
     </g>
     <g data-kind="interaction" data-from="master" data-to="fabric" data-interaction="data" data-direction="forward">
-      <path d="M830,820 L1050,820 L1050,1580 L1100,1580 L1100,1650" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M830,820 L1050,820 L1050,1580 L1100,1580 L1100,1650" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+      <path d="M830,820 L1100,820 L1100,1650" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M830,820 L1100,820 L1100,1650" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
     </g>
     <g data-kind="interaction" data-from="fabric" data-to="memory" data-interaction="data" data-direction="both">
       <path d="M880,1825 L880,1960 L600,1960 L600,2050" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
@@ -95,10 +94,6 @@ g:target &gt; rect { stroke-width: 5; }
     <g data-kind="interaction" data-from="fabric" data-to="hp0" data-interaction="data" data-direction="both">
       <path d="M1320,1825 L1320,1960 L1730,1960 L1730,2050" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
       <path d="M1320,1825 L1320,1960 L1730,1960 L1730,2050" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="memory" data-to="sd" data-interaction="data" data-direction="forward">
-      <path d="M600,2290 L600,2360 L840,2360 L840,2540" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M600,2290 L600,2360 L840,2360 L840,2540" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
     </g>
   </g>
   <g id="components">
@@ -114,16 +109,16 @@ g:target &gt; rect { stroke-width: 5; }
       <a data-navigation="detail" xlink:href="../overview/subsystems.svg#pl-subsystem">
         <text x="86" y="627.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">Подсистема SPI</text>
       </a>
-      <g id="master" data-kind="component" data-layer="L0" data-domain="pl" data-label="SPI_master_0" data-ownership="common" data-parent="subsystem" data-target="master.svg#core">
+      <g id="master" data-kind="component" data-layer="L0" data-domain="pl" data-label="SPI_master_0" data-ownership="common" data-parent="subsystem" data-target="cores/master/structure.svg#core">
         <rect x="150" y="710" width="680" height="220" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="master.svg#core">
+        <a data-navigation="detail" xlink:href="cores/master/structure.svg#core">
           <text x="170" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="170" y="837.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SPI_master_0</text>
         </a>
       </g>
-      <g id="slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="SPI_Slave_0" data-ownership="common" data-parent="subsystem" data-target="slave.svg#core">
+      <g id="slave" data-kind="component" data-layer="L0" data-domain="pl" data-label="SPI_Slave_0" data-ownership="common" data-parent="subsystem" data-target="cores/slave/structure.svg#core">
         <rect x="1370" y="710" width="680" height="190" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="slave.svg#core">
+        <a data-navigation="detail" xlink:href="cores/slave/structure.svg#core">
           <text x="1390" y="734.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
           <text x="1390" y="822.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SPI_Slave_0</text>
         </a>
@@ -187,37 +182,23 @@ g:target &gt; rect { stroke-width: 5; }
       </a>
       <text x="1380" y="2147.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">DDR и OCM</text>
     </g>
-    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-layer="L3" data-ownership="freertos">
-      <rect x="350" y="2460" width="1500" height="300" rx="16" fill="none" stroke="#8495a3" stroke-width="2" stroke-dasharray="10 7" />
-      <text x="376" y="2497.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">FreeRTOS</text>
-      <g id="sd" data-kind="component" data-layer="L3" data-label="Действующий путь SD" data-ownership="freertos" data-parent="freertos" data-target="sd-transfer.svg">
-        <rect x="410" y="2540" width="1380" height="165" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
-        <a data-navigation="detail" xlink:href="sd-transfer.svg">
-          <text x="430" y="2564.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-          <text x="430" y="2598.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Действующий путь SD</text>
-        </a>
-        <text x="430" y="2637.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">bvstk_sd_service</text>
-      </g>
-    </g>
   </g>
   <g id="annotations">
-    <text x="310.0" y="1056.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MOSI</text>
-    <text x="720.0" y="1056.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MISO</text>
-    <text x="1480.0" y="1041.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MISO</text>
-    <text x="1890.0" y="1041.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">MOSI</text>
-    <text x="1910" y="1800.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Доступ PS</text>
-    <text x="1120" y="1460.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">M_AXI</text>
-    <path d="M60,2812 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
-    <text x="142" y="2818.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
-    <path d="M366,2812 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="448" y="2818.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="2849" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="2868.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="2849" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
-    <text x="219" y="2868.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="375" y="2849" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="419" y="2868.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <text x="60" y="2915.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
+    <text x="310.0" y="1056.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">AXI Stream</text>
+    <text x="720.0" y="1056.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">AXI Stream</text>
+    <text x="1480.0" y="1041.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">AXI Stream</text>
+    <text x="1890.0" y="1041.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">AXI Stream</text>
+    <text x="1910" y="1710.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Доступ PS</text>
+    <text x="1190" y="1460.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">M_AXI</text>
+    <path d="M60,2342 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="142" y="2348.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M366,2342 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="448" y="2348.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="2379" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="2398.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="2379" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="2398.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="2445.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Цвет обозначает уровень абстракции.</text>
   </g>
   <metadata id="provenance">{
   "generator": "tools/docs/generate_pl_subsystem.py",
@@ -237,11 +218,11 @@ g:target &gt; rect { stroke-width: 5; }
     },
     {
       "node": "master",
-      "target": "master.svg#core"
+      "target": "cores/master/structure.svg#core"
     },
     {
       "node": "slave",
-      "target": "slave.svg#core"
+      "target": "cores/slave/structure.svg#core"
     },
     {
       "node": "dma0",
@@ -258,14 +239,8 @@ g:target &gt; rect { stroke-width: 5; }
     {
       "node": "hp0",
       "target": "../../architecture_bvstk_ps_pl.svg#hp0"
-    },
-    {
-      "node": "sd",
-      "target": "sd-transfer.svg"
     }
   ],
-  "article_notes": [
-    "Обычный SPI-сервис выключен в профиле AX7020. Универсальный профиль устройств и политика SPI сейчас не подключены."
-  ]
+  "article_notes": []
 }</metadata>
 </svg>

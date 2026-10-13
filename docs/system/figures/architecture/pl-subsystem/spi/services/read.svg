@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 28 2200 1085" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1085">
+  <title id="title">Завершение чтения блока 32 сервисом SD</title>
+  <desc id="desc">Завершение чтения блока 32 сервисом SD</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="1113" fill="white" />
+  <g id="backgrounds">
+    <rect x="42" y="68" width="892.7088607594936" height="250" rx="16" fill="white" />
+    <path d="M231.54430379746833,325 V900" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M683.8987341772151,325 V900" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1258.7848101265822,325 V900" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1870.4303797468353,325 V900" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="driver" data-to="service" data-interaction="data" data-direction="forward">
+      <path d="M1870.43,443 L1258.78,443" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1870.43,443 L1258.78,443" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="service" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M1258.78,538 L1328.78,538 L1328.78,560 L1258.78,560" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1258.78,538 L1328.78,538 L1328.78,560 L1258.78,560" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="service" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M1258.78,643 L1328.78,643 L1328.78,665 L1258.78,665" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1258.78,643 L1328.78,643 L1328.78,665 L1258.78,665" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="service" data-to="port" data-interaction="call" data-direction="forward">
+      <path d="M1258.78,758 L683.899,758" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1258.78,758 L683.899,758" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="port" data-to="fatfs" data-interaction="data" data-direction="forward">
+      <path d="M683.899,863 L231.544,863" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M683.899,863 L231.544,863" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_sd_service" data-ownership="common" data-target="../drivers/master/receive.svg#service">
+      <rect x="964.7088607594936" y="140" width="588.1518987341772" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../drivers/master/receive.svg#service">
+        <text x="984.7088607594936" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="984.7088607594936" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_sd_service</text>
+      </a>
+    </g>
+    <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_sd_master" data-ownership="common" data-target="../drivers/master/receive.svg#driver">
+      <rect x="1600.8607594936707" y="140" width="539.1392405063292" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../drivers/master/receive.svg#driver">
+        <text x="1620.8607594936707" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1620.8607594936707" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_sd_master</text>
+      </a>
+    </g>
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="42" y="68" width="892.7088607594936" height="250" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="68" y="105.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="fatfs" data-kind="component" data-layer="L3" data-label="FatFs" data-ownership="freertos" data-target="storage.svg#fatfs" data-parent="freertos">
+        <rect x="60" y="140" width="343.08860759493666" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="storage.svg#fatfs">
+          <text x="80" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+          <text x="80" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">FatFs</text>
+        </a>
+      </g>
+      <g id="port" data-kind="component" data-layer="L1" data-label="bvstk_sd_pl" data-ownership="freertos" data-target="storage.svg#port" data-parent="freertos">
+        <rect x="451.08860759493666" y="140" width="465.62025316455697" height="155" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="storage.svg#port">
+          <text x="471.08860759493666" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="471.08860759493666" y="198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_sd_pl</text>
+        </a>
+        <text x="471.08860759493666" y="237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">LBA 32</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <g id="receive" data-kind="sequence-step">
+      <rect x="1268.7848101265822" y="366" width="591.6455696202531" height="57" rx="4" fill="white" />
+      <text x="1564.6075949367087" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">BVSTK_OK; буфер: DE AD BE EF …</text>
+    </g>
+    <g id="report" data-kind="sequence-step">
+      <rect x="1038.7848101265822" y="471" width="440" height="57" rx="4" fill="white" />
+      <text x="1258.7848101265822" y="495" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">last: LBA 32, BVSTK_OK</text>
+    </g>
+    <g id="unlock" data-kind="sequence-step">
+      <rect x="1038.7848101265822" y="576" width="440" height="57" rx="4" fill="white" />
+      <text x="1258.7848101265822" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">Освободить mutex</text>
+    </g>
+    <g id="return" data-kind="sequence-step">
+      <rect x="693.8987341772151" y="681" width="554.8860759493671" height="57" rx="4" fill="white" />
+      <text x="971.3417721518987" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">BVSTK_OK</text>
+    </g>
+    <g id="sector" data-kind="sequence-step">
+      <rect x="241.5443037974683" y="786" width="432.3544303797468" height="57" rx="4" fill="white" />
+      <text x="457.7215189873417" y="810" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Сектор доступен в буфере</text>
+    </g>
+    <path d="M60,967 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="973.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,967 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="973.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1004" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="104" y="1023.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="175" y="1004" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="219" y="1023.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1070.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт сверху вниз; масштаб условный.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/services/sd/bvstk_sd_service.c",
+    "src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "fatfs",
+      "target": "storage.svg#fatfs"
+    },
+    {
+      "node": "port",
+      "target": "storage.svg#port"
+    },
+    {
+      "node": "service",
+      "target": "../drivers/master/receive.svg#service"
+    },
+    {
+      "node": "driver",
+      "target": "../drivers/master/receive.svg#driver"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

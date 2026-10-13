@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 37 1800 756" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="756">
+  <title id="title">Чтение блока SD с LBA 32</title>
+  <desc id="desc">Чтение блока SD с LBA 32</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="793" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <g data-kind="interaction" data-from="command" data-to="command" data-interaction="data" data-direction="forward">
+      <path d="M60,265 L1740,265" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M60,265 L1740,265" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="reply" data-to="reply" data-interaction="data" data-direction="forward">
+      <path d="M60,595 L1740,595" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M60,595 L1740,595" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="command" data-kind="wire-row" data-layer="L0">
+      <rect x="60" y="130" width="394.2857142857143" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="466.2857142857143" y="130" width="788.5714285714286" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="1266.857142857143" y="130" width="473.14285714285705" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    </g>
+    <g id="reply" data-kind="wire-row" data-layer="L0">
+      <rect x="60" y="460" width="222.91525423728814" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="294.91525423728814" y="460" width="334.3728813559322" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="641.2881355932203" y="460" width="752.3389830508474" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="1405.6271186440677" y="460" width="334.3728813559322" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="102.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">SPI_master_0 → карта: MOSI</text>
+    <text x="257.1428571428571" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x51</text>
+    <text x="257.1428571428571" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">CMD17</text>
+    <text x="860.5714285714286" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">00 00 00 20</text>
+    <text x="860.5714285714286" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">LBA 32</text>
+    <text x="1503.4285714285713" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x31</text>
+    <text x="1503.4285714285713" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">CRC7, конец = 1</text>
+    <text x="60" y="432.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Карта → SPI_master_0: MISO</text>
+    <text x="171.45762711864407" y="494.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x00</text>
+    <text x="171.45762711864407" y="524.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">R1</text>
+    <text x="462.10169491525426" y="494.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0xFE</text>
+    <text x="462.10169491525426" y="524.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">Начало блока</text>
+    <text x="1017.457627118644" y="494.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">DE AD BE EF …</text>
+    <text x="1017.457627118644" y="524.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">512 байтов</text>
+    <text x="1572.8135593220338" y="494.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">CRC16</text>
+    <text x="1572.8135593220338" y="524.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">2 байта</text>
+    <path d="M60,647 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="653.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="684" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="703.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="750.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Поля идут слева направо. Паузы опущены; ширина полей не задаёт длительность.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/drivers/pl/sd/bvstk_sd_master.c",
+    "../hw_platform/fpga/ip_repo/SPI_master/src/sd_ini_tx_cmds.sv"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

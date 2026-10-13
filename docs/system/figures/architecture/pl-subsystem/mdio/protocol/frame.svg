@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" viewBox="0 177 1600 958" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="958">
   <title id="title">MDIO: кадры Clause 22</title>
-  <desc id="desc">PHY с адресом 1, регистр 0x10. Поля идут слева направо.</desc>
+  <desc id="desc">PHY с адресом 1, регистр 4. Поля идут слева направо.</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -78,13 +78,13 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="691.0" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">00001</text>
     <text x="691.0" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">5</text>
     <text x="883.0" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">REG</text>
-    <text x="883.0" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">10000</text>
+    <text x="883.0" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">00100</text>
     <text x="883.0" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">5</text>
     <text x="1047.5" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">TA</text>
     <text x="1047.5" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">1 0</text>
     <text x="1047.5" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">2</text>
     <text x="1302.0" y="318.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">DATA</text>
-    <text x="1302.0" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x007B</text>
+    <text x="1302.0" y="394.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x0120</text>
     <text x="1302.0" y="465.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">16 бит</text>
     <text x="811.0" y="548.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#607487">Ведущий</text>
     <text x="60" y="655.0" font-size="28" font-weight="700" text-anchor="start" style="fill:#233747">Чтение</text>
@@ -101,13 +101,13 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="691.0" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">00001</text>
     <text x="691.0" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">5</text>
     <text x="883.0" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">REG</text>
-    <text x="883.0" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">10000</text>
+    <text x="883.0" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">00100</text>
     <text x="883.0" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">5</text>
     <text x="1047.5" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">TA</text>
     <text x="1047.5" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">Z 0</text>
     <text x="1047.5" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">2</text>
     <text x="1302.0" y="728.0" font-size="24" font-weight="700" text-anchor="middle" style="fill:#607487">DATA</text>
-    <text x="1302.0" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x0034</text>
+    <text x="1302.0" y="804.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x0120</text>
     <text x="1302.0" y="875.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#607487">16 бит</text>
     <text x="556.5" y="958.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#607487">Ведущий</text>
     <text x="1264.75" y="958.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad">PHY</text>

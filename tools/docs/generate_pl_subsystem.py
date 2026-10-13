@@ -24,6 +24,9 @@ from spi_protocol import generate_spi_protocol
 from mdio_protocol import generate_mdio_protocol
 from i2c_drivers import generate_i2c_drivers
 from article_flows import generate_article_flows
+from mdio_details import generate_mdio_details
+from spi_details import generate_spi_details
+from transaction_examples import generate_transaction_examples
 
 ROOT = Path(__file__).resolve().parents[2]
 ARCH = ROOT / "docs/system/figures/architecture"
@@ -314,66 +317,6 @@ g:target > rect { stroke-width: 5; }
                 for span in label:
                     span.tail = None
         ET.ElementTree(self.root).write(path, encoding="utf-8", xml_declaration=True)
-
-
-def sequence(name, title, subtitle, actors, steps, sources=(), notes=()):
-    """Horizontal exchanges between fixed actors, numbered from top to bottom."""
-    p = Page(name, title, subtitle, sources)
-    n = len(actors)
-    gap = 42
-    w = (2020-(n-1)*gap)/n
-    top, row, start = 305, 126, 530
-    last = start + row*len(steps)
-    centers = {}
-    ownership_extents = {}
-    for i, actor in enumerate(actors):
-        if actor[5]:
-            x = 100+i*(w+gap)
-            extent = ownership_extents.setdefault(actor[5], [x, x+w])
-            extent[1] = x+w
-    for ownership, (left, right) in ownership_extents.items():
-        p.frame(ownership+"-os", left-14, 245, right-left+28, 245,
-                "FreeRTOS" if ownership == "freertos" else "Нейтрино",
-                "L1", ownership=ownership)
-    for i, actor in enumerate(actors):
-        key, label, body, layer, target, ownership = actor
-        x = 100+i*(w+gap)
-        p.node(key, x, top, w, 165, label, body, layer=layer,
-               target=target, ownership=ownership or "common",
-               parent=ownership+"-os" if ownership else None)
-        centers[key] = x+w/2
-        el(p.under, "path", d=f"M{x+w/2},{top+165} V{last-20}",
-           stroke="#d3dce3", stroke_width=1.5, fill="none")
-    for i, (a, b, kind, label, detail) in enumerate(steps):
-        y = start + i*row
-        el(p.notes, "rect", x=63, y=y-31, width=2074, height=63, rx=5,
-           fill="white", opacity=".96")
-        p.text(p.notes, 76, y, f"{i+1:02}", 21, bold=True, color=ARROWS[kind][0])
-        p.text(p.notes, 130, y, label, 22, bold=True, width=1970)
-        if detail:
-            p.article_notes.append(detail)
-        xa, xb = centers[a], centers[b]
-        yy = y+61
-        pts = ((xa, yy), (xb, yy)) if a != b else (
-            (xa, yy), (xa+86, yy), (xa+86, yy+24), (xa, yy+24))
-        p.path(a, b, pts, kind)
-    p.max_y = max(p.max_y, last+20)
-    y = last+68
-    for note in notes:
-        y += p.note(y, note)+20
-    return p
-
-
-def source(bus, role, filename):
-    directory = {
-        ("i2c", "master"): "i2c_master/src",
-        ("i2c", "slave"): "i2c_slave/i2c/slave/rtl",
-        ("mdio", "master"): "SMI_master/src",
-        ("mdio", "slave"): "SMI_slave/src",
-        ("spi", "master"): "SPI_master/src",
-        ("spi", "slave"): "SPI_Slave",
-    }[bus, role]
-    return f"../hw_platform/fpga/ip_repo/{directory}/{filename}.sv"
 
 
 # Sheet definitions follow. Geometry is explicit and differs with the mechanism.
@@ -752,19 +695,21 @@ def bridge_subsystems():
     p.legend_note = "Серые линии внизу — два независимых участка MDIO."
     p.frame("software", 595, 70, 610, 510, "Программа PS", "L3")
     p.node("service", 650, 155, 500, 140, "bvstk_mdio_service",
-           "Политика и кэш", "L3", parent="software")
+           "Политика и кэш", "L3", parent="software",
+           target="mdio/services/step.svg#service")
     p.node("driver", 650, 395, 500, 130, "bvstk_mdio_core",
-           "Доступ к PL через L1", "L3", parent="software")
+           "Доступ к PL через L1", "L3", parent="software",
+           target="mdio/drivers/platform.svg#driver")
     p.edge("service", "driver", "call", start="S", end="N")
     p.frame("subsystem", 305, 690, 1190, 355, "MDIO", "PL",
             target="@architecture_bvstk_ps_pl.svg#smi-fabric")
     p.node("slave", 350, 790, 300, 180, "SMI_slave_0",
            "", parent="subsystem",
-           target="mdio/slave.svg#core")
+           target="mdio/cores/slave/structure.svg#core")
     p.node("memory", 750, 790, 300, 180, "BRAM MDIO",
            "0x42000000\n16 КиБ", parent="subsystem")
     p.node("master", 1150, 790, 300, 180, "SMI_master_0",
-           "", parent="subsystem", target="mdio/master.svg#core")
+           "", parent="subsystem", target="mdio/cores/master/structure.svg#core")
     p.node("external-host", 30, 790, 235, 180, "Внешний\nведущий", layer="L0")
     p.node("external-target", 1535, 790, 235, 180, "Физический\nPHY", layer="L0")
     p.edge("driver", "slave", "mmio", start="W", end="N",
@@ -781,99 +726,6 @@ def bridge_subsystems():
     p.path("master", "external-target", ((1300, 1105), (1652.5, 1105)), "data", bidirectional=True)
 
 
-def mdio_cores():
-    p = Page("mdio/master.svg", "MDIO master: команда, кадр и результат",
-             "Имя аппаратного экземпляра — SMI_master_0. Программная подсистема называется MDIO.",
-             [source("mdio", "master", n) for n in
-              ("top_mdio_master", "regs", "mdio_data_ctrl", "mdio_master_engine", "rx_fifo_mux")])
-    p.node("driver", 630, 270, 940, 175, "bvstk_mdio_core",
-           "", "L3",
-           target="@architecture_bvstk_l3.svg#driver-bvstk_mdio_core")
-    p.frame("core", 100, 570, 2000, 1550, "SMI_master_0",
-            subtitle="top_mdio_master", target="mdio/subsystem.svg#master")
-    p.node("regs", 240, 690, 700, 175, "Регистры управления",
-           "axi_lite_slave_native и regs", parent="core")
-    p.edge("driver", "regs", "mmio", "Через L1", start="S", end="N",
-           via=((1100, 505), (590, 505)))
-    p.node("tx-fifo", 240, 1010, 480, 130, "TX FIFO", "xpm_fifo_sync", parent="core")
-    p.edge("regs", "tx-fifo", "data")
-    p.frame("data-ctrl", 900, 980, 600, 590, "mdio_data_ctrl", parent="core")
-    p.node("dispatch", 940, 1070, 520, 160, "Выдача команды",
-           "transaction_view_t", parent="data-ctrl")
-    p.node("capture", 940, 1350, 520, 150, "Приём результата",
-           "", parent="data-ctrl")
-    p.edge("tx-fifo", "dispatch", "data")
-    p.node("engine", 1660, 1070, 390, 450, "mdio_master_engine",
-           "Clause 22",
-           parent="core")
-    p.edge("dispatch", "engine", "data", start="E", end="W", b_offset=-145)
-    p.edge("engine", "capture", "data", start="W", end="E", a_offset=130)
-    p.node("rx-fifo", 240, 1360, 480, 130, "RX FIFO", "xpm_fifo_sync", parent="core")
-    p.edge("capture", "rx-fifo", "data")
-    p.node("rx-mux", 240, 1770, 660, 200, "rx_fifo_mux",
-           "PHY и REG → адрес BRAM", parent="core")
-    p.edge("rx-fifo", "rx-mux", "data")
-    p.node("axil-m", 1120, 1770, 800, 200, "axi_lite_master_native",
-           "M_AXI", parent="core")
-    p.edge("rx-mux", "axil-m", "data")
-    p.node("phy", 1600, 2310, 500, 165, "Физический PHY",
-           "MDC и MDIO", "L0")
-    p.edge("engine", "phy", "data", start="E", end="E",
-           via=((2160, 1295), (2160, 2392.5)), label_xy=(2070, 2180), label="Шина",
-           bidirectional=True)
-    p.node("memory", 180, 2310, 1120, 195, "BRAM MDIO",
-           "Результат: +0x0000")
-    p.edge("axil-m", "memory", "data", start="S", end="N",
-           via=((1520, 2210), (740, 2210)))
-    p.note(2590, "Подтверждение результата в PS: прочитать MEM_ADDR, затем записать 1 в IRQ. Драйвер сверяет адрес результата и проверяет DATA_VALID.")
-    p.note(2650, "Успех записи означает завершение отправки кадра. Сервис получает фактическое значение отдельным чтением PHY.")
-
-    p = Page("mdio/slave.svg", "MDIO slave: два независимых пути BRAM",
-             "Внешнее чтение использует подготовленный ответ. Входящая запись сохраняется для последующей обработки PS.",
-             [source("mdio", "slave", n) for n in
-              ("top_mdio_slave", "mdio_slave_engine", "mdio_data_ctrl")])
-    p.node("host", 760, 260, 680, 165, "Внешний ведущий MDIO",
-           "", "L0")
-    p.frame("core", 130, 550, 1940, 1270, "SMI_slave_0",
-            subtitle="top_mdio_slave", target="mdio/subsystem.svg#slave")
-    p.node("engine", 640, 670, 920, 190, "mdio_slave_engine",
-           "Clause 22", parent="core")
-    p.edge("host", "engine", "data", "MDC и MDIO", bidirectional=True)
-    p.frame("data-ctrl", 180, 1020, 1840, 735, "mdio_data_ctrl",
-            parent="core", subtitle="")
-    p.node("write", 250, 1140, 690, 215, "Входящая запись",
-           "Банк записей: +0x1000", parent="data-ctrl")
-    p.node("read", 1260, 1140, 690, 185, "Внешнее чтение",
-           "Банк ответов: +0x2000", parent="data-ctrl")
-    p.edge("engine", "write", "data", "OP = write", start="S", end="N", a_offset=-250,
-           via=((850, 940), (595, 940)))
-    p.edge("read", "engine", "data", "Ответ", start="N", end="S", b_offset=250,
-           via=((1605, 920), (1350, 920)))
-    p.edge("engine", "read", "data", "OP = read", start="S", end="N", a_offset=350, b_offset=240,
-           via=((1450, 985), (1845, 985)), label_xy=(1780, 969))
-    p.node("axi", 640, 1520, 920, 170, "axi_lite_master_native",
-           "M_AXI", parent="data-ctrl")
-    p.edge("write", "axi", "data", start="S", end="N", b_offset=-220,
-           via=((595, 1430), (880, 1430)))
-    p.edge("axi", "read", "data", start="N", end="S", a_offset=220,
-           via=((1320, 1430), (1605, 1430)))
-    p.edge("read", "axi", "mmio", start="S", end="N", a_offset=250, b_offset=350,
-           via=((1855, 1470), (1450, 1470)))
-    p.node("memory", 670, 1950, 860, 165, "BRAM MDIO",
-           "")
-    p.edge("axi", "memory", "data", "M_AXI", start="S", end="N", a_offset=-150, b_offset=-150)
-    p.edge("memory", "axi", "data", start="N", end="S", a_offset=150, b_offset=150)
-    p.node("consume", 110, 2270, 800, 195, "Обработка принятой записи",
-           "Задача PS, профиль и политика", "L3")
-    p.node("publish", 1290, 2270, 800, 195, "Подготовка ответов",
-           "", "L3")
-    p.edge("memory", "consume", "data", start="S", end="N", a_offset=-200,
-           via=((900, 2190), (510, 2190)))
-    p.edge("publish", "memory", "data", start="N", end="S", b_offset=200,
-           via=((1690, 2190), (1300, 2190)))
-    p.note(2550, "Ячейка хранит последнее значение. Несколько записей до обработки PS могут слиться; порядок между регистрами из этой памяти восстановить нельзя.")
-    p.note(2610, "После потребления PS ставит метку 0x00010000. Запрет политики учитывается программой; отдельного ответа об отказе внешней MDIO-записи нет.")
-
 
 def spi_sheets():
     p = Page("spi/subsystem.svg", "Подсистема SPI: потоки, DMA и память",
@@ -889,10 +741,10 @@ def spi_sheets():
             target="overview/subsystems.svg#pl-subsystem")
     p.node("master", 150, 710, 680, 220, "SPI_master_0",
            "",
-           parent="subsystem", target="spi/master.svg#core")
+           parent="subsystem", target="spi/cores/master/structure.svg#core")
     p.node("slave", 1370, 710, 680, 190, "SPI_Slave_0",
            "", parent="subsystem",
-           target="spi/slave.svg#core")
+           target="spi/cores/slave/structure.svg#core")
     p.edge("ps", "master", "mmio", start="S", end="N", a_offset=-240,
            via=((860, 505), (490, 505)))
     p.edge("ps", "slave", "mmio", start="S", end="N", a_offset=240,
@@ -905,10 +757,10 @@ def spi_sheets():
             subtitle="", target="@architecture_bvstk_ps_pl.svg#dma1")
     p.node("dma1-tx", 1325, 1210, 310, 165, "MM2S", "Память → поток", parent="dma1")
     p.node("dma1-rx", 1735, 1210, 310, 165, "S2MM", "Поток → память", parent="dma1")
-    p.edge("dma0-tx", "master", "data", "MOSI", start="N", end="S", b_offset=-180)
-    p.edge("master", "dma0-rx", "data", "MISO", start="S", end="N", a_offset=230)
-    p.edge("dma1-tx", "slave", "data", "MISO", start="N", end="S", b_offset=-230)
-    p.edge("slave", "dma1-rx", "data", "MOSI", start="S", end="N", a_offset=180)
+    p.edge("dma0-tx", "master", "data", "AXI Stream", start="N", end="S", b_offset=-180)
+    p.edge("master", "dma0-rx", "data", "AXI Stream", start="S", end="N", a_offset=230)
+    p.edge("dma1-tx", "slave", "data", "AXI Stream", start="N", end="S", b_offset=-230)
+    p.edge("slave", "dma1-rx", "data", "AXI Stream", start="S", end="N", a_offset=180)
     p.node("fabric", 620, 1650, 960, 175, "axi_interconnect_3",
            "",
            parent="subsystem", target="@architecture_bvstk_ps_pl.svg#spi-fabric")
@@ -917,10 +769,10 @@ def spi_sheets():
     p.edge("dma1", "fabric", "data", start="S", end="N", b_offset=280,
            via=((1685, 1540), (1380, 1540)), bidirectional=True)
     p.edge("ps", "fabric", "data", "Доступ PS", start="E", end="E",
-           via=((2180, 345), (2180, 1880), (1660, 1880), (1660, 1737.5)),
-           label_xy=(1910, 1800), bidirectional=True)
+           via=((2180, 345), (2180, 1737.5)),
+           label_xy=(1910, 1710), bidirectional=True)
     p.edge("master", "fabric", "data", "M_AXI", start="E", end="N",
-           via=((1050, 820), (1050, 1580), (1100, 1580)), label_xy=(1120, 1460))
+           via=((1100, 820),), label_xy=(1190, 1460))
     p.node("memory", 100, 2050, 1000, 240, "BRAM обмена",
            "Банк 0\nБанк 1")
     p.node("hp0", 1360, 2050, 740, 180, "S_AXI_HP0",
@@ -930,140 +782,7 @@ def spi_sheets():
            via=((880, 1960), (600, 1960)), bidirectional=True)
     p.edge("fabric", "hp0", "data", start="S", end="N", a_offset=220,
            via=((1320, 1960), (1730, 1960)), bidirectional=True)
-    p.frame("freertos", 350, 2460, 1500, 300, "FreeRTOS", "L3", ownership="freertos")
-    p.node("sd", 410, 2540, 1380, 165, "Действующий путь SD",
-           "bvstk_sd_service", "L3",
-           parent="freertos", target="spi/sd-transfer.svg", ownership="freertos")
-    p.edge("memory", "sd", "data", start="S", end="N", b_offset=-260,
-           via=((600, 2360), (840, 2360)))
-    p.note(2850, "Обычный SPI-сервис выключен в профиле AX7020. Универсальный профиль устройств и политика SPI сейчас не подключены.")
 
-    p = Page("spi/master.svg", "SPI master: поток и обработка команд SD",
-             "Вложенные блоки показывают состав top_spi_master из ip_repo.",
-             [source("spi", "master", n) for n in
-              ("top_spi_master", "spi_regs", "spi_master_ctrl", "spi_dma_2words_parser",
-               "sd_ini_tx_cmds", "spi_master_engine", "spi_sd_ini")])
-    p.node("dma-in", 80, 270, 720, 165, "axi_dma_0: MM2S",
-           "", target="spi/subsystem.svg#dma0-tx")
-    p.node("ps", 1400, 270, 720, 165, "PS: настройка SPI",
-           "", "L0", target="@architecture_bvstk_ps_pl.svg#ps-axi")
-    p.frame("core", 60, 580, 2080, 1800, "SPI_master_0",
-            subtitle="top_spi_master", target="spi/subsystem.svg#master")
-    p.node("axis-fifo", 110, 705, 660, 160, "xpm_fifo_axis",
-           "AXI Stream", parent="core")
-    p.node("regs", 1410, 705, 650, 190, "spi_regs",
-           "axi_lite_slave_native", parent="core")
-    p.edge("dma-in", "axis-fifo", "data")
-    p.edge("ps", "regs", "mmio", start="S", end="N",
-           via=((1760, 505), (1735, 505)))
-    p.frame("ctrl", 100, 1010, 1000, 530, "spi_master_ctrl", parent="core")
-    p.node("pack", 145, 1100, 910, 155, "Управление потоком",
-           "Слова ↔ байты", parent="ctrl")
-    p.node("parser", 145, 1350, 910, 150, "spi_dma_2words_parser",
-           "Дескриптор SD", parent="ctrl")
-    p.edge("axis-fifo", "pack", "data")
-    p.edge("pack", "parser", "data")
-    p.node("sd-command", 1350, 1090, 710, 230, "sd_ini_tx_cmds",
-           "Команда SD", parent="core")
-    p.edge("parser", "sd-command", "data", start="E", end="W", b_offset=40,
-           via=((1180, 1425), (1180, 1245)))
-    p.edge("regs", "sd-command", "mmio")
-    p.node("engine", 1350, 1650, 710, 195, "spi_master_engine",
-           "SCK, CS, MOSI, MISO", parent="core")
-    p.edge("sd-command", "engine", "data", "Передача", start="S", end="N",
-           a_offset=-150, b_offset=-150)
-    p.edge("engine", "sd-command", "data", "Ответ", start="N", end="S",
-           a_offset=150, b_offset=150)
-    p.node("init", 130, 1700, 820, 175, "spi_sd_ini",
-           "Инициализация SD", parent="core")
-    p.edge("regs", "init", "mmio", "sd_ini_en", start="W", end="N",
-           via=((1210, 800), (1210, 1600), (540, 1600)), label_xy=(1110, 1620))
-    p.node("rx-fifo", 130, 2040, 820, 155, "RX FIFO и axi_stream_master",
-           "xpm_fifo_sync", parent="core")
-    p.node("replies", 1330, 2040, 730, 225, "Запись ответов SD",
-           "spi_regs и axi_lite_master_native",
-           parent="core")
-    p.edge("engine", "rx-fifo", "data", "Через spi_master_ctrl", start="S", end="N",
-           via=((1705, 1950), (540, 1950)))
-    p.edge("sd-command", "replies", "data", "Ответ", start="E", end="E",
-           via=((2110, 1205), (2110, 2152.5)), label_xy=(1990, 1940))
-    p.node("pins", 1360, 2510, 750, 185, "Внешняя шина SPI",
-           "MOSI, MISO, SCK, CS", "L0")
-    p.edge("engine", "pins", "data", start="E", end="E",
-           via=((2180, 1747.5), (2180, 2602.5)), bidirectional=True)
-    p.edge("init", "pins", "data", start="W", end="W",
-           via=((80, 1787.5), (80, 2440), (1270, 2440), (1270, 2602.5)),
-           label="Начальные такты", label_xy=(920, 2420))
-    p.node("dma-out", 130, 2510, 820, 155, "axi_dma_0: S2MM",
-           "", target="spi/subsystem.svg#dma0-rx")
-    p.edge("rx-fifo", "dma-out", "data")
-    p.note(2800, "Для SD программный драйвер использует отдельный контракт команды и DMA. Порядок запуска и проверка результата раскрыты на листе SD.")
-
-    p = Page("spi/slave.svg", "SPI slave: обмен между шиной и AXI Stream",
-             "Внешний ведущий задаёт SCK и CS. Два FIFO развязывают последовательную шину и потоки.",
-             [source("spi", "slave", n) for n in
-              ("top_spi_slave", "spi_slave_ctrl", "spi_slave_engine", "axi_stream_master", "axi_stream_slave")])
-    p.node("host", 660, 270, 880, 165, "Внешний ведущий SPI",
-           "SCK и CS", "L0")
-    p.frame("core", 80, 590, 2040, 1390, "SPI_Slave_0",
-            subtitle="top_spi_slave", target="spi/subsystem.svg#slave")
-    p.node("engine", 650, 710, 900, 185, "spi_slave_engine",
-           "Биты ↔ байты", parent="core")
-    p.edge("host", "engine", "data", "MOSI", start="S", end="N", a_offset=-180, b_offset=-180)
-    p.edge("engine", "host", "data", "MISO", start="N", end="S", a_offset=180, b_offset=180)
-    p.node("ctrl", 650, 1050, 900, 225, "spi_slave_ctrl",
-           "Байты ↔ слова\naxi_lite_slave_native", parent="core")
-    p.edge("engine", "ctrl", "data", "Принятые байты", start="S", end="N", a_offset=-180, b_offset=-180)
-    p.edge("ctrl", "engine", "data", "Байты ответа", start="N", end="S", a_offset=180, b_offset=180)
-    p.node("rx-from-axis", 180, 1470, 760, 165, "FIFO ответа внешнему ведущему",
-           "rx_xpm_fifo_sync_inst", parent="core")
-    p.node("tx-to-axis", 1260, 1470, 760, 165, "FIFO принятого MOSI",
-           "tx_xpm_fifo_sync_inst", parent="core")
-    p.edge("rx-from-axis", "ctrl", "data", start="N", end="S", b_offset=-220,
-           via=((560, 1370), (880, 1370)))
-    p.edge("ctrl", "tx-to-axis", "data", start="S", end="N", a_offset=220,
-           via=((1320, 1370), (1640, 1370)))
-    p.node("axis-in", 180, 1770, 760, 145, "axi_stream_slave",
-           "axi_str_s", parent="core")
-    p.node("axis-out", 1260, 1770, 760, 145, "axi_stream_master",
-           "axi_str_m", parent="core")
-    p.edge("axis-in", "rx-from-axis", "data")
-    p.edge("tx-to-axis", "axis-out", "data")
-    p.node("dma-tx", 180, 2150, 760, 150, "axi_dma_1: MM2S",
-           "", target="spi/subsystem.svg#dma1-tx")
-    p.node("dma-rx", 1260, 2150, 760, 150, "axi_dma_1: S2MM",
-           "", target="spi/subsystem.svg#dma1-rx")
-    p.edge("dma-tx", "axis-in", "data")
-    p.edge("axis-out", "dma-rx", "data")
-    p.note(2400, "Названия RX и TX в RTL относятся к стороне потоков. Функциональные подписи показывают направление относительно внешней шины.")
-    p.note(2460, "На этом листе показана аппаратная возможность. Обслуживание SPI slave отдельной службой текущего BVSTK не подключено.")
-
-    sequence("spi/sd-transfer.svg", "SD через SPI master: чтение блока",
-             "Сценарий FreeRTOS, CMD17. Общие драйверы исполняются в этой сборке.",
-             [
-                 ("service", "Порт SD FreeRTOS", "bvstk_sd_pl", "L1",
-                  "@architecture_bvstk_l1.svg#f-media-sd-pl", "freertos"),
-                 ("driver", "bvstk_sd_master", "Через bvstk_sd_service", "L3",
-                  "@architecture_bvstk_l3.svg#driver-bvstk_sd_master", None),
-                 ("memory", "BRAM банка 0", "", "PL",
-                  None, None),
-                 ("hardware", "SPI и axi_dma_0", "", "PL",
-                  "spi/subsystem.svg#master", None),
-             ], [
-                 ("service", "driver", "call", "Чтение блока", "Сервис выполняет операцию с картой под своей синхронизацией."),
-                 ("driver", "hardware", "mmio", "Настройка SPI, сброс DMA", "Порт ОС подтверждает старые события и разрешает учёт нового IRQ."),
-                 ("driver", "memory", "data", "Дескриптор CMD17", "Аргумент, код команды и CRC7; очистить RX и установить защитные слова."),
-                 ("driver", "hardware", "mmio", "Запуск S2MM", "Адрес BRAM +0x1000, ожидаемая длина 514 байт."),
-                 ("driver", "hardware", "mmio", "Запуск MM2S и SPI", "TX из BRAM +0x400; CSR получает SDM_START_COMMAND."),
-                 ("memory", "hardware", "data", "Команда", "Ядро обменивается с картой по внешней шине."),
-                 ("hardware", "memory", "data", "Ответ и блок", "S2MM записывает 512 байт данных и два байта CRC16."),
-                 ("hardware", "service", "irq", "IRQ", "ISR порта увеличивает счётчик; логика команды остаётся в вызывающем контексте."),
-                 ("driver", "hardware", "mmio", "Проверка завершения", "Нужны новый IRQ, обновлённый ответ, завершение MM2S и S2MM."),
-                 ("memory", "driver", "data", "Блок и проверка CRC16", "Проверить длину, защитные слова, CRC16 и допустимость ответа карты."),
-                 ("driver", "service", "data", "Блок или ошибка", "Образование сигнала IRQ само по себе ещё не завершает проверку данных."),
-             ], ["src/drivers/pl/sd/bvstk_sd_master.c",
-                 "src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_master_freertos.c"],
-             notes=["На ошибке драйвер выполняет восстановление DMA и аппаратного состояния. Буферы этого пути размещены в BRAM."])
 
 
 def main():
@@ -1078,8 +797,10 @@ def main():
     generate_article_flows(Page, el, PALETTE, ARROWS)
     generate_spi_protocol(Page, el, PALETTE, ARROWS)
     generate_mdio_protocol(Page, el, PALETTE, ARROWS)
-    mdio_cores()
     spi_sheets()
+    generate_mdio_details(Page, el, PALETTE, ARROWS)
+    generate_spi_details(Page, el, PALETTE, ARROWS)
+    generate_transaction_examples(Page, el, PALETTE, ARROWS)
     for page in SHEETS.values():
         page.save()
     placeholder = OUT / ".gitkeep"

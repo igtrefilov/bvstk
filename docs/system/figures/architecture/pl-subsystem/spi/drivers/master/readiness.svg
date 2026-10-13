@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2000" viewBox="0 0 2000 1618" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1618">
+  <title id="title">Независимые признаки завершения CMD17</title>
+  <desc id="desc">Независимые признаки завершения CMD17</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2000" height="1618" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="550" width="470" height="270" rx="16" fill="white" />
+    <path d="M555,132.5 H1780" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="4 8" fill="none" />
+    <path d="M555,412.5 H1780" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="4 8" fill="none" />
+    <path d="M555,702.5 H1780" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="4 8" fill="none" />
+    <path d="M555,1002.5 H1780" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="4 8" fill="none" />
+    <path d="M1780,80 V1175" stroke="#287f73" stroke-width="2" stroke-dasharray="7 9" fill="none" />
+  </g>
+  <g id="interactions">
+    <path d="M800,132.5 H1780" stroke="#b56b1d" stroke-width="4" fill="none" />
+    <circle cx="800" cy="132.5" r="7" fill="#b56b1d" />
+    <path d="M1080,412.5 H1780" stroke="#3f75ad" stroke-width="4" fill="none" />
+    <circle cx="1080" cy="412.5" r="7" fill="#3f75ad" />
+    <path d="M1330,702.5 H1780" stroke="#c65b4e" stroke-width="4" stroke-dasharray="9 6" fill="none" />
+    <circle cx="1330" cy="702.5" r="7" fill="#c65b4e" />
+    <path d="M1580,1002.5 H1780" stroke="#b56b1d" stroke-width="4" fill="none" />
+    <circle cx="1580" cy="1002.5" r="7" fill="#b56b1d" />
+    <g data-kind="interaction" data-from="rx" data-to="driver" data-interaction="call" data-direction="forward">
+      <path d="M1780,1175 L1780,1250" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1780,1175 L1780,1250" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="60" y="550" width="470" height="270" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="86" y="587.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="irq" data-kind="component" data-layer="L1" data-label="Порт SD" data-ownership="common" data-parent="freertos" data-target="../irq.svg#port">
+        <rect x="95" y="630" width="400" height="145" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../irq.svg#port">
+          <text x="115" y="654.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="115" y="688.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт SD</text>
+        </a>
+        <text x="115" y="727.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">core_isr</text>
+      </g>
+    </g>
+    <g id="tx" data-kind="component" data-layer="L0" data-domain="pl" data-label="MM2S" data-ownership="common" data-target="completion.svg#dma">
+      <rect x="95" y="60" width="400" height="145" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="completion.svg#dma">
+        <text x="115" y="84.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="115" y="118.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">MM2S</text>
+      </a>
+      <text x="115" y="157.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Дескриптор передан</text>
+    </g>
+    <g id="reply" data-kind="component" data-layer="L0" data-domain="pl" data-label="Ответ CMD17" data-ownership="common" data-target="completion.svg#reply">
+      <rect x="95" y="340" width="400" height="145" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="completion.svg#reply">
+        <text x="115" y="364.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="115" y="398.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Ответ CMD17</text>
+      </a>
+      <text x="115" y="437.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">BRAM +0x003C</text>
+    </g>
+    <g id="rx" data-kind="component" data-layer="L0" data-domain="pl" data-label="S2MM" data-ownership="common" data-target="completion.svg#dma">
+      <rect x="95" y="930" width="400" height="145" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="completion.svg#dma">
+        <text x="115" y="954.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="115" y="988.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">S2MM</text>
+      </a>
+      <text x="115" y="1027.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Блок принят</text>
+    </g>
+    <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_sd_master" data-ownership="common" data-target="completion.svg#driver">
+      <rect x="1510" y="1250" width="430" height="170" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="completion.svg#driver">
+        <text x="1530" y="1274.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="1530" y="1308.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_sd_master</text>
+      </a>
+      <text x="1530" y="1347.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Длина, границы, CRC16</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="800" y="107.5" font-size="24" font-weight="400" text-anchor="middle" style="fill:#b56b1d">IOC + IDLE</text>
+    <text x="1080" y="387.5" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Ответ изменился</text>
+    <text x="1330" y="677.5" font-size="24" font-weight="400" text-anchor="middle" style="fill:#c65b4e">irq_count = 1</text>
+    <text x="1580" y="977.5" font-size="24" font-weight="400" text-anchor="middle" style="fill:#b56b1d">IOC + IDLE</text>
+    <text x="1780" y="45.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#287f73">Проверка PS</text>
+    <text x="780" y="1200.0" font-size="25" font-weight="400" text-anchor="start" style="fill:#576c7b">Время →</text>
+    <path d="M60,1472 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1478.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1472 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1478.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,1472 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="1478.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,1472 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="1478.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="1509" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="1528.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="1509" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="304" y="1528.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="375" y="1509" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1528.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1575.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Один из возможных порядков событий. Линия после точки означает, что признак уже наблюдается. Масштаб условный.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/drivers/pl/sd/bvstk_sd_master.c",
+    "src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_master_freertos.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "tx",
+      "target": "completion.svg#dma"
+    },
+    {
+      "node": "reply",
+      "target": "completion.svg#reply"
+    },
+    {
+      "node": "irq",
+      "target": "../irq.svg#port"
+    },
+    {
+      "node": "rx",
+      "target": "completion.svg#dma"
+    },
+    {
+      "node": "driver",
+      "target": "completion.svg#driver"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

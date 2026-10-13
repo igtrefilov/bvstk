@@ -57,6 +57,8 @@ class CoreDrawing(ProtocolDrawing):
     def sequence(self, y, rows):
         """Label each message at its arrow; the article explains each step."""
         p = self.p
+        if not p.legend_note:
+            p.legend_note = "Время идёт сверху вниз; масштаб условный."
         row_height = 105
         bottom = y+len(rows)*row_height
         for x in self.centers.values():
@@ -68,7 +70,7 @@ class CoreDrawing(ProtocolDrawing):
             pairs = list(zip(source, destination)) if isinstance(source, tuple) else [(source, destination)]
             points_x = [self.centers[actor] for pair in pairs for actor in pair]
             left, right = min(points_x), max(points_x)
-            label_width = max(right-left-20, 260)
+            label_width = max(right-left-20, 440 if left == right else 260)
             group = self.el(p.notes, "g", id=key, data_kind="sequence-step")
             self.el(group, "rect", x=(left+right-label_width)/2, y=yy-24,
                     width=label_width, height=57, rx=4, fill="white")

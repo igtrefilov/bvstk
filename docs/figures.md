@@ -40,12 +40,13 @@ Chromium; путь к браузеру при нестандартной уст�
 
 Обзоры и подробные схемы хранятся в `system/figures/architecture/`.
 Полные карты уровней включены в [главу об архитектуре](system/architecture/architecture.md);
-основной путь статьи начинается с простого примера моста.
+основной путь статьи начинается со схемы подключения BVSTK к устройствам.
 Эти SVG редактируются непосредственно. Ссылки в названиях блоков
 связывают соответствующие части разных рисунков.
 
 | Схема | Содержание |
 |---|---|
+| [BVSTK между устройствами](system/figures/architecture/context.svg) | Внешний ведущий, BVSTK и ведомое устройство на двух участках шины |
 | [Уровни абстракции](system/figures/architecture/levels.svg) | Принятое деление системы на L0–L4 |
 | [BVSTK в двух ОС](system/figures/architecture/architecture_bvstk_os.svg) | Части FreeRTOS и Нейтрино, общий код |
 | [L4. Приложения](system/figures/architecture/architecture_bvstk_l4.svg) | Запуск, настройки и пользовательские интерфейсы |
@@ -62,7 +63,7 @@ Chromium; путь к браузеру при нестандартной уст�
 Глава [о подсистемах PL](system/pl-subsystem/pl-subsystem.md)
 раскрывает устройство PL и взаимодействие с программой PS.
 Рисунки включены в текст соответствующих разделов статьи.
-В комплекте 57 рисунков:
+В комплекте 88 рисунков:
 
 | Раздел | Содержание |
 |---|---|
@@ -73,19 +74,25 @@ Chromium; путь к браузеру при нестандартной уст�
 | [Обновление значения](system/figures/architecture/pl-subsystem/overview/exchange-refresh.svg) | Чтение физического устройства и подготовка ответа |
 | [Внешняя запись](system/figures/architecture/pl-subsystem/overview/exchange-write.svg) | Приём запроса, проверка политики и разрешённая операция |
 | [Области обмена](system/figures/architecture/pl-subsystem/overview/memory.svg) | Кто записывает и читает данные, как определяется готовность |
-| [Два обмена I²C](system/figures/architecture/pl-subsystem/i2c/exchange.svg) | Предварительное чтение через master и последующий ответ из кэша через slave |
+| [Два обмена I²C](system/figures/architecture/pl-subsystem/i2c/exchange.svg) | Успешная запись через master и последующий ответ из кэша через slave |
 | [Срок ответа I²C](system/figures/architecture/pl-subsystem/i2c/miss-deadline.svg) | Сопоставление ожидания slave с длительностью физического чтения |
 | [Состояние сервиса I²C](system/figures/architecture/pl-subsystem/i2c/services/read-state.svg) | Указатель регистра, разрешение чтения и подготовка окон |
 | [Ведущий сервис I²C](system/figures/architecture/pl-subsystem/i2c/services/master-operations.svg) | Физическое чтение, политика записи и обновление кэша по результату |
-| [Копии значения MDIO](system/figures/architecture/pl-subsystem/mdio/value-lifetime.svg) | Изменение физического регистра, публикация в BRAM и обновление кэша |
+| [Копии значения MDIO](system/figures/architecture/pl-subsystem/mdio/services/value-lifetime.svg) | Изменение физического регистра, публикация в BRAM и обновление кэша |
 | [I²C](system/figures/architecture/pl-subsystem/i2c/protocol/interface.svg) | Интерфейс, формат транзакции, чтение, запись и повторный START |
 | [Ведомое ядро I²C](system/figures/architecture/pl-subsystem/i2c/cores/slave/structure.svg) | Состав ядра, обработка адреса, запись, чтение, повторный START, окна BRAM и завершение |
 | [Ведущее ядро I²C](system/figures/architecture/pl-subsystem/i2c/cores/master/structure.svg) | Команды TX FIFO, обмен на шине, приёмные буферы, тактирование и завершение |
 | [Драйверы I²C](system/figures/architecture/pl-subsystem/i2c/drivers/platform.svg) | Доступ к ядрам, ведущая команда, окна slave и доставка событий в двух ОС |
 | [Протокол MDIO](system/figures/architecture/pl-subsystem/mdio/protocol/interface.svg) | Линии, кадры Clause 22, смена передатчика и временная диаграмма ответа |
-| [MDIO](system/figures/architecture/pl-subsystem/mdio/subsystem.svg) | Кадр Clause 22, последние записи и подготовленные ответы |
+| [MDIO](system/figures/architecture/pl-subsystem/mdio/subsystem.svg) | Два участка шины и программный мост |
+| [Ядра MDIO](system/pl-subsystem/mdio/cores/cores.md) | Ведущая команда, готовый ответ slave, публикация данных и IRQ |
+| [Драйвер MDIO](system/pl-subsystem/mdio/drivers/drivers.md) | Банки BRAM, опрос master, потребление записей и порты ОС |
+| [Сервис MDIO](system/pl-subsystem/mdio/services/services.md) | Политика, перечитывание, проверка присутствия и актуализация кэша |
 | [Протокол SPI](system/figures/architecture/pl-subsystem/spi/protocol/interface.svg) | Линии, одновременная передача, режимы CPOL и CPHA, чтение и запись |
-| [SPI и SD](system/figures/architecture/pl-subsystem/spi/subsystem.svg) | Потоки, DMA, оба ядра SPI и чтение блока SD |
+| [SPI и SD](system/figures/architecture/pl-subsystem/spi/subsystem.svg) | Потоки, DMA и память |
+| [Ядра SPI](system/pl-subsystem/spi/cores/cores.md) | Командный путь SD, два пути результата и потоки slave |
+| [Драйверы SPI и SD](system/pl-subsystem/spi/drivers/drivers.md) | Инициализация, CMD17, CMD24, IRQ и проверки блока |
+| [Сервис SD](system/pl-subsystem/spi/services/services.md) | Владение картой, границы тома и запись с проверкой |
 
 Цвета слоёв и типы стрелок совпадают с общим архитектурным рядом.
 Ссылки в заголовках ведут к соответствующим блокам соседних листов.
@@ -108,8 +115,20 @@ Chromium; путь к браузеру при нестандартной уст�
 [описание драйверов](system/pl-subsystem/i2c/drivers/drivers.md).
 Общий код показан между пунктирными областями FreeRTOS и Нейтрино;
 последовательности раскрывают обмен драйверов с ядрами и BRAM.
-Аппаратные адреса и особенности реализации раскрыты в карте памяти
-и схемах конкретных ядер.
+Для MDIO и SPI также выделены `cores`, `drivers` и `services`.
+Семь рисунков ядер MDIO дополняются четырьмя рисунками драйвера
+и тремя рисунками сервиса. Для SPI подготовлены девять аппаратных
+рисунков, семь рисунков драйвера SD и три рисунка сервиса.
+В MDIO отдельно показаны разбор кадра, выполнение команды master
+и потеря обновления входящей ячейки при наложении обращений PL и PS.
+В SPI раскрыты дескриптор CMD17, фазы приёма, последний перенос
+с двухбайтовой CRC16 и независимые признаки завершения.
+У каждой шины есть рисунок конкретной транзакции.
+Один и тот же пример продолжается в `cores`, `drivers` и `services`;
+адреса, данные и участники сохраняются при переходе между рисунками.
+Пояснения к ним находятся в одноимённых разделах статьи;
+отсутствующее обслуживание SPI slave в PS описано текстом.
+Аппаратные адреса и форматы памяти приведены в главах о драйверах.
 
 Новый комплект создаётся из
 [generate_pl_subsystem.py](../tools/docs/generate_pl_subsystem.py).
@@ -123,13 +142,20 @@ Chromium; путь к браузеру при нестандартной уст�
 Схемы драйверов и портов ОС — в [i2c_drivers.py](../tools/docs/i2c_drivers.py).
 Сценарии статьи, состояние сервиса и изменение копий значения —
 в [article_flows.py](../tools/docs/article_flows.py).
+Конкретные кадры и продолжения операций заданы в
+[transaction_examples.py](../tools/docs/transaction_examples.py).
+Общий вид последовательностей и областей ОС — в
+[transaction_drawing.py](../tools/docs/transaction_drawing.py).
+
+Подробные рисунки MDIO заданы в [mdio_details.py](../tools/docs/mdio_details.py),
+рисунки ядер SPI и пути SD — в [spi_details.py](../tools/docs/spi_details.py).
 Тексты и координаты редактируются в этих файлах:
 
 ```sh
 python3 tools/docs/generate_pl_subsystem.py
 ```
 
-Семь общих схем редактируются непосредственно в SVG.
+Восемь общих схем редактируются непосредственно в SVG.
 Генератор обновляет рисунки подсистем PL.
 Генератор не создаёт Markdown и не меняет текст статьи.
 

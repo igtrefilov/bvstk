@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 36 2200 1442" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1442">
+  <title id="title">Чтение готового ответа MDIO</title>
+  <desc id="desc">Чтение готового ответа MDIO</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="1478" fill="white" />
+  <g id="backgrounds">
+    <rect x="455.41935483870964" y="76" width="1017.8494623655914" height="252" rx="16" fill="white" />
+    <path d="M242.70967741935482,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M717.0322580645161,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1231.9569892473119,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1685.978494623656,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M2028.3440860215053,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="host" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M242.71,443 L717.032,443" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M242.71,443 L717.032,443" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="ctrl" data-interaction="data" data-direction="forward">
+      <path d="M717.032,548 L1231.96,548" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M717.032,548 L1231.96,548" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ctrl" data-to="bram" data-interaction="mmio" data-direction="forward">
+      <path d="M1231.96,653 L1685.98,653" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1231.96,653 L1685.98,653" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="bram" data-to="ctrl" data-interaction="data" data-direction="forward">
+      <path d="M1685.98,758 L1231.96,758" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1685.98,758 L1231.96,758" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ctrl" data-to="gic" data-interaction="irq" data-direction="forward">
+      <path d="M1231.96,863 L2028.34,863" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1231.96,863 L2028.34,863" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ctrl" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M1231.96,968 L717.032,968" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1231.96,968 L717.032,968" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M717.032,1063 L787.032,1063 L787.032,1085 L717.032,1085" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M717.032,1063 L787.032,1063 L787.032,1085 L717.032,1085" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="host" data-interaction="data" data-direction="forward">
+      <path d="M717.032,1178 L242.71,1178" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M717.032,1178 L242.71,1178" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="core" data-kind="functional-group" data-label="SMI_slave_0" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="455.41935483870964" y="76" width="1017.8494623655914" height="252" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <text x="481.41935483870964" y="113.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">SMI_slave_0</text>
+      <g id="engine" data-kind="component" data-layer="L0" data-domain="pl" data-label="mdio_slave_engine" data-ownership="common" data-parent="core" data-target="structure.svg#engine">
+        <rect x="473.41935483870964" y="140" width="487.22580645161287" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="structure.svg#engine">
+          <text x="493.41935483870964" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="493.41935483870964" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">mdio_slave_engine</text>
+        </a>
+      </g>
+      <g id="ctrl" data-kind="component" data-layer="L0" data-domain="pl" data-label="mdio_data_ctrl" data-ownership="common" data-parent="core" data-target="structure.svg#ctrl">
+        <rect x="1008.6451612903226" y="140" width="446.6236559139785" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="structure.svg#ctrl">
+          <text x="1028.6451612903224" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1028.6451612903224" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">mdio_data_ctrl</text>
+        </a>
+      </g>
+    </g>
+    <g id="host" data-kind="component" data-layer="L0" data-label="Внешний ведущий" data-ownership="common">
+      <rect x="60" y="140" width="365.41935483870964" height="155" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="80" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="80" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий</text>
+    </g>
+    <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM ответа" data-ownership="common">
+      <rect x="1503.268817204301" y="140" width="365.41935483870964" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <text x="1523.268817204301" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="1523.268817204301" y="198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM ответа</text>
+      <text x="1523.268817204301" y="237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">+0x2000</text>
+    </g>
+    <g id="gic" data-kind="component" data-layer="L0" data-label="GIC" data-ownership="common">
+      <rect x="1916.6881720430106" y="140" width="223.31182795698925" height="155" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="1936.6881720430106" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="1936.6881720430106" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">GIC</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <g id="address" data-kind="sequence-step">
+      <rect x="252.70967741935485" y="366" width="454.3225806451613" height="57" rx="4" fill="white" />
+      <text x="479.8709677419355" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Чтение: PHY 1, REG 4</text>
+    </g>
+    <g id="request" data-kind="sequence-step">
+      <rect x="727.0322580645161" y="471" width="494.92473118279577" height="57" rx="4" fill="white" />
+      <text x="974.494623655914" y="495" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">tx_valid и tx_ready</text>
+    </g>
+    <g id="fetch" data-kind="sequence-step">
+      <rect x="1241.9569892473119" y="576" width="434.02150537634407" height="57" rx="4" fill="white" />
+      <text x="1458.967741935484" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Чтение 0x42002090</text>
+    </g>
+    <g id="value" data-kind="sequence-step">
+      <rect x="1241.9569892473119" y="681" width="434.02150537634407" height="57" rx="4" fill="white" />
+      <text x="1458.967741935484" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0x0120</text>
+    </g>
+    <g id="event" data-kind="sequence-step">
+      <rect x="1241.9569892473119" y="786" width="776.3870967741934" height="57" rx="4" fill="white" />
+      <text x="1630.1505376344085" y="810" font-size="22" font-weight="400" text-anchor="middle" style="fill:#c65b4e">host_read и IRQ</text>
+    </g>
+    <g id="capture" data-kind="sequence-step">
+      <rect x="727.0322580645161" y="891" width="494.92473118279577" height="57" rx="4" fill="white" />
+      <text x="974.494623655914" y="915" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">rx_valid и rx_ready: send_data</text>
+    </g>
+    <g id="deadline" data-kind="sequence-step">
+      <rect x="497.0322580645161" y="996" width="440" height="57" rx="4" fill="white" />
+      <text x="717.0322580645161" y="1020" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">TA_TX: ответ уже принят</text>
+    </g>
+    <g id="reply" data-kind="sequence-step">
+      <rect x="252.70967741935485" y="1101" width="454.3225806451613" height="57" rx="4" fill="white" />
+      <text x="479.8709677419355" y="1125" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">TA = Z0; DATA = 0x0120</text>
+    </g>
+    <text x="242.70967741935482" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#607487">Внешний ведущий</text>
+    <text x="717.0322580645161" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#8760ba">mdio_slave_engine</text>
+    <text x="1231.9569892473119" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#8760ba">mdio_data_ctrl</text>
+    <text x="1685.978494623656" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#8760ba">BRAM ответа</text>
+    <text x="2028.3440860215053" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#607487">GIC</text>
+    <path d="M60,1332 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="142" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M366,1332 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="448" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M562,1332 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="644" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="1369" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1369" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="1435.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт сверху вниз; масштаб условный.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/ip_repo/SMI_slave/src/mdio_slave_engine.sv",
+    "../hw_platform/fpga/ip_repo/SMI_slave/src/mdio_data_ctrl.sv"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "engine",
+      "target": "structure.svg#engine"
+    },
+    {
+      "node": "ctrl",
+      "target": "structure.svg#ctrl"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

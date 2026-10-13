@@ -1,5 +1,6 @@
 """Article figures for the common I2C drivers and their operating-system ports."""
 from i2c_core import CoreDrawing
+from transaction_drawing import owned, sequence
 
 
 BASE = "i2c/drivers/"
@@ -7,16 +8,6 @@ MASTER = "src/drivers/pl/i2c/bvstk_i2c_master.c"
 SLAVE = "src/drivers/pl/i2c/bvstk_i2c_slave.c"
 F_PORT = "src/ports/freertos-xilinx/os/"
 N_PORT = "src/ports/neutrino-zynq7000/os/"
-
-
-def owned(p, key, x, y, w, h, label):
-    """Use the same ownership boundary as the L0-L4 architecture figures."""
-    p.frame(key, x, y, w, h, label, None, ownership=key)
-    border = list(p.nodes[key].group)[0]
-    border.set("rx", "14")
-    border.set("stroke", "#8b9ca9")
-    border.set("stroke-width", "1.7")
-    border.set("stroke-dasharray", "10 8")
 
 
 def platform(d):
@@ -85,52 +76,52 @@ def master_completion(d):
         ("gic", "GIC", "Без обработчика master", "L0", "@architecture_bvstk_ps_pl.svg#irq-i2c-master", 1),
     ], y=120)
     d.sequence(y, [
-        ("publish", "core", "bram", "data", "Результат: 0x34"),
+        ("publish", "core", "bram", "data", "Результат: 0x7B"),
         ("irq", "core", "gic", "irq", "IRQ master: DATA_VALID"),
         ("poll", "driver", "core", "mmio", "Опрос CSR и регистра IRQ"),
         ("ready", "core", "driver", "mmio", "Свободен, DATA_VALID = 1"),
-        ("result", "bram", "driver", "data", "0x34"),
+        ("result", "bram", "driver", "data", "0x7B"),
     ])
 
 
 def slave_write(d):
     d.canvas(2200)
-    y = d.actors([
-        ("port", "Порт ОС", "IRQ", "L1", BASE + "events.svg", 1.1),
-        ("driver", "bvstk_i2c_slave", "", "L3", BASE + "platform.svg#slave", 1.35),
-        ("core", "I2C_slave_0", "IRQ и REQ", "PL", "i2c/cores/slave/write.svg#core", 1),
-        ("bram", "BRAM I²C", "Запрос: +0x1000", "PL", "i2c/cores/slave/memory-format.svg", 1.1),
-    ], y=120)
-    d.p.nodes["port"].group.set("data-ownership", "selected-os")
-    d.sequence(y, [
-        ("publish", "core", "bram", "data", "Принятые байты и заголовок"),
-        ("irq", "core", "port", "irq", "IRQ slave: DATA_VALID"),
+    sequence(d, [
+        ("port", "Порт I²C slave", "ISR и slave_task", "L1", BASE + "events.svg", 1.1),
+        ("driver", "bvstk_i2c_slave", "", "L3", BASE + "platform.svg#slave", 1.1),
+        ("core", "I2C_slave_0", "IRQ и REQ", "PL", "i2c/cores/slave/write.svg#core", .9),
+        ("bram", "BRAM I²C", "+0x1000", "PL", "i2c/cores/slave/write.svg#bram", .85),
+        ("service", "Сервис slave", "bvstk_i2c_slave_service", "L3", "i2c/services/write.svg#slave", 1.25),
+    ], [
+        ("irq", "core", "port", "irq", "IRQ через GIC: запись готова"),
         ("dispatch", "port", "driver", "call", "hw_capture_irq"),
-        ("capture", "driver", "core", "mmio", "capture_irq: IRQ и REQ"),
-        ("ack", "driver", "core", "mmio", "Сброс захваченных IRQ"),
-        ("copy", "bram", "driver", "data", "read_frame: адрес и байты"),
-        ("release", "driver", "bram", "mmio", "После обработки: clear_frame"),
-    ])
+        ("capture", "driver", "core", "mmio", "IRQ и REQ, затем сброс IRQ"),
+        ("dispatch-task", "port", "port", "irq", "Очередь → slave_task"),
+        ("read", "port", "driver", "call", "hw_read_frame"),
+        ("copy", "bram", "driver", "data", "Заголовок 0x0000012A; 10 7B"),
+        ("frame", "driver", "port", "data", "Адрес 0x2A; frame = {10, 7B}"),
+        ("handle", "port", "service", "call", "handle_frame: 10 7B"),
+    ], ownership=(("freertos", "FreeRTOS", ("port",)),))
 
 
 def slave_read(d):
     d.canvas(2200)
-    y = d.actors([
-        ("port", "Порт ОС", "IRQ", "L1", BASE + "events.svg", 1.1),
+    sequence(d, [
+        ("port", "Порт I²C slave", "ISR и slave_task", "L1", BASE + "events.svg", 1.1),
         ("service", "bvstk_i2c_slave_service", "Подготовка окна", "L3", "i2c/services/read-state.svg#service", 1.4),
         ("driver", "bvstk_i2c_slave", "", "L3", BASE + "platform.svg#slave", 1.25),
         ("bram", "BRAM I²C", "Ответ: +0x2000", "PL", "i2c/cores/slave/buffers.svg#rd-window", 1),
         ("core", "I2C_slave_0", "", "PL", "i2c/cores/slave/read.svg#core", 1),
-    ], y=120)
-    d.p.nodes["port"].group.set("data-ownership", "selected-os")
-    d.sequence(y, [
+    ], [
         ("irq", "core", "port", "irq", "IRQ slave: RD_REQUEST"),
+        ("event", "port", "port", "irq", "Захват события → slave_task"),
         ("dispatch", "port", "service", "call", "handle_frame: подготовить окно"),
-        ("window", "service", "driver", "data", "Окно ответа через порт ОС"),
+        ("window", "service", "port", "data", "Окно ответа: первый байт 0x7B"),
+        ("publish", "port", "driver", "call", "write_read_window, затем accept_read"),
         ("write", "driver", "bram", "data", "write_read_window: заголовок и байты"),
         ("valid", "driver", "core", "mmio", "accept_read: CSR.rd_valid"),
-        ("fetch", "bram", "core", "data", "Окно ответа"),
-    ])
+        ("fetch", "bram", "core", "data", "Окно ответа: первый байт 0x7B"),
+    ], ownership=(("freertos", "FreeRTOS", ("port",)),))
 
 
 def events(d):

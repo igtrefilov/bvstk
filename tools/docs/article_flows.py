@@ -23,9 +23,9 @@ def generate_article_flows(Page, el, palette, arrows):
         text(p, (x1+x2)/2, y-17, label, 23, anchor="middle",
              color=arrows[kind][0], cls="edge-label")
 
-    # A prior physical read and the later cache hit share the same PS state.
-    p = page("i2c/exchange.svg", "I²C: два обмена и кэш",
-             "Master получает значение заранее. При последующем внешнем чтении slave получает окно из кэша через PS.",
+    # The completed example write supplies a later cached read.
+    p = page("i2c/exchange.svg", "I²C: запись и последующее чтение",
+             "Успешная запись сохраняет 0x7B в кэше. При следующем внешнем чтении PS готовит окно slave из этого значения.",
              ["src/services/i2c/bvstk_i2c_slave_service.c",
               "src/services/i2c/bvstk_i2c_master_service.c"])
     actors = [
@@ -38,12 +38,12 @@ def generate_article_flows(Page, el, palette, arrows):
     for key, x, label, layer, target in actors:
         p.node(key, x-115, 70, 230, 120, label, layer=layer, target=target)
         line(p, ((x, 215), (x, 1215)), dash="5 8", width=1.5)
-    text(p, 70, 255, "Предыдущее чтение", 24, bold=True)
-    message(p, "ps", "master", 700, 975, 315, "Читать 0x10", "mmio")
-    message(p, "master", "device", 975, 1250, 385, "0x10, затем R")
-    message(p, "device", "master", 1250, 975, 455, "0x34")
-    message(p, "master", "ps", 975, 700, 525, "Результат 0x34")
-    p.node("cache", 600, 565, 200, 100, "Кэш: 0x34", layer="L3",
+    text(p, 70, 255, "Разрешённая запись", 24, bold=True)
+    message(p, "ps", "master", 700, 975, 315, "0x10 ← 0x7B", "mmio")
+    message(p, "master", "device", 975, 1250, 385, "0x10, 0x7B")
+    message(p, "device", "master", 1250, 975, 455, "ACK")
+    message(p, "master", "ps", 975, 700, 525, "Запись завершена", "call")
+    p.node("cache", 600, 565, 200, 100, "Кэш: 0x7B", layer="L3",
            target="overview/cache.svg#cache")
     line(p, ((65, 705), (1335, 705)), dash="5 8", width=1.5)
     text(p, 70, 753, "Внешнее чтение", 24, bold=True)
@@ -52,7 +52,7 @@ def generate_article_flows(Page, el, palette, arrows):
     text(p, 700, 924, "Указатель 0x10", 21, anchor="middle", cls="edge-label")
     message(p, "ps", "slave", 700, 425, 990, "Окно в BRAM")
     message(p, "ps", "slave", 700, 425, 1075, "rd_valid", "mmio")
-    message(p, "slave", "host", 425, 150, 1170, "ACK, 0x34")
+    message(p, "slave", "host", 425, 150, 1170, "ACK, 0x7B")
     # The band denotes physical SCL hold; it is separate from event arrows.
     el(p.under, "rect", x=414, y=825, width=22, height=305, rx=4,
        fill=palette["PL"][0], stroke=palette["PL"][1])
@@ -163,7 +163,7 @@ def generate_article_flows(Page, el, palette, arrows):
            label="Ошибка", label_xy=(885, 1140))
 
     # Values are state intervals, not a table of independent facts.
-    p = page("mdio/value-lifetime.svg", "MDIO: изменение регистра и его копий",
+    p = page("mdio/services/value-lifetime.svg", "MDIO: изменение регистра и его копий",
              "Устройство меняет значение раньше PS. Успешное чтение публикуется в BRAM, затем обновляет кэш сервиса.",
              ["src/services/mdio/bvstk_mdio_service.c"])
     tracks = [("device", 570, "Регистр PHY", "L0", 430),
@@ -172,7 +172,7 @@ def generate_article_flows(Page, el, palette, arrows):
     for key, x, label, layer, changed in tracks:
         p.node(key, x-125, 80, 250, 105, label, layer=layer)
         fill, color = palette[layer]
-        for index, (top, bottom, value) in enumerate(((220, changed, "0x0034"), (changed, 1005, "0x0056"))):
+        for index, (top, bottom, value) in enumerate(((220, changed, "0x0120"), (changed, 1005, "0x0160"))):
             el(p.blocks, "rect", id=f"{key}-{index}", x=x-85, y=top,
                width=170, height=bottom-top, fill=fill, stroke=color, stroke_width=2)
             text(p, x, top+48, value, 27, bold=True, anchor="middle", color=color)
@@ -180,7 +180,7 @@ def generate_article_flows(Page, el, palette, arrows):
                      (720, "PS публикует ответ"), (865, "PS обновляет кэш")]:
         line(p, ((65, y), (1350, y)), dash="3 7", width=1.3)
         text(p, 90, y-18-33*(label.count("\n")), label, 24)
-    text(p, 65, 290, "После прошлого\nопроса", 24)
+    text(p, 65, 290, "После записи\nи чтения", 24)
     line(p, ((40, 230), (40, 1005)), palette["L0"][1], parent=p.edges)
     el(p.edges, "path", d="M34,995 L40,1005 L46,995", stroke=palette["L0"][1], stroke_width=2, fill="none")
     p.max_y = 1025

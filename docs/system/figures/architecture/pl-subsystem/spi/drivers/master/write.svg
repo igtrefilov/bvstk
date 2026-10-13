@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" viewBox="0 28 2200 1450" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1450">
+  <title id="title">Передача блока CMD24</title>
+  <desc id="desc">Передача блока CMD24</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="2200" height="1478" fill="white" />
+  <g id="backgrounds">
+    <rect x="42" y="68" width="476.0" height="250" rx="16" fill="white" />
+    <path d="M280.0,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M812.0,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1344.0,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1876.0,325 V1215" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="driver" data-to="port" data-interaction="call" data-direction="forward">
+      <path d="M812,443 L280,443" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M812,443 L280,443" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="driver" data-to="bram" data-interaction="data" data-direction="forward">
+      <path d="M812,548 L1344,548" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M812,548 L1344,548" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="driver" data-to="hardware" data-interaction="mmio" data-direction="forward">
+      <path d="M812,653 L1876,653" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M812,653 L1876,653" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="bram" data-to="hardware" data-interaction="data" data-direction="forward">
+      <path d="M1344,758 L1876,758" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1344,758 L1876,758" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="hardware" data-to="bram" data-interaction="data" data-direction="forward">
+      <path d="M1876,863 L1344,863" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1876,863 L1344,863" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="hardware" data-to="port" data-interaction="irq" data-direction="forward">
+      <path d="M1876,968 L280,968" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1876,968 L280,968" fill="none" stroke="#c65b4e" stroke-width="2.7" stroke-dasharray="9 6" stroke-linejoin="round" marker-start="url(#irq-source)" marker-end="url(#irq-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="driver" data-to="hardware" data-interaction="mmio" data-direction="forward">
+      <path d="M812,1073 L1876,1073" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M812,1073 L1876,1073" fill="none" stroke="#b56b1d" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#mmio-source)" marker-end="url(#mmio-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="bram" data-to="driver" data-interaction="data" data-direction="forward">
+      <path d="M1344,1178 L812,1178" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1344,1178 L812,1178" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_sd_master" data-ownership="common" data-target="../platform.svg#driver">
+      <rect x="548.0" y="140" width="527.9999999999999" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../platform.svg#driver">
+        <text x="568.0" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="568.0" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_sd_master</text>
+      </a>
+    </g>
+    <g id="bram" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM банка 0" data-ownership="common">
+      <rect x="1124.0" y="140" width="439.99999999999994" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <text x="1144.0" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="1144.0" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM банка 0</text>
+    </g>
+    <g id="hardware" data-kind="component" data-layer="L0" data-domain="pl" data-label="SPI и axi_dma_0" data-ownership="common" data-target="../../subsystem.svg#master">
+      <rect x="1612.0" y="140" width="527.9999999999999" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../../subsystem.svg#master">
+        <text x="1632.0" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="1632.0" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">SPI и axi_dma_0</text>
+      </a>
+    </g>
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="42" y="68" width="476.0" height="250" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="68" y="105.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="port" data-kind="component" data-layer="L1" data-label="Порт SD" data-ownership="freertos" data-target="../irq.svg#port" data-parent="freertos">
+        <rect x="60" y="140" width="439.99999999999994" height="155" rx="11" fill="#fff0d6" stroke="#b56b1d" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="../irq.svg#port">
+          <text x="80" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#b56b1d" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+          <text x="80" y="198.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт SD</text>
+        </a>
+        <text x="80" y="237.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">IRQ</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <g id="prepare" data-kind="sequence-step">
+      <rect x="290.0" y="366" width="512.0" height="57" rx="4" fill="white" />
+      <text x="546.0" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">Подготовить новое событие</text>
+    </g>
+    <g id="block" data-kind="sequence-step">
+      <rect x="822.0" y="471" width="512.0" height="57" rx="4" fill="white" />
+      <text x="1078.0" y="495" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">CMD24, блок и CRC16</text>
+    </g>
+    <g id="start" data-kind="sequence-step">
+      <rect x="822.0" y="576" width="1044.0" height="57" rx="4" fill="white" />
+      <text x="1344.0" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">MM2S: 522 байта, затем START</text>
+    </g>
+    <g id="sent" data-kind="sequence-step">
+      <rect x="1354.0" y="681" width="512.0" height="57" rx="4" fill="white" />
+      <text x="1610.0" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Команда и данные</text>
+    </g>
+    <g id="reply" data-kind="sequence-step">
+      <rect x="1354.0" y="786" width="512.0" height="57" rx="4" fill="white" />
+      <text x="1610.0" y="810" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Ответ CMD24</text>
+    </g>
+    <g id="irq" data-kind="sequence-step">
+      <rect x="290.0" y="891" width="1576.0" height="57" rx="4" fill="white" />
+      <text x="1078.0" y="915" font-size="22" font-weight="400" text-anchor="middle" style="fill:#c65b4e">IRQ через GIC</text>
+    </g>
+    <g id="check" data-kind="sequence-step">
+      <rect x="822.0" y="996" width="1044.0" height="57" rx="4" fill="white" />
+      <text x="1344.0" y="1020" font-size="22" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Проверка MM2S</text>
+    </g>
+    <g id="result" data-kind="sequence-step">
+      <rect x="822.0" y="1101" width="512.0" height="57" rx="4" fill="white" />
+      <text x="1078.0" y="1125" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Проверка ответа и границ</text>
+    </g>
+    <text x="280.0" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Порт SD</text>
+    <text x="812.0" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#287f73">bvstk_sd_master</text>
+    <text x="1344.0" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#8760ba">BRAM банка 0</text>
+    <text x="1876.0" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#8760ba">SPI и axi_dma_0</text>
+    <path d="M60,1332 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1332 h65" fill="none" stroke="#b56b1d" stroke-width="3" marker-end="url(#mmio-arrow)" />
+    <text x="327" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">MMIO и настройка</text>
+    <path d="M551,1332 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="633" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M747,1332 h65" fill="none" stroke="#c65b4e" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#irq-arrow)" />
+    <text x="829" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">IRQ и события</text>
+    <rect x="60" y="1369" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="104" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="260" y="1369" width="32" height="24" rx="4" fill="#fff0d6" stroke="#b56b1d" />
+    <text x="304" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#b56b1d">L1</tspan></text>
+    <rect x="375" y="1369" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="419" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1435.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт сверху вниз. Порядок IRQ и завершения DMA может различаться.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/drivers/pl/sd/bvstk_sd_master.c",
+    "src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_master_freertos.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "port",
+      "target": "../irq.svg#port"
+    },
+    {
+      "node": "driver",
+      "target": "../platform.svg#driver"
+    },
+    {
+      "node": "hardware",
+      "target": "../../subsystem.svg#master"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

@@ -75,18 +75,18 @@ g:target &gt; rect { stroke-width: 5; }
     <rect id="bram-1" x="1145" y="720" width="170" height="285" fill="#e6dcf5" stroke="#8760ba" stroke-width="2" />
   </g>
   <g id="annotations">
-    <text x="570" y="268.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#607487">0x0034</text>
-    <text x="570" y="478.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#607487">0x0056</text>
-    <text x="900" y="268.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#287f73">0x0034</text>
-    <text x="900" y="913.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#287f73">0x0056</text>
-    <text x="1230" y="268.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#8760ba">0x0034</text>
-    <text x="1230" y="768.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#8760ba">0x0056</text>
+    <text x="570" y="268.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#607487">0x0120</text>
+    <text x="570" y="478.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#607487">0x0160</text>
+    <text x="900" y="268.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#287f73">0x0120</text>
+    <text x="900" y="913.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#287f73">0x0160</text>
+    <text x="1230" y="268.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#8760ba">0x0120</text>
+    <text x="1230" y="768.0" font-size="27" font-weight="700" text-anchor="middle" style="fill:#8760ba">0x0160</text>
     <text x="90" y="412.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">PHY меняет регистр</text>
     <text x="90" y="557.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">Результат master</text>
     <text x="90" y="702.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">PS публикует ответ</text>
     <text x="90" y="847.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">PS обновляет кэш</text>
-    <text x="65" y="290.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">После прошлого</text>
-    <text x="65" y="323.12" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">опроса</text>
+    <text x="65" y="290.0" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">После записи</text>
+    <text x="65" y="323.12" font-size="24" font-weight="400" text-anchor="start" style="fill:#233747">и чтения</text>
     <rect x="60" y="1114" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
     <text x="104" y="1133.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
     <rect x="175" y="1114" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />

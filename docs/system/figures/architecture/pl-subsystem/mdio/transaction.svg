@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 37 1800 426" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="426">
+  <title id="title">Запись 0x0120 в регистр 4 PHY 1</title>
+  <desc id="desc">Запись 0x0120 в регистр 4 PHY 1</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="463" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <g data-kind="interaction" data-from="frame" data-to="frame" data-interaction="data" data-direction="forward">
+      <path d="M60,265 L1740,265" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M60,265 L1740,265" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="frame" data-kind="wire-row" data-layer="L0">
+      <rect x="60" y="130" width="281.4" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="353.4" y="130" width="140.7" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="506.09999999999997" y="130" width="221.10000000000002" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="739.2" y="130" width="241.2" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="992.4000000000001" y="130" width="241.2" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="1245.6000000000001" y="130" width="140.7" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+      <rect x="1398.3000000000002" y="130" width="341.7" height="90" rx="5" fill="#f3f8ff" stroke="#3f75ad" stroke-width="2" />
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="102.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий → SMI_slave_0</text>
+    <text x="200.7" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">32 × 1</text>
+    <text x="200.7" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">PRE</text>
+    <text x="423.75" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">01</text>
+    <text x="423.75" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">ST</text>
+    <text x="616.65" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">01</text>
+    <text x="616.65" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">OP: запись</text>
+    <text x="859.8000000000001" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">00001</text>
+    <text x="859.8000000000001" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">PHY 1</text>
+    <text x="1113.0" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">00100</text>
+    <text x="1113.0" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">REG 4</text>
+    <text x="1315.95" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">10</text>
+    <text x="1315.95" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">TA</text>
+    <text x="1569.15" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x0120</text>
+    <text x="1569.15" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">DATA: 16 бит</text>
+    <path d="M60,317 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="323.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="354" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="373.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="420.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Все биты кадра записи задаёт внешний ведущий. Поля идут слева направо.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/ip_repo/SMI_slave/src/mdio_slave_engine.sv"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

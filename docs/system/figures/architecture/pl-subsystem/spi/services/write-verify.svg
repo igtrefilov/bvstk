@@ -1,0 +1,132 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1500" viewBox="0 100 1500 1013" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1013">
+  <title id="title">Запись сектора с проверкой</title>
+  <desc id="desc">Запись сектора с проверкой</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1500" height="1113" fill="white" />
+  <g id="backgrounds">
+    <path d="M416.2325581395349,325 V900" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1130.2325581395348,325 V900" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="service" data-to="driver" data-interaction="call" data-direction="forward">
+      <path d="M416.233,443 L1130.23,443" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M416.233,443 L1130.23,443" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="driver" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M1130.23,548 L416.233,548" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1130.23,548 L416.233,548" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="service" data-to="driver" data-interaction="call" data-direction="forward">
+      <path d="M416.233,653 L1130.23,653" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M416.233,653 L1130.23,653" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="driver" data-to="service" data-interaction="data" data-direction="forward">
+      <path d="M1130.23,758 L416.233,758" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1130.23,758 L416.233,758" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="service" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M416.233,853 L486.233,853 L486.233,875 L416.233,875" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M416.233,853 L486.233,853 L486.233,875 L416.233,875" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="service" data-kind="component" data-layer="L3" data-label="bvstk_sd_service" data-ownership="common" data-target="storage.svg#service">
+      <rect x="60" y="140" width="712.4651162790698" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="storage.svg#service">
+        <text x="80" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="80" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_sd_service</text>
+      </a>
+    </g>
+    <g id="driver" data-kind="component" data-layer="L3" data-label="bvstk_sd_master" data-ownership="common" data-target="../drivers/master/write.svg#driver">
+      <rect x="820.4651162790698" y="140" width="619.5348837209302" height="155" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../drivers/master/write.svg#driver">
+        <text x="840.4651162790698" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+        <text x="840.4651162790698" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">bvstk_sd_master</text>
+      </a>
+    </g>
+  </g>
+  <g id="annotations">
+    <g id="write" data-kind="sequence-step">
+      <rect x="426.23255813953483" y="366" width="694.0" height="57" rx="4" fill="white" />
+      <text x="773.2325581395348" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">CMD24: записать блок</text>
+    </g>
+    <g id="sent" data-kind="sequence-step">
+      <rect x="426.23255813953483" y="471" width="694.0" height="57" rx="4" fill="white" />
+      <text x="773.2325581395348" y="495" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">Запись завершена</text>
+    </g>
+    <g id="read" data-kind="sequence-step">
+      <rect x="426.23255813953483" y="576" width="694.0" height="57" rx="4" fill="white" />
+      <text x="773.2325581395348" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">CMD17: прочитать тот же LBA</text>
+    </g>
+    <g id="block" data-kind="sequence-step">
+      <rect x="426.23255813953483" y="681" width="694.0" height="57" rx="4" fill="white" />
+      <text x="773.2325581395348" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Проверенный блок</text>
+    </g>
+    <g id="compare" data-kind="sequence-step">
+      <rect x="196.2325581395349" y="786" width="440" height="57" rx="4" fill="white" />
+      <text x="416.2325581395349" y="810" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">Сравнить 512 байтов</text>
+    </g>
+    <path d="M60,967 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="973.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,967 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="973.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1004" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1023.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1070.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Mutex сервиса удерживается до окончания сравнения. Время идёт сверху вниз.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "src/services/sd/bvstk_sd_service.c"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "service",
+      "target": "storage.svg#service"
+    },
+    {
+      "node": "driver",
+      "target": "../drivers/master/write.svg#driver"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

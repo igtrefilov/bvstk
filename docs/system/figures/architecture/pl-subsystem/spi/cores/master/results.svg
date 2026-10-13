@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" viewBox="0 20 1600 1826" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1826">
+  <title id="title">Результаты SD-команды</title>
+  <desc id="desc">Результаты SD-команды</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1846" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="350" width="1480" height="785" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="card" data-to="command" data-interaction="data" data-direction="forward">
+      <path d="M650,200 L650,270 L410,270 L410,470" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M650,200 L650,270 L410,270 L410,470" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="card" data-to="stream" data-interaction="data" data-direction="forward">
+      <path d="M950,200 L950,300 L1190,300 L1190,470" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M950,200 L950,300 L1190,300 L1190,470" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="command" data-to="regs" data-interaction="data" data-direction="forward">
+      <path d="M410,625 L410,745" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M410,625 L410,745" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="regs" data-to="axi" data-interaction="data" data-direction="forward">
+      <path d="M410,870 L410,970" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M410,870 L410,970" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="axi" data-to="mailbox" data-interaction="data" data-direction="forward">
+      <path d="M410,1090 L410,1550" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M410,1090 L410,1550" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="stream" data-to="fifo" data-interaction="data" data-direction="forward">
+      <path d="M1190,625 L1190,745" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1190,625 L1190,745" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="fifo" data-to="axis" data-interaction="data" data-direction="forward">
+      <path d="M1190,870 L1190,970" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1190,870 L1190,970" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="axis" data-to="dma" data-interaction="data" data-direction="forward">
+      <path d="M1190,1090 L1190,1270" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1190,1090 L1190,1270" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="dma" data-to="block" data-interaction="data" data-direction="forward">
+      <path d="M1190,1410 L1190,1550" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1190,1410 L1190,1550" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="card" data-kind="component" data-layer="L0" data-label="Карта SD" data-ownership="common">
+      <rect x="530" y="60" width="540" height="140" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="550" y="84.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="550" y="147.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Карта SD</text>
+    </g>
+    <g id="core" data-kind="functional-group" data-label="SPI_master_0" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="60" y="350" width="1480" height="785" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <a data-navigation="detail" xlink:href="structure.svg#core">
+        <text x="86" y="387.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">SPI_master_0</text>
+      </a>
+      <g id="command" data-kind="component" data-layer="L0" data-domain="pl" data-label="sd_ini_tx_cmds" data-ownership="common" data-parent="core">
+        <rect x="170" y="470" width="480" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="190" y="494.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="190" y="528.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">sd_ini_tx_cmds</text>
+        <text x="190" y="567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Ответ команды</text>
+      </g>
+      <g id="stream" data-kind="component" data-layer="L0" data-domain="pl" data-label="spi_master_ctrl" data-ownership="common" data-parent="core">
+        <rect x="950" y="470" width="480" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="970" y="494.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="970" y="528.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_master_ctrl</text>
+        <text x="970" y="567.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Блок и CRC16</text>
+      </g>
+      <g id="regs" data-kind="component" data-layer="L0" data-domain="pl" data-label="spi_regs" data-ownership="common" data-parent="core">
+        <rect x="170" y="745" width="480" height="125" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="190" y="769.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="190" y="824.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">spi_regs</text>
+      </g>
+      <g id="fifo" data-kind="component" data-layer="L0" data-domain="pl" data-label="RX FIFO" data-ownership="common" data-parent="core">
+        <rect x="950" y="745" width="480" height="125" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="970" y="769.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="970" y="824.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">RX FIFO</text>
+      </g>
+      <g id="axi" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_lite_master_native" data-ownership="common" data-parent="core">
+        <rect x="170" y="970" width="480" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="190" y="994.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="190" y="1047.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_lite_master_native</text>
+      </g>
+      <g id="axis" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_stream_master" data-ownership="common" data-parent="core">
+        <rect x="950" y="970" width="480" height="120" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <text x="970" y="994.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="970" y="1047.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_stream_master</text>
+      </g>
+    </g>
+    <g id="dma" data-kind="component" data-layer="L0" data-domain="pl" data-label="axi_dma_0: S2MM" data-ownership="common" data-target="../../subsystem.svg#dma0-rx">
+      <rect x="950" y="1270" width="480" height="140" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../../subsystem.svg#dma0-rx">
+        <text x="970" y="1294.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+        <text x="970" y="1357.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">axi_dma_0: S2MM</text>
+      </a>
+    </g>
+    <g id="mailbox" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM: ответ команды" data-ownership="common">
+      <rect x="170" y="1550" width="480" height="150" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <text x="190" y="1574.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="190" y="1642.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM: ответ команды</text>
+    </g>
+    <g id="block" data-kind="component" data-layer="L0" data-domain="pl" data-label="BRAM: блок с CRC" data-ownership="common">
+      <rect x="950" y="1550" width="480" height="150" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+      <text x="970" y="1574.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+      <text x="970" y="1608.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">BRAM: блок с CRC</text>
+      <text x="970" y="1647.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">+0x1000</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M60,1752 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="1758.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1789" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1808.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1789" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1808.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/ip_repo/SPI_master/src/spi_regs.sv",
+    "../hw_platform/fpga/ip_repo/SPI_master/src/spi_master_ctrl.sv",
+    "../hw_platform/fpga/ip_repo/SPI_master/src/sd_ini_tx_cmds.sv",
+    "../hw_platform/fpga/ip_repo/SPI_master/src/top_spi_master.sv"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "core",
+      "target": "structure.svg#core"
+    },
+    {
+      "node": "dma",
+      "target": "../../subsystem.svg#dma0-rx"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

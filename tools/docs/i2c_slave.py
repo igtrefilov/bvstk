@@ -1,6 +1,7 @@
 """Figures for the implemented I2C slave, its bus paths and PS boundary."""
 from i2c_core import CoreDrawing
 from i2c_protocol import ack, address, condition, field, omitted
+from transaction_drawing import sequence
 
 BASE = "i2c/cores/slave/"
 RTL = "../hw_platform/fpga/ip_repo/i2c_slave/i2c/slave/rtl/"
@@ -116,19 +117,22 @@ def participants(d):
 
 
 def write(d):
-    d.strip("wire", 220, [condition("S"), address(example=True), ack(), field("B0", 150), ack(),
-                          omitted(), field("B5", 150), ack(), condition("P")])
-    start = participants(d)
-    d.sequence(start, [
-        ("address-write", "host", "engine", "data", "Адрес + W"),
-        ("start-event", "engine", "data-ctrl", "data", "start, rw = 0"),
-        ("capture", ("host", "engine"), ("engine", "data-ctrl"), "data", "Байты B0…B5"),
-        ("full-word", "data-ctrl", "bram", "data", "Полное слово B3…B0"),
+    d.canvas(2200)
+    sequence(d, [
+        ("host", "Внешний ведущий", "", "L0", "i2c/transaction.svg#frame", .9),
+        ("engine", "i2c_slave_engine", "", "PL", sheet("structure", "engine"), 1.1),
+        ("data-ctrl", "data_ctrl", "", "PL", sheet("structure", "data-ctrl"), .9),
+        ("bram", "BRAM I²C", "+0x1000", "PL", "i2c/drivers/slave/write.svg#bram", .9),
+        ("gic", "GIC", "IRQ slave", "L0", "i2c/drivers/events.svg#core", .7),
+    ], [
+        ("address-write", "host", "engine", "data", "0x54: адрес 0x2A, запись"),
+        ("start-event", "engine", "data-ctrl", "data", "start, phy_addr = 0x2A, rw = 0"),
+        ("capture", ("host", "engine"), ("engine", "data-ctrl"), "data", "Байты 10 7B"),
         ("tail-event", ("host", "engine"), ("engine", "data-ctrl"), "data", "STOP → stop"),
-        ("tail", "data-ctrl", "bram", "data", "Хвост → заголовок"),
-        ("publish", "data-ctrl", "ps", "irq", "DATA_VALID и FINAL_PACKET"),
-        ("consume", "bram", "ps", "data", "Фрагмент записи"),
-    ])
+        ("tail", "data-ctrl", "bram", "data", "+0x1004: младшие байты 10 7B"),
+        ("header", "data-ctrl", "bram", "data", "+0x1000: заголовок 0x0000012A"),
+        ("publish", "data-ctrl", "gic", "irq", "Через regs: DATA_VALID и FINAL_PACKET"),
+    ], core=("engine", "data-ctrl"), core_title="I2C_slave_0")
 
 
 def read(d):

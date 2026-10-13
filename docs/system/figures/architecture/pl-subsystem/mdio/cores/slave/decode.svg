@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1900" viewBox="0 36 1900 1077" role="img" aria-labelledby="title desc" data-content="article-figure" data-layer="L0" height="1077">
+  <title id="title">Разбор принятого кадра MDIO</title>
+  <desc id="desc">Разбор принятого кадра MDIO</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1900" height="1113" fill="white" />
+  <g id="backgrounds">
+    <rect x="585.2941176470588" y="76" width="1272.705882352941" height="252" rx="16" fill="white" />
+    <path d="M307.6470588235294,325 V900" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M900.470588235294,325 V900" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+    <path d="M1542.8235294117644,325 V900" fill="none" stroke="#8495a3" stroke-width="1.5" stroke-dasharray="5 9" opacity=".45" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="host" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M307.647,443 L900.471,443" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M307.647,443 L900.471,443" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="host" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M307.647,548 L900.471,548" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M307.647,548 L900.471,548" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="host" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M307.647,653 L900.471,653" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M307.647,653 L900.471,653" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="engine" data-interaction="data" data-direction="forward">
+      <path d="M900.471,748 L970.471,748 L970.471,770 L900.471,770" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M900.471,748 L970.471,748 L970.471,770 L900.471,770" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="engine" data-to="ctrl" data-interaction="data" data-direction="forward">
+      <path d="M900.471,863 L1542.82,863" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M900.471,863 L1542.82,863" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="core" data-kind="functional-group" data-label="SMI_slave_0" data-layer="L0" data-domain="pl" data-ownership="common">
+      <rect x="585.2941176470588" y="76" width="1272.705882352941" height="252" rx="16" fill="none" stroke="#8760ba" stroke-width="2" />
+      <text x="611.2941176470588" y="113.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#8760ba">SMI_slave_0</text>
+      <g id="engine" data-kind="component" data-layer="L0" data-domain="pl" data-label="mdio_slave_engine" data-ownership="common" data-parent="core" data-target="structure.svg#engine">
+        <rect x="603.2941176470588" y="140" width="594.3529411764705" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="structure.svg#engine">
+          <text x="623.2941176470588" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="623.2941176470588" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">mdio_slave_engine</text>
+        </a>
+      </g>
+      <g id="ctrl" data-kind="component" data-layer="L0" data-domain="pl" data-label="mdio_data_ctrl" data-ownership="common" data-parent="core" data-target="structure.svg#ctrl">
+        <rect x="1245.6470588235293" y="140" width="594.3529411764705" height="155" rx="11" fill="#e6dcf5" stroke="#8760ba" stroke-width="1.8" />
+        <a data-navigation="detail" xlink:href="structure.svg#ctrl">
+          <text x="1265.6470588235293" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#8760ba" xml:space="preserve"><tspan style="fill:#607487">L0</tspan><tspan>. PL</tspan></text>
+          <text x="1265.6470588235293" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">mdio_data_ctrl</text>
+        </a>
+      </g>
+    </g>
+    <g id="host" data-kind="component" data-layer="L0" data-label="Внешний ведущий" data-ownership="common" data-target="../../transaction.svg#frame">
+      <rect x="60" y="140" width="495.2941176470588" height="155" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <a data-navigation="detail" xlink:href="../../transaction.svg#frame">
+        <text x="80" y="164.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="80" y="234.5" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий</text>
+      </a>
+    </g>
+  </g>
+  <g id="annotations">
+    <g id="start" data-kind="sequence-step">
+      <rect x="317.6470588235294" y="366" width="572.8235294117646" height="57" rx="4" fill="white" />
+      <text x="604.0588235294117" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">ST = 01</text>
+    </g>
+    <g id="header" data-kind="sequence-step">
+      <rect x="317.6470588235294" y="471" width="572.8235294117646" height="57" rx="4" fill="white" />
+      <text x="604.0588235294117" y="495" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">OP = 01; PHY = 1; REG = 4</text>
+    </g>
+    <g id="value" data-kind="sequence-step">
+      <rect x="317.6470588235294" y="576" width="572.8235294117646" height="57" rx="4" fill="white" />
+      <text x="604.0588235294117" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">DATA = 0x0120</text>
+    </g>
+    <g id="done" data-kind="sequence-step">
+      <rect x="680.470588235294" y="681" width="440" height="57" rx="4" fill="white" />
+      <text x="900.470588235294" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">DONE: запись собрана</text>
+    </g>
+    <g id="packet" data-kind="sequence-step">
+      <rect x="910.4705882352941" y="786" width="622.3529411764704" height="57" rx="4" fill="white" />
+      <text x="1221.6470588235293" y="810" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">transaction_view_t: 0x04240120</text>
+    </g>
+    <path d="M60,967 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="973.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1004" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1023.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <rect x="175" y="1004" width="32" height="24" rx="4" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="219" y="1023.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan>PL внутри </tspan><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="1070.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт сверху вниз; масштаб условный.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_pl_subsystem.py",
+  "sources": [
+    "../hw_platform/fpga/ip_repo/SMI_slave/src/mdio_slave_engine.sv",
+    "../hw_platform/fpga/ip_repo/SMI_slave/src/mdio_data_ctrl.sv"
+  ],
+  "cross_sheet_links": [
+    {
+      "node": "host",
+      "target": "../../transaction.svg#frame"
+    },
+    {
+      "node": "engine",
+      "target": "structure.svg#engine"
+    },
+    {
+      "node": "ctrl",
+      "target": "structure.svg#ctrl"
+    }
+  ],
+  "article_notes": []
+}</metadata>
+</svg>

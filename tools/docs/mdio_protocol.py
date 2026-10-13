@@ -33,8 +33,8 @@ def frame(d):
     for row, read in enumerate((False, True)):
         y, x, positions = 245+row*410, 140, []
         d.heading(y, "Чтение" if read else "Запись")
-        values = ("32 × 1", "01", "10" if read else "01", "00001", "10000",
-                  "Z 0" if read else "1 0", "0x0034" if read else "0x007B")
+        values = ("32 × 1", "01", "10" if read else "01", "00001", "00100",
+                  "Z 0" if read else "1 0", "0x0120")
         for label, width, count, value in zip(labels, widths, counts, values):
             d.text(x+width/2, y+73, label, 24, bold=True, anchor="middle", color=d.ink)
             d.cell(x, y+100, width, value)
@@ -83,7 +83,7 @@ def turnaround(d):
 def generate_mdio_protocol(page, element, palette, arrows):
     sheets = (
         ("interface", "MDIO: линии и участники", "Clause 22. Доступ к 16-битным регистрам PHY.", interface),
-        ("frame", "MDIO: кадры Clause 22", "PHY с адресом 1, регистр 0x10. Поля идут слева направо.", frame),
+        ("frame", "MDIO: кадры Clause 22", "PHY с адресом 1, регистр 4. Поля идут слева направо.", frame),
         ("turnaround", "MDIO: передача линии при чтении", "Сверху — кто задаёт биты. Снизу — задержка выдачи PHY.", turnaround),
     )
     for name, title, subtitle, draw in sheets:
