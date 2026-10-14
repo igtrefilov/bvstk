@@ -89,5 +89,5 @@ MDIO отвечает из заранее подготовленной копи�
 
 Форматы находятся в справочниках [профиля](../../reference/configuration/device-profile.md)
 и [пакета](../../reference/device-package/device-package.md).
-Порядок установки и изменения — в [рабочей процедуре](../../operations/configuration.md).
+
 Далее проследим запрос через [подсистемы PL](../pl-subsystem/pl-subsystem.md).

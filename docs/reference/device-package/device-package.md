@@ -78,5 +78,3 @@ flash:/config/
 - [Карта регистров](register-map.md).
 - [API индивидуальной формы](view-api.md).
 - [Карты поставляемых устройств](devices.md).
-
-Процедура установки: [настройка устройств](../../operations/configuration.md).
