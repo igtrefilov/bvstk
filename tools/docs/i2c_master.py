@@ -132,7 +132,7 @@ def command_format(d):
 
 def write(d):
     d.strip("wire", 220, [condition("S"), address(example=True), ack(), field("0x10", 170), ack(),
-                          field("0x7B", 170), ack(), condition("P")])
+                          field("0x3B", 170), ack(), condition("P")])
     start = d.actors([
         ("tx", "tx_data_ctrl", "Команда из TX FIFO", "PL", sheet("commands", "parser"), 1),
         ("engine", "i2c_master_engine", "", "PL", sheet("structure", "engine"), 1.2),
@@ -142,7 +142,7 @@ def write(d):
         ("packet-address", "tx", "engine", "data", "Адресный пакет 0x54"),
         ("address", "engine", "device", "data", "START → адрес + W"),
         ("address-ack", "device", "engine", "data", "ACK адреса"),
-        ("bytes", "tx", "engine", "data", "Байты 0x10 и 0x7B"),
+        ("bytes", "tx", "engine", "data", "Байты 0x10 и 0x3B"),
         ("send", "engine", "device", "data", "SEND_BYTE: очередной байт"),
         ("byte-ack", "device", "engine", "data", "ACK после каждого байта"),
         ("stop", "engine", "device", "data", "STOP после последнего байта"),

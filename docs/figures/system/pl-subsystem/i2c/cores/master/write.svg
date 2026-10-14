@@ -107,9 +107,9 @@ g:target &gt; rect { stroke-width: 5; }
         <text x="753.0" y="274" font-size="20" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
         <text x="753.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведомый</text>
       </g>
-      <g id="wire-5" data-kind="protocol-field" data-label="0x7B" data-driver="ведущий">
+      <g id="wire-5" data-kind="protocol-field" data-label="0x3B" data-driver="ведущий">
         <rect x="812" y="220" width="170" height="90" rx="5" fill="white" stroke="#3f75ad" stroke-width="2" />
-        <text x="897.0" y="274" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x7B</text>
+        <text x="897.0" y="274" font-size="24" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x3B</text>
         <text x="897.0" y="340.0" font-size="17" font-weight="400" text-anchor="middle" style="fill:#607487">ведущий</text>
       </g>
       <g id="wire-6" data-kind="protocol-field" data-label="ACK" data-driver="ведомый">
@@ -166,7 +166,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="bytes" data-kind="sequence-step">
       <rect x="317.5" y="1011" width="572.5" height="57" rx="4" fill="white" />
-      <text x="603.75" y="1035" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Байты 0x10 и 0x7B</text>
+      <text x="603.75" y="1035" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Байты 0x10 и 0x3B</text>
     </g>
     <g id="send" data-kind="sequence-step">
       <rect x="910.0" y="1116" width="572.5" height="57" rx="4" fill="white" />

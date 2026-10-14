@@ -19,12 +19,12 @@ def generate_transaction_examples(Page, el, palette, arrows):
         p.background.set("width", "1800")
         return p, d
 
-    p, d = wire("i2c/transaction.svg", "Запись 0x7B в регистр 0x10 устройства 0x2A",
+    p, d = wire("i2c/transaction.svg", "Запись 0x3B в регистр 0x10 устройства 0x2A",
                 ["src/services/i2c/bvstk_i2c_slave_service.c"])
     wire_row(d, "frame", 130, [
         ("S", "", .5), ("0x54", "0x2A + W", 1.8), ("ACK", "", .7),
         ("0x10", "Регистр", 1.6), ("ACK", "", .7),
-        ("0x7B", "Значение", 1.6), ("ACK", "", .7), ("P", "", .5),
+        ("0x3B", "Значение", 1.6), ("ACK", "", .7), ("P", "", .5),
     ], "Внешний ведущий → I2C_slave_0")
     p.legend_note = "S — START. P — STOP. ACK выдаёт I2C_slave_0. Поля идут слева направо."
 
@@ -59,12 +59,12 @@ def generate_transaction_examples(Page, el, palette, arrows):
         ("driver", "bvstk_i2c_master", "", "L3", "i2c/drivers/master/transfer.svg#driver", 1.1),
         ("cache", "Кэш I²C", "Устройство 0x2A", "L3", "overview/cache.svg#cache", .9),
     ], [
-        ("parse", "slave", "slave", "data", "10 7B → регистр 0x10, значение 0x7B"),
-        ("write", "slave", "service", "call", "write: 0x10 ← 0x7B"),
-        ("policy", "service", "service", "call", "Whitelist: (0x10, 0x7B)"),
-        ("send", "service", "driver", "call", "write_reg: 0x2A, 0x10, 0x7B"),
+        ("parse", "slave", "slave", "data", "10 3B → регистр 0x10, значение 0x3B"),
+        ("write", "slave", "service", "call", "write: 0x10 ← 0x3B"),
+        ("policy", "service", "service", "call", "Whitelist: (0x10, 0x3B)"),
+        ("send", "service", "driver", "call", "write_reg: 0x2A, 0x10, 0x3B"),
         ("done", "driver", "service", "call", "BVSTK_OK"),
-        ("cache-write", "service", "cache", "data", "Регистр 0x10: 0x7B, valid = 1"),
+        ("cache-write", "service", "cache", "data", "Регистр 0x10: 0x3B, valid = 1"),
         ("return", "service", "slave", "call", "BVSTK_OK"),
     ])
 

@@ -86,8 +86,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="status" data-kind="packet-field">
       <rect x="1000" y="655" width="190" height="105" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
-      <text x="1095.0" y="699.1" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">status</text>
-      <text x="1095.0" y="732.22" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">2 байта</text>
+      <text x="1095.0" y="715.66" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">status</text>
     </g>
     <g id="result" data-kind="packet-field">
       <rect x="1190" y="655" width="430" height="105" fill="#cfe3f3" stroke="#607487" stroke-width="2" />

@@ -142,7 +142,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="window" data-kind="sequence-step">
       <rect x="250.59130434782608" y="681" width="438.4347826086957" height="57" rx="4" fill="white" />
-      <text x="469.8086956521739" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Окно ответа: первый байт 0x7B</text>
+      <text x="469.8086956521739" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Окно ответа: первый байт 0x3B</text>
     </g>
     <g id="publish" data-kind="sequence-step">
       <rect x="250.59130434782605" y="786" width="921.495652173913" height="57" rx="4" fill="white" />
@@ -160,7 +160,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="fetch" data-kind="sequence-step">
       <rect x="1609.4782608695652" y="1101" width="356.3478260869565" height="57" rx="4" fill="white" />
       <text x="1787.6521739130435" y="1125" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Окно ответа: первый байт</text>
-      <text x="1787.6521739130435" y="1151" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0x7B</text>
+      <text x="1787.6521739130435" y="1151" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0x3B</text>
     </g>
     <text x="240.5913043478261" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Порт I²C slave</text>
     <text x="699.0260869565218" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#287f73">bvstk_i2c_slave_service</text>

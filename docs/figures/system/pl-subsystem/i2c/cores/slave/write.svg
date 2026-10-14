@@ -141,7 +141,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="capture" data-kind="sequence-step">
       <rect x="258.79999999999995" y="576" width="915.1111111111113" height="57" rx="4" fill="white" />
-      <text x="716.3555555555556" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Байты 10 7B</text>
+      <text x="716.3555555555556" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Байты 10 3B</text>
     </g>
     <g id="tail-event" data-kind="sequence-step">
       <rect x="258.79999999999995" y="681" width="915.1111111111113" height="57" rx="4" fill="white" />
@@ -149,7 +149,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="tail" data-kind="sequence-step">
       <rect x="1193.9111111111113" y="786" width="405.5999999999999" height="57" rx="4" fill="white" />
-      <text x="1396.7111111111112" y="810" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">+0x1004: младшие байты 10 7B</text>
+      <text x="1396.7111111111112" y="810" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">+0x1004: младшие байты 10 3B</text>
     </g>
     <g id="header" data-kind="sequence-step">
       <rect x="1193.9111111111113" y="891" width="405.5999999999999" height="57" rx="4" fill="white" />

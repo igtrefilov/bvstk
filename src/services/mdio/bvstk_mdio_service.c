@@ -300,6 +300,118 @@ bvstk_status_t bvstk_mdio_service_set_policy(bvstk_mdio_service_t *s, size_t d, 
     bvstk_mutex_unlock(&s->mutex);
     return st;
 }
+
+bvstk_status_t bvstk_mdio_service_get_policy(const bvstk_mdio_service_t *s,
+    size_t d, bvstk_mdio_policy_entry_t *out)
+{
+    const mdio_phy_config_t *c;
+    bvstk_status_t st = lock(s);
+    if (st != BVSTK_OK) return st;
+    st = check(s, d, 0);
+    if (!out) st = BVSTK_ERR_MALFORMED;
+    if (st == BVSTK_OK) {
+        c = &s->devices[d];
+        memset(out, 0, sizeof(*out));
+        out->mode = c->policy;
+        out->whitelist_len = c->whitelist_len;
+        out->blacklist_len = c->blacklist_len;
+        memcpy(out->whitelist, c->whitelist, c->whitelist_len * sizeof(c->whitelist[0]));
+        memcpy(out->blacklist, c->blacklist, c->blacklist_len * sizeof(c->blacklist[0]));
+    }
+    bvstk_mutex_unlock(&s->mutex);
+    return st;
+}
+
+/* Caller holds the service mutex. Select lists without changing the mode. */
+static bvstk_status_t policy_list(bvstk_mdio_service_t *s, size_t d,
+    mdio_policy_t list, mdio_rule_entry_t **rules, size_t **length)
+{
+    bvstk_status_t st = check(s, d, 0);
+    if (st != BVSTK_OK) return st;
+    if (list == MDIO_POLICY_WHITELIST) {
+        *rules = s->devices[d].whitelist;
+        *length = &s->devices[d].whitelist_len;
+    } else if (list == MDIO_POLICY_BLACKLIST) {
+        *rules = s->devices[d].blacklist;
+        *length = &s->devices[d].blacklist_len;
+    } else return BVSTK_ERR_MALFORMED;
+    return BVSTK_OK;
+}
+
+static int policy_rule_equal(const mdio_rule_entry_t *rule,
+    uint8_t reg, uint16_t value, uint16_t mask)
+{
+    return rule->reg == reg && rule->mask == mask &&
+        (rule->val & mask) == (value & mask);
+}
+
+bvstk_status_t bvstk_mdio_service_rule_add(bvstk_mdio_service_t *s,
+    size_t d, mdio_policy_t list, uint8_t reg, uint16_t value, uint16_t mask)
+{
+    mdio_rule_entry_t *rules;
+    size_t *length, i;
+    bvstk_status_t st = lock(s);
+    if (st != BVSTK_OK) return st;
+    st = policy_list(s, d, list, &rules, &length);
+    if (st == BVSTK_OK) st = check(s, d, reg);
+    if (st == BVSTK_OK) {
+        for (i = 0; i < *length; ++i)
+            if (policy_rule_equal(&rules[i], reg, value, mask)) break;
+        if (i == *length) {
+            if (*length >= MDIO_CFG_RULES_MAX) st = BVSTK_ERR_RANGE;
+            else {
+                rules[*length].reg = reg;
+                rules[*length].val = (uint16_t)(value & mask);
+                rules[*length].mask = mask;
+                ++*length;
+            }
+        }
+    }
+    bvstk_mutex_unlock(&s->mutex);
+    return st;
+}
+
+bvstk_status_t bvstk_mdio_service_rule_remove(bvstk_mdio_service_t *s,
+    size_t d, mdio_policy_t list, uint8_t reg, uint16_t value, uint16_t mask)
+{
+    mdio_rule_entry_t *rules;
+    size_t *length, i, kept = 0;
+    bvstk_status_t st = lock(s);
+    if (st != BVSTK_OK) return st;
+    st = policy_list(s, d, list, &rules, &length);
+    if (st == BVSTK_OK) st = check(s, d, reg);
+    if (st == BVSTK_OK) {
+        for (i = 0; i < *length; ++i)
+            if (policy_rule_equal(&rules[i], reg, value, mask)) break;
+        if (i == *length) st = BVSTK_ERR_NOT_FOUND;
+    }
+    if (st == BVSTK_OK) {
+        for (i = 0; i < *length; ++i)
+            if (!policy_rule_equal(&rules[i], reg, value, mask))
+                rules[kept++] = rules[i];
+        memset(&rules[kept], 0, (*length - kept) * sizeof(rules[0]));
+        *length = kept;
+    }
+    bvstk_mutex_unlock(&s->mutex);
+    return st;
+}
+
+bvstk_status_t bvstk_mdio_service_rule_clear_list(bvstk_mdio_service_t *s,
+    size_t d, mdio_policy_t list)
+{
+    mdio_rule_entry_t *rules;
+    size_t *length;
+    bvstk_status_t st = lock(s);
+    if (st != BVSTK_OK) return st;
+    st = policy_list(s, d, list, &rules, &length);
+    if (st == BVSTK_OK) {
+        memset(rules, 0, *length * sizeof(rules[0]));
+        *length = 0;
+    }
+    bvstk_mutex_unlock(&s->mutex);
+    return st;
+}
+
 bvstk_status_t bvstk_mdio_service_set_config(bvstk_mdio_service_t *s, size_t d, const mdio_phy_config_t *c)
 {
     size_t i;

@@ -98,6 +98,47 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_dcp2_mdio.py"
 
 cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_bus_policy.c" \
+  "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c" \
+  "$REPO_ROOT/src/drivers/pl/mdio/bvstk_mdio_core.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_cache.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \
+  "$REPO_ROOT/src/services/mdio/bvstk_mdio_service.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
+  -o "$TEST_TMP/test_bus_policy"
+"$TEST_TMP/test_bus_policy"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections \
+  -I"$SCRIPT_DIR/policy_stubs" -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_dcp2_policy_sync.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_cache.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
+  -Wl,--gc-sections -pthread -o "$TEST_TMP/test_dcp2_policy_sync"
+"$TEST_TMP/test_dcp2_policy_sync"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections \
+  -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/dcp2_policy_server.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \
+  "$REPO_ROOT/src/services/mdio/bvstk_mdio_service.c" \
+  -Wl,--gc-sections -o "$TEST_TMP/dcp2_policy_server"
+PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_dcp2_policy.py" "$TEST_TMP/dcp2_policy_server"
+
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/dcp2_cache_server.c" \
   "$REPO_ROOT/src/services/cache/bvstk_cache.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_cache.c" \

@@ -113,20 +113,20 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="annotations">
     <g id="parse" data-kind="sequence-step">
       <rect x="113.56521739130432" y="366" width="440" height="57" rx="4" fill="white" />
-      <text x="333.5652173913043" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">10 7B → регистр 0x10, значение</text>
-      <text x="333.5652173913043" y="416" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0x7B</text>
+      <text x="333.5652173913043" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">10 3B → регистр 0x10, значение</text>
+      <text x="333.5652173913043" y="416" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">0x3B</text>
     </g>
     <g id="write" data-kind="sequence-step">
       <rect x="343.56521739130426" y="471" width="575.1304347826087" height="57" rx="4" fill="white" />
-      <text x="631.1304347826086" y="495" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">write: 0x10 ← 0x7B</text>
+      <text x="631.1304347826086" y="495" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">write: 0x10 ← 0x3B</text>
     </g>
     <g id="policy" data-kind="sequence-step">
       <rect x="708.695652173913" y="576" width="440" height="57" rx="4" fill="white" />
-      <text x="928.695652173913" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">Whitelist: (0x10, 0x7B)</text>
+      <text x="928.695652173913" y="600" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">Whitelist: (0x10, 0x3B)</text>
     </g>
     <g id="send" data-kind="sequence-step">
       <rect x="938.695652173913" y="681" width="533.0434782608695" height="57" rx="4" fill="white" />
-      <text x="1205.2173913043478" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">write_reg: 0x2A, 0x10, 0x7B</text>
+      <text x="1205.2173913043478" y="705" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">write_reg: 0x2A, 0x10, 0x3B</text>
     </g>
     <g id="done" data-kind="sequence-step">
       <rect x="938.695652173913" y="786" width="533.0434782608695" height="57" rx="4" fill="white" />
@@ -134,7 +134,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="cache-write" data-kind="sequence-step">
       <rect x="938.6956521739131" y="891" width="1001.9130434782608" height="57" rx="4" fill="white" />
-      <text x="1439.6521739130435" y="915" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Регистр 0x10: 0x7B, valid = 1</text>
+      <text x="1439.6521739130435" y="915" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Регистр 0x10: 0x3B, valid = 1</text>
     </g>
     <g id="return" data-kind="sequence-step">
       <rect x="343.56521739130426" y="996" width="575.1304347826087" height="57" rx="4" fill="white" />

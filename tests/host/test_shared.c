@@ -659,8 +659,6 @@ int main(void)
         CHECK(cache_snapshot.generation != generation && cache_snapshot.entries[17].valid &&
             cache_snapshot.entries[17].value == 55 && cache_snapshot.entries[17].source == BVSTK_CACHE_SOURCE_SETTINGS);
     }
-    bvstk_mdio_service_shutdown(&mdio_service);
-
     frame[0] = 'D'; frame[1] = 'C'; frame[2] = 'P'; frame[3] = '2';
     bvstk_dcp2_write_be16(frame + 4, BVSTK_DCP2_VERSION);
     bvstk_dcp2_write_be16(frame + 6, 6U);
@@ -690,6 +688,62 @@ int main(void)
                                      &response_size) == 0);
     CHECK(response_size == 15U && response[9] == BVSTK_DCP2_OP_RESPONSE &&
           bvstk_dcp2_read_be16(response + 12) == 0U && response[14] == 0xAAU);
+    /* The common production dispatcher uses the same policy handler as FreeRTOS. */
+    control.mdio = &mdio_service;
+    for (unsigned bus_id = BVSTK_DCP2_SERVICE_I2C; bus_id <= BVSTK_DCP2_SERVICE_MDIO; ++bus_id) {
+        uint8_t policy_body[] = {(uint8_t)(bus_id == BVSTK_DCP2_SERVICE_I2C ? 0x50U : 1U),
+                                 0U, 1U, 5U, 0U, 0xFFU, 0xFFU};
+        bvstk_dcp2_request_t policy_request = {(uint8_t)bus_id, BVSTK_DCP2_OP_I2C_POLICY_GET,
+                                               23U, policy_body, 1U};
+        size_t full_size;
+        uint16_t white_count;
+        uint8_t saved_mode;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response,
+                                          sizeof(response), &response_size) == 0);
+        CHECK(bvstk_dcp2_read_be16(response + 12) == 0U && response[8] == bus_id &&
+              response[9] == (BVSTK_DCP2_OP_RESPONSE | BVSTK_DCP2_OP_I2C_POLICY_GET) &&
+              bvstk_dcp2_read_be16(response + 10) == 23U);
+        full_size = response_size; saved_mode = response[14];
+        white_count = bvstk_dcp2_read_be16(response + 15);
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response,
+                                          full_size - 1U, &response_size) == 0);
+        CHECK(response_size == 14U && bvstk_dcp2_read_be16(response + 12) == 6U);
+        policy_request.opcode = BVSTK_DCP2_OP_I2C_POLICY_SET; policy_request.body_size = 2U;
+        policy_body[1] = (uint8_t)(1U - saved_mode);
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response, 13U, &response_size) == -1);
+        policy_request.opcode = BVSTK_DCP2_OP_I2C_POLICY_GET; policy_request.body_size = 1U;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response,
+                                          sizeof(response), &response_size) == 0 && response[14] == saved_mode);
+        policy_request.opcode = BVSTK_DCP2_OP_I2C_POLICY_SET; policy_request.body_size = 2U;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response, 14U, &response_size) == 0);
+        CHECK(response_size == 14U && bvstk_dcp2_read_be16(response + 12) == 0U);
+        policy_body[1] = saved_mode;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response, 14U, &response_size) == 0);
+        policy_request.opcode = BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD;
+        policy_request.body_size = bus_id == BVSTK_DCP2_SERVICE_I2C ? 4U : 7U;
+        policy_body[1] = 0U;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response, 13U, &response_size) == -1);
+        policy_request.opcode = BVSTK_DCP2_OP_I2C_POLICY_GET; policy_request.body_size = 1U;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response,
+                                          sizeof(response), &response_size) == 0);
+        CHECK(bvstk_dcp2_read_be16(response + 15) == white_count);
+        policy_request.opcode = BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD;
+        policy_request.body_size = bus_id == BVSTK_DCP2_SERVICE_I2C ? 4U : 7U;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response, 14U, &response_size) == 0);
+        CHECK(bvstk_dcp2_read_be16(response + 12) == 0U);
+        policy_request.opcode = BVSTK_DCP2_OP_I2C_POLICY_GET; policy_request.body_size = 1U;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response,
+                                          sizeof(response), &response_size) == 0);
+        CHECK(bvstk_dcp2_read_be16(response + 15) == white_count + 1U);
+        policy_request.opcode = BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE;
+        policy_request.body_size = bus_id == BVSTK_DCP2_SERVICE_I2C ? 4U : 7U;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response, 14U, &response_size) == 0);
+        CHECK(bvstk_dcp2_read_be16(response + 12) == 0U);
+        policy_request.body = NULL;
+        CHECK(bvstk_dcp2_process_request(&control, &policy_request, response, 14U, &response_size) == 0);
+        CHECK(response_size == 14U && bvstk_dcp2_read_be16(response + 12) == 1U);
+    }
+    bvstk_mdio_service_shutdown(&mdio_service);
     {
         bvstk_cache_change_t c;
         uint32_t generation;

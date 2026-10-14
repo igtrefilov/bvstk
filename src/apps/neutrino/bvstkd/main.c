@@ -61,13 +61,16 @@ static int request_mutates_i2c(const bvstk_dcp2_request_t *request)
     return request != NULL &&
            request->service == BVSTK_DCP2_SERVICE_I2C &&
            (request->opcode == BVSTK_DCP2_OP_I2C_WRITE_REG ||
-            request->opcode == BVSTK_DCP2_OP_I2C_POLICY_SET);
+            request->opcode == BVSTK_DCP2_OP_I2C_POLICY_SET ||
+            request->opcode == BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD ||
+            request->opcode == BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE ||
+            request->opcode == BVSTK_DCP2_OP_I2C_POLICY_CLEAR);
 }
 
-static void persist_dcp_i2c_mutation(
+static void sync_dcp_i2c_mutation(
     bvstk_neutrino_i2c_runtime_t *runtime,
     const bvstk_dcp2_request_t *request,
-    const uint8_t *response,
+    uint8_t *response,
     size_t response_size)
 {
     size_t device_id;
@@ -81,6 +84,19 @@ static void persist_dcp_i2c_mutation(
             &device_id) != BVSTK_OK) {
         return;
     }
+    if (request->opcode == BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD ||
+        request->opcode == BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE ||
+        request->opcode == BVSTK_DCP2_OP_I2C_POLICY_CLEAR) {
+        if (!bvstk_neutrino_i2c_runtime_sync_policy_locked(runtime, device_id)) {
+            fprintf(stderr,
+                    "bvstkd: failed to mirror DCP2 I2C policy for address 0x%02x\n",
+                    (unsigned)request->body[0]);
+            bvstk_dcp2_write_be16(response + 12U,
+                bvstk_dcp2_status_from_bvstk(BVSTK_ERR_INTERNAL));
+        }
+        return;
+    }
+    /* Keep legacy writes and mode changes on their existing persistence path. */
     if (!bvstk_neutrino_i2c_runtime_sync_locked(runtime, device_id, 1)) {
         fprintf(stderr,
                 "bvstkd: failed to persist DCP2 I2C mutation for address "
@@ -136,7 +152,7 @@ static int serve_client(int fd,
                                                      sizeof(response_frame),
                                                      &response_size);
         if (process_result == 0) {
-            persist_dcp_i2c_mutation(runtime,
+            sync_dcp_i2c_mutation(runtime,
                                      &request,
                                      response_frame,
                                      response_size);

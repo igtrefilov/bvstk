@@ -151,15 +151,15 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
     <g id="copy" data-kind="sequence-step">
       <rect x="717.0769230769231" y="891" width="756.769230769231" height="57" rx="4" fill="white" />
-      <text x="1095.4615384615386" y="915" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Заголовок 0x0000012A; 10 7B</text>
+      <text x="1095.4615384615386" y="915" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Заголовок 0x0000012A; 10 3B</text>
     </g>
     <g id="frame" data-kind="sequence-step">
       <rect x="269.69230769230774" y="996" width="427.38461538461536" height="57" rx="4" fill="white" />
-      <text x="483.3846153846154" y="1020" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Адрес 0x2A; frame = {10, 7B}</text>
+      <text x="483.3846153846154" y="1020" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Адрес 0x2A; frame = {10, 3B}</text>
     </g>
     <g id="handle" data-kind="sequence-step">
       <rect x="269.69230769230785" y="1101" width="1633.3846153846152" height="57" rx="4" fill="white" />
-      <text x="1086.3846153846155" y="1125" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">handle_frame: 10 7B</text>
+      <text x="1086.3846153846155" y="1125" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794">handle_frame: 10 3B</text>
     </g>
     <text x="259.69230769230774" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#b56b1d">Порт I²C slave</text>
     <text x="707.0769230769231" y="1250.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#287f73">bvstk_i2c_slave</text>

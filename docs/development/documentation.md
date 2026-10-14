@@ -65,9 +65,13 @@ Python. Генераторы не собирают PS и не обращаютс
 [transaction_drawing.py](../../tools/docs/transaction_drawing.py).
 Новые способы изображения добавляются в
 [generate_documentation.py](../../tools/docs/generate_documentation.py).
-Разметка полей DCP2 и последовательности обмена находятся в
-[dcp2_introduction.py](../../tools/docs/dcp2_introduction.py) и
-[dcp2_reference.py](../../tools/docs/dcp2_reference.py).
+Разметка кадра DCP2 находится в
+[dcp2_introduction.py](../../tools/docs/dcp2_introduction.py),
+поля отдельных сервисов — в [dcp2_fields.py](../../tools/docs/dcp2_fields.py),
+последовательности обмена — в [dcp2_reference.py](../../tools/docs/dcp2_reference.py).
+Конкретные сообщения примеров создаёт [dcp2_examples.py](../../tools/docs/dcp2_examples.py).
+Команды и примеры управления политиками находятся в
+[dcp2_policies.py](../../tools/docs/dcp2_policies.py).
 
 Для просмотра отдельного SVG:
 

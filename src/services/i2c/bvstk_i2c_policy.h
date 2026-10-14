@@ -48,6 +48,12 @@ bvstk_status_t bvstk_i2c_policy_remove(bvstk_i2c_policy_t *policy,
                                        size_t device_id,
                                        uint8_t reg,
                                        uint8_t value);
+/* Remove an exact rule only from the selected list. Missing rules fail. */
+bvstk_status_t bvstk_i2c_policy_remove_list(bvstk_i2c_policy_t *policy,
+                                          size_t device_id,
+                                          i2c_policy_t list,
+                                          uint8_t reg,
+                                          uint8_t value);
 bvstk_status_t bvstk_i2c_policy_clear(bvstk_i2c_policy_t *policy,
                                       size_t device_id,
                                       i2c_policy_t list);

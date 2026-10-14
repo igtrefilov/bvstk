@@ -51,6 +51,21 @@ class Figure(Page):
         self.nodes[key]=Box(key,x,y,w,h,g,label)
         self.min_y=min(self.min_y,y);self.max_y=max(self.max_y,y+h)
 
+    def folder(self, key, x, y, w, h, label, detail, parent=None, source=None):
+        """A directory card uses a fixed-size icon, with no layer assigned."""
+        owner = self.nodes[parent].group if parent else self.blocks
+        g = el(owner, "g", id=key, data_kind="source-directory",
+               data_parent=parent, data_source=source)
+        el(g, "rect", x=x, y=y, width=w, height=h, rx=10,
+           fill="#f7f9fb", stroke="#bdc9d2", stroke_width=2)
+        el(g, "path", d=f"M{x+22},{y+33} V{y+26} H{x+36} L{x+42},{y+33} H{x+60} V{y+58} H{x+22} Z",
+           fill="#edf2f6", stroke="#607487", stroke_width=2, stroke_linejoin="round")
+        self.text(g, x+74, y+52, label, 24, bold=True, width=w-96)
+        self.text(g, x+22, y+96, detail, 20, width=w-44)
+        self.nodes[key] = Box(key,x,y,w,h,g,label)
+        self.min_y = min(self.min_y,y)
+        self.max_y = max(self.max_y,y+h)
+
     def save(self):
         super().save()
         path=OUT/self.name
@@ -337,23 +352,82 @@ def history():
     p.save()
 
 
-def dependencies():
-    p=Figure("development/dependencies.svg","Зависимости исходников")
-    p.node("apps",660,100,470,125,"apps",layer="L4")
-    p.node("protocols",80,370,380,125,"protocols",layer="L3")
-    p.node("services",80,620,380,125,"services",layer="L3")
-    p.node("drivers",80,875,380,125,"drivers/pl",layer="L3")
-    p.node("ports",1330,370,390,140,"ports",layer="L1")
-    p.artifact("shared",660,850,470,160,"shared, hardware","Интерфейсы и контракты")
-    p.artifact("os",1330,640,390,130,"ОС и BSP","Системные библиотеки")
-    p.path("apps","protocols",((760,225),(760,300),(270,300),(270,370)),"depends")
-    p.path("apps","ports",((1030,225),(1030,300),(1525,300),(1525,370)),"depends")
-    p.edge("protocols","services","depends",start="S",end="N")
-    p.edge("services","drivers","depends",start="S",end="N")
-    p.edge("drivers","shared","depends",start="E",end="W",b_offset=7.5)
-    p.edge("ports","os","depends",start="S",end="N")
-    p.path("ports","shared",((1330,440),(1200,440),(1200,930),(1130,930)),"depends")
-    p.legend_note="Стрелка — зависимость исходников. Лист — общий контракт. Цвет — основная роль каталога."
+def source_layout():
+    p=Figure("development/source-layout.svg","Размещение общих и целевых исходников",
+             ["src/drivers", "src/services", "src/protocols", "src/shared", "src/hardware",
+              "src/apps", "src/ports", "src/vendor/lwip"],width=1800)
+    p.frame("src",40,50,1720,1070,"src",None)
+    p.frame("common",590,150,620,900,"Общие исходники",None,parent="src")
+    owned(p,"freertos",70,150,470,900,"FreeRTOS")
+    owned(p,"neutrino",1260,150,470,610,"Нейтрино")
+    for key in ("freertos","neutrino"):
+        p.blocks.remove(p.nodes[key].group)
+        p.nodes["src"].group.append(p.nodes[key].group)
+        p.nodes[key].group.set("data-parent","src")
+    p.folder("protocols",650,240,500,140,"protocols","Запросы и ответы",parent="common",source="src/protocols")
+    p.folder("services",650,440,500,140,"services","Состояние и правила подсистем",parent="common",source="src/services")
+    p.folder("drivers",650,640,500,140,"drivers","Операции с аппаратурой",parent="common",source="src/drivers")
+    p.folder("hardware",630,850,270,155,"hardware","Адреса и регистры",parent="common",source="src/hardware")
+    p.folder("shared",940,850,230,155,"shared","Интерфейсы\nи функции",parent="common",source="src/shared")
+    p.folder("freertos-apps",100,240,410,170,"apps/freertos","Запуск, команды,\nсетевые обработчики",parent="freertos",source="src/apps/freertos")
+    p.folder("freertos-ports",100,485,410,170,"ports/freertos-xilinx","Доступ к ОС\nи аппаратуре",parent="freertos",source="src/ports/freertos-xilinx")
+    p.folder("lwip",100,850,410,155,"vendor/lwip","Дополнения lwIP",parent="freertos",source="src/vendor/lwip")
+    p.folder("neutrino-apps",1290,240,410,170,"apps/neutrino","Программы и запуск",parent="neutrino",source="src/apps/neutrino")
+    p.folder("neutrino-ports",1290,485,410,170,"ports/neutrino-zynq7000","Доступ к ОС,\nменеджеры носителей",parent="neutrino",source="src/ports/neutrino-zynq7000")
+    p.legend_note="Значок папки — каталог. Пунктир — принадлежность ОС."
+    p.save()
+
+
+def source_paths():
+    p=Figure("development/source-paths.svg","Назначение частей пути к исходникам",
+             ["src/ports/neutrino-zynq7000/os", "src/hardware/boards/ax7020"],width=1800)
+    p.folder("root",60,375,210,155,"src","Исходники",source="src")
+    p.folder("ports",430,130,310,165,"ports","Реализации\nдля платформ",source="src/ports")
+    p.folder("neutrino",880,130,420,165,"neutrino-zynq7000","ОС и платформа",source="src/ports/neutrino-zynq7000")
+    p.folder("os",1450,130,290,165,"os","Системные\nадаптеры",source="src/ports/neutrino-zynq7000/os")
+    p.folder("hardware",430,620,310,165,"hardware","Описание\nаппаратуры",source="src/hardware")
+    p.folder("boards",880,620,260,165,"boards","Платы",source="src/hardware/boards")
+    p.folder("board",1450,620,290,165,"ax7020","Конкретная\nплата",source="src/hardware/boards/ax7020")
+    # Plain branches denote directory membership, without runtime arrows.
+    group=el(p.edges,"g",data_kind="directory-tree")
+    for path in ("M270,452.5 H345", "M345,212.5 V702.5",
+                 "M345,212.5 H430", "M345,702.5 H430",
+                 "M740,212.5 H880", "M1300,212.5 H1450",
+                 "M740,702.5 H880", "M1140,702.5 H1450"):
+        el(group,"path",d=path,fill="none",stroke="#8495a3",stroke_width=2)
+    el(group,"circle",cx=345,cy=452.5,r=4,fill="#8495a3")
+    p.legend_note="Линия соединяет родительский каталог с вложенным. Под именем указано его назначение."
+    p.save()
+
+
+def source_mmio():
+    p=Figure("development/source-mmio.svg","Исходники общего интерфейса MMIO",
+             ["src/shared/interfaces/bvstk_mmio.h",
+              "src/shared/pl/access/bvstk_pl_service.h",
+              "src/ports/freertos-xilinx/os/bvstk_platform_freertos.c",
+              "src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c"],width=1800)
+    p.frame("common",610,100,580,530,"Общие исходники",None)
+    owned(p,"freertos",40,100,520,290,"FreeRTOS")
+    owned(p,"neutrino",1240,100,520,290,"Нейтрино")
+    p.artifact("interface",660,190,480,130,"bvstk_mmio.h","shared/interfaces")
+    p.artifact("consumer",660,480,480,110,"bvstk_pl_service.h","shared/pl/access")
+    p.artifact("freertos-mmio",65,190,470,130,"bvstk_platform_freertos.c","ports/freertos-xilinx/os")
+    p.artifact("neutrino-mmio",1265,190,470,130,"bvstk_platform_neutrino.c","ports/neutrino-zynq7000/os")
+    for key,parent,source in (
+        ("interface","common",p.sources[0]),
+        ("consumer","common",p.sources[1]),
+        ("freertos-mmio","freertos",p.sources[2]),
+        ("neutrino-mmio","neutrino",p.sources[3]),
+    ):
+        group=p.nodes[key].group
+        p.blocks.remove(group)
+        p.nodes[parent].group.append(group)
+        group.set("data-parent",parent)
+        group.set("data-source",source)
+    p.edge("freertos-mmio","interface","depends",start="E",end="W")
+    p.edge("neutrino-mmio","interface","depends",start="W",end="E")
+    p.edge("consumer","interface","depends",start="N",end="S")
+    p.legend_note="Лист — исходный файл. Стрелка направлена к подключаемому заголовку. Пунктирная область — принадлежность ОС."
     p.save()
 
 
@@ -422,14 +496,17 @@ def network_change():
 def main():
     from dcp2_introduction import generate as dcp2_introduction
     from dcp2_reference import generate as dcp2_reference
+    from dcp2_fields import generate as dcp2_fields
     from dcp2_examples import generate as dcp2_examples
+    from dcp2_policies import generate as dcp2_policies
 
     drawing.OUT=OUT
     figures = (startup,ps_pl,irq,configuration,package,volumes,network,
-               requests,dcp2,observations,history,dependencies,artifacts,boot_modes,network_change)
+               requests,dcp2,observations,history,source_layout,source_paths,source_mmio,artifacts,boot_modes,network_change)
     for generate in figures:
         generate()
-    count = len(figures) + dcp2_introduction() + dcp2_reference() + dcp2_examples()
+    count = (len(figures) + dcp2_introduction() + dcp2_reference()
+             + dcp2_fields() + dcp2_examples() + dcp2_policies())
     print(f"Generated {count} documentation figures")
 
 

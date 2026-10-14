@@ -26,6 +26,14 @@ typedef struct {
 } bvstk_mdio_cache_entry_t;
 
 typedef struct {
+    mdio_policy_t mode;
+    mdio_rule_entry_t whitelist[MDIO_CFG_RULES_MAX];
+    size_t whitelist_len;
+    mdio_rule_entry_t blacklist[MDIO_CFG_RULES_MAX];
+    size_t blacklist_len;
+} bvstk_mdio_policy_entry_t;
+
+typedef struct {
     uint32_t reads, writes, denied, errors, observed, unknown_phy;
     uint8_t last_phy, last_reg, last_source;
     uint16_t last_value;
@@ -64,6 +72,18 @@ bvstk_status_t bvstk_mdio_service_cache_entry(const bvstk_mdio_service_t *, size
 bvstk_status_t bvstk_mdio_service_invalidate(bvstk_mdio_service_t *, size_t);
 bvstk_status_t bvstk_mdio_service_write(bvstk_mdio_service_t *, size_t, uint8_t, uint16_t, bvstk_event_source_t, uint32_t);
 bvstk_status_t bvstk_mdio_service_set_policy(bvstk_mdio_service_t *, size_t, mdio_policy_t);
+/* Policy operations are locked and preserve cache, identity and polling state.
+ * Rules have the same identity when register, mask and masked value match.
+ * Additions store value & mask; duplicate additions succeed; full lists return
+ * RANGE; absent removal returns NOT_FOUND. A list selector preserves mode. */
+bvstk_status_t bvstk_mdio_service_get_policy(const bvstk_mdio_service_t *, size_t,
+    bvstk_mdio_policy_entry_t *);
+bvstk_status_t bvstk_mdio_service_rule_add(bvstk_mdio_service_t *, size_t,
+    mdio_policy_t, uint8_t, uint16_t, uint16_t);
+bvstk_status_t bvstk_mdio_service_rule_remove(bvstk_mdio_service_t *, size_t,
+    mdio_policy_t, uint8_t, uint16_t, uint16_t);
+bvstk_status_t bvstk_mdio_service_rule_clear_list(bvstk_mdio_service_t *, size_t,
+    mdio_policy_t);
 bvstk_status_t bvstk_mdio_service_get_config(const bvstk_mdio_service_t *, size_t, mdio_phy_config_t *);
 bvstk_status_t bvstk_mdio_service_set_config(bvstk_mdio_service_t *, size_t, const mdio_phy_config_t *);
 bvstk_status_t bvstk_mdio_service_stats(const bvstk_mdio_service_t *, bvstk_mdio_stats_t *);

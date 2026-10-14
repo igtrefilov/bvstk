@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 10 1800 1308" role="img" aria-labelledby="title desc" height="1308">
+  <title id="title">Размещение общих и целевых исходников</title>
+  <desc id="desc">Размещение общих и целевых исходников</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1318" fill="white" />
+  <g id="backgrounds">
+    <rect x="40" y="50" width="1720" height="1070" rx="16" fill="white" />
+    <rect x="590" y="150" width="620" height="900" rx="16" fill="white" />
+    <rect x="70" y="150" width="470" height="900" rx="16" fill="white" />
+    <rect x="1260" y="150" width="470" height="610" rx="16" fill="white" />
+  </g>
+  <g id="interactions" />
+  <g id="components">
+    <g id="src" data-kind="system-boundary" data-label="src" data-ownership="common">
+      <rect x="40" y="50" width="1720" height="1070" rx="16" fill="none" stroke="#233747" stroke-width="2" />
+      <text x="66" y="87.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">src</text>
+      <g id="common" data-kind="system-boundary" data-label="Общие исходники" data-ownership="common">
+        <rect x="590" y="150" width="620" height="900" rx="16" fill="none" stroke="#233747" stroke-width="2" />
+        <text x="616" y="187.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Общие исходники</text>
+        <g id="protocols" data-kind="source-directory" data-parent="common" data-source="src/protocols">
+          <rect x="650" y="240" width="500" height="140" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M672,273 V266 H686 L692,273 H710 V298 H672 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="724" y="292.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">protocols</text>
+          <text x="672" y="336.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Запросы и ответы</text>
+        </g>
+        <g id="services" data-kind="source-directory" data-parent="common" data-source="src/services">
+          <rect x="650" y="440" width="500" height="140" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M672,473 V466 H686 L692,473 H710 V498 H672 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="724" y="492.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">services</text>
+          <text x="672" y="536.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Состояние и правила подсистем</text>
+        </g>
+        <g id="drivers" data-kind="source-directory" data-parent="common" data-source="src/drivers">
+          <rect x="650" y="640" width="500" height="140" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M672,673 V666 H686 L692,673 H710 V698 H672 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="724" y="692.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">drivers</text>
+          <text x="672" y="736.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Операции с аппаратурой</text>
+        </g>
+        <g id="hardware" data-kind="source-directory" data-parent="common" data-source="src/hardware">
+          <rect x="630" y="850" width="270" height="155" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M652,883 V876 H666 L672,883 H690 V908 H652 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="704" y="902.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">hardware</text>
+          <text x="652" y="946.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Адреса и регистры</text>
+        </g>
+        <g id="shared" data-kind="source-directory" data-parent="common" data-source="src/shared">
+          <rect x="940" y="850" width="230" height="155" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M962,883 V876 H976 L982,883 H1000 V908 H962 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="1014" y="902.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">shared</text>
+          <text x="962" y="946.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Интерфейсы</text>
+          <text x="962" y="973.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">и функции</text>
+        </g>
+      </g>
+      <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos" data-parent="src">
+        <rect x="70" y="150" width="470" height="900" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+        <text x="96" y="187.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+        <g id="freertos-apps" data-kind="source-directory" data-parent="freertos" data-source="src/apps/freertos">
+          <rect x="100" y="240" width="410" height="170" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M122,273 V266 H136 L142,273 H160 V298 H122 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="174" y="292.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">apps/freertos</text>
+          <text x="122" y="336.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Запуск, команды,</text>
+          <text x="122" y="363.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">сетевые обработчики</text>
+        </g>
+        <g id="freertos-ports" data-kind="source-directory" data-parent="freertos" data-source="src/ports/freertos-xilinx">
+          <rect x="100" y="485" width="410" height="170" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M122,518 V511 H136 L142,518 H160 V543 H122 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="174" y="537.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ports/freertos-xilinx</text>
+          <text x="122" y="581.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Доступ к ОС</text>
+          <text x="122" y="608.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">и аппаратуре</text>
+        </g>
+        <g id="lwip" data-kind="source-directory" data-parent="freertos" data-source="src/vendor/lwip">
+          <rect x="100" y="850" width="410" height="155" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M122,883 V876 H136 L142,883 H160 V908 H122 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="174" y="902.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">vendor/lwip</text>
+          <text x="122" y="946.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Дополнения lwIP</text>
+        </g>
+      </g>
+      <g id="neutrino" data-kind="ownership-region" data-label="Нейтрино" data-ownership="neutrino" data-parent="src">
+        <rect x="1260" y="150" width="470" height="610" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+        <text x="1286" y="187.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Нейтрино</text>
+        <g id="neutrino-apps" data-kind="source-directory" data-parent="neutrino" data-source="src/apps/neutrino">
+          <rect x="1290" y="240" width="410" height="170" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M1312,273 V266 H1326 L1332,273 H1350 V298 H1312 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="1364" y="292.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">apps/neutrino</text>
+          <text x="1312" y="336.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Программы и запуск</text>
+        </g>
+        <g id="neutrino-ports" data-kind="source-directory" data-parent="neutrino" data-source="src/ports/neutrino-zynq7000">
+          <rect x="1290" y="485" width="410" height="170" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+          <path d="M1312,518 V511 H1326 L1332,518 H1350 V543 H1312 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+          <text x="1364" y="537.0" font-size="22.75" font-weight="700" text-anchor="start" style="fill:#233747">ports/neutrino-zynq7000</text>
+          <text x="1312" y="581.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Доступ к ОС,</text>
+          <text x="1312" y="608.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">менеджеры носителей</text>
+        </g>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="1275.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Значок папки — каталог. Пунктир — принадлежность ОС.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/drivers",
+    "src/services",
+    "src/protocols",
+    "src/shared",
+    "src/hardware",
+    "src/apps",
+    "src/ports",
+    "src/vendor/lwip"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

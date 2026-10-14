@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1400" viewBox="0 30 1400 1398" role="img" aria-labelledby="title desc" height="1398">
   <title id="title">I²C: запись и последующее чтение</title>
-  <desc id="desc">Успешная запись сохраняет 0x7B в кэше. При следующем внешнем чтении PS готовит окно slave из этого значения.</desc>
+  <desc id="desc">Успешная запись сохраняет 0x3B в кэше. При следующем внешнем чтении PS готовит окно slave из этого значения.</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -121,18 +121,18 @@ g:target &gt; rect { stroke-width: 5; }
       <text x="1155" y="94.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
       <text x="1155" y="147.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
     </g>
-    <g id="cache" data-kind="component" data-layer="L3" data-label="Кэш: 0x7B" data-ownership="common" data-target="../overview/cache.svg#cache">
+    <g id="cache" data-kind="component" data-layer="L3" data-label="Кэш: 0x3B" data-ownership="common" data-target="../overview/cache.svg#cache">
       <rect x="600" y="565" width="200" height="100" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
       <a data-navigation="detail" xlink:href="../overview/cache.svg#cache">
         <text x="620" y="589.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-        <text x="620" y="632.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Кэш: 0x7B</text>
+        <text x="620" y="632.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Кэш: 0x3B</text>
       </a>
     </g>
   </g>
   <g id="annotations">
     <text x="70" y="255.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Разрешённая запись</text>
-    <text x="837.5" y="298.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">0x10 ← 0x7B</text>
-    <text x="1112.5" y="368.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">0x10, 0x7B</text>
+    <text x="837.5" y="298.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">0x10 ← 0x3B</text>
+    <text x="1112.5" y="368.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">0x10, 0x3B</text>
     <text x="1112.5" y="438.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">ACK</text>
     <text x="837.5" y="508.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Запись завершена</text>
     <text x="70" y="753.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Внешнее чтение</text>
@@ -141,7 +141,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="700" y="924.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#233747" class="edge-label">Указатель 0x10</text>
     <text x="562.5" y="973.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Окно в BRAM</text>
     <text x="562.5" y="1058.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#b56b1d" class="edge-label">rd_valid</text>
-    <text x="287.5" y="1153.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">ACK, 0x7B</text>
+    <text x="287.5" y="1153.0" font-size="23" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">ACK, 0x3B</text>
     <text x="405" y="967.0" font-size="20" font-weight="400" text-anchor="end" style="fill:#8760ba" class="edge-label">SCL = 0</text>
     <text x="1080" y="880.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">Шина устройства</text>
     <text x="1080" y="913.12" font-size="24" font-weight="400" text-anchor="middle" style="fill:#607487">свободна</text>

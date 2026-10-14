@@ -25,7 +25,7 @@ def generate_article_flows(Page, el, palette, arrows):
 
     # The completed example write supplies a later cached read.
     p = page("i2c/exchange.svg", "I²C: запись и последующее чтение",
-             "Успешная запись сохраняет 0x7B в кэше. При следующем внешнем чтении PS готовит окно slave из этого значения.",
+             "Успешная запись сохраняет 0x3B в кэше. При следующем внешнем чтении PS готовит окно slave из этого значения.",
              ["src/services/i2c/bvstk_i2c_slave_service.c",
               "src/services/i2c/bvstk_i2c_master_service.c"])
     actors = [
@@ -39,11 +39,11 @@ def generate_article_flows(Page, el, palette, arrows):
         p.node(key, x-115, 70, 230, 120, label, layer=layer, target=target)
         line(p, ((x, 215), (x, 1215)), dash="5 8", width=1.5)
     text(p, 70, 255, "Разрешённая запись", 24, bold=True)
-    message(p, "ps", "master", 700, 975, 315, "0x10 ← 0x7B", "mmio")
-    message(p, "master", "device", 975, 1250, 385, "0x10, 0x7B")
+    message(p, "ps", "master", 700, 975, 315, "0x10 ← 0x3B", "mmio")
+    message(p, "master", "device", 975, 1250, 385, "0x10, 0x3B")
     message(p, "device", "master", 1250, 975, 455, "ACK")
     message(p, "master", "ps", 975, 700, 525, "Запись завершена", "call")
-    p.node("cache", 600, 565, 200, 100, "Кэш: 0x7B", layer="L3",
+    p.node("cache", 600, 565, 200, 100, "Кэш: 0x3B", layer="L3",
            target="overview/cache.svg#cache")
     line(p, ((65, 705), (1335, 705)), dash="5 8", width=1.5)
     text(p, 70, 753, "Внешнее чтение", 24, bold=True)
@@ -52,7 +52,7 @@ def generate_article_flows(Page, el, palette, arrows):
     text(p, 700, 924, "Указатель 0x10", 21, anchor="middle", cls="edge-label")
     message(p, "ps", "slave", 700, 425, 990, "Окно в BRAM")
     message(p, "ps", "slave", 700, 425, 1075, "rd_valid", "mmio")
-    message(p, "slave", "host", 425, 150, 1170, "ACK, 0x7B")
+    message(p, "slave", "host", 425, 150, 1170, "ACK, 0x3B")
     # The band denotes physical SCL hold; it is separate from event arrows.
     el(p.under, "rect", x=414, y=825, width=22, height=305, rx=4,
        fill=palette["PL"][0], stroke=palette["PL"][1])

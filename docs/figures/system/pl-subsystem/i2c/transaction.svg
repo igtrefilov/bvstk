@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 37 1800 426" role="img" aria-labelledby="title desc" data-content="protocol" data-layer="L0" height="426">
-  <title id="title">Запись 0x7B в регистр 0x10 устройства 0x2A</title>
-  <desc id="desc">Запись 0x7B в регистр 0x10 устройства 0x2A</desc>
+  <title id="title">Запись 0x3B в регистр 0x10 устройства 0x2A</title>
+  <desc id="desc">Запись 0x3B в регистр 0x10 устройства 0x2A</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -69,7 +69,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="844.7407407407406" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x10</text>
     <text x="844.7407407407406" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">Регистр</text>
     <text x="1083.333333333333" y="184.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
-    <text x="1321.9259259259256" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x7B</text>
+    <text x="1321.9259259259256" y="164.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">0x3B</text>
     <text x="1321.9259259259256" y="194.0" font-size="21" font-weight="400" text-anchor="middle" style="fill:#607487">Значение</text>
     <text x="1560.5185185185182" y="184.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">ACK</text>
     <text x="1690.7407407407404" y="184.0" font-size="26" font-weight="700" text-anchor="middle" style="fill:#3f75ad">P</text>

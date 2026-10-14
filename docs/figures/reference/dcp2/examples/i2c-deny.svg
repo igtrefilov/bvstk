@@ -174,7 +174,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="frame-2-8" data-kind="packet-field">
       <rect x="1163" y="535" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
       <text x="1220.5" y="566.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">val</text>
-      <text x="1220.5" y="604" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">7B</text>
+      <text x="1220.5" y="604" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">3B</text>
     </g>
     <g id="frame-3-0" data-kind="packet-field">
       <rect x="60" y="750" width="190" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
@@ -398,7 +398,7 @@ g:target &gt; rect { stroke-width: 5; }
           "name": "val",
           "offset": 14,
           "size": 1,
-          "hex": "7b"
+          "hex": "3b"
         }
       ]
     },

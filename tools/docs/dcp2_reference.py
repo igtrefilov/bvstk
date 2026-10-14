@@ -126,7 +126,7 @@ def command_body():
     p.text(p.notes, 440, 617, "body запроса", 27, anchor="middle")
     p.text(p.notes, 1310, 617, "body ответа", 27, anchor="middle")
     p.box("parameters", 160, 655, 560, 105, "Параметры", PAYLOAD, 27)
-    p.box("status", 1000, 655, 190, 105, "status\n2 байта", PAYLOAD, 24)
+    p.box("status", 1000, 655, 190, 105, "status", PAYLOAD, 24)
     p.box("result", 1190, 655, 430, 105, "Данные результата", PAYLOAD, 25)
     p.arrow(760, 430, 440, 570, kind="call")
     p.arrow(1040, 430, 1310, 570, kind="call")

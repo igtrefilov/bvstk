@@ -109,10 +109,11 @@ void bvstk_neutrino_i2c_runtime_unlock(
     }
 }
 
-int bvstk_neutrino_i2c_runtime_sync_locked(
+static int sync_i2c_config_locked(
     bvstk_neutrino_i2c_runtime_t *runtime,
     size_t device_id,
-    int save_to_storage)
+    int save_to_storage,
+    int include_cache_values)
 {
     const i2c_device_config_t *stored;
     i2c_device_config_t config;
@@ -149,7 +150,7 @@ int bvstk_neutrino_i2c_runtime_sync_locked(
            policy.blacklist,
            policy.blacklist_len * sizeof(policy.blacklist[0]));
     config.blacklist_len = policy.blacklist_len;
-    for (reg = 0U; reg < config.reg_count; ++reg) {
+    for (reg = 0U; include_cache_values && reg < config.reg_count; ++reg) {
         uint8_t value = 0U;
 
         if (bvstk_i2c_cache_is_valid(&runtime->cache,
@@ -170,6 +171,22 @@ int bvstk_neutrino_i2c_runtime_sync_locked(
     return save_to_storage == 0 ||
            bvstk_neutrino_i2c_config_store_save(&runtime->config_store,
                                                  &config);
+}
+
+int bvstk_neutrino_i2c_runtime_sync_locked(
+    bvstk_neutrino_i2c_runtime_t *runtime,
+    size_t device_id,
+    int save_to_storage)
+{
+    return sync_i2c_config_locked(runtime, device_id, save_to_storage, 1);
+}
+
+int bvstk_neutrino_i2c_runtime_sync_policy_locked(
+    bvstk_neutrino_i2c_runtime_t *runtime,
+    size_t device_id)
+{
+    /* Keep later console edits based on the live policy, not an older copy. */
+    return sync_i2c_config_locked(runtime, device_id, 0, 0);
 }
 
 static int duplicate_identity(const bvstk_neutrino_i2c_runtime_t *runtime,

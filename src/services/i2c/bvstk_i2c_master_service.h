@@ -105,6 +105,8 @@ bvstk_status_t bvstk_i2c_master_service_write(
     bvstk_event_source_t source,
     uint32_t timeout_ms);
 
+/* Policy copies, mutations and enforcement share the cache sink guard.
+ * The platform must install that guard before concurrent service use. */
 bvstk_status_t bvstk_i2c_master_service_set_policy(
     bvstk_i2c_master_service_t *service,
     size_t device_id,
@@ -134,6 +136,13 @@ bvstk_status_t bvstk_i2c_master_service_rule_deny(
 bvstk_status_t bvstk_i2c_master_service_rule_clear(
     bvstk_i2c_master_service_t *service,
     size_t device_id,
+    uint8_t reg,
+    uint8_t value);
+/* Selected-list removal preserves the other list and the active mode. */
+bvstk_status_t bvstk_i2c_master_service_rule_remove(
+    bvstk_i2c_master_service_t *service,
+    size_t device_id,
+    i2c_policy_t list,
     uint8_t reg,
     uint8_t value);
 bvstk_status_t bvstk_i2c_master_service_rule_clear_list(

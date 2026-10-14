@@ -38,17 +38,17 @@ static int rule_valid(const bvstk_i2c_device_t *device,
            value <= device->max_value_code;
 }
 
-static void add_rule(i2c_rule_entry_t *rules,
+static bvstk_status_t add_rule(i2c_rule_entry_t *rules,
                      size_t *length,
                      uint8_t reg,
                      uint8_t value)
 {
-    if (!rule_contains(rules, *length, reg, value) &&
-        *length < I2C_CFG_RULES_MAX) {
-        rules[*length].reg = reg;
-        rules[*length].val = value;
-        (*length)++;
-    }
+    if (rule_contains(rules, *length, reg, value)) return BVSTK_OK;
+    if (*length >= I2C_CFG_RULES_MAX) return BVSTK_ERR_RANGE;
+    rules[*length].reg = reg;
+    rules[*length].val = value;
+    (*length)++;
+    return BVSTK_OK;
 }
 
 static void remove_rule(i2c_rule_entry_t *rules,
@@ -177,11 +177,10 @@ bvstk_status_t bvstk_i2c_policy_add_allow(bvstk_i2c_policy_t *policy,
     if (!rule_valid(device, reg, value)) {
         return BVSTK_ERR_RANGE;
     }
-    add_rule(policy->items[device_id].whitelist,
+    return add_rule(policy->items[device_id].whitelist,
              &policy->items[device_id].whitelist_len,
              reg,
              value);
-    return BVSTK_OK;
 }
 
 bvstk_status_t bvstk_i2c_policy_add_deny(bvstk_i2c_policy_t *policy,
@@ -197,11 +196,10 @@ bvstk_status_t bvstk_i2c_policy_add_deny(bvstk_i2c_policy_t *policy,
     if (!rule_valid(device, reg, value)) {
         return BVSTK_ERR_RANGE;
     }
-    add_rule(policy->items[device_id].blacklist,
+    return add_rule(policy->items[device_id].blacklist,
              &policy->items[device_id].blacklist_len,
              reg,
              value);
-    return BVSTK_OK;
 }
 
 bvstk_status_t bvstk_i2c_policy_remove(bvstk_i2c_policy_t *policy,
@@ -221,6 +219,26 @@ bvstk_status_t bvstk_i2c_policy_remove(bvstk_i2c_policy_t *policy,
                 &policy->items[device_id].blacklist_len,
                 reg,
                 value);
+    return BVSTK_OK;
+}
+
+bvstk_status_t bvstk_i2c_policy_remove_list(bvstk_i2c_policy_t *policy,
+                                          size_t device_id,
+                                          i2c_policy_t list,
+                                          uint8_t reg,
+                                          uint8_t value)
+{
+    bvstk_i2c_policy_entry_t *entry;
+    i2c_rule_entry_t *rules;
+    size_t *length;
+    bvstk_status_t status = policy_status(policy, device_id);
+    if (status != BVSTK_OK) return status;
+    if (!mode_valid(list)) return BVSTK_ERR_MALFORMED;
+    entry = &policy->items[device_id];
+    rules = list == I2C_POLICY_WHITELIST ? entry->whitelist : entry->blacklist;
+    length = list == I2C_POLICY_WHITELIST ? &entry->whitelist_len : &entry->blacklist_len;
+    if (!rule_contains(rules, *length, reg, value)) return BVSTK_ERR_NOT_FOUND;
+    remove_rule(rules, length, reg, value);
     return BVSTK_OK;
 }
 

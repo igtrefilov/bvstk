@@ -76,11 +76,11 @@ def master_completion(d):
         ("gic", "GIC", "Без обработчика master", "L0", "@architecture_bvstk_ps_pl.svg#irq-i2c-master", 1),
     ], y=120)
     d.sequence(y, [
-        ("publish", "core", "bram", "data", "Результат: 0x7B"),
+        ("publish", "core", "bram", "data", "Результат: 0x3B"),
         ("irq", "core", "gic", "irq", "IRQ master: DATA_VALID"),
         ("poll", "driver", "core", "mmio", "Опрос CSR и регистра IRQ"),
         ("ready", "core", "driver", "mmio", "Свободен, DATA_VALID = 1"),
-        ("result", "bram", "driver", "data", "0x7B"),
+        ("result", "bram", "driver", "data", "0x3B"),
     ])
 
 
@@ -98,9 +98,9 @@ def slave_write(d):
         ("capture", "driver", "core", "mmio", "IRQ и REQ, затем сброс IRQ"),
         ("dispatch-task", "port", "port", "irq", "Очередь → slave_task"),
         ("read", "port", "driver", "call", "hw_read_frame"),
-        ("copy", "bram", "driver", "data", "Заголовок 0x0000012A; 10 7B"),
-        ("frame", "driver", "port", "data", "Адрес 0x2A; frame = {10, 7B}"),
-        ("handle", "port", "service", "call", "handle_frame: 10 7B"),
+        ("copy", "bram", "driver", "data", "Заголовок 0x0000012A; 10 3B"),
+        ("frame", "driver", "port", "data", "Адрес 0x2A; frame = {10, 3B}"),
+        ("handle", "port", "service", "call", "handle_frame: 10 3B"),
     ], ownership=(("freertos", "FreeRTOS", ("port",)),))
 
 
@@ -116,11 +116,11 @@ def slave_read(d):
         ("irq", "core", "port", "irq", "IRQ slave: RD_REQUEST"),
         ("event", "port", "port", "irq", "Захват события → slave_task"),
         ("dispatch", "port", "service", "call", "handle_frame: подготовить окно"),
-        ("window", "service", "port", "data", "Окно ответа: первый байт 0x7B"),
+        ("window", "service", "port", "data", "Окно ответа: первый байт 0x3B"),
         ("publish", "port", "driver", "call", "write_read_window, затем accept_read"),
         ("write", "driver", "bram", "data", "write_read_window: заголовок и байты"),
         ("valid", "driver", "core", "mmio", "accept_read: CSR.rd_valid"),
-        ("fetch", "bram", "core", "data", "Окно ответа: первый байт 0x7B"),
+        ("fetch", "bram", "core", "data", "Окно ответа: первый байт 0x3B"),
     ], ownership=(("freertos", "FreeRTOS", ("port",)),))
 
 

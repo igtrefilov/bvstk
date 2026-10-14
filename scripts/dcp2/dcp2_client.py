@@ -38,6 +38,7 @@ FS_UNKNOWN_SIZE = (1 << 64) - 1
 OP_PING = 0x00
 OP_MEM_READ = 0x00
 OP_MEM_WRITE = 0x01
+OP_POLICY_SET, OP_POLICY_GET, OP_POLICY_RULE_ADD, OP_POLICY_RULE_DELETE, OP_POLICY_CLEAR = range(2, 7)
 OP_NOTIFY_SUBSCRIBE = 0x10
 OP_NOTIFY_UNSUBSCRIBE = 0x11
 OP_STREAM_SUBSCRIBE = 0x10
@@ -298,7 +299,8 @@ def wait_for_response(sock: socket.socket, expected_srv: int, expected_opcode: i
     while True:
         frame = read_frame(sock)
         if frame.is_event:
-            print(f"[event-before-response] srv=0x{frame.srv:02X} op=0x{frame.op:02X} seq={frame.seq}", flush=True)
+            print(f"[event-before-response] srv=0x{frame.srv:02X} op=0x{frame.op:02X} seq={frame.seq}",
+                  file=sys.stderr, flush=True)
             continue
         if not frame.is_response:
             raise ValueError(f"unexpected non-response frame op=0x{frame.op:02X}")
@@ -437,6 +439,176 @@ def mdio_write(sock: socket.socket, seq: int, phy: int, reg: int, value: int) ->
         raise RuntimeError(f"MDIO_WRITE failed: {status_name(status)}")
     if len(response.body) != 2:
         raise ValueError("invalid MDIO_WRITE response length")
+
+
+def _policy_enum(value: int | str, field: str) -> int:
+    if isinstance(value, str):
+        value = {"whitelist": 0, "blacklist": 1, "0": 0, "1": 1}.get(value.lower(), -1)
+    if not isinstance(value, int) or value not in (0, 1):
+        raise ValueError(f"{field} must be whitelist, blacklist, 0 or 1")
+    return value
+
+
+def _policy_target(service: int, seq: int, address: int) -> None:
+    if service not in (SRV_I2C, SRV_MDIO):
+        raise ValueError("policy service must be I2C or MDIO")
+    if not isinstance(seq, int) or not 1 <= seq <= 65535:
+        raise ValueError("seq must be 1..65535")
+    maximum = 127 if service == SRV_I2C else 31
+    if not isinstance(address, int) or not 0 <= address <= maximum:
+        raise ValueError(f"device address must be 0..{maximum}")
+
+
+def _policy_request(sock: socket.socket, service: int, seq: int, opcode: int, body: bytes) -> bytes:
+    # Send each mutation exactly once; a lost response leaves the outcome uncertain.
+    sock.sendall(build_frame(service, opcode, seq, body))
+    response = wait_for_response(sock, service, opcode, seq)
+    status = parse_status_from_response(response)
+    if status:
+        action = {OP_POLICY_SET: "SET", OP_POLICY_GET: "GET", OP_POLICY_RULE_ADD: "ADD",
+                  OP_POLICY_RULE_DELETE: "DELETE", OP_POLICY_CLEAR: "CLEAR"}[opcode]
+        bus = STREAM_SERVICE_NAMES[service]
+        raise RuntimeError(f"{bus} POLICY_{action} failed: {status_name(status)}")
+    data = response.body[2:]
+    if opcode != OP_POLICY_GET and data:
+        raise ValueError("invalid policy mutation response length")
+    return data
+
+
+def decode_policy(service: int, data: bytes) -> dict:
+    if service not in (SRV_I2C, SRV_MDIO):
+        raise ValueError("policy service must be I2C or MDIO")
+    if len(data) < 5:
+        raise ValueError("short POLICY_GET response")
+    mode, white, black = struct.unpack_from(">BHH", data)
+    _policy_enum(mode, "mode")
+    rule_format = ">BB" if service == SRV_I2C else ">BHH"
+    rule_size = struct.calcsize(rule_format)
+    limit = 256 if service == SRV_I2C else 64
+    if white > limit or black > limit or len(data) != 5 + (white + black) * rule_size:
+        raise ValueError("invalid POLICY_GET counts or response length")
+    rules = []
+    for offset in range(5, len(data), rule_size):
+        values = struct.unpack_from(rule_format, data, offset)
+        if service == SRV_MDIO and values[0] > 31:
+            raise ValueError("invalid MDIO policy register")
+        rules.append(dict(zip(("reg", "val", "mask"), values)))
+    return {"mode": ("whitelist", "blacklist")[mode],
+            "whitelist": rules[:white], "blacklist": rules[white:]}
+
+
+def policy_get(sock: socket.socket, service: int, seq: int, address: int) -> dict:
+    _policy_target(service, seq, address)
+    return decode_policy(service, _policy_request(sock, service, seq, OP_POLICY_GET, bytes([address])))
+
+
+def policy_set(sock: socket.socket, service: int, seq: int, address: int, mode: int | str) -> None:
+    _policy_target(service, seq, address)
+    mode = _policy_enum(mode, "mode")
+    _policy_request(sock, service, seq, OP_POLICY_SET, bytes([address, mode]))
+
+
+def policy_clear(sock: socket.socket, service: int, seq: int, address: int, rule_list: int | str) -> None:
+    _policy_target(service, seq, address)
+    rule_list = _policy_enum(rule_list, "list")
+    _policy_request(sock, service, seq, OP_POLICY_CLEAR, bytes([address, rule_list]))
+
+
+def _policy_rule(sock: socket.socket, service: int, seq: int, opcode: int,
+                 address: int, rule_list: int | str, reg: int, value: int, mask: Optional[int]) -> None:
+    _policy_target(service, seq, address)
+    rule_list = _policy_enum(rule_list, "list")
+    if not isinstance(reg, int) or not 0 <= reg <= (255 if service == SRV_I2C else 31):
+        raise ValueError("policy register is out of range")
+    if not isinstance(value, int) or not 0 <= value <= (255 if service == SRV_I2C else 65535):
+        raise ValueError("policy value is out of range")
+    if service == SRV_I2C:
+        if mask is not None:
+            raise ValueError("I2C policy rules have no mask")
+        body = struct.pack(">BBBB", address, rule_list, reg, value)
+    else:
+        if not isinstance(mask, int) or not 0 <= mask <= 65535:
+            raise ValueError("MDIO policy mask must be 0..65535")
+        body = struct.pack(">BBBHH", address, rule_list, reg, value, mask)
+    _policy_request(sock, service, seq, opcode, body)
+
+
+def policy_rule_add(sock: socket.socket, service: int, seq: int, address: int,
+                    rule_list: int | str, reg: int, value: int, mask: Optional[int] = None) -> None:
+    _policy_rule(sock, service, seq, OP_POLICY_RULE_ADD, address, rule_list, reg, value, mask)
+
+
+def policy_rule_delete(sock: socket.socket, service: int, seq: int, address: int,
+                       rule_list: int | str, reg: int, value: int, mask: Optional[int] = None) -> None:
+    _policy_rule(sock, service, seq, OP_POLICY_RULE_DELETE, address, rule_list, reg, value, mask)
+
+
+def i2c_policy_get(sock: socket.socket, seq: int, addr7: int) -> dict:
+    return policy_get(sock, SRV_I2C, seq, addr7)
+
+
+def i2c_policy_set(sock: socket.socket, seq: int, addr7: int, mode: int | str) -> None:
+    return policy_set(sock, SRV_I2C, seq, addr7, mode)
+
+
+def i2c_policy_clear(sock: socket.socket, seq: int, addr7: int, rule_list: int | str) -> None:
+    return policy_clear(sock, SRV_I2C, seq, addr7, rule_list)
+
+
+def i2c_policy_rule_add(sock: socket.socket, seq: int, addr7: int, rule_list: int | str, reg: int, value: int) -> None:
+    return policy_rule_add(sock, SRV_I2C, seq, addr7, rule_list, reg, value)
+
+
+def i2c_policy_rule_delete(sock: socket.socket, seq: int, addr7: int, rule_list: int | str, reg: int, value: int) -> None:
+    return policy_rule_delete(sock, SRV_I2C, seq, addr7, rule_list, reg, value)
+
+
+def mdio_policy_get(sock: socket.socket, seq: int, phy: int) -> dict:
+    return policy_get(sock, SRV_MDIO, seq, phy)
+
+
+def mdio_policy_set(sock: socket.socket, seq: int, phy: int, mode: int | str) -> None:
+    return policy_set(sock, SRV_MDIO, seq, phy, mode)
+
+
+def mdio_policy_clear(sock: socket.socket, seq: int, phy: int, rule_list: int | str) -> None:
+    return policy_clear(sock, SRV_MDIO, seq, phy, rule_list)
+
+
+def mdio_policy_rule_add(sock: socket.socket, seq: int, phy: int, rule_list: int | str, reg: int, value: int, mask: int) -> None:
+    return policy_rule_add(sock, SRV_MDIO, seq, phy, rule_list, reg, value, mask)
+
+
+def mdio_policy_rule_delete(sock: socket.socket, seq: int, phy: int, rule_list: int | str, reg: int, value: int, mask: int) -> None:
+    return policy_rule_delete(sock, SRV_MDIO, seq, phy, rule_list, reg, value, mask)
+
+
+def run_policy_operation(args: argparse.Namespace) -> int:
+    try:
+        for bus, service in (("i2c", SRV_I2C), ("mdio", SRV_MDIO)):
+            for action in ("get", "set", "add", "delete", "clear"):
+                fields = getattr(args, f"{bus}_policy_{action}")
+                if fields is None:
+                    continue
+                address = parse_uint(fields[0], "device address", 127 if bus == "i2c" else 31)
+                parameters = [address]
+                if action != "get":
+                    parameters.append(_policy_enum(fields[1], "mode" if action == "set" else "list"))
+                if action in ("add", "delete"):
+                    parameters.extend((parse_uint(fields[2], "register", 255 if bus == "i2c" else 31),
+                                       parse_uint(fields[3], "value", 255 if bus == "i2c" else 65535)))
+                    if bus == "mdio":
+                        parameters.append(parse_uint(fields[4], "mask", 65535))
+                operation = {"get": policy_get, "set": policy_set, "clear": policy_clear,
+                             "add": policy_rule_add, "delete": policy_rule_delete}[action]
+                with socket.create_connection((args.host, args.port), timeout=args.timeout) as sock:
+                    result = operation(sock, service, 1, *parameters)
+                print(json.dumps(result) if action == "get" else f"{bus.upper()} POLICY_{action.upper()} -> OK")
+                return 0
+        raise ValueError("no policy operation selected")
+    except (ConnectionError, OSError, RuntimeError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
 
 
 def run_mdio_operation(args: argparse.Namespace) -> int:
@@ -996,8 +1168,9 @@ def print_frame(frame: Frame, with_timestamp: bool) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "DCP2 client: monitor CACHE, NOTIFY or PL streams, or execute one-shot "
-            "MEM/MDIO read/write or FS read/tree/TAR operations."
+            "DCP2 client: monitor CACHE, NOTIFY or PL streams, access MEM and MDIO, "
+            "manage I2C and MDIO policies, or read files, "
+            "directories and TAR archives through FS."
         )
     )
     parser.add_argument("host", help="device IP or hostname")
@@ -1006,6 +1179,25 @@ def build_parser() -> argparse.ArgumentParser:
     operation.add_argument("--cache-get", nargs=2, metavar=("SUBSYSTEM", "DEVICE"), help="read a coherent cache snapshot as JSON, without bus I/O")
     operation.add_argument("--cache-watch", nargs=2, metavar=("SUBSYSTEM", "DEVICE"), help="watch cache snapshots and updates as JSON lines, without bus I/O")
     parser.add_argument("--cache-duration", type=float, default=0, help="stop --cache-watch after N seconds (default: until Ctrl+C)")
+    for bus in ("i2c", "mdio"):
+        address = "ADDR7" if bus == "i2c" else "PHY"
+        for action, fields in (("get", (address,)), ("set", (address, "MODE")),
+                               ("clear", (address, "LIST")),
+                               ("add", (address, "LIST", "REG", "VALUE") + (("MASK",) if bus == "mdio" else ())),
+                               ("delete", (address, "LIST", "REG", "VALUE") + (("MASK",) if bus == "mdio" else ()))):
+            help_text = {
+                "get": f"read {bus.upper()} policy mode and both rule lists",
+                "set": f"select whitelist (0) or blacklist (1) for {bus.upper()}",
+                "clear": f"clear the selected {bus.upper()} list",
+                "add": f"add a rule to {bus.upper()} whitelist (0) or blacklist (1)",
+                "delete": f"remove a rule from the selected {bus.upper()} list",
+            }[action]
+            if bus == "mdio" and action == "add":
+                help_text += "; compare DATA & MASK to VALUE & MASK, MASK=0 accepts any value at REG"
+            elif bus == "mdio" and action == "delete":
+                help_text += "; identify the rule by REG, MASK and VALUE & MASK"
+            operation.add_argument(f"--{bus}-policy-{action}", nargs=len(fields), metavar=fields,
+                                   help=help_text)
     operation.add_argument("--mdio-read", nargs=2, metavar=("PHY", "REG"), help="read a PHY register through the MDIO service")
     operation.add_argument("--mdio-write", nargs=3, metavar=("PHY", "REG", "VALUE"), help="write through MDIO security policy (no automatic retry)")
     operation.add_argument(
@@ -1129,6 +1321,12 @@ def main() -> int:
         if args.count is not None or args.autoinc or args.width != 32:
             parser.error("--ping cannot be combined with MEM options")
         return run_ping(args)
+
+    if any(getattr(args, f"{bus}_policy_{action}") is not None
+           for bus in ("i2c", "mdio") for action in ("get", "set", "add", "delete", "clear")):
+        if args.count is not None or args.autoinc or args.width != 32:
+            parser.error("policy operations cannot be combined with MEM options")
+        return run_policy_operation(args)
 
     if args.mdio_read is not None or args.mdio_write is not None:
         if args.count is not None or args.autoinc or args.width != 32:

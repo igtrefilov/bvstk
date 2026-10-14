@@ -101,15 +101,119 @@ static bvstk_status_t process_mem(bvstk_control_api_t *control,
     return BVSTK_ERR_UNSUPPORTED;
 }
 
+static bvstk_status_t policy_status(bvstk_status_t status)
+{
+    if (status == BVSTK_ERR_NOT_FOUND) return BVSTK_ERR_RANGE;
+    if (status == BVSTK_ERR_NOT_READY) return BVSTK_ERR_BUSY;
+    return status;
+}
+
+bvstk_status_t bvstk_dcp2_process_policy(
+    bvstk_i2c_master_service_t *i2c, bvstk_mdio_service_t *mdio,
+    const bvstk_dcp2_request_t *request, uint8_t *body,
+    size_t body_capacity, uint16_t *body_size)
+{
+    size_t device_id, expected, rule_size, n, i;
+    int is_i2c;
+    bvstk_status_t status;
+    uint8_t op, list;
+    union {
+        bvstk_i2c_policy_entry_t i2c;
+        bvstk_mdio_policy_entry_t mdio;
+    } snapshot;
+
+    if (body_size == NULL) return BVSTK_ERR_MALFORMED;
+    *body_size = 0U;
+    if (request == NULL) return BVSTK_ERR_MALFORMED;
+    is_i2c = request->service == BVSTK_DCP2_SERVICE_I2C;
+    if (!is_i2c && request->service != BVSTK_DCP2_SERVICE_MDIO)
+        return BVSTK_ERR_UNSUPPORTED;
+    op = request->opcode;
+    if (op < BVSTK_DCP2_OP_I2C_POLICY_SET || op > BVSTK_DCP2_OP_I2C_POLICY_CLEAR)
+        return BVSTK_ERR_UNSUPPORTED;
+    rule_size = is_i2c ? 2U : 5U;
+    expected = op == BVSTK_DCP2_OP_I2C_POLICY_GET ? 1U :
+               op == BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD ||
+               op == BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE ? 2U + rule_size : 2U;
+    if (request->body == NULL || request->body_size != expected)
+        return BVSTK_ERR_MALFORMED;
+    if (op != BVSTK_DCP2_OP_I2C_POLICY_GET && request->body[1] > 1U)
+        return BVSTK_ERR_MALFORMED;
+    if (request->body[0] > (is_i2c ? 127U : 31U)) return BVSTK_ERR_RANGE;
+    status = is_i2c ? bvstk_i2c_master_service_find_by_addr(i2c, request->body[0], &device_id) :
+                     bvstk_mdio_service_find_by_phy(mdio, request->body[0], &device_id);
+    if (status != BVSTK_OK) return policy_status(status);
+    if (op == BVSTK_DCP2_OP_I2C_POLICY_GET) {
+        size_t white, black;
+        status = is_i2c ? bvstk_i2c_master_service_get_policy(i2c, device_id, &snapshot.i2c) :
+                         bvstk_mdio_service_get_policy(mdio, device_id, &snapshot.mdio);
+        if (status != BVSTK_OK) return policy_status(status);
+        white = is_i2c ? snapshot.i2c.whitelist_len : snapshot.mdio.whitelist_len;
+        black = is_i2c ? snapshot.i2c.blacklist_len : snapshot.mdio.blacklist_len;
+        if (white > (is_i2c ? I2C_CFG_RULES_MAX : MDIO_CFG_RULES_MAX) ||
+            black > (is_i2c ? I2C_CFG_RULES_MAX : MDIO_CFG_RULES_MAX)) return BVSTK_ERR_RANGE;
+        n = 5U + (white + black) * rule_size;
+        if (body == NULL || n > body_capacity || n > BVSTK_DCP2_MAX_PAYLOAD - 6U)
+            return BVSTK_ERR_RANGE;
+        body[0] = (uint8_t)(is_i2c ? (unsigned)snapshot.i2c.mode : (unsigned)snapshot.mdio.mode);
+        bvstk_dcp2_write_be16(body + 1, (uint16_t)white);
+        bvstk_dcp2_write_be16(body + 3, (uint16_t)black);
+        n = 5U;
+        for (i = 0U; i < white + black; ++i) {
+            size_t index = i < white ? i : i - white;
+            if (is_i2c) {
+                const i2c_rule_entry_t *rule = i < white ? &snapshot.i2c.whitelist[index] : &snapshot.i2c.blacklist[index];
+                body[n++] = rule->reg; body[n++] = rule->val;
+            } else {
+                const mdio_rule_entry_t *rule = i < white ? &snapshot.mdio.whitelist[index] : &snapshot.mdio.blacklist[index];
+                body[n++] = rule->reg;
+                bvstk_dcp2_write_be16(body + n, rule->val); n += 2U;
+                bvstk_dcp2_write_be16(body + n, rule->mask); n += 2U;
+            }
+        }
+        *body_size = (uint16_t)n;
+        return BVSTK_OK;
+    }
+    list = request->body[1];
+    if (op == BVSTK_DCP2_OP_I2C_POLICY_SET) {
+        status = is_i2c ? bvstk_i2c_master_service_set_policy(i2c, device_id, (i2c_policy_t)list) :
+                         bvstk_mdio_service_set_policy(mdio, device_id, (mdio_policy_t)list);
+    } else if (op == BVSTK_DCP2_OP_I2C_POLICY_CLEAR) {
+        status = is_i2c ? bvstk_i2c_master_service_rule_clear_list(i2c, device_id, (i2c_policy_t)list) :
+                         bvstk_mdio_service_rule_clear_list(mdio, device_id, (mdio_policy_t)list);
+    } else if (is_i2c) {
+        status = op == BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE ?
+            bvstk_i2c_master_service_rule_remove(i2c, device_id, (i2c_policy_t)list, request->body[2], request->body[3]) :
+            list == 0U ? bvstk_i2c_master_service_rule_allow(i2c, device_id, request->body[2], request->body[3]) :
+                         bvstk_i2c_master_service_rule_deny(i2c, device_id, request->body[2], request->body[3]);
+    } else {
+        uint16_t value = bvstk_dcp2_read_be16(request->body + 3);
+        uint16_t mask = bvstk_dcp2_read_be16(request->body + 5);
+        status = op == BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE ?
+            bvstk_mdio_service_rule_remove(mdio, device_id, (mdio_policy_t)list, request->body[2], value, mask) :
+            bvstk_mdio_service_rule_add(mdio, device_id, (mdio_policy_t)list, request->body[2], value, mask);
+    }
+    return policy_status(status);
+}
+
 static bvstk_status_t process_i2c(bvstk_control_api_t *control,
                                   const bvstk_dcp2_request_t *request,
                                   uint8_t *body,
+                                  size_t body_capacity,
                                   uint16_t *body_size)
 {
     size_t device_id;
     bvstk_status_t status;
     uint8_t address;
 
+    if (request->opcode >= BVSTK_DCP2_OP_I2C_POLICY_SET &&
+        request->opcode <= BVSTK_DCP2_OP_I2C_POLICY_CLEAR) {
+        return bvstk_dcp2_process_policy(control == NULL ? NULL : control->i2c,
+                                         control == NULL ? NULL : control->mdio,
+                                         request, body, body_capacity, body_size);
+    }
+    if (request->opcode != BVSTK_DCP2_OP_I2C_READ_REG &&
+        request->opcode != BVSTK_DCP2_OP_I2C_WRITE_REG) return BVSTK_ERR_UNSUPPORTED;
     if (control == NULL || control->i2c == NULL) {
         return BVSTK_ERR_NOT_READY;
     }
@@ -148,31 +252,27 @@ static bvstk_status_t process_i2c(bvstk_control_api_t *control,
         *body_size = 0U;
         return status;
     }
-    if (request->opcode == BVSTK_DCP2_OP_I2C_POLICY_SET) {
-        if (request->body_size != 2U ||
-            (request->body[1] != 0U && request->body[1] != 1U)) {
-            return BVSTK_ERR_MALFORMED;
-        }
-        status = bvstk_i2c_master_service_set_policy(
-            control->i2c,
-            device_id,
-            request->body[1] == 0U ? I2C_POLICY_WHITELIST
-                                    : I2C_POLICY_BLACKLIST);
-        *body_size = 0U;
-        return status;
-    }
     return BVSTK_ERR_UNSUPPORTED;
 }
 
 static bvstk_status_t process_mdio(bvstk_control_api_t *control,
                                   const bvstk_dcp2_request_t *request,
                                   uint8_t *body,
+                                  size_t body_capacity,
                                   uint16_t *body_size)
 {
     size_t device_id;
     bvstk_status_t status;
     uint16_t value = 0U;
 
+    if (request->opcode >= BVSTK_DCP2_OP_MDIO_POLICY_SET &&
+        request->opcode <= BVSTK_DCP2_OP_MDIO_POLICY_CLEAR) {
+        return bvstk_dcp2_process_policy(control == NULL ? NULL : control->i2c,
+                                         control == NULL ? NULL : control->mdio,
+                                         request, body, body_capacity, body_size);
+    }
+    if (request->opcode != BVSTK_DCP2_OP_MDIO_READ &&
+        request->opcode != BVSTK_DCP2_OP_MDIO_WRITE) return BVSTK_ERR_UNSUPPORTED;
     if (control == NULL || control->mdio == NULL) {
         return BVSTK_ERR_NOT_READY;
     }
@@ -266,10 +366,13 @@ int bvstk_dcp2_process_request(bvstk_control_api_t *control,
     uint8_t body[BVSTK_DCP2_MAX_PAYLOAD];
     uint16_t body_size = 0U;
     bvstk_status_t status;
+    size_t body_capacity;
 
-    if (control == NULL || request == NULL || response_frame == NULL) {
+    if (control == NULL || request == NULL || response_frame == NULL || response_capacity < 14U) {
         return -1;
     }
+    body_capacity = response_capacity - 14U;
+    if (body_capacity > BVSTK_DCP2_MAX_PAYLOAD - 6U) body_capacity = BVSTK_DCP2_MAX_PAYLOAD - 6U;
     if (request->service == BVSTK_DCP2_SERVICE_PING &&
         request->opcode == BVSTK_DCP2_OP_PING &&
         request->body_size == 0U) {
@@ -277,9 +380,9 @@ int bvstk_dcp2_process_request(bvstk_control_api_t *control,
     } else if (request->service == BVSTK_DCP2_SERVICE_MEM) {
         status = process_mem(control, request, body, &body_size);
     } else if (request->service == BVSTK_DCP2_SERVICE_I2C) {
-        status = process_i2c(control, request, body, &body_size);
+        status = process_i2c(control, request, body, body_capacity, &body_size);
     } else if (request->service == BVSTK_DCP2_SERVICE_MDIO) {
-        status = process_mdio(control, request, body, &body_size);
+        status = process_mdio(control, request, body, body_capacity, &body_size);
     } else if (request->service == BVSTK_DCP2_SERVICE_SPI) {
         status = process_spi(control, request, body, &body_size);
     } else {

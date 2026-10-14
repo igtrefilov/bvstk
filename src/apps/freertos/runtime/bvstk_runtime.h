@@ -17,6 +17,8 @@ bvstk_i2c_slave_service_t *bvstk_runtime_i2c_slave_service(void);
 int bvstk_runtime_i2c_ready(void);
 /* Synchronize RAM only. Persistence is an explicit i2c <sel> save. */
 int bvstk_runtime_i2c_sync_device(size_t device_id);
+/* Mirror live policy in the RAM configuration without copying cached values. */
+int bvstk_runtime_i2c_sync_policy(size_t device_id);
 int bvstk_runtime_i2c_apply_config(const i2c_device_config_t *config);
 
 bvstk_mdio_service_t *bvstk_runtime_mdio_service(void);

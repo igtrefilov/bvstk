@@ -55,6 +55,11 @@ int bvstk_neutrino_i2c_runtime_sync_locked(
     size_t device_id,
     int save_to_storage);
 
+/* Caller holds state lock. Mirror policy only, without saving or seeding settings. */
+int bvstk_neutrino_i2c_runtime_sync_policy_locked(
+    bvstk_neutrino_i2c_runtime_t *runtime,
+    size_t device_id);
+
 /* Execute the same command grammar as the FreeRTOS `i2c` shell command. */
 int bvstk_neutrino_i2c_runtime_command(
     bvstk_neutrino_i2c_runtime_t *runtime,

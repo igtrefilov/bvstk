@@ -100,7 +100,7 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="545.0" y="215.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">WRITE: 0x2A, R0x10, 0x7B</text>
+    <text x="545.0" y="215.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">WRITE: 0x2A, R0x10, 0x3B</text>
     <text x="1170.0" y="330.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#788794">Записать регистр</text>
     <text x="1170.0" y="590.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">DENIED</text>
     <text x="545.0" y="705.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">ERR_DENIED</text>

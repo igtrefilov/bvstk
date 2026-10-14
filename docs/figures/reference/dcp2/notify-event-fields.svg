@@ -1,0 +1,152 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 50 1800 669" role="img" aria-labelledby="title desc" height="669">
+  <title id="title">Поля события NOTIFY и условная метка времени</title>
+  <desc id="desc">Поля события NOTIFY и условная метка времени</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="719" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <path d="M1090,608 L1155,608" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+  </g>
+  <g id="components">
+    <g id="strip-0-header" data-kind="packet-field">
+      <rect x="60" y="90" width="420" height="105" fill="#eef5fb" stroke="#607487" stroke-width="2" />
+      <text x="270.0" y="133.75" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">Заголовок DCP2</text>
+      <text x="270.0" y="168.25" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">magic, ver, dcp_len</text>
+    </g>
+    <g id="strip-0-service" data-kind="packet-field">
+      <rect x="480" y="90" width="230" height="105" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="595.0" y="133.75" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">srv</text>
+      <text x="595.0" y="168.25" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">0x06</text>
+    </g>
+    <g id="strip-0-operation" data-kind="packet-field">
+      <rect x="710" y="90" width="310" height="105" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="865.0" y="133.75" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">op</text>
+      <text x="865.0" y="168.25" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">0x50 (EVENT)</text>
+    </g>
+    <g id="strip-0-sequence" data-kind="packet-field">
+      <rect x="1020" y="90" width="250" height="105" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1145.0" y="133.75" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">seq</text>
+      <text x="1145.0" y="168.25" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">0</text>
+    </g>
+    <g id="strip-0-body" data-kind="packet-field">
+      <rect x="1270" y="90" width="470" height="105" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1505.0" y="151.0" font-size="25" font-weight="400" text-anchor="middle" style="fill:#233747">body</text>
+    </g>
+    <g id="body" data-kind="packet-field">
+      <rect x="60" y="295" width="1680" height="230" fill="white" stroke="#607487" stroke-width="2" />
+      <text x="88" y="335.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">body события</text>
+    </g>
+    <g id="field-1-0" data-kind="packet-field">
+      <rect x="110" y="385" width="136" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" stroke-dasharray="8 5" />
+      <text x="178.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">time_us</text>
+    </g>
+    <g id="field-1-1" data-kind="packet-field">
+      <rect x="258" y="385" width="136" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="326.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">ev_type</text>
+    </g>
+    <g id="field-1-2" data-kind="packet-field">
+      <rect x="406" y="385" width="130" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="471.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">status</text>
+    </g>
+    <g id="field-1-3" data-kind="packet-field">
+      <rect x="548" y="385" width="130" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="613.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">source</text>
+    </g>
+    <g id="field-1-4" data-kind="packet-field">
+      <rect x="690" y="385" width="130" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="755.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">bus</text>
+    </g>
+    <g id="field-1-5" data-kind="packet-field">
+      <rect x="832" y="385" width="136" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="900.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">op_kind</text>
+    </g>
+    <g id="field-1-6" data-kind="packet-field">
+      <rect x="980" y="385" width="150" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1055.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">reserved</text>
+    </g>
+    <g id="field-1-7" data-kind="packet-field">
+      <rect x="1142" y="385" width="130" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1207.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">arg0</text>
+    </g>
+    <g id="field-1-8" data-kind="packet-field">
+      <rect x="1284" y="385" width="130" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1349.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">arg1</text>
+    </g>
+    <g id="field-1-9" data-kind="packet-field">
+      <rect x="1426" y="385" width="130" height="84" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
+      <text x="1491.0" y="435.16" font-size="24" font-weight="400" text-anchor="middle" style="fill:#233747">arg2</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M1505,197 V291" fill="none" stroke="white" stroke-width="8" />
+    <path d="M1505,195 L1505,295" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <rect x="60" y="595" width="34" height="25" fill="#eef5fb" stroke="#607487" stroke-width="1.5" />
+    <text x="108" y="615.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Заголовок DCP2</text>
+    <rect x="460" y="595" width="34" height="25" fill="#cfe3f3" stroke="#607487" stroke-width="1.5" />
+    <text x="508" y="615.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Поля полезной нагрузки</text>
+    <text x="1175" y="615.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Раскрытие поля</text>
+    <rect x="60" y="650" width="38" height="28" fill="#cfe3f3" stroke="#607487" stroke-width="2" stroke-dasharray="8 5" />
+    <text x="115" y="672.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Поле при WITH_TIMESTAMP в подписке</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/protocols/dcp2/bvstk_dcp2_codec.h",
+    "src/protocols/dcp2/bvstk_dcp2_codec.c",
+    "src/apps/freertos/services/dcp2/dcp2_server.c",
+    "scripts/dcp2/dcp2_client.py"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

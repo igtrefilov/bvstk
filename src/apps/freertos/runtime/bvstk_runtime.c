@@ -265,7 +265,7 @@ int bvstk_runtime_i2c_ready(void)
     return s_i2c_ready;
 }
 
-int bvstk_runtime_i2c_sync_device(size_t device_id)
+static int sync_i2c_device_config(size_t device_id, int include_cache_values)
 {
     bvstk_i2c_device_t device;
     bvstk_i2c_policy_entry_t policy;
@@ -298,7 +298,7 @@ int bvstk_runtime_i2c_sync_device(size_t device_id)
            policy.blacklist,
            policy.blacklist_len * sizeof(policy.blacklist[0]));
     config.blacklist_len = policy.blacklist_len;
-    for (size_t reg = 0U; reg < config.reg_count; ++reg) {
+    for (size_t reg = 0U; include_cache_values && reg < config.reg_count; ++reg) {
         if (bvstk_i2c_cache_is_valid(&s_i2c_cache, device_id, (uint8_t)reg)) {
             uint8_t value = 0U;
             if (bvstk_i2c_cache_read(&s_i2c_cache,
@@ -313,6 +313,27 @@ int bvstk_runtime_i2c_sync_device(size_t device_id)
         return 0;
     }
     return 1;
+}
+
+int bvstk_runtime_i2c_sync_device(size_t device_id)
+{
+    int result;
+    /* Serialize this mirror with policy-only synchronization as well. */
+    taskENTER_CRITICAL();
+    result = sync_i2c_device_config(device_id, 1);
+    taskEXIT_CRITICAL();
+    return result;
+}
+
+int bvstk_runtime_i2c_sync_policy(size_t device_id)
+{
+    int result;
+    /* Keep the policy snapshot and RAM store update together. Another task
+     * must not publish a newer mirror between this read and its write. */
+    taskENTER_CRITICAL();
+    result = sync_i2c_device_config(device_id, 0);
+    taskEXIT_CRITICAL();
+    return result;
 }
 
 int bvstk_runtime_i2c_apply_config(const i2c_device_config_t *config)

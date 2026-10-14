@@ -345,7 +345,7 @@ bvstk_status_t bvstk_i2c_master_service_write(
     uint32_t timeout_ms)
 {
     bvstk_i2c_device_t device;
-    int was_present;
+    int was_present, permitted;
     bvstk_status_t status = service_status(service, device_id);
 
     if (status != BVSTK_OK) {
@@ -368,11 +368,11 @@ bvstk_status_t bvstk_i2c_master_service_write(
             BVSTK_EVENT_OP_WRITE, &device, reg, value);
         return BVSTK_ERR_RANGE;
     }
-    if (!bvstk_i2c_policy_permits(service->policy,
-                                  device_id,
-                                  &device,
-                                  reg,
-                                  value)) {
+    bvstk_cache_sink_enter(&service->cache->sink);
+    permitted = bvstk_i2c_policy_permits(service->policy, device_id,
+                                         &device, reg, value);
+    bvstk_cache_sink_leave(&service->cache->sink);
+    if (!permitted) {
         emit(service,
              BVSTK_EVENT_REG_DENIED,
              (uint16_t)BVSTK_ERR_DENIED,
@@ -419,9 +419,11 @@ bvstk_status_t bvstk_i2c_master_service_set_policy(
     i2c_policy_t mode)
 {
     bvstk_status_t status = service_status(service, device_id);
-    return status == BVSTK_OK
-               ? bvstk_i2c_policy_set_mode(service->policy, device_id, mode)
-               : status;
+    if (status != BVSTK_OK) return status;
+    bvstk_cache_sink_enter(&service->cache->sink);
+    status = bvstk_i2c_policy_set_mode(service->policy, device_id, mode);
+    bvstk_cache_sink_leave(&service->cache->sink);
+    return status;
 }
 
 bvstk_status_t bvstk_i2c_master_service_get_policy(
@@ -433,7 +435,10 @@ bvstk_status_t bvstk_i2c_master_service_get_policy(
     if (status != BVSTK_OK) {
         return status;
     }
-    return bvstk_i2c_policy_get(service->policy, device_id, out);
+    bvstk_cache_sink_enter(&service->cache->sink);
+    status = bvstk_i2c_policy_get(service->policy, device_id, out);
+    bvstk_cache_sink_leave(&service->cache->sink);
+    return status;
 }
 
 bvstk_status_t bvstk_i2c_master_service_set_config(
@@ -493,12 +498,15 @@ bvstk_status_t bvstk_i2c_master_service_get_config(
     if (out == NULL) {
         return BVSTK_ERR_MALFORMED;
     }
+    bvstk_cache_sink_enter(&service->cache->sink);
     status = bvstk_i2c_devices_get(service->devices, device_id, &device);
     if (status != BVSTK_OK) {
+        bvstk_cache_sink_leave(&service->cache->sink);
         return status;
     }
     status = bvstk_i2c_policy_get(service->policy, device_id, &policy);
     if (status != BVSTK_OK) {
+        bvstk_cache_sink_leave(&service->cache->sink);
         return status;
     }
     memset(out, 0, sizeof(*out));
@@ -516,6 +524,7 @@ bvstk_status_t bvstk_i2c_master_service_get_config(
            policy.blacklist,
            policy.blacklist_len * sizeof(policy.blacklist[0]));
     out->blacklist_len = policy.blacklist_len;
+    bvstk_cache_sink_leave(&service->cache->sink);
     return BVSTK_OK;
 }
 
@@ -530,14 +539,13 @@ bvstk_status_t bvstk_i2c_master_service_rule_allow(
     if (status != BVSTK_OK) {
         return status;
     }
+    bvstk_cache_sink_enter(&service->cache->sink);
     status = bvstk_i2c_devices_get(service->devices, device_id, &device);
-    return status == BVSTK_OK
-               ? bvstk_i2c_policy_add_allow(service->policy,
-                                            device_id,
-                                            reg,
-                                            value,
-                                            &device)
-               : status;
+    if (status == BVSTK_OK)
+        status = bvstk_i2c_policy_add_allow(service->policy, device_id,
+                                            reg, value, &device);
+    bvstk_cache_sink_leave(&service->cache->sink);
+    return status;
 }
 
 bvstk_status_t bvstk_i2c_master_service_rule_deny(
@@ -551,14 +559,13 @@ bvstk_status_t bvstk_i2c_master_service_rule_deny(
     if (status != BVSTK_OK) {
         return status;
     }
+    bvstk_cache_sink_enter(&service->cache->sink);
     status = bvstk_i2c_devices_get(service->devices, device_id, &device);
-    return status == BVSTK_OK
-               ? bvstk_i2c_policy_add_deny(service->policy,
-                                           device_id,
-                                           reg,
-                                           value,
-                                           &device)
-               : status;
+    if (status == BVSTK_OK)
+        status = bvstk_i2c_policy_add_deny(service->policy, device_id,
+                                           reg, value, &device);
+    bvstk_cache_sink_leave(&service->cache->sink);
+    return status;
 }
 
 bvstk_status_t bvstk_i2c_master_service_rule_clear(
@@ -568,9 +575,35 @@ bvstk_status_t bvstk_i2c_master_service_rule_clear(
     uint8_t value)
 {
     bvstk_status_t status = service_status(service, device_id);
-    return status == BVSTK_OK
-               ? bvstk_i2c_policy_remove(service->policy, device_id, reg, value)
-               : status;
+    if (status != BVSTK_OK) return status;
+    bvstk_cache_sink_enter(&service->cache->sink);
+    status = bvstk_i2c_policy_remove(service->policy, device_id, reg, value);
+    bvstk_cache_sink_leave(&service->cache->sink);
+    return status;
+}
+
+bvstk_status_t bvstk_i2c_master_service_rule_remove(
+    bvstk_i2c_master_service_t *service,
+    size_t device_id,
+    i2c_policy_t list,
+    uint8_t reg,
+    uint8_t value)
+{
+    bvstk_i2c_device_t device;
+    bvstk_status_t status = service_status(service, device_id);
+    if (status != BVSTK_OK) return status;
+    if (list != I2C_POLICY_WHITELIST && list != I2C_POLICY_BLACKLIST)
+        return BVSTK_ERR_MALFORMED;
+    bvstk_cache_sink_enter(&service->cache->sink);
+    status = bvstk_i2c_devices_get(service->devices, device_id, &device);
+    if (status == BVSTK_OK) {
+        if (reg >= device.reg_count || value > device.max_value_code)
+            status = BVSTK_ERR_RANGE;
+        else status = bvstk_i2c_policy_remove_list(service->policy, device_id,
+                                                   list, reg, value);
+    }
+    bvstk_cache_sink_leave(&service->cache->sink);
+    return status;
 }
 
 bvstk_status_t bvstk_i2c_master_service_rule_clear_list(
@@ -579,7 +612,9 @@ bvstk_status_t bvstk_i2c_master_service_rule_clear_list(
     i2c_policy_t list)
 {
     bvstk_status_t status = service_status(service, device_id);
-    return status == BVSTK_OK
-               ? bvstk_i2c_policy_clear(service->policy, device_id, list)
-               : status;
+    if (status != BVSTK_OK) return status;
+    bvstk_cache_sink_enter(&service->cache->sink);
+    status = bvstk_i2c_policy_clear(service->policy, device_id, list);
+    bvstk_cache_sink_leave(&service->cache->sink);
+    return status;
 }

@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 90 1800 893" role="img" aria-labelledby="title desc" height="893">
+  <title id="title">Назначение частей пути к исходникам</title>
+  <desc id="desc">Назначение частей пути к исходникам</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="mmio-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="mmio-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#b56b1d" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="irq-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="irq-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#c65b4e" />
+    </marker>
+    <marker id="clock-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="983" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <g data-kind="directory-tree">
+      <path d="M270,452.5 H345" fill="none" stroke="#8495a3" stroke-width="2" />
+      <path d="M345,212.5 V702.5" fill="none" stroke="#8495a3" stroke-width="2" />
+      <path d="M345,212.5 H430" fill="none" stroke="#8495a3" stroke-width="2" />
+      <path d="M345,702.5 H430" fill="none" stroke="#8495a3" stroke-width="2" />
+      <path d="M740,212.5 H880" fill="none" stroke="#8495a3" stroke-width="2" />
+      <path d="M1300,212.5 H1450" fill="none" stroke="#8495a3" stroke-width="2" />
+      <path d="M740,702.5 H880" fill="none" stroke="#8495a3" stroke-width="2" />
+      <path d="M1140,702.5 H1450" fill="none" stroke="#8495a3" stroke-width="2" />
+      <circle cx="345" cy="452.5" r="4" fill="#8495a3" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="root" data-kind="source-directory" data-source="src">
+      <rect x="60" y="375" width="210" height="155" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+      <path d="M82,408 V401 H96 L102,408 H120 V433 H82 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+      <text x="134" y="427.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">src</text>
+      <text x="82" y="471.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Исходники</text>
+    </g>
+    <g id="ports" data-kind="source-directory" data-source="src/ports">
+      <rect x="430" y="130" width="310" height="165" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+      <path d="M452,163 V156 H466 L472,163 H490 V188 H452 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+      <text x="504" y="182.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ports</text>
+      <text x="452" y="226.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Реализации</text>
+      <text x="452" y="253.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">для платформ</text>
+    </g>
+    <g id="neutrino" data-kind="source-directory" data-source="src/ports/neutrino-zynq7000">
+      <rect x="880" y="130" width="420" height="165" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+      <path d="M902,163 V156 H916 L922,163 H940 V188 H902 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+      <text x="954" y="182.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">neutrino-zynq7000</text>
+      <text x="902" y="226.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">ОС и платформа</text>
+    </g>
+    <g id="os" data-kind="source-directory" data-source="src/ports/neutrino-zynq7000/os">
+      <rect x="1450" y="130" width="290" height="165" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+      <path d="M1472,163 V156 H1486 L1492,163 H1510 V188 H1472 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+      <text x="1524" y="182.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">os</text>
+      <text x="1472" y="226.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Системные</text>
+      <text x="1472" y="253.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">адаптеры</text>
+    </g>
+    <g id="hardware" data-kind="source-directory" data-source="src/hardware">
+      <rect x="430" y="620" width="310" height="165" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+      <path d="M452,653 V646 H466 L472,653 H490 V678 H452 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+      <text x="504" y="672.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">hardware</text>
+      <text x="452" y="716.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Описание</text>
+      <text x="452" y="743.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">аппаратуры</text>
+    </g>
+    <g id="boards" data-kind="source-directory" data-source="src/hardware/boards">
+      <rect x="880" y="620" width="260" height="165" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+      <path d="M902,653 V646 H916 L922,653 H940 V678 H902 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+      <text x="954" y="672.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">boards</text>
+      <text x="902" y="716.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Платы</text>
+    </g>
+    <g id="board" data-kind="source-directory" data-source="src/hardware/boards/ax7020">
+      <rect x="1450" y="620" width="290" height="165" rx="10" fill="#f7f9fb" stroke="#bdc9d2" stroke-width="2" />
+      <path d="M1472,653 V646 H1486 L1492,653 H1510 V678 H1472 Z" fill="#edf2f6" stroke="#607487" stroke-width="2" stroke-linejoin="round" />
+      <text x="1524" y="672.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">ax7020</text>
+      <text x="1472" y="716.0" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">Конкретная</text>
+      <text x="1472" y="743.6" font-size="20" font-weight="400" text-anchor="start" style="fill:#233747">плата</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="60" y="940.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Линия соединяет родительский каталог с вложенным. Под именем указано его назначение.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/generate_documentation.py",
+  "sources": [
+    "src/ports/neutrino-zynq7000/os",
+    "src/hardware/boards/ax7020"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

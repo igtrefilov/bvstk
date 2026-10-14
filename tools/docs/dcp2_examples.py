@@ -265,16 +265,16 @@ def i2c():
          request("I2C_POLICY_SET: BLACKLIST", 2, 2, 0x202,
                  [number("addr7", 0x2A, 1), number("policy", 1, 1)]),
          response("Политика установлена", 2, 2, 0x202),
-         request("I2C_WRITE_REG", 2, 1, 0x203, target + [number("val", 0x7B, 1)]),
+         request("I2C_WRITE_REG", 2, 1, 0x203, target + [number("val", 0x3B, 1)]),
          response("ERR_DENIED", 2, 1, 0x203, status=3))
     wire("i2c-allow", "Разрешение записи и успешная команда I2C",
          request("I2C_POLICY_SET: WHITELIST", 2, 2, 0x204,
                  [number("addr7", 0x2A, 1), number("policy", 0, 1)]),
          response("Политика установлена", 2, 2, 0x204),
-         request("I2C_WRITE_REG", 2, 1, 0x205, target + [number("val", 0x7B, 1)]),
+         request("I2C_WRITE_REG", 2, 1, 0x205, target + [number("val", 0x3B, 1)]),
          response("Запись завершена", 2, 1, 0x205))
     p = Sequence("i2c-policy", "Проверка политики при записи регистра I2C", extra="Сервис I²C")
-    p.send(0, 1, "WRITE: 0x2A, R0x10, 0x7B")
+    p.send(0, 1, "WRITE: 0x2A, R0x10, 0x3B")
     p.send(1, 2, "Записать регистр", "call")
     p.state(2, "BLACKLIST\nЗапись отклонена", "L3")
     p.send(2, 1, "DENIED")
@@ -365,18 +365,6 @@ def stream():
     wire("stream-unsubscribe", "Отмена потоковой подписки MDIO",
          request("PL_UNSUBSCRIBE_STREAM: MDIO", 3, 0x11, 0x503),
          response("Подписка MDIO отменена", 3, 0x11, 0x503))
-    p = ExampleFigure("stream-sources", "Два разных источника STREAM")
-    p.box("observation", 60, 100, 590, 120, "Наблюдение I²C или MDIO\nЗапись BVT1", NETWORK)
-    p.box("synthetic", 60, 410, 590, 120, "Набор COUNTER\n32-битные слова", NETWORK)
-    p.box("event-real", 1100, 100, 640, 120, "OBSERVATION = 1\nSYNTHETIC = 0", PAYLOAD)
-    p.box("event-synthetic", 1100, 410, 640, 120, "OBSERVATION = 0\nSYNTHETIC = 1", PAYLOAD)
-    p.arrow(650, 160, 1100, 160, "data", "irq")
-    p.arrow(650, 470, 1100, 470, "data", "irq")
-    p.key(60, 630, NETWORK, "Данные источника")
-    p.key(820, 630, PAYLOAD, "Признаки в ev_flags")
-    p.arrow(60, 693, 125, 693, kind="irq")
-    p.text(p.notes, 145, 700, "Доставка события", 21, color=MUTED)
-    p.save()
 
 
 def fs_open(seq, open_id, kind, flags, block, filename):
