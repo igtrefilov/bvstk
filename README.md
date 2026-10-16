@@ -12,7 +12,9 @@ BVSTK — программы управления и диагностики дл
 
 ## Документация
 
-- [Работа с устройством](docs/operations/operations.md): подключение, сеть, файлы, HTTP и готовый DCP2-клиент.
+- Работа с устройством: [консоль](docs/operations/console.md),
+  [сеть](docs/operations/network.md), [файлы](docs/operations/files.md),
+  [HTTP](docs/operations/http.md), [клиент DCP2](docs/operations/dcp2.md).
 - [Сборка и запуск](docs/build/build.md): аппаратный экспорт, FreeRTOS, Нейтрино, IFS, JTAG и отладка.
 - [Как устроена BVSTK](docs/system/system.md): статья об архитектуре, подсистемах PL и обработке транзакций.
 - [Карта исходников](docs/development/source-map.md): устройство дерева каталогов и назначение файлов.

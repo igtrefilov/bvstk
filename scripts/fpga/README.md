@@ -6,7 +6,6 @@
 в `artifacts/vivado/logs/`.
 
 - [Подготовка и запуск](../../docs/build/fpga.md).
-- [Все параметры и приоритеты](../../docs/reference/build-options.md#аппаратная-сборка).
 - [Контракт AX7020](../../docs/reference/board.md).
 
 Локальная конфигурация создаётся из `build_fpga.conf.example`.
