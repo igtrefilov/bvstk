@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 50 1800 1273" role="img" aria-labelledby="title desc" height="1273">
+  <title id="title">Состав профиля устройства</title>
+  <desc id="desc">Состав профиля устройства</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="ref-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1323" fill="white" />
+  <g id="backgrounds" />
+  <g id="components">
+    <g id="file" data-kind="artifact">
+      <path d="M60,90 H1714 L1740,116 V1125 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1714,90 V116 H1740" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="82" y="133.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
+      <g id="identity" data-kind="data" data-parent="file">
+        <rect x="100" y="185" width="450" height="155" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="122" y="228.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">id и device</text>
+        <text x="122" y="267" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Экземпляр и описание</text>
+      </g>
+      <g id="connection" data-kind="data" data-parent="file">
+        <rect x="100" y="415" width="450" height="220" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="122" y="458.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Подключение</text>
+        <text x="122" y="497" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">transport</text>
+        <text x="122" y="529" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">protocol</text>
+      </g>
+      <g id="presentation" data-kind="data" data-parent="file">
+        <rect x="100" y="745" width="450" height="175" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="122" y="788.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Отображение</text>
+        <text x="122" y="827" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">register_map</text>
+        <text x="122" y="859" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">view</text>
+      </g>
+      <g id="defaults" data-kind="data" data-parent="file">
+        <rect x="690" y="185" width="370" height="155" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="712" y="228.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">defaults.register</text>
+        <text x="712" y="267" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Общие свойства</text>
+      </g>
+      <g id="resources" data-kind="data" data-parent="file">
+        <rect x="690" y="445" width="370" height="380" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="712" y="488.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">resources</text>
+        <g id="reg00" data-kind="data" data-parent="resources">
+          <rect x="720" y="515" width="310" height="105" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+          <text x="742" y="558.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">reg_00</text>
+          <text x="742" y="597" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">address: 0x00</text>
+        </g>
+        <g id="reg01" data-kind="data" data-parent="resources">
+          <rect x="720" y="660" width="310" height="125" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+          <text x="742" y="703.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">reg_01</text>
+          <text x="742" y="742" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">address: 0x01</text>
+        </g>
+      </g>
+      <g id="policy" data-kind="data" data-parent="file">
+        <rect x="1200" y="445" width="490" height="190" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1222" y="488.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">policy</text>
+        <text x="1222" y="527" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Правила операций</text>
+        <text x="1222" y="559" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">resource: reg_01</text>
+      </g>
+      <g id="settings" data-kind="data" data-parent="file">
+        <rect x="1200" y="690" width="490" height="165" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1222" y="733.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">settings.cache_seed</text>
+        <text x="1222" y="772" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">resource: reg_01</text>
+        <text x="1222" y="804" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">value: 0x00</text>
+      </g>
+      <g id="observe" data-kind="data" data-parent="file">
+        <rect x="690" y="960" width="1000" height="115" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="712" y="1003.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">observability</text>
+        <text x="712" y="1042" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Публикация наблюдений и событий</text>
+      </g>
+    </g>
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="defaults" data-to="resources" data-interaction="ref" data-direction="forward">
+      <path d="M875,340 L875,445" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M875,340 L875,445" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="policy" data-to="reg01" data-interaction="ref" data-direction="forward">
+      <path d="M1200,570 L1140,570 L1140,700 L1030,700" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1200,570 L1140,570 L1140,700 L1030,700" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="settings" data-to="reg01" data-interaction="ref" data-direction="forward">
+      <path d="M1200,750 L1030,750" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1200,750 L1030,750" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M60,1177 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="4 5" marker-end="url(#ref-arrow)" />
+    <text x="142" y="1183.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Связь данных</text>
+    <text x="60" y="1280.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вложенность — состав JSON. Пунктирная стрелка — связь данных. Показана часть полей.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

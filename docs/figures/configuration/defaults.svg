@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" viewBox="0 145 1600 708" role="img" aria-labelledby="title desc" height="708">
+  <title id="title">Общие свойства ресурса</title>
+  <desc id="desc">Общие свойства ресурса</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="ref-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="853" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <g data-kind="interaction" data-from="defaults" data-to="resolved" data-interaction="ref" data-direction="forward">
+      <path d="M550,285 L920,285" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M550,285 L920,285" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="resource" data-to="resolved" data-interaction="ref" data-direction="forward">
+      <path d="M550,555 L920,555" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M550,555 L920,555" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="defaults" data-kind="data">
+      <rect x="60" y="185" width="490" height="200" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+      <text x="82" y="228.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">defaults.register</text>
+      <text x="82" y="267" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">access: rw</text>
+      <text x="82" y="299" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">cache.mode: driver</text>
+      <text x="82" y="331" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">verify.mode: driver</text>
+    </g>
+    <g id="resource" data-kind="data">
+      <rect x="60" y="455" width="490" height="200" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+      <text x="82" y="498.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">resources: reg_01</text>
+      <text x="82" y="537" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">id: reg_01</text>
+      <text x="82" y="569" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">kind: register</text>
+      <text x="82" y="601" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">address: 0x01</text>
+    </g>
+    <g id="resolved" data-kind="data">
+      <rect x="920" y="190" width="610" height="400" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+      <text x="942" y="233.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Описание reg_01</text>
+      <text x="942" y="272" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">access: rw</text>
+      <text x="942" y="304" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">cache.mode: driver</text>
+      <text x="942" y="336" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">verify.mode: driver</text>
+      <text x="942" y="368" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747" />
+      <text x="942" y="400" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">id: reg_01</text>
+      <text x="942" y="432" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">kind: register</text>
+      <text x="942" y="464" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">address: 0x01</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M60,707 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="4 5" marker-end="url(#ref-arrow)" />
+    <text x="142" y="713.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Связь данных</text>
+    <text x="60" y="810.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Белые карточки — данные. Показан фрагмент; разрядность и маска задаются отдельно.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

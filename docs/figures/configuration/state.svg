@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" viewBox="0 190 1700 943" role="img" aria-labelledby="title desc" height="943">
+  <title id="title">Сохранённый профиль и рабочие настройки</title>
+  <desc id="desc">Сохранённый профиль и рабочие настройки</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+  </defs>
+  <rect width="1700" height="1133" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <g data-kind="interaction" data-from="file" data-to="service" data-interaction="data" data-direction="forward">
+      <path d="M490,290 L1000,290" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M490,290 L1000,290" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="service" data-to="file" data-interaction="data" data-direction="forward">
+      <path d="M1000,390 L490,390" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1000,390 L490,390" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="editor" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M1190,760 L1190,450" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1190,760 L1190,450" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="service" data-to="editor" data-interaction="data" data-direction="forward">
+      <path d="M1410,450 L1410,760" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1410,450 L1410,760" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="file" data-kind="artifact">
+      <path d="M70,230 H464 L490,256 V450 H70 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M464,230 V256 H490" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="92" y="273.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
+      <text x="92" y="312" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Сохранённый профиль</text>
+    </g>
+    <g id="service" data-kind="component" data-layer="L3" data-label="Рабочие настройки" data-ownership="common">
+      <rect x="1000" y="230" width="600" height="220" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <text x="1020" y="254.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="1020" y="288.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Рабочие настройки</text>
+      <text x="1020" y="327.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Сервис устройства</text>
+    </g>
+    <g id="editor" data-kind="component" data-layer="L4" data-label="Черновик" data-ownership="common">
+      <rect x="1000" y="760" width="600" height="175" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+      <text x="1020" y="784.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+      <text x="1020" y="818.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Черновик</text>
+      <text x="1020" y="857.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Редактор настроек</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="745" y="270.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Загрузить</text>
+    <text x="745" y="425.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Сохранить</text>
+    <text x="1060" y="610.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Применить</text>
+    <text x="1545" y="650.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Получить настройки</text>
+    <path d="M60,987 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="993.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,987 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="993.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1024" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1043.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="175" y="1024" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="219" y="1043.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1090.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Лист — файл. Загрузка и сохранение проходят через кодек и слой хранения.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

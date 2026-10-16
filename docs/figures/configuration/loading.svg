@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 60 1800 1188" role="img" aria-labelledby="title desc" height="1188">
+  <title id="title">Чтение профиля и общий код</title>
+  <desc id="desc">Чтение профиля и общий код</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1248" fill="white" />
+  <g id="backgrounds">
+    <rect x="50" y="100" width="470" height="650" rx="16" fill="white" />
+    <rect x="1280" y="100" width="470" height="650" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="ft_store" data-to="codec" data-interaction="data" data-direction="forward">
+      <path d="M480,295 L665,295" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M480,295 L665,295" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="nt_store" data-to="codec" data-interaction="data" data-direction="forward">
+      <path d="M1320,295 L1135,295" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1320,295 L1135,295" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="codec" data-to="model" data-interaction="data" data-direction="forward">
+      <path d="M900,380 L900,530" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M900,380 L900,530" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="model" data-to="ft_runtime" data-interaction="data" data-direction="forward">
+      <path d="M690,605 L480,605" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M690,605 L480,605" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="model" data-to="nt_runtime" data-interaction="data" data-direction="forward">
+      <path d="M1110,605 L1320,605" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1110,605 L1320,605" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="ft_runtime" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M285,680 L285,965 L665,965" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M285,680 L285,965 L665,965" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="nt_runtime" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M1515,680 L1515,965 L1135,965" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1515,680 L1515,965 L1135,965" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="50" y="100" width="470" height="650" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="76" y="137.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="ft_store" data-kind="component" data-layer="L4" data-label="config_store" data-ownership="common" data-parent="freertos">
+        <rect x="90" y="210" width="390" height="170" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="110" y="234.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="110" y="268.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">config_store</text>
+        <text x="110" y="307.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Чтение файлов</text>
+      </g>
+      <g id="ft_runtime" data-kind="component" data-layer="L4" data-label="Код запуска" data-ownership="common" data-parent="freertos">
+        <rect x="90" y="530" width="390" height="150" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="110" y="554.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="110" y="622.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Код запуска</text>
+      </g>
+    </g>
+    <g id="neutrino" data-kind="ownership-region" data-label="Нейтрино" data-ownership="neutrino">
+      <rect x="1280" y="100" width="470" height="650" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="1306" y="137.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Нейтрино</text>
+      <g id="nt_store" data-kind="component" data-layer="L4" data-label="Хранилище профилей" data-ownership="common" data-parent="neutrino">
+        <rect x="1320" y="210" width="390" height="170" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="1340" y="234.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="1340" y="268.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Хранилище профилей</text>
+        <text x="1340" y="307.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Чтение файлов</text>
+      </g>
+      <g id="nt_runtime" data-kind="component" data-layer="L4" data-label="Код запуска" data-ownership="common" data-parent="neutrino">
+        <rect x="1320" y="530" width="390" height="150" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="1340" y="554.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="1340" y="622.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Код запуска</text>
+      </g>
+    </g>
+    <g id="codec" data-kind="component" data-layer="L4" data-label="Общий кодек" data-ownership="common">
+      <rect x="665" y="210" width="470" height="170" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+      <text x="685" y="234.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+      <text x="685" y="268.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Общий кодек</text>
+      <text x="685" y="307.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Проверка и разбор</text>
+    </g>
+    <g id="model" data-kind="data">
+      <rect x="690" y="530" width="420" height="150" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+      <text x="712" y="573.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Модель конфигурации</text>
+      <text x="712" y="612" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Параметры в памяти</text>
+    </g>
+    <g id="service" data-kind="component" data-layer="L3" data-label="Общий сервис" data-ownership="common">
+      <rect x="665" y="880" width="470" height="170" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <text x="685" y="904.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="685" y="938.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Общий сервис</text>
+      <text x="685" y="977.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Экземпляр устройства</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="572.5" y="281.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">JSON</text>
+    <text x="1227.5" y="281.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">JSON</text>
+    <text x="480" y="945.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Создать</text>
+    <text x="1325" y="945.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Создать</text>
+    <path d="M60,1102 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1102 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1139" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1158.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="175" y="1139" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="219" y="1158.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1205.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Пунктир — части ОС. Общий код используется раздельно: каждая программа создаёт свои экземпляры.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" viewBox="0 50 1920 1168" role="img" aria-labelledby="title desc" height="1168">
+  <title id="title">Устройства на шинах и их пакеты</title>
+  <desc id="desc">Устройства на шинах и их пакеты</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="ref-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1920" height="1218" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="90" width="310" height="930" rx="16" fill="white" />
+    <rect x="1250" y="90" width="610" height="930" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g id="bus_a" data-kind="bus" data-layer="L0">
+      <path d="M325,400 H520" fill="none" stroke="#607487" stroke-width="4" />
+      <path d="M520,190 V610" fill="none" stroke="#607487" stroke-width="4" />
+      <path d="M520,190 H670" fill="none" stroke="#607487" stroke-width="4" />
+      <path d="M520,400 H670" fill="none" stroke="#607487" stroke-width="4" />
+      <path d="M520,610 H670" fill="none" stroke="#607487" stroke-width="4" />
+      <circle cx="520" cy="190" r="5" fill="#607487" />
+      <circle cx="520" cy="400" r="5" fill="#607487" />
+      <circle cx="520" cy="610" r="5" fill="#607487" />
+    </g>
+    <path id="bus_b" d="M325,890 H670" fill="none" stroke="#607487" stroke-width="4" data-kind="bus" data-layer="L0" />
+    <g data-kind="interaction" data-from="package_a" data-to="device_a" data-interaction="ref" data-direction="forward">
+      <path d="M1310,190 L1010,190" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1310,190 L1010,190" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="package_b" data-to="device_b" data-interaction="ref" data-direction="forward">
+      <path d="M1310,400 L1010,400" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1310,400 L1010,400" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="package_c" data-to="device_c" data-interaction="ref" data-direction="forward">
+      <path d="M1310,610 L1010,610" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1310,610 L1010,610" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="package_d" data-to="device_d" data-interaction="ref" data-direction="forward">
+      <path d="M1310,890 L1010,890" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1310,890 L1010,890" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="bvstk" data-kind="system-boundary" data-label="BVSTK" data-ownership="common">
+      <rect x="60" y="90" width="310" height="930" rx="16" fill="none" stroke="#233747" stroke-width="2" />
+      <text x="86" y="127.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">BVSTK</text>
+      <g id="port_a" data-kind="component" data-layer="L0" data-label="Порт A" data-ownership="common" data-parent="bvstk">
+        <rect x="105" y="340" width="220" height="120" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+        <text x="125" y="364.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="125" y="417.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт A</text>
+      </g>
+      <g id="port_b" data-kind="component" data-layer="L0" data-label="Порт B" data-ownership="common" data-parent="bvstk">
+        <rect x="105" y="830" width="220" height="120" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+        <text x="125" y="854.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+        <text x="125" y="907.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Порт B</text>
+      </g>
+    </g>
+    <g id="files" data-kind="system-boundary" data-label="Пакеты в BVSTK" data-ownership="common">
+      <rect x="1250" y="90" width="610" height="930" rx="16" fill="none" stroke="#233747" stroke-width="2" />
+      <text x="1276" y="127.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Пакеты в BVSTK</text>
+      <g id="package_a" data-kind="directory" data-parent="files">
+        <rect x="1310" y="140" width="490" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <path d="M1328,170.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+        <text x="1402" y="199.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">device_a</text>
+      </g>
+      <g id="package_b" data-kind="directory" data-parent="files">
+        <rect x="1310" y="350" width="490" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <path d="M1328,380.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+        <text x="1402" y="409.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">device_b</text>
+      </g>
+      <g id="package_c" data-kind="directory" data-parent="files">
+        <rect x="1310" y="560" width="490" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <path d="M1328,590.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+        <text x="1402" y="619.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">device_c</text>
+      </g>
+      <g id="package_d" data-kind="directory" data-parent="files">
+        <rect x="1310" y="840" width="490" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <path d="M1328,870.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+        <text x="1402" y="899.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">device_d</text>
+      </g>
+    </g>
+    <g id="device_a" data-kind="component" data-layer="L0" data-label="device_a" data-ownership="common">
+      <rect x="670" y="120" width="340" height="140" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="690" y="144.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="690" y="207.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">device_a</text>
+    </g>
+    <g id="device_b" data-kind="component" data-layer="L0" data-label="device_b" data-ownership="common">
+      <rect x="670" y="330" width="340" height="140" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="690" y="354.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="690" y="417.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">device_b</text>
+    </g>
+    <g id="device_c" data-kind="component" data-layer="L0" data-label="device_c" data-ownership="common">
+      <rect x="670" y="540" width="340" height="140" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="690" y="564.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="690" y="627.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">device_c</text>
+    </g>
+    <g id="device_d" data-kind="component" data-layer="L0" data-label="device_d" data-ownership="common">
+      <rect x="670" y="820" width="340" height="140" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
+      <text x="690" y="844.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+      <text x="690" y="907.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">device_d</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="480" y="155.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#607487">Шина A</text>
+    <text x="480" y="860.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#607487">Шина B</text>
+    <path d="M60,1072 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="4 5" marker-end="url(#ref-arrow)" />
+    <text x="142" y="1078.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Связь данных</text>
+    <rect x="60" y="1109" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
+    <text x="104" y="1128.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
+    <text x="60" y="1175.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Сплошные линии — шины. Пунктир связывает пакет с описываемым устройством.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

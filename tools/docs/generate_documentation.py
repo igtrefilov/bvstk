@@ -156,41 +156,6 @@ def irq():
     p.save()
 
 
-def configuration():
-    p=Figure("system/configuration/state.svg","Изменение состояния конфигурации",
-             ["src/apps/freertos/config/config_store.c","src/apps/freertos/services/http/http_ui_bus.c"])
-    p.artifact("file",70,240,400,150,"Профиль JSON","Сохранённые настройки")
-    p.node("service",710,240,450,150,"Сервис\nполитика и кэш",layer="L3")
-    p.node("editor",710,660,450,130,"Редактор\nчерновик",layer="L4")
-    p.node("device",1430,240,300,150,"Устройство",layer="L0")
-    p.edge("file","service","data","Загрузить",start="E",end="W",label_xy=(590,289))
-    p.edge("service","device","data","Записать регистр",start="E",end="W",label_xy=(1295,289))
-    p.edge("editor","service","call","Применить",start="N",end="S",label_xy=(1000,567))
-    p.path("service","file",((770,390),(770,470),(270,470),(270,390)),"data","Сохранить",label_xy=(490,452))
-    p.legend_note="Лист — сохранённые данные. Цвет блока — уровень абстракции."
-    p.save()
-
-
-def package():
-    p=Figure("system/configuration/package.svg","Файлы пакета и их потребители",
-             ["src/shared/config/bvstk_device_profile.c","web/assets/js/device-view.js"])
-    p.frame("folder",60,100,570,780,"Папка устройства",None)
-    p.artifact("profile",115,200,460,135,"<имя>.json","Адрес, политика, опрос")
-    p.artifact("map",115,450,460,135,"register_map.json","Регистры и битовые поля")
-    p.artifact("view",115,685,460,135,"view.js","Компоновка показателей")
-    p.node("service",940,200,700,135,"Сервис PS",layer="L3")
-    p.frame("browser",850,390,880,490,"Веб-интерфейс", "L4")
-    p.node("decode",940,450,700,135,"Расшифровка кэша",layer="L4",parent="browser")
-    p.node("form",940,685,700,135,"Индивидуальная форма",layer="L4",parent="browser")
-    p.edge("profile","service","data",start="E",end="W")
-    p.edge("map","decode","data",start="E",end="W")
-    p.edge("view","form","data",start="E",end="W")
-    p.edge("service","decode","data","Снимок кэша",start="S",end="N",label_xy=(1390,369))
-    p.edge("decode","form","data",start="S",end="N")
-    p.legend_note="Лист — файл. Карта и форма не выполняют операций на шине."
-    p.save()
-
-
 def volumes():
     p=Figure("system/storage/volumes.svg","Файловые пути и носители",
              ["src/apps/freertos/storage/fs/fs_devices.c","src/ports/freertos-xilinx/storage/sd-pl/bvstk_sd_pl.c"])
@@ -499,14 +464,15 @@ def main():
     from dcp2_fields import generate as dcp2_fields
     from dcp2_examples import generate as dcp2_examples
     from dcp2_policies import generate as dcp2_policies
+    from configuration_diagrams import generate as configuration_diagrams
 
     drawing.OUT=OUT
-    figures = (startup,ps_pl,irq,configuration,package,volumes,network,
+    figures = (startup,ps_pl,irq,volumes,network,
                requests,dcp2,observations,history,source_layout,source_paths,source_mmio,artifacts,boot_modes,network_change)
     for generate in figures:
         generate()
     count = (len(figures) + dcp2_introduction() + dcp2_reference()
-             + dcp2_fields() + dcp2_examples() + dcp2_policies())
+             + dcp2_fields() + dcp2_examples() + dcp2_policies() + configuration_diagrams())
     print(f"Generated {count} documentation figures")
 
 
