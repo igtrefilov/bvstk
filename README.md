@@ -12,18 +12,17 @@ BVSTK — программы управления и диагностики дл
 
 ## Документация
 
-- Работа с устройством: [консоль](docs/operations/console.md),
-  [сеть](docs/operations/network.md), [файлы](docs/operations/files.md),
-  [HTTP](docs/operations/http.md), [клиент DCP2](docs/operations/dcp2.md).
-- [Сборка и запуск](docs/build/build.md): аппаратный экспорт, FreeRTOS, Нейтрино, IFS, JTAG и отладка.
 - [Как устроена BVSTK](docs/system/system.md): статья об архитектуре, подсистемах PL и обработке транзакций.
+- [Сборка и запуск](docs/build/build.md): аппаратный экспорт, FreeRTOS, Нейтрино, IFS, JTAG и отладка.
+- Интерфейсы: [консоль](docs/interfaces/console.md), [HTTP](docs/interfaces/http/http.md),
+  [DCP2](docs/interfaces/dcp2/01-intro.md) и его [клиент](docs/interfaces/dcp2/client.md).
+- Работа с [сетью](docs/network.md) и [файлами](docs/files.md).
+- [Конфигурация устройств](docs/configuration/configuration.md): профили, карты регистров и формы.
 - [Карта исходников](docs/development/source-map.md): устройство дерева каталогов и назначение файлов.
-- [Справочник](docs/reference/reference.md): поля, команды, адреса и параметры.
-- [Спецификация DCP2](docs/reference/dcp2/01-intro.md): самостоятельное описание протокола.
 
 Полное оглавление — [документация BVSTK](docs/bvstk.md).
 Для чтения дерева `flash:/config/` начните с
-[примеров DCP2 FS](docs/operations/dcp2.md#каталоги-и-файлы-freertos).
+[примеров DCP2 FS](docs/interfaces/dcp2/client.md#каталоги-и-файлы-freertos).
 
 ## Точки входа
 

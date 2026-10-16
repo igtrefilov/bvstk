@@ -24,7 +24,7 @@ class PacketFigure(Page):
     """Protocol fields have schematic widths and no runtime layer labels."""
 
     def __init__(self, name, title, description):
-        super().__init__("reference/dcp2/" + name + ".svg", title,
+        super().__init__("interfaces/dcp2/" + name + ".svg", title,
                          description, SOURCES)
         self.width = 1800
         self.root.set("width", str(self.width))

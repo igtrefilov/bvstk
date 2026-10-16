@@ -87,7 +87,7 @@ MDIO отвечает из заранее подготовленной копи�
 Файлы карты и формы устанавливаются во Flash отдельно; генератор
 встроенных профилей не включает их в ELF.
 
-Форматы находятся в справочниках [профиля](../../reference/configuration/device-profile.md)
-и [пакета](../../reference/device-package/device-package.md).
+Форматы находятся в справочниках [профиля](../../configuration/device-profile.md)
+и [пакета](../../configuration/configuration.md).
 
 Далее проследим запрос через [подсистемы PL](../pl-subsystem/pl-subsystem.md).

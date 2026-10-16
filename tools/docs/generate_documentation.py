@@ -266,7 +266,7 @@ def requests():
 
 
 def dcp2():
-    p=Figure("reference/dcp2/access.svg","Внешний клиент DCP2 и части BVSTK",
+    p=Figure("interfaces/dcp2/access.svg","Внешний клиент DCP2 и части BVSTK",
              ["src/apps/freertos/services/dcp2/dcp2_server.c",
               "src/protocols/dcp2/bvstk_dcp2_cache.c",
               "src/protocols/dcp2/bvstk_dcp2_fs.c"],width=2000)
@@ -473,7 +473,7 @@ def boot_modes():
 
 
 def network_change():
-    p=Figure("operations/network-change.svg","Применение нового адреса",
+    p=Figure("network/change.svg","Применение нового адреса",
              ["src/apps/freertos/services/http/http_fs_routes.c"],width=1800)
     p.tool("client",70,100,370,110,"Клиент")
     p.node("http",675,100,430,120,"HTTP",layer="L4")

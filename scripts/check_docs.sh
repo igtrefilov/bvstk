@@ -72,12 +72,12 @@ check_forbidden_docs \
     'src/apps/freertos/drivers/pl' \
     README.md docs scripts third_party
 
-# I2C has no autopoll fields. MDIO keeps its own autopoll configuration, so the
-# check is scoped to the old I2C HTTP example rather than the whole documentation.
+# I2C has no autopoll fields. The shared HTTP guide also describes MDIO, which
+# keeps its own autopoll configuration, so check only the legacy I2C sections.
 check_forbidden_docs \
-    "I2C HTTP autopoll fields" \
+    "I2C HTTP autopoll fields in docs/interfaces/http/devices.md" \
     'autopoll_(enabled|regs|reg_delay_ms|cycle_delay_ms)' \
-    docs/operations/http.md
+    < <(sed -n '/^## GET \/api\/i2c$/,/^## MDIO$/p' docs/interfaces/http/devices.md)
 
 if (( fail != 0 )); then
     exit 1

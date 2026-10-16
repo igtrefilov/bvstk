@@ -96,7 +96,7 @@ FreeRTOS для этого существует `ports/freertos-xilinx/os/mdio`.
 
 Доступ по DCP2 реализует `protocols/dcp2/bvstk_dcp2_cache.c`.
 Протокольные снимки и подписки объяснены в
-[описании CACHE](../../reference/dcp2/07-cache.md).
+[описании CACHE](../../interfaces/dcp2/07-cache.md).
 
 ## services/fs
 

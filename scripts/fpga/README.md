@@ -6,7 +6,7 @@
 в `artifacts/vivado/logs/`.
 
 - [Подготовка и запуск](../../docs/build/fpga.md).
-- [Контракт AX7020](../../docs/reference/board.md).
+- [Контракт AX7020](../../docs/system/platform/board.md).
 
 Локальная конфигурация создаётся из `build_fpga.conf.example`.
 Параметр `--clean` удаляет производный `vivado_project` во внешнем
