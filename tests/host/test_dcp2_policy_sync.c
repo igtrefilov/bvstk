@@ -31,15 +31,32 @@ static void exit_critical(void)
 #define taskEXIT_CRITICAL() exit_critical()
 
 #include "apps/freertos/runtime/bvstk_runtime.c"
+#include "apps/freertos/services/dcp2/dcp2_policy_store.c"
 #define update_setting neutrino_update_setting
 #include "apps/neutrino/runtime/bvstk_i2c_runtime.c"
 #undef update_setting
 
 static i2c_device_config_t freertos_stored, saved;
+static mdio_phy_config_t mdio_saved;
 static unsigned saves;
-static int store_ok = 1, save_ok = 1, store_present = 1;
+static int store_ok = 1, save_ok = 1, store_present = 1, store_ready = 1;
 static bvstk_neutrino_i2c_runtime_t nto;
 
+int config_store_is_ready(void) { return store_ready; }
+int config_store_save_i2c_device(const i2c_device_config_t *config)
+{
+    assert(critical_depth == 0);
+    ++saves;
+    if (save_ok) saved = *config;
+    return save_ok;
+}
+int config_store_save_mdio_device(const mdio_phy_config_t *config)
+{
+    assert(critical_depth == 0);
+    ++saves;
+    if (save_ok) mdio_saved = *config;
+    return save_ok;
+}
 uint64_t bvstk_platform_now_ms(void) { return 1000; }
 const i2c_device_config_t *config_store_find_i2c_device_by_name(const char *name)
 {
@@ -197,6 +214,56 @@ static void check_freertos_critical_sections(void)
     }
     assert(critical_enters == critical_exits && !critical_depth);
 }
+static void check_explicit_save(void)
+{
+    save_ok = store_ok = store_ready = 1;
+    saves = 0;
+    setup(&s_i2c_master_service, &s_i2c_devices, &s_i2c_cache, &s_i2c_policy, &freertos_stored);
+    s_i2c_ready = 1;
+    strcpy(freertos_stored.profile.register_map, "register_map.json");
+    strcpy(freertos_stored.profile.view, "view.js");
+    unsigned stored = store_calls;
+    assert(bvstk_freertos_dcp2_policy_save(NULL, 2, 0) == BVSTK_OK);
+    assert(saves == 1 && store_calls == stored);
+    check_policy(&saved); check_settings(&saved, 0);
+    assert(!strcmp(saved.profile.register_map, "register_map.json"));
+    assert(!strcmp(saved.profile.view, "view.js"));
+    save_ok = 0;
+    assert(bvstk_freertos_dcp2_policy_save(NULL, 2, 0) == BVSTK_ERR_IO);
+    assert(saves == 2);
+    store_ready = 0;
+    assert(bvstk_freertos_dcp2_policy_save(NULL, 2, 0) == BVSTK_ERR_BUSY);
+    assert(saves == 2);
+    store_ready = save_ok = 1;
+    assert(!bvstk_runtime_i2c_policy_snapshot(0, NULL));
+    assert(bvstk_freertos_dcp2_policy_save(NULL, 2, 1) == BVSTK_ERR_INTERNAL);
+    assert(saves == 2);
+    /* A later edit must not tear the snapshot or be overwritten by saving it. */
+    schedule_competing_edit = 1; competing_edits = 0;
+    assert(bvstk_freertos_dcp2_policy_save(NULL, 2, 0) == BVSTK_OK);
+    assert(saves == 3 && competing_edits == 1);
+    check_policy(&saved); check_settings(&saved, 0);
+    assert(freertos_stored.whitelist_len == 2);
+
+    memset(&s_mdio_service, 0, sizeof(s_mdio_service));
+    s_mdio_service.initialized = 1; s_mdio_service.device_count = 1; s_mdio_ready = 1;
+    mdio_phy_config_t *m = &s_mdio_service.devices[0];
+    strcpy(m->name, "phy"); m->phy_addr = 1; m->reg_count = 32;
+    m->policy = MDIO_POLICY_BLACKLIST;
+    m->whitelist_len = 1; m->whitelist[0] = (mdio_rule_entry_t){0, 0x2000, 0x2000};
+    m->blacklist_len = 1; m->blacklist[0] = (mdio_rule_entry_t){0, 0x8000, 0x8000};
+    m->settings_len = 1; m->settings[0].reg = 4; m->settings[0].val = 0x1e1;
+    s_mdio_service.cache[0][4].value = 0x5e1; s_mdio_service.cache[0][4].valid = 1;
+    assert(bvstk_freertos_dcp2_policy_save(NULL, 3, 0) == BVSTK_OK);
+    assert(saves == 4 && !memcmp(m, &mdio_saved, sizeof(*m)));
+    save_ok = 0;
+    assert(bvstk_freertos_dcp2_policy_save(NULL, 3, 0) == BVSTK_ERR_IO);
+    assert(saves == 5);
+    assert(bvstk_freertos_dcp2_policy_save(NULL, 3, 1) != BVSTK_OK);
+    assert(saves == 5);
+    assert(bvstk_freertos_dcp2_policy_save(NULL, 1, 0) == BVSTK_ERR_UNSUPPORTED);
+}
+
 int main(void)
 {
     (void)s_spi_mutex; /* SPI is disabled in this board configuration. */
@@ -236,8 +303,16 @@ int main(void)
     assert(saves == 3);
     store_ok = 0;
     assert(!bvstk_neutrino_i2c_runtime_sync_policy_locked(&nto, 0));
+    store_ok = save_ok = 1;
+    setup(&nto.master_service, &nto.devices, &nto.cache, &nto.policy, &nto.config_store.devices[0]);
+    assert(bvstk_neutrino_i2c_runtime_save_policy_locked(&nto, 0));
+    assert(saves == 4); check_policy(&saved); check_settings(&saved, 0);
+    save_ok = 0;
+    assert(!bvstk_neutrino_i2c_runtime_save_policy_locked(&nto, 0));
+    assert(saves == 5);
     bvstk_neutrino_i2c_runtime_unlock(&nto);
     assert(pthread_mutex_destroy(&nto.state_mutex) == 0);
+    check_explicit_save();
     puts("DCP2 policy runtime synchronization tests passed");
     return 0;
 }

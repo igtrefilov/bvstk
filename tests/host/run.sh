@@ -115,6 +115,7 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
 cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections \
   -I"$SCRIPT_DIR/policy_stubs" -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_dcp2_policy_sync.c" \
+  "$REPO_ROOT/src/services/mdio/bvstk_mdio_service.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \

@@ -60,6 +60,11 @@ int bvstk_neutrino_i2c_runtime_sync_policy_locked(
     bvstk_neutrino_i2c_runtime_t *runtime,
     size_t device_id);
 
+/* Caller holds state lock. Persist the current profile without seeding settings. */
+int bvstk_neutrino_i2c_runtime_save_policy_locked(
+    bvstk_neutrino_i2c_runtime_t *runtime,
+    size_t device_id);
+
 /* Execute the same command grammar as the FreeRTOS `i2c` shell command. */
 int bvstk_neutrino_i2c_runtime_command(
     bvstk_neutrino_i2c_runtime_t *runtime,

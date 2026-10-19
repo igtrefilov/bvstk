@@ -108,6 +108,30 @@ static bvstk_status_t policy_status(bvstk_status_t status)
     return status;
 }
 
+bvstk_status_t bvstk_dcp2_process_policy_save(
+    bvstk_i2c_master_service_t *i2c, bvstk_mdio_service_t *mdio,
+    const bvstk_dcp2_request_t *request,
+    bvstk_dcp2_policy_save_fn save, void *context)
+{
+    size_t device_id;
+    int is_i2c;
+    bvstk_status_t status;
+
+    if (request == NULL) return BVSTK_ERR_MALFORMED;
+    is_i2c = request->service == BVSTK_DCP2_SERVICE_I2C;
+    if ((!is_i2c && request->service != BVSTK_DCP2_SERVICE_MDIO) ||
+        request->opcode != BVSTK_DCP2_OP_I2C_POLICY_SAVE)
+        return BVSTK_ERR_UNSUPPORTED;
+    if (request->body == NULL || request->body_size != 1U)
+        return BVSTK_ERR_MALFORMED;
+    if (request->body[0] > (is_i2c ? 127U : 31U)) return BVSTK_ERR_RANGE;
+    status = is_i2c ? bvstk_i2c_master_service_find_by_addr(i2c, request->body[0], &device_id) :
+                     bvstk_mdio_service_find_by_phy(mdio, request->body[0], &device_id);
+    if (status != BVSTK_OK) return policy_status(status);
+    if (save == NULL) return BVSTK_ERR_UNSUPPORTED;
+    return policy_status(save(context, request->service, device_id));
+}
+
 bvstk_status_t bvstk_dcp2_process_policy(
     bvstk_i2c_master_service_t *i2c, bvstk_mdio_service_t *mdio,
     const bvstk_dcp2_request_t *request, uint8_t *body,

@@ -265,14 +265,14 @@ int bvstk_runtime_i2c_ready(void)
     return s_i2c_ready;
 }
 
-static int sync_i2c_device_config(size_t device_id, int include_cache_values)
+static int snapshot_i2c_device_config(size_t device_id, int include_cache_values,
+                                       i2c_device_config_t *config)
 {
     bvstk_i2c_device_t device;
     bvstk_i2c_policy_entry_t policy;
     const i2c_device_config_t *stored;
-    i2c_device_config_t config;
 
-    if (s_i2c_ready == 0 ||
+    if (config == NULL || s_i2c_ready == 0 ||
         bvstk_i2c_master_service_device_info(&s_i2c_master_service,
                                              device_id,
                                              &device) != BVSTK_OK ||
@@ -285,34 +285,47 @@ static int sync_i2c_device_config(size_t device_id, int include_cache_values)
     if (stored == NULL) {
         return 0;
     }
-    config = *stored;
-    config.addr_7b = device.addr_7b;
-    config.reg_count = device.reg_count;
-    config.max_value_code = device.max_value_code;
-    config.policy = policy.mode;
-    memcpy(config.whitelist,
+    *config = *stored;
+    config->addr_7b = device.addr_7b;
+    config->reg_count = device.reg_count;
+    config->max_value_code = device.max_value_code;
+    config->policy = policy.mode;
+    memcpy(config->whitelist,
            policy.whitelist,
            policy.whitelist_len * sizeof(policy.whitelist[0]));
-    config.whitelist_len = policy.whitelist_len;
-    memcpy(config.blacklist,
+    config->whitelist_len = policy.whitelist_len;
+    memcpy(config->blacklist,
            policy.blacklist,
            policy.blacklist_len * sizeof(policy.blacklist[0]));
-    config.blacklist_len = policy.blacklist_len;
-    for (size_t reg = 0U; include_cache_values && reg < config.reg_count; ++reg) {
+    config->blacklist_len = policy.blacklist_len;
+    for (size_t reg = 0U; include_cache_values && reg < config->reg_count; ++reg) {
         if (bvstk_i2c_cache_is_valid(&s_i2c_cache, device_id, (uint8_t)reg)) {
             uint8_t value = 0U;
             if (bvstk_i2c_cache_read(&s_i2c_cache,
                                      device_id,
                                      (uint8_t)reg,
                                      &value) == BVSTK_OK) {
-                update_setting(&config, (uint8_t)reg, value);
+                update_setting(config, (uint8_t)reg, value);
             }
         }
     }
-    if (config_store_set_i2c_device(&config) == 0) {
-        return 0;
-    }
     return 1;
+}
+
+static int sync_i2c_device_config(size_t device_id, int include_cache_values)
+{
+    i2c_device_config_t config;
+    return snapshot_i2c_device_config(device_id, include_cache_values, &config) &&
+           config_store_set_i2c_device(&config);
+}
+
+int bvstk_runtime_i2c_policy_snapshot(size_t device_id, i2c_device_config_t *config)
+{
+    int result;
+    taskENTER_CRITICAL();
+    result = snapshot_i2c_device_config(device_id, 0, config);
+    taskEXIT_CRITICAL();
+    return result;
 }
 
 int bvstk_runtime_i2c_sync_device(size_t device_id)

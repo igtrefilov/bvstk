@@ -19,6 +19,7 @@
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/runtime/bvstk_runtime.h"
 #include "apps/freertos/services/dcp2/dcp2_notify.h"
+#include "apps/freertos/services/dcp2/dcp2_policy_store.h"
 #include "apps/freertos/runtime/bvstk_observer.h"
 #include "apps/freertos/services/dcp2/dcp2_stream_sim.h"
 #include "apps/freertos/services/lan/bvstk_lan.h"
@@ -650,9 +651,16 @@ static int dcp2_handle_policy(int fd, uint8_t srv, uint8_t opcode,
 {
     bvstk_dcp2_request_t request = {srv, opcode, seq, body, body_len};
     uint16_t response_size = 0U;
-    bvstk_status_t status = bvstk_dcp2_process_policy(
-        bvstk_runtime_i2c_master_service(), bvstk_runtime_mdio_service(),
-        &request, s_mem_read_buf, DCP2_MAX_PAYLOAD - 6U, &response_size);
+    bvstk_status_t status;
+    if (opcode == BVSTK_DCP2_OP_I2C_POLICY_SAVE) {
+        status = bvstk_dcp2_process_policy_save(
+            bvstk_runtime_i2c_master_service(), bvstk_runtime_mdio_service(),
+            &request, bvstk_freertos_dcp2_policy_save, NULL);
+    } else {
+        status = bvstk_dcp2_process_policy(
+            bvstk_runtime_i2c_master_service(), bvstk_runtime_mdio_service(),
+            &request, s_mem_read_buf, DCP2_MAX_PAYLOAD - 6U, &response_size);
+    }
     /* Legacy I2C mode SET keeps its established best-effort RAM configuration sync. */
     if (srv == DCP2_SRV_I2C && opcode == DCP2_OP_I2C_POLICY_SET) {
         if (status == BVSTK_OK) {
@@ -692,7 +700,7 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
     bvstk_status_t status;
 
     if (opcode >= BVSTK_DCP2_OP_I2C_POLICY_SET &&
-        opcode <= BVSTK_DCP2_OP_I2C_POLICY_CLEAR)
+        opcode <= BVSTK_DCP2_OP_I2C_POLICY_SAVE)
         return dcp2_handle_policy(fd, srv, opcode, seq, body, body_len);
     if (service == NULL) {
         return dcp2_send_response(fd, srv, opcode, seq,
@@ -768,8 +776,8 @@ static int dcp2_handle_mdio(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, c
     size_t device_id;
     bvstk_status_t status;
 
-    if (opcode >= BVSTK_DCP2_OP_I2C_POLICY_SET &&
-        opcode <= BVSTK_DCP2_OP_I2C_POLICY_CLEAR)
+    if (opcode >= BVSTK_DCP2_OP_MDIO_POLICY_SET &&
+        opcode <= BVSTK_DCP2_OP_MDIO_POLICY_SAVE)
         return dcp2_handle_policy(fd, srv, opcode, seq, body, body_len);
     if (opcode != DCP2_OP_MDIO_READ && opcode != DCP2_OP_MDIO_WRITE) {
         return dcp2_send_response(fd, srv, opcode, seq,

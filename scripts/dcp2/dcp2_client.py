@@ -39,6 +39,7 @@ OP_PING = 0x00
 OP_MEM_READ = 0x00
 OP_MEM_WRITE = 0x01
 OP_POLICY_SET, OP_POLICY_GET, OP_POLICY_RULE_ADD, OP_POLICY_RULE_DELETE, OP_POLICY_CLEAR = range(2, 7)
+OP_POLICY_SAVE = 7
 OP_NOTIFY_SUBSCRIBE = 0x10
 OP_NOTIFY_UNSUBSCRIBE = 0x11
 OP_STREAM_SUBSCRIBE = 0x10
@@ -466,7 +467,8 @@ def _policy_request(sock: socket.socket, service: int, seq: int, opcode: int, bo
     status = parse_status_from_response(response)
     if status:
         action = {OP_POLICY_SET: "SET", OP_POLICY_GET: "GET", OP_POLICY_RULE_ADD: "ADD",
-                  OP_POLICY_RULE_DELETE: "DELETE", OP_POLICY_CLEAR: "CLEAR"}[opcode]
+                  OP_POLICY_RULE_DELETE: "DELETE", OP_POLICY_CLEAR: "CLEAR",
+                  OP_POLICY_SAVE: "SAVE"}[opcode]
         bus = STREAM_SERVICE_NAMES[service]
         raise RuntimeError(f"{bus} POLICY_{action} failed: {status_name(status)}")
     data = response.body[2:]
@@ -506,6 +508,12 @@ def policy_set(sock: socket.socket, service: int, seq: int, address: int, mode: 
     _policy_target(service, seq, address)
     mode = _policy_enum(mode, "mode")
     _policy_request(sock, service, seq, OP_POLICY_SET, bytes([address, mode]))
+
+
+def policy_save(sock: socket.socket, service: int, seq: int, address: int) -> None:
+    """Persist the current device profile, without copying cache into settings."""
+    _policy_target(service, seq, address)
+    _policy_request(sock, service, seq, OP_POLICY_SAVE, bytes([address]))
 
 
 def policy_clear(sock: socket.socket, service: int, seq: int, address: int, rule_list: int | str) -> None:
@@ -555,6 +563,10 @@ def i2c_policy_clear(sock: socket.socket, seq: int, addr7: int, rule_list: int |
     return policy_clear(sock, SRV_I2C, seq, addr7, rule_list)
 
 
+def i2c_policy_save(sock: socket.socket, seq: int, addr7: int) -> None:
+    return policy_save(sock, SRV_I2C, seq, addr7)
+
+
 def i2c_policy_rule_add(sock: socket.socket, seq: int, addr7: int, rule_list: int | str, reg: int, value: int) -> None:
     return policy_rule_add(sock, SRV_I2C, seq, addr7, rule_list, reg, value)
 
@@ -575,6 +587,10 @@ def mdio_policy_clear(sock: socket.socket, seq: int, phy: int, rule_list: int | 
     return policy_clear(sock, SRV_MDIO, seq, phy, rule_list)
 
 
+def mdio_policy_save(sock: socket.socket, seq: int, phy: int) -> None:
+    return policy_save(sock, SRV_MDIO, seq, phy)
+
+
 def mdio_policy_rule_add(sock: socket.socket, seq: int, phy: int, rule_list: int | str, reg: int, value: int, mask: int) -> None:
     return policy_rule_add(sock, SRV_MDIO, seq, phy, rule_list, reg, value, mask)
 
@@ -586,13 +602,13 @@ def mdio_policy_rule_delete(sock: socket.socket, seq: int, phy: int, rule_list: 
 def run_policy_operation(args: argparse.Namespace) -> int:
     try:
         for bus, service in (("i2c", SRV_I2C), ("mdio", SRV_MDIO)):
-            for action in ("get", "set", "add", "delete", "clear"):
+            for action in ("get", "set", "add", "delete", "clear", "save"):
                 fields = getattr(args, f"{bus}_policy_{action}")
                 if fields is None:
                     continue
                 address = parse_uint(fields[0], "device address", 127 if bus == "i2c" else 31)
                 parameters = [address]
-                if action != "get":
+                if action not in ("get", "save"):
                     parameters.append(_policy_enum(fields[1], "mode" if action == "set" else "list"))
                 if action in ("add", "delete"):
                     parameters.extend((parse_uint(fields[2], "register", 255 if bus == "i2c" else 31),
@@ -600,7 +616,8 @@ def run_policy_operation(args: argparse.Namespace) -> int:
                     if bus == "mdio":
                         parameters.append(parse_uint(fields[4], "mask", 65535))
                 operation = {"get": policy_get, "set": policy_set, "clear": policy_clear,
-                             "add": policy_rule_add, "delete": policy_rule_delete}[action]
+                             "add": policy_rule_add, "delete": policy_rule_delete,
+                             "save": policy_save}[action]
                 with socket.create_connection((args.host, args.port), timeout=args.timeout) as sock:
                     result = operation(sock, service, 1, *parameters)
                 print(json.dumps(result) if action == "get" else f"{bus.upper()} POLICY_{action.upper()} -> OK")
@@ -1181,12 +1198,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cache-duration", type=float, default=0, help="stop --cache-watch after N seconds (default: until Ctrl+C)")
     for bus in ("i2c", "mdio"):
         address = "ADDR7" if bus == "i2c" else "PHY"
-        for action, fields in (("get", (address,)), ("set", (address, "MODE")),
+        for action, fields in (("get", (address,)), ("save", (address,)), ("set", (address, "MODE")),
                                ("clear", (address, "LIST")),
                                ("add", (address, "LIST", "REG", "VALUE") + (("MASK",) if bus == "mdio" else ())),
                                ("delete", (address, "LIST", "REG", "VALUE") + (("MASK",) if bus == "mdio" else ()))):
             help_text = {
                 "get": f"read {bus.upper()} policy mode and both rule lists",
+                "save": f"persist current {bus.upper()} device profile and policy to storage (no automatic retry)",
                 "set": f"select whitelist (0) or blacklist (1) for {bus.upper()}",
                 "clear": f"clear the selected {bus.upper()} list",
                 "add": f"add a rule to {bus.upper()} whitelist (0) or blacklist (1)",
@@ -1323,7 +1341,7 @@ def main() -> int:
         return run_ping(args)
 
     if any(getattr(args, f"{bus}_policy_{action}") is not None
-           for bus in ("i2c", "mdio") for action in ("get", "set", "add", "delete", "clear")):
+           for bus in ("i2c", "mdio") for action in ("get", "set", "add", "delete", "clear", "save")):
         if args.count is not None or args.autoinc or args.width != 32:
             parser.error("policy operations cannot be combined with MEM options")
         return run_policy_operation(args)

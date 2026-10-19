@@ -189,6 +189,13 @@ int bvstk_neutrino_i2c_runtime_sync_policy_locked(
     return sync_i2c_config_locked(runtime, device_id, 0, 0);
 }
 
+int bvstk_neutrino_i2c_runtime_save_policy_locked(
+    bvstk_neutrino_i2c_runtime_t *runtime,
+    size_t device_id)
+{
+    return sync_i2c_config_locked(runtime, device_id, 1, 0);
+}
+
 static int duplicate_identity(const bvstk_neutrino_i2c_runtime_t *runtime,
                               size_t device_id,
                               const i2c_device_config_t *config)

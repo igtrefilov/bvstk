@@ -51,6 +51,22 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(len(policy["blacklist"]), 256)
         data = struct.pack(">BHHBHHBHH", 0, 1, 1, 3, 0xABCD, 0xFF00, 15, 0xFFFF, 0)
         self.assertEqual(dcp.decode_policy(3, data)["blacklist"], [{"reg": 15, "val": 65535, "mask": 0}])
+    def test_save_wire_and_validation(self):
+        for bus, address, save in [(2, 54, dcp.i2c_policy_save), (3, 1, dcp.mdio_policy_save)]:
+            sock = Socket(dcp.build_frame(bus, 0x87, 17, b"\0\0"))
+            save(sock, 17, address)
+            self.assertEqual(sock.sent, [dcp.build_frame(bus, 7, 17, bytes([address]))])
+            for bad_seq, bad_address in [(0, address), (65536, address), (1, 128), (1, -1)]:
+                with self.assertRaises(ValueError): save(sock, bad_seq, bad_address)
+            self.assertEqual(len(sock.sent), 1)
+            for response, error in [(b"", ConnectionError),
+                                     (dcp.build_frame(bus, 0x87, 17, b"\0\7"), RuntimeError),
+                                     (dcp.build_frame(bus, 0x87, 17, b"\0\2"), RuntimeError),
+                                     (dcp.build_frame(bus, 0x87, 18, b"\0\0"), ValueError),
+                                     (dcp.build_frame(bus, 0x87, 17, b"\0\0\0"), ValueError)]:
+                sock = Socket(response)
+                with self.assertRaises(error): save(sock, 17, address)
+                self.assertEqual(len(sock.sent), 1)  # Never repeat a flash write after a lost reply.
     def test_malformed_decoding(self):
         for service, data in [(2,b""),(2,b"\x02\0\0\0\0"),(2,b"\0\0\1\0\0"),
                               (2,b"\0\0\0\0\0\x01"),(2,struct.pack(">BHH",0,257,0)+b"\0\0"*257),
@@ -99,6 +115,7 @@ class ClientTests(unittest.TestCase):
             self.assertEqual(len(sock.sent), 1)
     def test_cli_validation_before_connection(self):
         cases = [("i2c", "get", ["128"]), ("mdio", "get", ["32"]),
+                 ("i2c", "save", ["128"]), ("mdio", "save", ["32"]),
                  ("i2c", "set", ["54", "unknown"]), ("mdio", "clear", ["1", "2"]),
                  ("i2c", "add", ["54", "0", "256", "1"]),
                  ("i2c", "delete", ["54", "0", "1", "256"]),
@@ -115,7 +132,7 @@ class ClientTests(unittest.TestCase):
     def test_cli_options_and_numeric_arguments(self):
         parser = dcp.build_parser()
         for bus, address in [("i2c","54"),("mdio","1")]:
-            for action, rest in [("get",[]),("set",["whitelist"]),("clear",["1"]),
+            for action, rest in [("get",[]),("save",[]),("set",["whitelist"]),("clear",["1"]),
                                  ("add",["blacklist","3","0xab"]+(["0xff"] if bus=="mdio" else [])),
                                  ("delete",["0","3","1"]+(["0"] if bus=="mdio" else []))]:
                 fields=[address]+rest
@@ -168,14 +185,22 @@ class ProductionTests(unittest.TestCase):
         dcp.mdio_policy_clear(self.sock,6,1,0)
         dcp.mdio_policy_set(self.sock,7,1,1)
         self.assertEqual(dcp.mdio_policy_get(self.sock,8,1),{"mode":"blacklist","whitelist":[],"blacklist":state["blacklist"]})
+    def test_save_preserves_live_policy(self):
+        for bus, address in [(2, 54), (3, 1)]:
+            dcp.policy_set(self.sock, bus, 1, address, "blacklist")
+            dcp.policy_rule_add(self.sock, bus, 2, address, "whitelist", 3, 42,
+                                0xffff if bus == 3 else None)
+            before = dcp.policy_get(self.sock, bus, 3, address)
+            dcp.policy_save(self.sock, bus, 4, address)
+            self.assertEqual(dcp.policy_get(self.sock, bus, 5, address), before)
     def test_errors_from_production_parser(self):
         for bus,address,rule in [(2,54,b"\x01\x01"),(3,1,b"\x03\0\1\xff\xff")]:
-            for opcode in range(2,7):
-                body=bytes([address])+(b"" if opcode==3 else b"\0"+(rule if opcode in (4,5) else b""))
+            for opcode in range(2,8):
+                body=bytes([address])+(b"" if opcode in (3,7) else b"\0"+(rule if opcode in (4,5) else b""))
                 for wrong in (body[:-1],body+b"\0"):
                     response=self.raw(bus,opcode,wrong)
                     self.assertEqual(response.body,b"\0\1")
-                if opcode!=3:
+                if opcode not in (3,7):
                     self.assertEqual(self.raw(bus,opcode,bytes([address,2])+body[2:]).body,b"\0\1")
             self.assertEqual(self.raw(bus,63,b"").body,b"\0\2")
             self.assertEqual(self.raw(bus,3,b"\xff").body,b"\0\6")
@@ -196,7 +221,7 @@ class ProductionTests(unittest.TestCase):
         self.sock.close()
         for bus, address, reg, value, mask in [("i2c", "0x36", "1", "0x63", []),
                                                ("mdio", "1", "3", "0xabcd", ["0xff00"])]:
-            for action, rest in [("get", []), ("set", ["blacklist"]),
+            for action, rest in [("get", []), ("save", []), ("set", ["blacklist"]),
                                  ("add", ["whitelist", reg, value] + mask),
                                  ("clear", ["blacklist"]),
                                  ("delete", ["whitelist", reg, value] + mask)]:

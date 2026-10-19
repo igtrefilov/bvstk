@@ -105,6 +105,14 @@ static void sync_dcp_i2c_mutation(
     }
 }
 
+static bvstk_status_t save_dcp_policy(void *context, uint8_t service, size_t device_id)
+{
+    if (service != BVSTK_DCP2_SERVICE_I2C) return BVSTK_ERR_UNSUPPORTED;
+    /* serve_client already holds the runtime state mutex. */
+    return bvstk_neutrino_i2c_runtime_save_policy_locked(context, device_id) ?
+        BVSTK_OK : BVSTK_ERR_IO;
+}
+
 static int serve_client(int fd,
                         bvstk_control_api_t *control,
                         bvstk_neutrino_i2c_runtime_t *runtime)
@@ -146,11 +154,21 @@ static int serve_client(int fd,
         }
 
         bvstk_neutrino_i2c_runtime_lock(runtime);
-        process_result = bvstk_dcp2_process_request(control,
+        if ((request.service == BVSTK_DCP2_SERVICE_I2C ||
+             request.service == BVSTK_DCP2_SERVICE_MDIO) &&
+            request.opcode == BVSTK_DCP2_OP_I2C_POLICY_SAVE) {
+            bvstk_status_t status = bvstk_dcp2_process_policy_save(
+                control->i2c, control->mdio, &request, save_dcp_policy, runtime);
+            process_result = bvstk_dcp2_encode_response(
+                response_frame, sizeof(response_frame), &request,
+                bvstk_dcp2_status_from_bvstk(status), NULL, 0U, &response_size);
+        } else {
+            process_result = bvstk_dcp2_process_request(control,
                                                      &request,
                                                      response_frame,
                                                      sizeof(response_frame),
                                                      &response_size);
+        }
         if (process_result == 0) {
             sync_dcp_i2c_mutation(runtime,
                                      &request,

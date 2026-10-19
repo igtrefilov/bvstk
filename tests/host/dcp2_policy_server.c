@@ -14,6 +14,14 @@ static bvstk_i2c_devices_t devices;
 static bvstk_i2c_cache_t cache;
 static bvstk_i2c_policy_t policy;
 static bvstk_mdio_service_t mdio;
+static bvstk_status_t save_status;
+static unsigned saves;
+static bvstk_status_t save_profile(void *context, uint8_t service, size_t device_id)
+{
+    assert(context == &saves && device_id == 0 && (service == 2 || service == 3));
+    ++saves;
+    return save_status;
+}
 static unsigned depth, locks;
 static void enter(void *ctx) { (void)ctx; assert(!depth); ++depth; ++locks; }
 static void leave(void *ctx) { (void)ctx; assert(depth == 1); --depth; }
@@ -21,6 +29,7 @@ static bvstk_status_t lock(void *ctx, uint32_t timeout)
 { (void)timeout; enter(ctx); return BVSTK_OK; }
 static void setup(void)
 {
+    saves = 0; save_status = BVSTK_OK;
     memset(&i2c, 0, sizeof(i2c)); memset(&devices, 0, sizeof(devices));
     memset(&cache, 0, sizeof(cache)); memset(&policy, 0, sizeof(policy));
     memset(&mdio, 0, sizeof(mdio));
@@ -45,6 +54,10 @@ static bvstk_status_t call(unsigned bus, unsigned op, const uint8_t *data, size_
                             uint8_t *out, size_t capacity, uint16_t *n)
 {
     bvstk_dcp2_request_t req = {(uint8_t)bus, (uint8_t)op, 1, data, (uint16_t)size};
+    if (op == BVSTK_DCP2_OP_I2C_POLICY_SAVE) {
+        *n = 0;
+        return bvstk_dcp2_process_policy_save(&i2c, &mdio, &req, save_profile, &saves);
+    }
     return bvstk_dcp2_process_policy(&i2c, &mdio, &req, out, capacity, n);
 }
 static void self_test(void)
@@ -69,18 +82,34 @@ static void self_test(void)
     b[1] = 0; assert(call(2, 6, b, 2, out, sizeof(out), &n) == BVSTK_OK);
     for (unsigned bus = 2; bus <= 3; ++bus) {
         b[0] = bus == 2 ? 54 : 1; b[1] = 0;
-        for (unsigned op = 2; op <= 6; ++op) {
-            size_t length = op == 3 ? 1 : op == 4 || op == 5 ? (bus == 2 ? 4 : 7) : 2;
+        for (unsigned op = 2; op <= 7; ++op) {
+            size_t length = op == 3 || op == 7 ? 1 : op == 4 || op == 5 ? (bus == 2 ? 4 : 7) : 2;
             for (size_t cut = 0; cut < length; ++cut)
                 assert(call(bus, op, b, cut, out, sizeof(out), &n) == BVSTK_ERR_MALFORMED && !n);
             assert(call(bus, op, b, length + 1, out, sizeof(out), &n) == BVSTK_ERR_MALFORMED);
-            if (op != 3) { b[1] = 2;
+            if (op != 3 && op != 7) { b[1] = 2;
                 assert(call(bus, op, b, length, out, sizeof(out), &n) == BVSTK_ERR_MALFORMED); b[1] = 0; }
         }
         assert(call(bus, 63, b, 0, out, sizeof(out), &n) == BVSTK_ERR_UNSUPPORTED);
         b[0] = 255; assert(call(bus, 3, b, 1, out, sizeof(out), &n) == BVSTK_ERR_RANGE);
         b[0] = 7; assert(call(bus, 3, b, 1, out, sizeof(out), &n) == BVSTK_ERR_RANGE);
+        assert(call(bus, 7, b, 1, out, sizeof(out), &n) == BVSTK_ERR_RANGE);
     }
+    assert(saves == 0); /* No invalid request may reach storage. */
+    for (unsigned bus = 2; bus <= 3; ++bus) {
+        b[0] = bus == 2 ? 54 : 1;
+        assert(call(bus, 7, b, 1, out, sizeof(out), &n) == BVSTK_OK && !n);
+        save_status = BVSTK_ERR_IO;
+        assert(call(bus, 7, b, 1, out, sizeof(out), &n) == BVSTK_ERR_IO && !n);
+        save_status = BVSTK_ERR_NOT_READY;
+        assert(call(bus, 7, b, 1, out, sizeof(out), &n) == BVSTK_ERR_BUSY);
+        save_status = BVSTK_OK;
+        bvstk_dcp2_request_t req = {(uint8_t)bus, 7, 1, b, 1};
+        assert(bvstk_dcp2_process_policy_save(&i2c, &mdio, &req, NULL, NULL) == BVSTK_ERR_UNSUPPORTED);
+        req.body = NULL;
+        assert(bvstk_dcp2_process_policy_save(&i2c, &mdio, &req, save_profile, &saves) == BVSTK_ERR_MALFORMED);
+    }
+    assert(saves == 6);
     b[0] = 54; b[1] = 0; b[2] = 32; b[3] = 1;
     assert(call(2, 4, b, 4, out, sizeof(out), &n) == BVSTK_ERR_RANGE);
     b[2] = 1; b[3] = 128;
@@ -112,8 +141,11 @@ static void self_test(void)
     b[2] = 2; assert(call(3, 4, b, 7, out, sizeof(out), &n) == BVSTK_ERR_RANGE);
     i2c.initialized = 0; b[0] = 54;
     assert(call(2, 3, b, 1, out, sizeof(out), &n) == BVSTK_ERR_BUSY);
+    assert(call(2, 7, b, 1, out, sizeof(out), &n) == BVSTK_ERR_BUSY);
     mdio.initialized = 0; b[0] = 1;
     assert(call(3, 3, b, 1, out, sizeof(out), &n) == BVSTK_ERR_BUSY);
+    assert(call(3, 7, b, 1, out, sizeof(out), &n) == BVSTK_ERR_BUSY);
+    assert(saves == 6);
     assert(locks && !depth);
 }
 static int exact(int fd, uint8_t *data, size_t size, int write_data)
@@ -148,7 +180,8 @@ int main(void)
             payload = bvstk_dcp2_read_be16(frame + 6);
             if (payload < 4 || payload > 4096 || exact(fd, frame + 8, payload, 0)) break;
             if (bvstk_dcp2_decode_request(frame, payload + 8U, &request)) break;
-            status = bvstk_dcp2_process_policy(&i2c, &mdio, &request, out, sizeof(out), &n);
+            status = call(request.service, request.opcode, request.body, request.body_size,
+                          out, sizeof(out), &n);
             assert(!bvstk_dcp2_encode_response(response, sizeof(response), &request,
                 bvstk_dcp2_status_from_bvstk(status), n ? out : NULL, n, &sent));
             if (exact(fd, event, sizeof(event), 1) || exact(fd, response, sent, 1)) break;

@@ -13,6 +13,7 @@
 
 static char storage[256];
 static const char *stat_failure;
+static int sync_failure;
 static FRESULT failure(void) { return errno==ENOENT ? FR_NO_FILE : errno==EEXIST ? FR_EXIST : FR_DENIED; }
 static void native_path(const char *p,char out[512]) {
     assert(!strncmp(p,QSPI_ROOT,strlen(QSPI_ROOT)) && !strstr(p,".."));
@@ -32,7 +33,7 @@ FRESULT f_open(FIL *f,const char *p,BYTE flags) {
 FRESULT f_read(FIL *f,void *data,UINT n,UINT *got) {*got=(UINT)fread(data,1,n,f->native);return ferror(f->native)?FR_DISK_ERR:FR_OK;}
 FRESULT f_write(FIL *f,const void *data,UINT n,UINT *got) {*got=(UINT)fwrite(data,1,n,f->native);return *got==n?FR_OK:FR_DISK_ERR;}
 FRESULT f_close(FIL *f) {return fclose(f->native)?FR_DISK_ERR:FR_OK;}
-FRESULT f_sync(FIL *f) {return fflush(f->native)?FR_DISK_ERR:FR_OK;}
+FRESULT f_sync(FIL *f) {return sync_failure || fflush(f->native)?FR_DISK_ERR:FR_OK;}
 FRESULT f_mkdir(const char *p) {char n[512];native_path(p,n);return mkdir(n,0700)?failure():FR_OK;}
 FRESULT f_unlink(const char *p) {char n[512];native_path(p,n);return remove(n)?failure():FR_OK;}
 FRESULT f_rename(const char *p,const char *q) {char a[512],b[512];struct stat info;native_path(p,a);native_path(q,b);if(!stat(b,&info))return FR_EXIST;return rename(a,b)?failure():FR_OK;}
@@ -45,10 +46,47 @@ void vTaskDelay(TickType_t ticks) {(void)ticks;}
 void vTaskDelete(TaskHandle_t task) {(void)task;}
 static void put(const char *p,const char *data) {assert(ensure_device_parent(p));assert(write_file_atomic(p,data,strlen(data)));}
 static void startup(void) {config_task(NULL);assert(s_ready&&s_startup_done);}
+static void policy_storage_roundtrip(void)
+{
+    i2c_device_config_t original_i2c = s_i2c_cfgs[0], i = original_i2c;
+    mdio_phy_config_t original_mdio = s_mdio_cfgs[0], m = original_mdio;
+    i.policy = I2C_POLICY_BLACKLIST;
+    i.whitelist_len = i.blacklist_len = 1;
+    i.whitelist[0] = (i2c_rule_entry_t){0x13, 0x12};
+    i.blacklist[0] = (i2c_rule_entry_t){0x13, 0x10};
+    m.policy = MDIO_POLICY_BLACKLIST;
+    m.whitelist_len = m.blacklist_len = 1;
+    m.whitelist[0] = (mdio_rule_entry_t){0, 0x2000, 0x2000};
+    m.blacklist[0] = (mdio_rule_entry_t){0, 0x8000, 0x8000};
+    assert(save_i2c_device_locked(&i) && save_mdio_device_locked(&m));
+    startup();
+    assert(s_i2c_cfgs[0].policy == I2C_POLICY_BLACKLIST);
+    assert(s_i2c_cfgs[0].whitelist_len == 1 && s_i2c_cfgs[0].whitelist[0].val == 0x12);
+    assert(s_i2c_cfgs[0].blacklist_len == 1 && s_i2c_cfgs[0].blacklist[0].val == 0x10);
+    assert(s_mdio_cfgs[0].policy == MDIO_POLICY_BLACKLIST);
+    assert(s_mdio_cfgs[0].whitelist_len == 1 && s_mdio_cfgs[0].whitelist[0].mask == 0x2000);
+    assert(s_mdio_cfgs[0].blacklist_len == 1 && s_mdio_cfgs[0].blacklist[0].val == 0x8000);
+    assert(s_mdio_cfgs[0].blacklist[0].mask == 0x8000);
+    assert(s_i2c_cfgs[0].settings_len == original_i2c.settings_len);
+    assert(s_mdio_cfgs[0].settings_len == original_mdio.settings_len);
+    assert(!strcmp(s_i2c_cfgs[0].profile.register_map, original_i2c.profile.register_map));
+    assert(!strcmp(s_mdio_cfgs[0].profile.view, original_mdio.profile.view));
+    /* A failed flush must report failure and leave the previous profile usable. */
+    sync_failure = 1;
+    assert(!save_i2c_device_locked(&original_i2c));
+    assert(!save_mdio_device_locked(&original_mdio));
+    sync_failure = 0;
+    startup();
+    assert(s_i2c_cfgs[0].policy == I2C_POLICY_BLACKLIST);
+    assert(s_mdio_cfgs[0].policy == MDIO_POLICY_BLACKLIST);
+    assert(save_i2c_device_locked(&original_i2c) && save_mdio_device_locked(&original_mdio));
+    startup();
+}
 int main(int argc,char **argv) {
     assert(argc==2&&strlen(argv[1])<sizeof(storage));strcpy(storage,argv[1]);assert(!mkdir(storage,0700));
     startup();
     assert(s_i2c_cfg_count==2 && s_mdio_cfg_count==3);
+    policy_storage_roundtrip();
     assert(!strcmp(s_i2c_cfgs[0].file_name,"axp15060/axp15060.json"));
     assert(!strcmp(s_mdio_cfgs[0].file_name,"lan8720/lan8720.json"));
     assert(file_exists(QSPI_ROOT "config/mdio/lan8720/lan8720.json"));
