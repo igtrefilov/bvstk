@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <strings.h>
+#include <stdio.h>
 
 #include "apps/freertos/config/config_store.h"
 #include "apps/freertos/console/bus_shell_common.h"
@@ -40,6 +41,23 @@ static void result(int fd, bvstk_status_t status)
 static bvstk_status_t number(const char *text, unsigned long limit, unsigned long *value)
 {
     return bus_shell_number(text, limit, value);
+}
+
+static bvstk_status_t register_number(const i2c_device_config_t *config,
+    const char *text, unsigned long *value)
+{
+    if (!config->endpoint.space_count) return number(text, config->reg_count - 1U, value);
+    const char *colon = strchr(text, ':');
+    if (!colon) return BVSTK_ERR_MALFORMED;
+    for (unsigned i = 0; i < config->endpoint.space_count; ++i) {
+        const bvstk_address_space_t *s = &config->endpoint.spaces[i];
+        if (strlen(s->id) == (size_t)(colon - text) && !strncmp(s->id, text, (size_t)(colon - text))) {
+            bvstk_status_t st = number(colon + 1, s->count - 1U, value);
+            if (st == BVSTK_OK) *value += s->first;
+            return st;
+        }
+    }
+    return BVSTK_ERR_NOT_FOUND;
 }
 
 static bvstk_status_t select_device(const char *token, size_t *id,
@@ -112,20 +130,38 @@ static void cmd_info(int fd, size_t id, const i2c_device_config_t *config)
     bus_shell_writef(fd, "file=%s whitelist=%u blacklist=%u settings=%u\r\n",
                      config->file_name, (unsigned)policy.whitelist_len,
                      (unsigned)policy.blacklist_len, (unsigned)config->settings_len);
+    if (device.endpoint.parent[0])
+        bus_shell_writef(fd, "controller=pl_i2c_0 parent=%s channel=%u\r\n",
+                         device.endpoint.parent, (unsigned)device.endpoint.channel);
+    else bus_shell_writef(fd, "controller=pl_i2c_0 parent=root\r\n");
+    if (device.endpoint.transfer.configured) {
+        const bvstk_i2c_transfer_t *t = &device.endpoint.transfer;
+        bus_shell_writef(fd, "address_bytes=%u address_base=0x%04X order=%s write_cycle_ms=%u verify=%s\r\n",
+            t->address_bytes, t->address_base, t->little_endian ? "little" : "big",
+            t->write_cycle_ms, t->verify_readback ? "readback" : "none");
+    }
+    if (device.endpoint.router.channel_count)
+        bus_shell_writef(fd, "channels=%u control_register=0x%02X select_mask=0x%02X\r\n",
+            device.endpoint.router.channel_count, device.endpoint.router.reg, device.endpoint.router.select_mask);
+    for (unsigned i = 0; i < device.endpoint.space_count; ++i) {
+        const bvstk_address_space_t *s = &device.endpoint.spaces[i];
+        bus_shell_writef(fd, "space=%s addr=0x%02X regs=%u\r\n", s->id, s->address, s->count);
+    }
 }
 
 static void cmd_read(int fd, size_t id, const i2c_device_config_t *config, const char *text)
 {
     unsigned long reg;
     uint8_t value;
-    bvstk_status_t status = number(text, config->reg_count - 1U, &reg);
+    bvstk_status_t status = register_number(config, text, &reg);
 
     if (status == BVSTK_OK) {
         status = bvstk_i2c_master_service_read_from(bvstk_runtime_i2c_master_service(),
             id, (uint8_t)reg, &value, BVSTK_EVENT_SOURCE_CONSOLE, 100U);
     }
     if (status == BVSTK_OK) {
-        bus_shell_read_result(fd, (uint8_t)reg, value, 2);
+        if (config->endpoint.space_count) bus_shell_writef(fd, "%s=0x%02X\r\n", text, value);
+        else bus_shell_read_result(fd, (uint8_t)reg, value, 2);
     } else {
         result(fd, status);
     }
@@ -135,7 +171,7 @@ static void cmd_write(int fd, size_t id, const i2c_device_config_t *config,
                       const char *reg_text, const char *value_text)
 {
     unsigned long reg, value;
-    bvstk_status_t status = number(reg_text, config->reg_count - 1U, &reg);
+    bvstk_status_t status = register_number(config, reg_text, &reg);
 
     if (status == BVSTK_OK) {
         status = number(value_text, config->max_value_code, &value);
@@ -151,20 +187,26 @@ static void cmd_write(int fd, size_t id, const i2c_device_config_t *config,
     result(fd, status);
 }
 
-static void rules_show(int fd, const char *name, const i2c_rule_entry_t *rules, size_t count)
+static void rules_show(int fd, const char *name, const i2c_rule_entry_t *rules, size_t count,
+                       const bvstk_i2c_endpoint_t *endpoint)
 {
     bus_shell_rules_header(fd, name, count);
     for (size_t i = 0U; i < count; ++i) {
-        bus_shell_rule(fd, rules[i].reg, rules[i].val, NULL);
+        const bvstk_address_space_t *s = bvstk_i2c_register_space(endpoint, rules[i].reg);
+        if (s) bus_shell_writef(fd, "  reg=%s:0x%02X val=0x%02X\r\n",
+            s->id, rules[i].reg - s->first, rules[i].val);
+        else bus_shell_rule(fd, rules[i].reg, rules[i].val, NULL);
     }
 }
 
 static void policy_show(int fd, size_t id, bus_shell_policy_view_t view)
 {
     bvstk_i2c_policy_entry_t policy;
+    bvstk_i2c_device_t device;
     bvstk_status_t status = bvstk_i2c_master_service_get_policy(
         bvstk_runtime_i2c_master_service(), id, &policy);
 
+    if (status == BVSTK_OK) status = bvstk_i2c_master_service_device_info(bvstk_runtime_i2c_master_service(), id, &device);
     if (status != BVSTK_OK) {
         result(fd, status);
         return;
@@ -173,10 +215,10 @@ static void policy_show(int fd, size_t id, bus_shell_policy_view_t view)
         bus_shell_policy_mode(fd, policy.mode == I2C_POLICY_BLACKLIST);
     }
     if (view == BUS_SHELL_POLICY_RULES || view == BUS_SHELL_POLICY_WHITELIST) {
-        rules_show(fd, "whitelist", policy.whitelist, policy.whitelist_len);
+        rules_show(fd, "whitelist", policy.whitelist, policy.whitelist_len, &device.endpoint);
     }
     if (view == BUS_SHELL_POLICY_RULES || view == BUS_SHELL_POLICY_BLACKLIST) {
-        rules_show(fd, "blacklist", policy.blacklist, policy.blacklist_len);
+        rules_show(fd, "blacklist", policy.blacklist, policy.blacklist_len, &device.endpoint);
     }
 }
 
@@ -206,7 +248,7 @@ static bvstk_status_t edit_rules(i2c_device_config_t *config, int argc, char **a
     if (argc != 4 || (!eq(argv[1], "add") && !eq(argv[1], "del") && !eq(argv[1], "delete"))) {
         return BVSTK_ERR_MALFORMED;
     }
-    status = number(argv[2], config->reg_count - 1U, &reg);
+    status = register_number(config, argv[2], &reg);
     if (status == BVSTK_OK) {
         status = number(argv[3], config->max_value_code, &value);
     }
@@ -353,6 +395,25 @@ bool i2c_handle(char *token, char **save, int fd)
         result(fd, status);
         return true;
     }
+    char qualified[48];
+    if (config->endpoint.space_count && !eq(argv[0], config->name)) {
+        if (argc >= 2 && eq(argv[1], "policy")) {
+            write_str(fd, "Use the device name and <space>:<reg> for multi-space policies.\r\n");
+            return true;
+        }
+        if (argc >= 3 && (eq(argv[1], "r") || eq(argv[1], "read") || eq(argv[1], "w") || eq(argv[1], "write"))) {
+            unsigned long address;
+            if (number(argv[0][0] == '@' ? argv[0] + 1 : argv[0], 127, &address) != BVSTK_OK) {
+                result(fd, BVSTK_ERR_RANGE); return true;
+            }
+            int s = bvstk_i2c_address_space(&config->endpoint, config->addr_7b, address);
+            if (s < 0 || strchr(argv[2], ':') || strlen(argv[2]) > 12U) {
+                result(fd, BVSTK_ERR_MALFORMED); return true;
+            }
+            snprintf(qualified, sizeof(qualified), "%s:%s", config->endpoint.spaces[s].id, argv[2]);
+            argv[2] = qualified;
+        }
+    }
     if (argc == 1 || (argc == 2 && eq(argv[1], "info"))) {
         cmd_info(fd, id, config);
     } else if (argc == 3 && (eq(argv[1], "r") || eq(argv[1], "read"))) {
@@ -377,6 +438,7 @@ void i2c_help(int fd)
         "i2c list | -h | --help\r\n"
         "i2c <name|@addr|addr> [info]\r\n"
         "i2c <sel> r <reg> | w <reg> <value>\r\n"
+        "Multi-space device: <reg> is <space>:<offset>; @addr selects a space for r/w.\r\n"
         "i2c <sel> addr <addr_7b>\r\n"
         "i2c <sel> policy [show]\r\n"
         "i2c <sel> policy show <rules|whitelist|blacklist>\r\n"

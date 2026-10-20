@@ -1,0 +1,145 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 40 1800 1438" role="img" aria-labelledby="title desc" height="1438">
+  <title id="title">Профиль, рабочее состояние и поля ответа</title>
+  <desc id="desc">Профиль, рабочее состояние и поля ответа</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1478" fill="white" />
+  <g id="backgrounds">
+    <rect x="660" y="80" width="1080" height="330" rx="16" fill="white" />
+    <rect x="610" y="505" width="1130" height="350" rx="16" fill="white" />
+    <rect x="660" y="570" width="1040" height="245" rx="16" fill="white" />
+    <rect x="660" y="980" width="1080" height="300" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="file" data-to="config" data-interaction="data" data-direction="forward">
+      <path d="M500,245 L700,245" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M500,245 L700,245" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="config" data-to="cache" data-interaction="data" data-direction="forward">
+      <path d="M1100,245 L1270,245" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1100,245 L1270,245" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="config" data-to="projection" data-interaction="data" data-direction="forward">
+      <path d="M900,335 L900,650" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M900,335 L900,650" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="cache" data-to="state" data-interaction="data" data-direction="forward">
+      <path d="M1485,335 L1485,650" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1485,335 L1485,650" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="file" data-to="projection" data-interaction="data" data-direction="forward">
+      <path d="M280,335 L280,712.5 L700,712.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M280,335 L280,712.5 L700,712.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="map" data-to="decoded" data-interaction="data" data-direction="forward">
+      <path d="M500,1110 L700,1110" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M500,1110 L700,1110" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="state" data-to="decoded" data-interaction="data" data-direction="forward">
+      <path d="M1485,775 L1485,1060" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1485,775 L1485,1060" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="file" data-kind="artifact">
+      <path d="M60,155 H474 L500,181 V335 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M474,155 V181 H500" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="82" y="198.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
+      <text x="82" y="237" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Политика</text>
+      <text x="82" y="269" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">settings.cache_seed</text>
+    </g>
+    <g id="service" data-kind="functional-group" data-label="Сервис устройства" data-layer="L3" data-ownership="common">
+      <rect x="660" y="80" width="1080" height="330" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+      <text x="686" y="117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Сервис устройства</text>
+      <g id="config" data-kind="data" data-parent="service">
+        <rect x="700" y="155" width="400" height="180" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="722" y="198.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Рабочие настройки</text>
+        <text x="722" y="237" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Режим и правила</text>
+        <text x="722" y="269" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Начальные значения</text>
+      </g>
+      <g id="cache" data-kind="data" data-parent="service">
+        <rect x="1270" y="155" width="430" height="180" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1292" y="198.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Кэш</text>
+        <text x="1292" y="237" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">val, valid</text>
+        <text x="1292" y="269" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">source, updated_ms</text>
+      </g>
+    </g>
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="610" y="505" width="1130" height="350" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="636" y="542.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="http" data-kind="functional-group" data-label="Ответ HTTP" data-layer="L4" data-ownership="common">
+        <rect x="660" y="570" width="1040" height="245" rx="16" fill="none" stroke="#3f75ad" stroke-width="2" />
+        <text x="686" y="607.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#3f75ad">Ответ HTTP</text>
+        <g id="projection" data-kind="data" data-parent="http">
+          <rect x="700" y="650" width="400" height="125" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+          <text x="722" y="693.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">config, revision, saved</text>
+          <text x="722" y="732" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Представление настроек</text>
+        </g>
+        <g id="state" data-kind="data" data-parent="http">
+          <rect x="1270" y="650" width="390" height="125" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+          <text x="1292" y="693.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">cache, presence</text>
+          <text x="1292" y="732" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Состояние устройства</text>
+        </g>
+      </g>
+    </g>
+    <g id="map" data-kind="artifact">
+      <path d="M60,1020 H474 L500,1046 V1200 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M474,1020 V1046 H500" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="82" y="1063.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
+      <text x="82" y="1102" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Поля и подписи</text>
+      <text x="82" y="1134" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Правила сводки</text>
+    </g>
+    <g id="browser" data-kind="functional-group" data-label="Расшифровка в веб-интерфейсе" data-layer="L4" data-ownership="common">
+      <rect x="660" y="980" width="1080" height="300" rx="16" fill="none" stroke="#3f75ad" stroke-width="2" />
+      <text x="686" y="1017.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#3f75ad">Расшифровка в веб-интерфейсе</text>
+      <g id="decoded" data-kind="data" data-parent="browser">
+        <rect x="700" y="1060" width="1000" height="150" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="722" y="1103.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">fields, summary, identity</text>
+        <text x="722" y="1142" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Результат применения карты к снимку кэша</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="600.0" y="231.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Загрузка</text>
+    <text x="1185.0" y="231.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Начальный кэш</text>
+    <text x="465" y="690.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Сверка saved</text>
+    <text x="1570" y="920.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Снимок</text>
+    <path d="M60,1332 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="1338.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1369" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="175" y="1369" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="219" y="1388.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1435.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Листы — файлы. Белые карточки — данные. Пунктирная область — часть FreeRTOS.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js",
+    "web/assets/js/indicators.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

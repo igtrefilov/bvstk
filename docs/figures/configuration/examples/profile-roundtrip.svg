@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1860" viewBox="0 40 1860 1158" role="img" aria-labelledby="title desc" height="1158">
+  <title id="title">Поля профиля до и после сохранения</title>
+  <desc id="desc">Поля профиля до и после сохранения</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+  </defs>
+  <rect width="1860" height="1198" fill="white" />
+  <g id="backgrounds" />
+  <g id="interactions">
+    <g data-kind="interaction" data-from="before" data-to="parse" data-interaction="data" data-direction="forward">
+      <path d="M630,285 L770,285" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M630,285 L770,285" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="parse" data-to="model" data-interaction="data" data-direction="forward">
+      <path d="M930,350 L930,470" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M930,350 L930,470" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="model" data-to="format" data-interaction="data" data-direction="forward">
+      <path d="M930,670 L930,820" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M930,670 L930,820" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="format" data-to="after" data-interaction="data" data-direction="forward">
+      <path d="M1090,885 L1230,885" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1090,885 L1230,885" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="before" data-kind="artifact">
+      <path d="M60,80 H604 L630,106 V1000 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M604,80 V106 H630" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="82" y="123.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json: исходный</text>
+      <g id="device_before" data-kind="data" data-parent="before">
+        <rect x="100" y="180" width="490" height="165" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="122" y="223.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device</text>
+        <text x="122" y="262" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">model: Условное устройство</text>
+      </g>
+      <g id="resource_before" data-kind="data" data-parent="before">
+        <rect x="100" y="450" width="490" height="240" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="122" y="493.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">resources[]: 16 регистров</text>
+        <text x="122" y="532" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">id, kind, address</text>
+        <text x="122" y="564" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">width_bits, access</text>
+        <text x="122" y="596" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">write_mask, cache, verify</text>
+      </g>
+      <g id="policy_before" data-kind="data" data-parent="before">
+        <rect x="100" y="810" width="490" height="120" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="122" y="853.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">policy.read</text>
+        <text x="122" y="892" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">blacklist, rules: []</text>
+      </g>
+    </g>
+    <g id="parse" data-kind="component" data-layer="L4" data-label="Разобрать" data-ownership="common">
+      <rect x="770" y="220" width="320" height="130" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+      <text x="790" y="244.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+      <text x="790" y="302.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Разобрать</text>
+    </g>
+    <g id="model" data-kind="data">
+      <rect x="770" y="470" width="320" height="200" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+      <text x="792" y="513.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Модель в RAM</text>
+      <text x="792" y="552" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">class: generic</text>
+      <text x="792" y="584" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Пустые списки</text>
+    </g>
+    <g id="format" data-kind="component" data-layer="L4" data-label="Сформировать JSON" data-ownership="common">
+      <rect x="770" y="820" width="320" height="130" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+      <text x="790" y="844.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+      <text x="790" y="902.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сформировать JSON</text>
+    </g>
+    <g id="after" data-kind="artifact">
+      <path d="M1230,80 H1774 L1800,106 V1000 H1230 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1774,80 V106 H1800" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="1252" y="123.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json: сохранённый</text>
+      <g id="device_after" data-kind="data" data-parent="after">
+        <rect x="1270" y="180" width="490" height="165" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1292" y="223.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device</text>
+        <text x="1292" y="262" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">model: Условное устройство</text>
+        <text x="1292" y="294" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">class: generic</text>
+      </g>
+      <g id="defaults_after" data-kind="data" data-parent="after">
+        <rect x="1270" y="405" width="490" height="240" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1292" y="448.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">defaults и resources</text>
+        <text x="1292" y="487" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">defaults.register: свойства</text>
+        <text x="1292" y="519" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">resources: id, kind, address</text>
+      </g>
+      <g id="fixed_after" data-kind="data" data-parent="after">
+        <rect x="1270" y="710" width="490" height="240" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1292" y="753.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Явно записанные разделы</text>
+        <text x="1292" y="792" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">policy.write: whitelist, []</text>
+        <text x="1292" y="824" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">settings: пустые списки</text>
+        <text x="1292" y="856" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">observability</text>
+        <text x="1292" y="888" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">  telemetry: true</text>
+        <text x="1292" y="920" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">  events: true</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M60,1052 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="1058.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1089" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="104" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1155.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Показаны изменившиеся фрагменты. Сохранение формирует JSON из модели, а не копирует исходный текст.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js",
+    "web/assets/js/indicators.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

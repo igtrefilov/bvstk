@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" viewBox="0 40 1900 1208" role="img" aria-labelledby="title desc" height="1208">
+  <title id="title">Добавление карты и формы в пакет</title>
+  <desc id="desc">Добавление карты и формы в пакет</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="ref-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1900" height="1248" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="80" width="520" height="410" rx="16" fill="white" />
+    <rect x="670" y="80" width="520" height="735" rx="16" fill="white" />
+    <rect x="1280" y="80" width="560" height="970" rx="16" fill="white" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="profile_b" data-to="map_b" data-interaction="ref" data-direction="forward">
+      <path d="M930,435 L930,595" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M930,435 L930,595" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="profile_c" data-to="map_c" data-interaction="ref" data-direction="forward">
+      <path d="M1480,515 L1480,620" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1480,515 L1480,620" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="profile_c" data-to="view_c" data-interaction="ref" data-direction="forward">
+      <path d="M1760,430 L1800,430 L1800,945 L1760,945" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1760,430 L1800,430 L1800,945 L1760,945" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="a" data-kind="system-boundary" data-label="device_a" data-ownership="common">
+      <rect x="60" y="80" width="520" height="410" rx="16" fill="none" stroke="#233747" stroke-width="2" />
+      <text x="86" y="117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a</text>
+      <g id="profile_a" data-kind="artifact" data-parent="a">
+        <path d="M100,165 H514 L540,191 V435 H100 Z" fill="white" stroke="#607487" stroke-width="2" />
+        <path d="M514,165 V191 H540" fill="none" stroke="#607487" stroke-width="2" />
+        <text x="122" y="208.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
+        <text x="122" y="247" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">id: device_a</text>
+        <text x="122" y="279" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">transport, protocol</text>
+        <text x="122" y="311" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">resources, policy</text>
+      </g>
+    </g>
+    <g id="b" data-kind="system-boundary" data-label="device_a" data-ownership="common">
+      <rect x="670" y="80" width="520" height="735" rx="16" fill="none" stroke="#233747" stroke-width="2" />
+      <text x="696" y="117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a</text>
+      <g id="profile_b" data-kind="artifact" data-parent="b">
+        <path d="M710,165 H1124 L1150,191 V435 H710 Z" fill="white" stroke="#607487" stroke-width="2" />
+        <path d="M1124,165 V191 H1150" fill="none" stroke="#607487" stroke-width="2" />
+        <text x="732" y="208.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
+        <text x="732" y="247" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">…</text>
+        <text x="732" y="279" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">register_map:</text>
+        <text x="732" y="311" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">  register_map.json</text>
+      </g>
+      <g id="map_b" data-kind="artifact" data-parent="b">
+        <path d="M710,595 H1124 L1150,621 V755 H710 Z" fill="white" stroke="#607487" stroke-width="2" />
+        <path d="M1124,595 V621 H1150" fill="none" stroke="#607487" stroke-width="2" />
+        <text x="732" y="638.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
+        <text x="732" y="677" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">registers</text>
+        <text x="732" y="709" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">summary</text>
+      </g>
+    </g>
+    <g id="c" data-kind="system-boundary" data-label="device_a" data-ownership="common">
+      <rect x="1280" y="80" width="560" height="970" rx="16" fill="none" stroke="#233747" stroke-width="2" />
+      <text x="1306" y="117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a</text>
+      <g id="profile_c" data-kind="artifact" data-parent="c">
+        <path d="M1320,165 H1734 L1760,191 V515 H1320 Z" fill="white" stroke="#607487" stroke-width="2" />
+        <path d="M1734,165 V191 H1760" fill="none" stroke="#607487" stroke-width="2" />
+        <text x="1342" y="208.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
+        <text x="1342" y="247" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">…</text>
+        <text x="1342" y="279" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">register_map:</text>
+        <text x="1342" y="311" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">  register_map.json</text>
+        <text x="1342" y="343" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">view: view.js</text>
+      </g>
+      <g id="map_c" data-kind="artifact" data-parent="c">
+        <path d="M1320,620 H1734 L1760,646 V780 H1320 Z" fill="white" stroke="#607487" stroke-width="2" />
+        <path d="M1734,620 V646 H1760" fill="none" stroke="#607487" stroke-width="2" />
+        <text x="1342" y="663.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
+        <text x="1342" y="702" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">registers</text>
+        <text x="1342" y="734" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">summary</text>
+      </g>
+      <g id="view_c" data-kind="artifact" data-parent="c">
+        <path d="M1320,890 H1734 L1760,916 V1000 H1320 Z" fill="white" stroke="#607487" stroke-width="2" />
+        <path d="M1734,890 V916 H1760" fill="none" stroke="#607487" stroke-width="2" />
+        <text x="1342" y="933.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">view.js</text>
+        <text x="1342" y="972" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">mount, update</text>
+      </g>
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M60,1102 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="4 5" marker-end="url(#ref-arrow)" />
+    <text x="142" y="1108.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Связь данных</text>
+    <text x="60" y="1205.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Три варианта одного пакета. Листы — файлы; пунктир — ссылки из профиля.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js",
+    "web/assets/js/indicators.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

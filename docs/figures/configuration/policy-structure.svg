@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" viewBox="0 40 1900 1338" role="img" aria-labelledby="title desc" height="1338">
+  <title id="title">Вложенность политики и настроек профиля</title>
+  <desc id="desc">Вложенность политики и настроек профиля</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="ref-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1900" height="1378" fill="white" />
+  <g id="backgrounds" />
+  <g id="components">
+    <g id="file" data-kind="artifact">
+      <path d="M60,80 H1814 L1840,106 V1180 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1814,80 V106 H1840" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="82" y="123.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json {}</text>
+      <g id="policy" data-kind="data" data-parent="file">
+        <rect x="110" y="170" width="950" height="950" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="132" y="213.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">policy {}</text>
+        <g id="read" data-kind="data" data-parent="policy">
+          <rect x="150" y="255" width="870" height="150" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+          <text x="172" y="298.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">read {}</text>
+          <text x="172" y="337" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">mode: blacklist</text>
+          <text x="172" y="369" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">rules: []</text>
+        </g>
+        <g id="write" data-kind="data" data-parent="policy">
+          <rect x="150" y="455" width="870" height="620" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+          <text x="172" y="498.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">write {}</text>
+          <text x="172" y="537" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">mode: whitelist</text>
+          <g id="rules" data-kind="data" data-parent="write">
+            <rect x="190" y="610" width="470" height="420" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+            <text x="212" y="653.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">rules []</text>
+            <g id="rule" data-kind="data" data-parent="rules">
+              <rect x="225" y="690" width="400" height="320" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+              <text x="247" y="733.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Элемент {}</text>
+              <text x="247" y="772" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">resource: reg_03</text>
+              <g id="match" data-kind="data" data-parent="rule">
+                <rect x="260" y="835" width="330" height="145" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+                <text x="282" y="878.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">match {}</text>
+                <text x="282" y="917" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">value: 0x10</text>
+                <text x="282" y="949" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">mask: 0xFF</text>
+              </g>
+            </g>
+          </g>
+          <g id="inactive" data-kind="data" data-parent="write">
+            <rect x="700" y="610" width="280" height="125" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+            <text x="722" y="653.0" font-size="24.17" font-weight="700" text-anchor="start" style="fill:#233747">inactive_rules[]</text>
+            <text x="722" y="692" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">…</text>
+          </g>
+        </g>
+      </g>
+      <g id="resources" data-kind="data" data-parent="file">
+        <rect x="1230" y="170" width="560" height="300" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1252" y="213.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">resources []</text>
+        <g id="resource" data-kind="data" data-parent="resources">
+          <rect x="1270" y="255" width="480" height="170" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+          <text x="1292" y="298.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Элемент {}</text>
+          <text x="1292" y="337" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">id: reg_03</text>
+          <text x="1292" y="369" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">address: 0x03</text>
+        </g>
+      </g>
+      <g id="settings" data-kind="data" data-parent="file">
+        <rect x="1230" y="575" width="560" height="545" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1252" y="618.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">settings {}</text>
+        <text x="1252" y="657" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">desired: []</text>
+        <text x="1252" y="689" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">apply_on_startup: false</text>
+        <g id="seeds" data-kind="data" data-parent="settings">
+          <rect x="1270" y="750" width="480" height="320" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+          <text x="1292" y="793.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">cache_seed []</text>
+          <g id="seed" data-kind="data" data-parent="seeds">
+            <rect x="1310" y="830" width="400" height="190" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+            <text x="1332" y="873.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Элемент {}</text>
+            <text x="1332" y="912" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">resource: reg_03</text>
+            <text x="1332" y="944" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">value: 0x10</text>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="rule" data-to="resource" data-interaction="ref" data-direction="forward">
+      <path d="M425,690 L425,565 L1140,565 L1140,340 L1270,340" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M425,690 L425,565 L1140,565 L1140,340 L1270,340" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="seed" data-to="resource" data-interaction="ref" data-direction="forward">
+      <path d="M1590,830 L1590,425" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1590,830 L1590,425" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+  </g>
+  <g id="annotations">
+    <path d="M60,1232 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="4 5" marker-end="url(#ref-arrow)" />
+    <text x="142" y="1238.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Связь данных</text>
+    <text x="60" y="1335.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вложенность — состав JSON. {} — объект, [] — массив. Пунктир — ссылка resource на id. Показаны фрагменты.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js",
+    "web/assets/js/indicators.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1760" viewBox="0 40 1760 1088" role="img" aria-labelledby="title desc" height="1088">
+  <title id="title">Происхождение полей при разборе профиля</title>
+  <desc id="desc">Происхождение полей при разборе профиля</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+  </defs>
+  <rect width="1760" height="1128" fill="white" />
+  <g id="backgrounds">
+    <rect x="870" y="80" width="830" height="850" rx="16" fill="white" />
+  </g>
+  <g id="components">
+    <g id="file" data-kind="artifact">
+      <path d="M60,80 H624 L650,106 V930 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M624,80 V106 H650" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="82" y="123.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
+      <g id="explicit" data-kind="data" data-parent="file">
+        <rect x="100" y="180" width="510" height="180" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="122" y="223.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Задано автором</text>
+        <text x="122" y="262" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">id: device_a</text>
+        <text x="122" y="294" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">resources: 16 регистров</text>
+      </g>
+      <g id="common" data-kind="data" data-parent="file">
+        <rect x="100" y="440" width="510" height="165" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="122" y="483.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">defaults.register</text>
+        <text x="122" y="522" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">access: rw</text>
+        <text x="122" y="554" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">cache.mode: driver</text>
+      </g>
+      <g id="device" data-kind="data" data-parent="file">
+        <rect x="100" y="695" width="510" height="150" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="122" y="738.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device</text>
+        <text x="122" y="777" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">model: Условное устройство</text>
+      </g>
+    </g>
+    <g id="codec" data-kind="functional-group" data-label="Общий кодек профиля" data-layer="L4" data-ownership="common">
+      <rect x="870" y="80" width="830" height="850" rx="16" fill="none" stroke="#3f75ad" stroke-width="2" />
+      <text x="896" y="117.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#3f75ad">Общий кодек профиля</text>
+      <g id="model" data-kind="data" data-parent="codec">
+        <rect x="910" y="180" width="750" height="180" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="932" y="223.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Модель конфигурации</text>
+        <text x="932" y="262" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">name: device_a</text>
+        <text x="932" y="294" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">reg_count: 16</text>
+      </g>
+      <g id="resolved" data-kind="data" data-parent="codec">
+        <rect x="910" y="440" width="750" height="165" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="932" y="483.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Свойства ресурсов при проверке</text>
+        <text x="932" y="522" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">access: rw</text>
+        <text x="932" y="554" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">cache.mode: driver</text>
+      </g>
+      <g id="implicit" data-kind="data" data-parent="codec">
+        <rect x="910" y="695" width="750" height="150" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="932" y="738.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Класс устройства</text>
+        <text x="932" y="777" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">generic</text>
+      </g>
+    </g>
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="explicit" data-to="model" data-interaction="data" data-direction="forward">
+      <path d="M610,270 L910,270" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M610,270 L910,270" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="common" data-to="resolved" data-interaction="data" data-direction="forward">
+      <path d="M610,522.5 L910,522.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M610,522.5 L910,522.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="device" data-to="implicit" data-interaction="data" data-direction="forward">
+      <path d="M610,770 L910,770" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M610,770 L910,770" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="760.0" y="256.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Разбор</text>
+    <text x="760.0" y="508.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Общие свойства</text>
+    <text x="760.0" y="756.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">class отсутствует</text>
+    <path d="M60,982 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="988.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1019" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="104" y="1038.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1085.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Лист — файл. Белые карточки — фрагменты данных; справа показан результат обработки.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js",
+    "web/assets/js/indicators.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

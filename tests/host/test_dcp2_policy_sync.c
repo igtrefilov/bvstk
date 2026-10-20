@@ -131,7 +131,7 @@ static bvstk_status_t no_write(void *ctx, uint8_t addr, uint8_t reg, uint8_t val
 static void setup(bvstk_i2c_master_service_t *service, bvstk_i2c_devices_t *devices,
     bvstk_i2c_cache_t *cache, bvstk_i2c_policy_t *policy, i2c_device_config_t *config)
 {
-    const bvstk_i2c_master_io_t io = {NULL, no_read, no_write};
+    const bvstk_i2c_master_io_t io = {.read_reg = no_read, .write_reg = no_write};
     memset(config, 0, sizeof(*config));
     strcpy(config->name, "test");
     strcpy(config->file_name, "test.json");
@@ -313,6 +313,16 @@ int main(void)
     bvstk_neutrino_i2c_runtime_unlock(&nto);
     assert(pthread_mutex_destroy(&nto.state_mutex) == 0);
     check_explicit_save();
+    i2c_device_config_t multi = {0};
+    multi.endpoint.space_count=2;
+    multi.endpoint.spaces[0]=(bvstk_address_space_t){"id",0,4,0x50};
+    multi.endpoint.spaces[1]=(bvstk_address_space_t){"diag",4,4,0x51};
+    uint32_t index;
+    assert(parse_register(&multi,"id:0",&index) && index==0);
+    assert(parse_register(&multi,"diag:0",&index) && index==4);
+    assert(!parse_register(&multi,"diag:4",&index));
+    assert(!parse_register(&multi,"missing:0",&index));
+    assert(!parse_register(&multi,"0",&index));
     puts("DCP2 policy runtime synchronization tests passed");
     return 0;
 }

@@ -142,17 +142,20 @@ static bvstk_status_t write_fifo_bytes(bvstk_i2c_master_hw_t *hardware,
     return BVSTK_OK;
 }
 
-static bvstk_status_t transfer_locked(bvstk_i2c_master_hw_t *hardware,
+static bvstk_status_t transfer_attempts_locked(bvstk_i2c_master_hw_t *hardware,
                                       uint8_t addr_7b,
                                       const uint8_t *write_data,
                                       size_t write_size,
                                       uint8_t *read_data,
                                       size_t read_size,
-                                      uint32_t timeout_ms)
+                                      uint32_t timeout_ms, unsigned attempts)
 {
     unsigned attempt;
     bvstk_status_t status;
 
+    if (hardware == NULL || hardware->initialized == 0U) {
+        return BVSTK_ERR_NOT_READY;
+    }
     if (write_size == 0U && read_size == 0U) {
         return BVSTK_ERR_MALFORMED;
     }
@@ -164,7 +167,7 @@ static bvstk_status_t transfer_locked(bvstk_i2c_master_hw_t *hardware,
         return BVSTK_ERR_RANGE;
     }
 
-    for (attempt = 0U; attempt < BVSTK_I2C_RECOVERY_ATTEMPTS; ++attempt) {
+    for (attempt = 0U; attempt < attempts; ++attempt) {
         int nack = 0;
         status = wait_ready(hardware, timeout_ms);
         if (status != BVSTK_OK) {
@@ -230,6 +233,17 @@ static bvstk_status_t transfer_locked(bvstk_i2c_master_hw_t *hardware,
     return status;
 }
 
+bvstk_status_t bvstk_i2c_master_hw_transfer_locked(bvstk_i2c_master_hw_t *hardware,
+    uint8_t addr, const uint8_t *tx, size_t nt, uint8_t *rx, size_t nr, uint32_t ms)
+{
+    return transfer_attempts_locked(hardware, addr, tx, nt, rx, nr, ms, BVSTK_I2C_RECOVERY_ATTEMPTS);
+}
+bvstk_status_t bvstk_i2c_master_hw_transfer_once_locked(bvstk_i2c_master_hw_t *hardware,
+    uint8_t addr, const uint8_t *tx, size_t nt, uint8_t *rx, size_t nr, uint32_t ms)
+{
+    return transfer_attempts_locked(hardware, addr, tx, nt, rx, nr, ms, 1U);
+}
+
 bvstk_status_t bvstk_i2c_master_hw_init(bvstk_i2c_master_hw_t *hardware,
                                          const bvstk_clock_t *clock,
                                          const bvstk_mutex_t *mutex)
@@ -271,6 +285,16 @@ void bvstk_i2c_master_hw_shutdown(bvstk_i2c_master_hw_t *hardware)
     memset(hardware, 0, sizeof(*hardware));
 }
 
+bvstk_status_t bvstk_i2c_master_hw_lock(bvstk_i2c_master_hw_t *hardware, uint32_t timeout_ms)
+{
+    if (!hardware || !hardware->initialized) return BVSTK_ERR_NOT_READY;
+    return bvstk_mutex_lock(&hardware->mutex, timeout_ms);
+}
+void bvstk_i2c_master_hw_unlock(bvstk_i2c_master_hw_t *hardware)
+{
+    if (hardware) bvstk_mutex_unlock(&hardware->mutex);
+}
+
 bvstk_status_t bvstk_i2c_master_hw_transfer(
     bvstk_i2c_master_hw_t *hardware,
     uint8_t addr_7b,
@@ -289,7 +313,7 @@ bvstk_status_t bvstk_i2c_master_hw_transfer(
     if (status != BVSTK_OK) {
         return status;
     }
-    status = transfer_locked(hardware,
+    status = bvstk_i2c_master_hw_transfer_locked(hardware,
                              (uint8_t)(addr_7b & UINT8_C(0x7F)),
                              write_data,
                              write_size,

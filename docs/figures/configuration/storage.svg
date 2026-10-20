@@ -131,7 +131,8 @@ g:target &gt; rect { stroke-width: 5; }
     "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
     "src/apps/freertos/services/http/http_ui_bus.c",
     "web/assets/js/register-map.js",
-    "web/assets/js/device-view.js"
+    "web/assets/js/device-view.js",
+    "web/assets/js/indicators.js"
   ],
   "cross_sheet_links": [],
   "article_notes": []

@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1740" viewBox="0 40 1740 1248" role="img" aria-labelledby="title desc" height="1248">
+  <title id="title">Связь ресурса с политикой и начальным кэшем</title>
+  <desc id="desc">Связь ресурса с политикой и начальным кэшем</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+    <marker id="ref-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1740" height="1288" fill="white" />
+  <g id="backgrounds">
+    <rect x="60" y="790" width="1620" height="300" rx="16" fill="white" />
+  </g>
+  <g id="components">
+    <g id="file" data-kind="artifact">
+      <path d="M60,80 H1654 L1680,106 V660 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1654,80 V106 H1680" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="82" y="123.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
+      <g id="resources" data-kind="data" data-parent="file">
+        <rect x="610" y="180" width="520" height="185" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="632" y="223.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">resources[]</text>
+        <text x="632" y="262" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">reg_00 → address 0x00</text>
+        <text x="632" y="294" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">reg_01 → address 0x01</text>
+        <text x="632" y="326" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">… reg_0f → address 0x0F</text>
+      </g>
+      <g id="rule" data-kind="data" data-parent="file">
+        <rect x="110" y="440" width="620" height="175" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="132" y="483.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">policy.write.rules[]</text>
+        <text x="132" y="522" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">resource: reg_01</text>
+        <text x="132" y="554" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">value: 0x01, mask: 0xFF</text>
+      </g>
+      <g id="seed" data-kind="data" data-parent="file">
+        <rect x="1010" y="440" width="620" height="175" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1032" y="483.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">settings.cache_seed[]</text>
+        <text x="1032" y="522" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">resource: reg_01</text>
+        <text x="1032" y="554" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">value: 0x00</text>
+      </g>
+    </g>
+    <g id="service" data-kind="functional-group" data-label="Сервис" data-layer="L3" data-ownership="common">
+      <rect x="60" y="790" width="1620" height="300" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
+      <text x="86" y="827.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Сервис</text>
+      <g id="resolved" data-kind="data" data-parent="service">
+        <rect x="110" y="870" width="620" height="170" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="132" y="913.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Правило белого списка</text>
+        <text x="132" y="952" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">reg: 0x01, val: 0x01</text>
+        <text x="132" y="984" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Сравнение по mask</text>
+      </g>
+      <g id="cache" data-kind="data" data-parent="service">
+        <rect x="1010" y="870" width="620" height="170" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
+        <text x="1032" y="913.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">Начальное значение кэша</text>
+        <text x="1032" y="952" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">reg: 0x01, val: 0x00</text>
+        <text x="1032" y="984" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">source: settings</text>
+      </g>
+    </g>
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="rule" data-to="resources" data-interaction="ref" data-direction="forward">
+      <path d="M420,440 L420,255 L610,255" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M420,440 L420,255 L610,255" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="seed" data-to="resources" data-interaction="ref" data-direction="forward">
+      <path d="M1320,440 L1320,255 L1130,255" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1320,440 L1320,255 L1130,255" fill="none" stroke="#788794" stroke-width="2.7" stroke-dasharray="4 5" stroke-linejoin="round" marker-start="url(#ref-source)" marker-end="url(#ref-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="rule" data-to="resolved" data-interaction="data" data-direction="forward">
+      <path d="M420,615 L420,870" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M420,615 L420,870" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="seed" data-to="cache" data-interaction="data" data-direction="forward">
+      <path d="M1320,615 L1320,870" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M1320,615 L1320,870" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="520" y="735.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Разбор ссылки</text>
+    <text x="1430" y="735.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Создание кэша</text>
+    <path d="M60,1142 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="142" y="1148.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <path d="M256,1142 h65" fill="none" stroke="#788794" stroke-width="3" stroke-dasharray="4 5" marker-end="url(#ref-arrow)" />
+    <text x="338" y="1148.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Связь данных</text>
+    <rect x="60" y="1179" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1198.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <text x="60" y="1245.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Пунктир — ссылка по ID. Синие стрелки — получение рабочих данных. Показаны фрагменты профиля.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/configuration_diagrams.py",
+  "sources": [
+    "src/shared/config/bvstk_device_profile.c",
+    "src/shared/config/bvstk_config_model.h",
+    "src/apps/freertos/config/config_store.c",
+    "src/apps/freertos/runtime/bvstk_runtime.c",
+    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
+    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "web/assets/js/register-map.js",
+    "web/assets/js/device-view.js",
+    "web/assets/js/indicators.js"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

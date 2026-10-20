@@ -18,10 +18,111 @@ typedef struct {
 
 #define I2C_CFG_MAX_DEVICES 32u
 #define I2C_CFG_NAME_MAX 32u
-#define I2C_CFG_FILE_NAME_MAX 48u
+#define I2C_CFG_FILE_NAME_MAX 224u
 #define I2C_CFG_MAX_REG_COUNT 256u
 #define I2C_CFG_RULES_MAX 256u
 #define I2C_CFG_SETTINGS_MAX 256u
+#define BVSTK_I2C_ROUTE_MAX 4u
+#define BVSTK_I2C_SWITCH_CHANNELS_MAX 16u
+#define BVSTK_ADDRESS_SPACES_MAX 8u
+
+/* Named windows of one logical device. first is an internal cache index;
+ * addresses in the profile and on the wire remain relative to each window. */
+typedef struct {
+    char id[I2C_CFG_NAME_MAX];
+    uint16_t first, count;
+    uint8_t address;
+} bvstk_address_space_t;
+
+typedef enum {
+    BVSTK_I2C_SEQUENCE_LINEAR = 0,
+    BVSTK_I2C_SEQUENCE_FIXED,
+    BVSTK_I2C_SEQUENCE_WRAP
+} bvstk_i2c_sequence_mode_t;
+
+typedef struct {
+    uint16_t span; /* zero means the complete register space */
+    uint8_t mode;
+} bvstk_i2c_sequence_t;
+
+typedef struct {
+    uint16_t address_base;
+    uint16_t write_cycle_ms;
+    bvstk_i2c_sequence_t read_sequence, write_sequence;
+    uint8_t configured;
+    uint8_t address_bytes; /* 0: unaddressed data; 1 or 2: register prefix */
+    uint8_t little_endian;
+    uint8_t stop_before_read;
+    uint8_t verify_readback;
+    uint8_t invalidate_after_write;
+    uint8_t host_read_fresh;
+    uint8_t host_current_read;
+} bvstk_i2c_transfer_t;
+
+typedef struct {
+    uint8_t select;
+    uint8_t match_mask;
+} bvstk_i2c_channel_t;
+
+typedef struct {
+    uint8_t channel_count; /* zero: endpoint without downstream channels */
+    uint8_t reg;
+    uint8_t select_mask;
+    uint8_t preserve_mask;
+    bvstk_i2c_channel_t channels[BVSTK_I2C_SWITCH_CHANNELS_MAX];
+} bvstk_i2c_switch_t;
+
+/* parent is a profile ID; an empty parent means the controller's root bus. */
+typedef struct {
+    char parent[I2C_CFG_NAME_MAX];
+    uint8_t channel;
+    bvstk_i2c_transfer_t transfer;
+    bvstk_i2c_switch_t router;
+    uint8_t read_only[I2C_CFG_MAX_REG_COUNT / 8u];
+    uint8_t space_count;
+    bvstk_address_space_t spaces[BVSTK_ADDRESS_SPACES_MAX];
+} bvstk_i2c_endpoint_t;
+
+static inline const bvstk_address_space_t *bvstk_i2c_register_space(
+    const bvstk_i2c_endpoint_t *e, unsigned reg)
+{
+    for (unsigned i = 0; i < e->space_count; ++i)
+        if (reg >= e->spaces[i].first && reg - e->spaces[i].first < e->spaces[i].count)
+            return &e->spaces[i];
+    return NULL;
+}
+
+static inline int bvstk_i2c_address_space(const bvstk_i2c_endpoint_t *e,
+    uint8_t primary, unsigned address)
+{
+    if (!e->space_count) return address == primary ? 0 : -1;
+    for (unsigned i = 0; i < e->space_count; ++i)
+        if (e->spaces[i].address == address) return (int)i;
+    return -1;
+}
+
+static inline int bvstk_i2c_address_register(const bvstk_i2c_endpoint_t *e,
+    uint8_t primary, unsigned count, unsigned address, unsigned reg, uint8_t *index)
+{
+    int space = bvstk_i2c_address_space(e, primary, address);
+    if (space < 0 || !index) return 0;
+    unsigned first = e->space_count ? e->spaces[space].first : 0;
+    unsigned size = e->space_count ? e->spaces[space].count : count;
+    if (reg >= size || first + reg >= count) return 0;
+    *index = (uint8_t)(first + reg);
+    return 1;
+}
+
+/* Zero-initialized legacy profiles retain the original byte-register bridge. */
+static inline bvstk_i2c_transfer_t bvstk_i2c_transfer_options(const bvstk_i2c_endpoint_t *endpoint)
+{
+    bvstk_i2c_transfer_t value = endpoint->transfer;
+    if (!value.configured) {
+        value.address_bytes = 1;
+        value.read_sequence.mode = BVSTK_I2C_SEQUENCE_WRAP;
+    }
+    return value;
+}
 
 /* File-format metadata is kept separate from the established bus-facing model.
  * The bridge adapters retain its policy/cache/polling semantics exactly. */
@@ -57,6 +158,7 @@ typedef struct {
     uint8_t addr_7b;
     uint16_t reg_count;
     uint8_t max_value_code;
+    bvstk_i2c_endpoint_t endpoint;
     i2c_policy_t policy;
     i2c_rule_entry_t whitelist[I2C_CFG_RULES_MAX];
     size_t whitelist_len;
@@ -69,7 +171,7 @@ typedef struct {
 
 #define MDIO_CFG_MAX_DEVICES 8u
 #define MDIO_CFG_NAME_MAX 32u
-#define MDIO_CFG_FILE_NAME_MAX 48u
+#define MDIO_CFG_FILE_NAME_MAX I2C_CFG_FILE_NAME_MAX
 #define MDIO_CFG_AUTOPOLL_REGS_MAX 32u
 #define MDIO_CFG_RULES_MAX 64u
 #define MDIO_CFG_SETTINGS_MAX 32u

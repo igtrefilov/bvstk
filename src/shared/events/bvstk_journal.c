@@ -24,6 +24,11 @@ uint64_t bvstk_journal_head(const bvstk_journal_t *journal, unsigned bus, unsign
 void bvstk_journal_read(const bvstk_journal_t *journal, unsigned bus, unsigned channel,
     int address, uint64_t after, bvstk_journal_batch_t *out)
 {
+    bvstk_journal_read_device(journal, bus, channel, address, -1, after, out);
+}
+void bvstk_journal_read_device(const bvstk_journal_t *journal, unsigned bus, unsigned channel,
+    int address, int device_slot, uint64_t after, bvstk_journal_batch_t *out)
+{
     const bvstk_journal_ring_t *ring;
     uint64_t first;
     if (!out) return;
@@ -42,6 +47,9 @@ void bvstk_journal_read(const bvstk_journal_t *journal, unsigned bus, unsigned c
         const bvstk_event_t *e = &ring->entries[after % BVSTK_JOURNAL_CAPACITY];
         ++after;
         if (address >= 0 && e->arg0 != (uint32_t)address) continue;
+        if (device_slot >= 0 && (!(e->flags & BVSTK_EVENT_FLAG_DEVICE_SLOT) ||
+            ((e->flags & BVSTK_EVENT_DEVICE_MASK) >> BVSTK_EVENT_DEVICE_SHIFT) != device_slot))
+            continue;
         out->records[out->count].sequence = after;
         out->records[out->count++].event = *e;
     }

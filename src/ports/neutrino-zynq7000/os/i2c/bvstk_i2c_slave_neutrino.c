@@ -8,20 +8,9 @@
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 #include "hardware/pl/i2c/bvstk_i2c_regs.h"
 
-static int target_address_matches(
-    const bvstk_i2c_slave_service_t *service,
-    uint8_t addr_7b)
+static int target_address_matches(bvstk_i2c_slave_service_t *service, uint8_t addr_7b)
 {
-    bvstk_i2c_device_t device;
-
-    if (service == NULL || service->master == NULL ||
-        bvstk_i2c_master_service_device_info(
-            service->master,
-            bvstk_i2c_slave_service_target(service),
-            &device) != BVSTK_OK) {
-        return 0;
-    }
-    return device.addr_7b == (addr_7b & UINT8_C(0x7F));
+    return bvstk_i2c_slave_service_select_address(service, addr_7b & 0x7fU) == BVSTK_OK;
 }
 
 static bvstk_status_t process_write_event(

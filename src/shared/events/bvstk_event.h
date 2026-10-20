@@ -48,7 +48,12 @@ typedef enum {
  * retaining the event for local service diagnostics and tests. */
 enum {
     BVSTK_EVENT_FLAG_NONE = 0x00,
-    BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED = 0x01
+    BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED = 0x01,
+    /* Internal I2C device slot, disambiguating equal addresses on channels.
+     * Slot encoding is local to a boot; it is not part of the DCP2 wire ABI. */
+    BVSTK_EVENT_FLAG_DEVICE_SLOT = 0x02,
+    BVSTK_EVENT_DEVICE_SHIFT = 2,
+    BVSTK_EVENT_DEVICE_MASK = 0x7C
 };
 
 typedef struct {

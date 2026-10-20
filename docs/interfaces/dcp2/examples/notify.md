@@ -83,3 +83,4 @@ NOTIFY не восстанавливает значения всех регис�
 
 Далее: [Потоки STREAM](stream.md).
 [События и подписки](../05-events.md).
+[Формат NOTIFY](../reference/events.md#формат-события-notify).

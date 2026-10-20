@@ -78,7 +78,9 @@ static int persisted(int mdio, bus_workspace_t *w)
                 w->scratch[n] = 0;
                 if (parse(mdio, w->scratch, &w->next, 0) == BVSTK_OK &&
                     format(mdio, &w->next, w->scratch) == BVSTK_OK)
-                    result = revision == bvstk_http_revision(w->scratch);
+                    result = revision == bvstk_http_revision(w->scratch) &&
+                        (mdio || !memcmp(&w->next.i2c.endpoint, &w->current.i2c.endpoint,
+                                         sizeof(w->current.i2c.endpoint)));
                 else result = 0;
             }
         }
@@ -179,6 +181,24 @@ static const char *presence_name(int presence)
 {
     return presence < 0 ? "unknown" : presence ? "responding" : "unavailable";
 }
+static void topology(int fd, const bvstk_i2c_endpoint_t *endpoint)
+{
+    http_ui_text(fd, ",\"topology\":{\"controller\":\"pl_i2c_0\",\"parent\":");
+    http_ui_string(fd, endpoint->parent);
+    http_ui_printf(fd, ",\"channel\":%u,\"channels\":%u}", endpoint->channel,
+        (unsigned)endpoint->router.channel_count);
+    if (endpoint->space_count) {
+        http_ui_text(fd, ",\"address_spaces\":[");
+        for (unsigned i = 0; i < endpoint->space_count; ++i) {
+            const bvstk_address_space_t *s = &endpoint->spaces[i];
+            http_ui_text(fd, i ? ",{\"id\":" : "{\"id\":");
+            http_ui_string(fd, s->id);
+            http_ui_printf(fd, ",\"address\":%u,\"first\":%u,\"register_count\":%u}",
+                s->address, s->first, s->count);
+        }
+        http_ui_text(fd, "]");
+    }
+}
 static void list(int fd, int mdio)
 {
     int ready = mdio ? bvstk_runtime_mdio_ready() : bvstk_runtime_i2c_ready();
@@ -189,6 +209,7 @@ static void list(int fd, int mdio)
     int comma = 0;
     for (size_t i = 0; ready && i < count; ++i) {
         char name[I2C_CFG_NAME_MAX]; unsigned address; int white, available;
+        bvstk_i2c_endpoint_t endpoint = {0};
         if (mdio) {
             bvstk_mdio_device_info_t d;
             if (bvstk_mdio_service_device_info(bvstk_runtime_mdio_service(), i, &d) != BVSTK_OK) continue;
@@ -200,11 +221,14 @@ static void list(int fd, int mdio)
             if (bvstk_i2c_master_service_device_info(bvstk_runtime_i2c_master_service(), i, &d) != BVSTK_OK ||
                 bvstk_i2c_master_service_get_policy(bvstk_runtime_i2c_master_service(), i, &pol) != BVSTK_OK) continue;
             memcpy(name, d.name, sizeof(name)); address = d.addr_7b;
+            endpoint = d.endpoint;
             white = pol.mode == I2C_POLICY_WHITELIST; available = device_presence(mdio, i);
         }
         http_ui_text(fd, comma++ ? ",{\"name\":" : "{\"name\":"); http_ui_string(fd, name);
-        http_ui_printf(fd, ",\"address\":%u,\"available\":%s,\"presence\":\"%s\",\"policy\":\"%s\"}", address,
+        http_ui_printf(fd, ",\"address\":%u,\"available\":%s,\"presence\":\"%s\",\"policy\":\"%s\"", address,
             available > 0 ? "true" : "false", presence_name(available), white ? "whitelist" : "blacklist");
+        if (!mdio) topology(fd, &endpoint);
+        http_ui_text(fd, "}");
     }
     http_ui_text(fd, "]}\n");
 }
@@ -231,6 +255,7 @@ static void detail(int fd, int mdio, size_t id, bus_workspace_t *w)
                 (unsigned long)stats.reads, (unsigned long)stats.writes, (unsigned long)stats.denied,
                 (unsigned long)stats.errors, (unsigned long)stats.observed);
     } else {
+        topology(fd, &w->current.i2c.endpoint);
         http_ui_text(fd, ",\"cache\":[");
         write_cache_array(fd, mdio, id, w->current.i2c.reg_count);
         http_ui_text(fd, "]");
@@ -246,6 +271,22 @@ static void operate(const http_request_t *r, http_conn_t *c, int mdio, size_t id
     if (strcmp(action, "read") && strcmp(action, "write")) { http_ui_error(c->fd, 400, "unknown action"); return; }
     if (!http_ui_param(r, c, "reg", field, sizeof(field))) return;
     if (!bvstk_http_uint(field, mdio ? 31U : 255U, &reg)) { http_ui_error(c->fd, 400, "invalid register"); return; }
+    char space[32];
+    int space_query = bvstk_http_query(r->path, "space", space, sizeof(space));
+    if (space_query) {
+        bvstk_i2c_device_t device;
+        if (mdio || space_query != 1 ||
+            bvstk_i2c_master_service_device_info(bvstk_runtime_i2c_master_service(), id, &device) != BVSTK_OK) {
+            http_ui_error(c->fd, 400, "invalid address space"); return;
+        }
+        unsigned i;
+        for (i = 0; i < device.endpoint.space_count; ++i)
+            if (!strcmp(space, device.endpoint.spaces[i].id)) break;
+        if (i == device.endpoint.space_count || reg >= device.endpoint.spaces[i].count) {
+            http_ui_error(c->fd, 400, "unknown address space or register"); return;
+        }
+        reg += device.endpoint.spaces[i].first;
+    }
     if (!strcmp(action, "write")) {
         if (!http_ui_param(r, c, "val", field, sizeof(field))) return;
         if (!bvstk_http_uint(field, mdio ? 65535U : 255U, &val) ||
@@ -338,6 +379,7 @@ int http_ui_bus(const http_request_t *r, http_conn_t *c)
         }
         memcpy(w->next.i2c.file_name, w->current.i2c.file_name, sizeof(w->next.i2c.file_name));
         w->next.i2c.profile = w->current.i2c.profile;
+        w->next.i2c.endpoint = w->current.i2c.endpoint;
         st = bvstk_runtime_i2c_apply_config(&w->next.i2c) && config_store_set_i2c_device(&w->next.i2c) ? BVSTK_OK : BVSTK_ERR_IO;
     }
     http_ui_status(c->fd, st);

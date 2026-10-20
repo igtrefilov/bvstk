@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 20 1800 1658" role="img" aria-labelledby="title desc" height="1658">
+  <title id="title">Редактирование настроек через HTTP</title>
+  <desc id="desc">Редактирование настроек через HTTP</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+a { cursor: pointer; } a:hover text { text-decoration: underline; }
+g:target &gt; rect { stroke-width: 5; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+</style>
+    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#788794" />
+    </marker>
+    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    </marker>
+  </defs>
+  <rect width="1800" height="1678" fill="white" />
+  <g id="backgrounds">
+    <rect x="460" y="60" width="400" height="230" rx="16" fill="white" />
+    <path d="M220.0,275 V1480" fill="none" stroke="#bdc8d0" stroke-width="2" stroke-dasharray="5 8" />
+    <path d="M660.0,275 V1480" fill="none" stroke="#bdc8d0" stroke-width="2" stroke-dasharray="5 8" />
+    <path d="M1130.0,275 V1480" fill="none" stroke="#bdc8d0" stroke-width="2" stroke-dasharray="5 8" />
+    <path d="M1580.0,275 V1480" fill="none" stroke="#bdc8d0" stroke-width="2" stroke-dasharray="5 8" />
+  </g>
+  <g id="interactions">
+    <g data-kind="interaction" data-from="client" data-to="http" data-interaction="data" data-direction="forward">
+      <path d="M220,370 L660,370" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M220,370 L660,370" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="http" data-to="client" data-interaction="data" data-direction="forward">
+      <path d="M660,470 L220,470" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M660,470 L220,470" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="client" data-to="http" data-interaction="data" data-direction="forward">
+      <path d="M220,620 L660,620" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M220,620 L660,620" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="http" data-to="service" data-interaction="call" data-direction="forward">
+      <path d="M660,790 L1130,790" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M660,790 L1130,790" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="http" data-to="client" data-interaction="data" data-direction="forward">
+      <path d="M660,890 L220,890" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M660,890 L220,890" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="client" data-to="http" data-interaction="data" data-direction="forward">
+      <path d="M220,1020 L660,1020" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M220,1020 L660,1020" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="http" data-to="client" data-interaction="data" data-direction="forward">
+      <path d="M660,1120 L220,1120" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M660,1120 L220,1120" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="client" data-to="http" data-interaction="data" data-direction="forward">
+      <path d="M220,1250 L660,1250" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M220,1250 L660,1250" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="http" data-to="profile" data-interaction="data" data-direction="forward">
+      <path d="M660,1350 L1580,1350" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M660,1350 L1580,1350" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+    <g data-kind="interaction" data-from="http" data-to="client" data-interaction="data" data-direction="forward">
+      <path d="M660,1450 L220,1450" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
+      <path d="M660,1450 L220,1450" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+    </g>
+  </g>
+  <g id="components">
+    <g id="client" data-kind="external-client">
+      <rect x="60" y="130" width="320" height="120" rx="12" fill="white" stroke="#607487" stroke-width="2" />
+      <text x="220.0" y="200.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#233747">Клиент</text>
+    </g>
+    <g id="freertos" data-kind="ownership-region" data-label="FreeRTOS" data-ownership="freertos">
+      <rect x="460" y="60" width="400" height="230" rx="14" fill="none" stroke="#8b9ca9" stroke-width="1.7" stroke-dasharray="10 8" />
+      <text x="486" y="97.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">FreeRTOS</text>
+      <g id="http" data-kind="component" data-layer="L4" data-label="HTTP и ConfigStore" data-ownership="common" data-parent="freertos">
+        <rect x="490" y="130" width="340" height="120" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
+        <text x="510" y="154.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+        <text x="510" y="207.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">HTTP и ConfigStore</text>
+      </g>
+    </g>
+    <g id="service" data-kind="component" data-layer="L3" data-label="Сервис устройства" data-ownership="common">
+      <rect x="960" y="130" width="340" height="120" rx="11" fill="#d9f0ea" stroke="#287f73" stroke-width="1.8" />
+      <text x="980" y="154.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#287f73" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+      <text x="980" y="207.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Сервис устройства</text>
+    </g>
+    <g id="profile" data-kind="artifact">
+      <path d="M1420,130 H1716 L1740,154 V250 H1420 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1716,130 V154 H1740" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="1580.0" y="200.0" font-size="25" font-weight="700" text-anchor="middle" style="fill:#233747">Профиль</text>
+    </g>
+  </g>
+  <g id="annotations">
+    <text x="440.0" y="348.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">GET</text>
+    <text x="440.0" y="448.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">config + revision</text>
+    <text x="440.0" y="598.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">APPLY: черновик + revision</text>
+    <text x="700" y="695.0" font-size="23" font-weight="400" text-anchor="start" style="fill:#3f75ad">Проверка revision</text>
+    <text x="895.0" y="768.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Применить</text>
+    <text x="440.0" y="868.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Результат применения</text>
+    <text x="440.0" y="998.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">GET</text>
+    <text x="440.0" y="1098.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">config + новая revision</text>
+    <text x="440.0" y="1228.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">SAVE + revision</text>
+    <text x="1120.0" y="1328.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Текущие настройки</text>
+    <text x="440.0" y="1428.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Результат сохранения</text>
+    <path d="M60,1532 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
+    <text x="142" y="1538.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
+    <path d="M245,1532 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
+    <text x="327" y="1538.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
+    <rect x="60" y="1569" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
+    <text x="104" y="1588.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
+    <rect x="175" y="1569" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="219" y="1588.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
+    <text x="60" y="1635.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт сверху вниз. Лист обозначает файл.</text>
+  </g>
+  <metadata id="provenance">{
+  "generator": "tools/docs/http_guides.py",
+  "sources": [
+    "src/apps/freertos/services/http/http_ui_bus.c",
+    "src/apps/freertos/config/config_store.c"
+  ],
+  "cross_sheet_links": [],
+  "article_notes": []
+}</metadata>
+</svg>

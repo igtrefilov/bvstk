@@ -888,6 +888,24 @@ static bool i2c_find_idx_and_name(const char *name, uint32_t addr_7b, size_t *ou
     return false;
 }
 
+static bool i2c_diag_register(bvstk_i2c_master_service_t *service, size_t device_id,
+                             const char *name, uint32_t address, uint32_t reg,
+                             uint8_t *index)
+{
+    bvstk_i2c_device_t device;
+    if (bvstk_i2c_master_service_device_info(service, device_id, &device) != BVSTK_OK)
+        return false;
+    /* A named target uses the API's logical cache index. An address target
+     * uses the register offset in that address space, as on the wire. */
+    if (name[0]) {
+        if (reg >= device.reg_count) return false;
+        *index = (uint8_t)reg;
+        return true;
+    }
+    return bvstk_i2c_address_register(&device.endpoint, device.addr_7b,
+                                     device.reg_count, address, reg, index) != 0;
+}
+
 static void api_diag_i2c_read(http_conn_t *conn)
 {
     if (!conn) return;
@@ -916,10 +934,14 @@ static void api_diag_i2c_read(http_conn_t *conn)
         http_reply_simple(conn->fd, 404, "Not Found", "device not found\r\n");
         return;
     }
-    uint8_t val = 0;
+    uint8_t val = 0, index;
+    if (!i2c_diag_register(service, idx, name, addr, reg, &index)) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "bad register address\r\n");
+        return;
+    }
     if (!service || bvstk_i2c_master_service_read_from(service,
                                                   idx,
-                                                  (uint8_t)reg,
+                                                  index,
                                                   &val,
                                                   BVSTK_EVENT_SOURCE_WEB,
                                                   100U) != BVSTK_OK) {
@@ -979,9 +1001,14 @@ static void api_diag_i2c_write(http_conn_t *conn)
         http_reply_simple(conn->fd, 404, "Not Found", "device not found\r\n");
         return;
     }
+    uint8_t index;
+    if (!i2c_diag_register(service, idx, name, addr, reg, &index)) {
+        http_reply_simple(conn->fd, 400, "Bad Request", "bad register address\r\n");
+        return;
+    }
     if (!service || bvstk_i2c_master_service_write(service,
                                                    idx,
-                                                   (uint8_t)reg,
+                                                   index,
                                                    (uint8_t)val,
                                                    BVSTK_EVENT_SOURCE_WEB,
                                                    100U) != BVSTK_OK) {

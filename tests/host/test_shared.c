@@ -256,6 +256,117 @@ static int test_i2c_config_codec(void)
     return 0;
 }
 
+static bvstk_status_t dual_transfer(void *ctx, uint8_t address, const uint8_t *tx,
+    size_t nt, uint8_t *rx, size_t nr, uint32_t timeout)
+{
+    fake_bus_t *b = ctx;
+    (void)timeout;
+    if ((address != 0x50 && address != 0x51) || !nt || tx[0] >= 4)
+        return BVSTK_ERR_RANGE;
+    if (nt == 1 && nr == 1) {
+        ++b->reads;
+        *rx = address == 0x50 ? 0x11 : 0x22;
+    } else if (nt == 2 && !nr) {
+        ++b->writes;
+        b->i2c_value = address;
+    } else return BVSTK_ERR_MALFORMED;
+    return BVSTK_OK;
+}
+
+static bvstk_status_t dual_lock(void *ctx, uint32_t timeout)
+{ (void)ctx; (void)timeout; return BVSTK_OK; }
+static void dual_unlock(void *ctx) { (void)ctx; }
+
+static bvstk_status_t dual_save(void *ctx, uint8_t service, size_t id)
+{
+    if (service != BVSTK_DCP2_SERVICE_I2C || id != 0) return BVSTK_ERR_RANGE;
+    ++*(unsigned *)ctx;
+    return BVSTK_OK;
+}
+
+static int test_dual_protocol(void)
+{
+    static bvstk_i2c_devices_t devices;
+    static bvstk_i2c_cache_t cache;
+    static bvstk_i2c_policy_t policy;
+    static bvstk_i2c_master_service_t master;
+    i2c_device_config_t config = {.name="dual", .addr_7b=0x50, .reg_count=8,
+        .max_value_code=255, .policy=I2C_POLICY_WHITELIST};
+    config.endpoint.transfer.configured = 1;
+    config.endpoint.transfer.address_bytes = 1;
+    config.endpoint.space_count = 2;
+    config.endpoint.spaces[0] = (bvstk_address_space_t){"identity",0,4,0x50};
+    config.endpoint.spaces[1] = (bvstk_address_space_t){"diagnostics",4,4,0x51};
+    config.profile.version = 2;
+    config.profile.ids_size = 1;
+    for (unsigned r = 0; r < 8; ++r) {
+        unsigned pos = config.profile.ids_size;
+        config.profile.id_offset[r] = (uint16_t)pos;
+        config.profile.ids_size += (uint16_t)(snprintf(config.profile.ids + pos,
+            sizeof(config.profile.ids) - pos, "%s_%02x", r < 4 ? "id" : "diag", r % 4) + 1);
+    }
+    fake_bus_t b = {0};
+    bvstk_i2c_master_io_t io = {.context=&b,.transfer=dual_transfer,
+        .lock=dual_lock,.unlock=dual_unlock};
+    CHECK(bvstk_i2c_devices_init_from_config(&devices,&config,1)==BVSTK_OK);
+    CHECK(bvstk_i2c_cache_init(&cache,1)==BVSTK_OK);
+    CHECK(bvstk_i2c_policy_init(&policy,&config,1)==BVSTK_OK);
+    CHECK(bvstk_i2c_master_service_init(&master,NULL,&io,&devices,&cache,&policy,NULL)==BVSTK_OK);
+    bvstk_cache_init(&cache_registry,NULL);
+    CHECK(bvstk_cache_attach_i2c(&cache_i2c_bridge,&cache_registry,&master,&config)==BVSTK_OK);
+    bvstk_control_api_t control = {.i2c=&master};
+    uint8_t body[4] = {0x50,0,0,0x12}, response[128];
+    size_t size;
+    uint16_t length;
+    bvstk_dcp2_request_t req = {BVSTK_DCP2_SERVICE_I2C,
+        BVSTK_DCP2_OP_I2C_READ_REG,1,body,2};
+    for (unsigned address = 0x50; address <= 0x51; ++address) {
+        body[0] = (uint8_t)address;
+        CHECK(bvstk_dcp2_process_request(&control,&req,response,sizeof(response),&size)==0);
+        CHECK(size==15 && !bvstk_dcp2_read_be16(response+12) &&
+            response[14]==(address==0x50 ? 0x11 : 0x22));
+    }
+    uint16_t handle;
+    uint64_t cursor;
+    CHECK(bvstk_cache_snapshot(&cache_registry,"i2c","dual",&cache_snapshot,&handle,&cursor,1000)==BVSTK_OK);
+    CHECK(cache_snapshot.count==8 && !strcmp(cache_snapshot.entries[0].id,"id_00") &&
+        !strcmp(cache_snapshot.entries[4].id,"diag_00") &&
+        cache_snapshot.entries[0].value==0x11 && cache_snapshot.entries[4].value==0x22);
+    req.opcode=BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD; req.body_size=4;
+    body[0]=0x50;
+    CHECK(bvstk_dcp2_process_policy(&master,NULL,&req,response,sizeof(response),&length)==BVSTK_OK);
+    body[0]=0x51;
+    CHECK(bvstk_dcp2_process_policy(&master,NULL,&req,response,sizeof(response),&length)==BVSTK_OK);
+    CHECK(policy.items[0].whitelist_len==2);
+    req.opcode=BVSTK_DCP2_OP_I2C_POLICY_GET;req.body_size=1;
+    CHECK(bvstk_dcp2_process_policy(&master,NULL,&req,response,sizeof(response),&length)==BVSTK_OK);
+    CHECK(length==7 && bvstk_dcp2_read_be16(response+1)==1 &&
+        response[5]==0 && response[6]==0x12);
+    req.opcode=BVSTK_DCP2_OP_I2C_POLICY_CLEAR;req.body_size=2;
+    CHECK(bvstk_dcp2_process_policy(&master,NULL,&req,response,sizeof(response),&length)==BVSTK_OK);
+    CHECK(policy.items[0].whitelist_len==1 && policy.items[0].whitelist[0].reg==0);
+    req.opcode=BVSTK_DCP2_OP_I2C_WRITE_REG;req.body_size=3;body[1]=0;body[2]=0x12;
+    CHECK(bvstk_dcp2_process_request(&control,&req,response,sizeof(response),&size)==0);
+    CHECK(bvstk_dcp2_read_be16(response+12)==bvstk_dcp2_status_from_bvstk(BVSTK_ERR_DENIED) && !b.writes);
+    body[0]=0x50;
+    CHECK(bvstk_dcp2_process_request(&control,&req,response,sizeof(response),&size)==0);
+    CHECK(!bvstk_dcp2_read_be16(response+12) && b.writes==1 && b.i2c_value==0x50);
+    req.opcode=BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE;req.body_size=4;body[1]=0;body[2]=0;
+    CHECK(bvstk_dcp2_process_policy(&master,NULL,&req,response,sizeof(response),&length)==BVSTK_OK);
+    CHECK(!policy.items[0].whitelist_len);
+    req.opcode=BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD;body[0]=0x51;body[2]=4;
+    CHECK(bvstk_dcp2_process_policy(&master,NULL,&req,response,sizeof(response),&length)==BVSTK_ERR_RANGE);
+    req.opcode=BVSTK_DCP2_OP_I2C_POLICY_SET;req.body_size=2;body[1]=1;
+    CHECK(bvstk_dcp2_process_policy(&master,NULL,&req,response,sizeof(response),&length)==BVSTK_OK);
+    req.opcode=BVSTK_DCP2_OP_I2C_POLICY_GET;req.body_size=1;body[0]=0x50;
+    CHECK(bvstk_dcp2_process_policy(&master,NULL,&req,response,sizeof(response),&length)==BVSTK_OK);
+    CHECK(response[0]==1); /* One mode for the whole logical device. */
+    unsigned saves=0;
+    req.opcode=BVSTK_DCP2_OP_I2C_POLICY_SAVE;body[0]=0x51;
+    CHECK(bvstk_dcp2_process_policy_save(&master,NULL,&req,dual_save,&saves)==BVSTK_OK && saves==1);
+    return 0;
+}
+
 int main(void)
 {
     const bvstk_pl_region_desc_t *spi;
@@ -446,7 +557,7 @@ int main(void)
         CHECK(read_window_size == 0U);
         CHECK(events.last.type == BVSTK_EVENT_SLAVE_POINTER &&
               events.last.source == BVSTK_EVENT_SOURCE_HOST && events.last.arg1 == 2U &&
-              events.last.flags == BVSTK_EVENT_FLAG_NONE);
+              !(events.last.flags & BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED));
         /* The PL closes the pointer-write phase on either STOP or repeated
          * START. The following RD_REQUEST must still see the pointer armed. */
         CHECK(!bvstk_i2c_slave_irq_ends_read(
@@ -455,7 +566,7 @@ int main(void)
                 BVSTK_I2C_SLV_IRQ_DATA_VALID | BVSTK_I2C_SLV_IRQ_FINAL_PACKET)) {
             bvstk_i2c_slave_service_end_transaction(&i2c_slave_service);
         }
-        CHECK(i2c_slave_service.read_armed[0] == 1U);
+        CHECK(i2c_slave_service.read_armed[0][0] == 1U);
         CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                                                    NULL,
                                                    0U,
@@ -466,7 +577,7 @@ int main(void)
                                                    10U) == BVSTK_OK);
         CHECK(read_window_size == 1U && response[0] == 0xA5U);
         CHECK(events.last.type == BVSTK_EVENT_SLAVE_REPLY_PREPARED && events.last.arg2 == 0xA5U &&
-              events.last.flags == BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
+              (events.last.flags & BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED));
         bvstk_i2c_slave_service_end_transaction(&i2c_slave_service);
         CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                                                    NULL,
@@ -478,7 +589,7 @@ int main(void)
                                                    10U) == BVSTK_OK);
         CHECK(read_window_size == 0U);
         CHECK(events.last.type == BVSTK_EVENT_SLAVE_READ_REQUEST &&
-              events.last.flags == BVSTK_EVENT_FLAG_NONE);
+              !(events.last.flags & BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED));
         CHECK(!bvstk_i2c_slave_irq_ends_read(0U));
         CHECK(!bvstk_i2c_slave_irq_ends_read(BVSTK_I2C_SLV_IRQ_RD_REQUEST));
         CHECK(!bvstk_i2c_slave_irq_ends_read(
@@ -503,7 +614,7 @@ int main(void)
             CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                 invalid_pointer, sizeof(invalid_pointer), 0, response, sizeof(response),
                 &read_window_size, 10U) == BVSTK_ERR_RANGE);
-            CHECK(i2c_slave_service.read_armed[0] == 0U);
+            CHECK(i2c_slave_service.read_armed[0][0] == 0U);
             CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                 NULL, 0, 1, response, sizeof(response), &read_window_size, 10U) == BVSTK_OK);
             CHECK(read_window_size == 0U);
@@ -514,7 +625,7 @@ int main(void)
                 allowed_frame, sizeof(allowed_frame), 0, response, sizeof(response),
                 &read_window_size, 10U) == BVSTK_OK);
             CHECK(bus.writes == before + 1U && bus.i2c_value == 6U);
-            CHECK(i2c_slave_service.read_armed[0] == 0U);
+            CHECK(i2c_slave_service.read_armed[0][0] == 0U);
             CHECK(events.last.type == BVSTK_EVENT_REG_COMMIT);
             CHECK(bvstk_i2c_slave_service_handle_frame(&i2c_slave_service,
                 pointer_frame, sizeof(pointer_frame), 0, response, sizeof(response),
@@ -531,7 +642,7 @@ int main(void)
                 denied_frame, sizeof(denied_frame), 0, response, sizeof(response),
                 &read_window_size, 10U) == BVSTK_ERR_DENIED);
             CHECK(bus.writes == before);
-            CHECK(i2c_slave_service.read_armed[0] == 0U);
+            CHECK(i2c_slave_service.read_armed[0][0] == 0U);
             CHECK(events.last.type == BVSTK_EVENT_FAULT &&
                 events.last.status == BVSTK_ERR_NOT_READY && events.last.arg1 == 4U);
         }
@@ -772,6 +883,7 @@ int main(void)
     bvstk_i2c_cache_shutdown(&i2c_cache);
     bvstk_i2c_devices_shutdown(&i2c_devices);
 
+    CHECK(test_dual_protocol()==0);
     puts("shared host tests passed");
     return 0;
 }

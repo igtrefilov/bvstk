@@ -77,7 +77,7 @@ static void i2c_tests(void)
     backend_t b = {0};
     i2c_device_config_t c = {0};
     bvstk_i2c_policy_entry_t p, before;
-    bvstk_i2c_master_io_t io = {&b, i2c_read, i2c_write};
+    bvstk_i2c_master_io_t io = {.context = &b, .read_reg = i2c_read, .write_reg = i2c_write};
     strcpy(c.name, "i2c"); c.addr_7b = 32; c.reg_count = 4; c.max_value_code = 255;
     c.policy = I2C_POLICY_WHITELIST;
     assert(bvstk_i2c_devices_init_from_config(&devices, &c, 1) == BVSTK_OK);

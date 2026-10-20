@@ -93,6 +93,74 @@ static void http_run(const char *method,const char *path,const char *body,int st
 static void revision(char out[9]) {
     const char *p=strstr(output,"\"revision\":\"");assert(p);memcpy(out,p+12,8);out[8]=0;
 }
+static bvstk_status_t space_transfer(void *ctx,uint8_t address,const uint8_t *tx,
+    size_t nt,uint8_t *rx,size_t nr,uint32_t timeout)
+{
+    (void)ctx;(void)timeout;
+    assert((address==0x50 || address==0x51) && nt && tx[0]<4);
+    if(nr) {
+        assert(nt==1 && nr==1);*rx=address==0x50?0x33:0x44;
+    } else {
+        assert(nt==2 && address==0x51 && tx[0]==0 && tx[1]==0x12);
+        ++writes;
+    }
+    return BVSTK_OK;
+}
+static bvstk_status_t space_lock(void *ctx,uint32_t timeout)
+{ (void)ctx;(void)timeout;return BVSTK_OK; }
+static void space_unlock(void *ctx) { (void)ctx; }
+static void multiple_spaces(void)
+{
+    char json[BVSTK_PROFILE_JSON_MAX+1],rev[9],path[256];
+    FILE *f=fopen("tests/host/fixtures/device-multi-space.json","rb");assert(f);
+    size_t n=fread(json,1,sizeof(json)-1,f);assert(feof(f));fclose(f);json[n]=0;
+    assert(bvstk_i2c_config_parse_json(json,&i2c_config)==BVSTK_OK);
+    strcpy(i2c_config.name,"dev");strcpy(i2c_config.file_name,"dev/dev.json");
+    i2c_saved=i2c_config;init_services();i2c.io.transfer=space_transfer;
+    i2c.io.lock=space_lock;i2c.io.unlock=space_unlock;
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);
+    assert(strstr(output,"\"address_spaces\":[{\"id\":\"identity\",\"address\":80,\"first\":0,\"register_count\":4},"
+        "{\"id\":\"diagnostics\",\"address\":81,\"first\":4,\"register_count\":4}]"));
+    http_run("GET","/api/ui/bus?bus=i2c","",200);assert(strstr(output,"\"address_spaces\""));
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&space=identity&reg=0","",200);
+    assert(strstr(output,"\"reg\":0,\"val\":51"));
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&space=diagnostics&reg=0","",200);
+    assert(strstr(output,"\"reg\":4,\"val\":68"));
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&reg=4","",200);
+    assert(strstr(output,"\"reg\":4,\"val\":68"));
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&space=missing&reg=0","",400);
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=read&space=identity&reg=4","",400);
+    http_run("PUT","/api/ui/bus?bus=mdio&name=dev&action=read&space=identity&reg=0","",400);
+    unsigned before=writes;
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&space=identity&reg=0&val=18&confirm=true","",403);
+    assert(writes==before);
+    http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&space=diagnostics&reg=0&val=18&confirm=true","",200);
+    assert(writes==before+1);
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev&action=cache","",200);
+    assert(strstr(output,"\"reg\":0,\"val\":51,\"valid\":true"));
+    assert(strstr(output,"\"reg\":4,\"val\":18,\"valid\":true"));
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);revision(rev);
+    assert(bvstk_i2c_config_serialize_json(&i2c_config,json,sizeof(json),&n)==BVSTK_OK);
+    snprintf(path,sizeof(path),"/api/ui/bus?bus=i2c&name=dev&action=apply&revision=%s",rev);
+    http_run("PUT",path,json,200);
+    assert(i2c_config.endpoint.space_count==2 && i2c_config.endpoint.spaces[1].address==0x51);
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);revision(rev);
+    snprintf(path,sizeof(path),"/api/ui/bus?bus=i2c&name=dev&action=save&revision=%s",rev);
+    http_run("PUT",path,"",200);
+    assert(i2c_saved.endpoint.space_count==2 && i2c_saved.whitelist[0].reg==4);
+    run("i2c dev r identity:0x00");assert(strstr(output,"identity:0x00=0x33"));
+    run("i2c dev r diagnostics:0x00");assert(strstr(output,"diagnostics:0x00=0x44"));
+    run("i2c @0x51 r 0");assert(strstr(output,"diagnostics:0=0x44"));
+    run("i2c dev r 0");assert(strstr(output,"ERR"));
+    run("i2c dev policy show rules");assert(strstr(output,"reg=diagnostics:0x00"));
+    run("i2c dev policy whitelist add identity:0x01 0x13");
+    assert(!strstr(output,"ERR"));
+    assert(policy.items[0].whitelist_len==2 && policy.items[0].whitelist[1].reg==1);
+    run("i2c @0x51 policy whitelist clear");
+    assert(strstr(output,"Use the device name") && policy.items[0].whitelist_len==2);
+    run("i2c dev save");
+    assert(i2c_saved.endpoint.space_count==2 && i2c_saved.whitelist_len==2);
+}
 int main(int argc,char **argv) {
     assert(argc==2);snprintf(storage,sizeof(storage),"%s",argv[1]);assert(!mkdir(storage,0700));
     for(int i=0;i<3;i++){char p[300];snprintf(p,sizeof(p),"%s/%d",storage,i);assert(!mkdir(p,0700));}
@@ -243,5 +311,6 @@ int main(int argc,char **argv) {
     close_error=1;
     http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fclose-failure&confirm=true","x",500);
     mounted=0;http_run("GET","/api/ui/files?volume=sd-pl&path=%2F","",503);mounted=1;
+    multiple_spaces();
     puts("HTTP UI bus and filesystem tests passed");return 0;
 }

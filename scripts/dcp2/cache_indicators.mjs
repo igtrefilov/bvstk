@@ -12,9 +12,26 @@ export async function createDecoder(profilePath, mapPath) {
   const map = JSON.parse(await readFile(mapPath || resolve(dirname(profilePath), profile.register_map), "utf8"));
   const source = await readFile(new URL("../../web/assets/js/register-map.js", import.meta.url));
   const {validateRegisterMap, decodeRegisterMap} = await import("data:text/javascript;base64," + source.toString("base64"));
-  const compiled = validateRegisterMap(map, {bus:profile.transport.bus, regCount:profile.resources.length});
+  let first = 0;
+  const addressSpaces = (profile.transport.address_spaces || []).map(s => {
+    const next = {...s,address:Number(s.address),first};
+    first += s.register_count;
+    return next;
+  });
+  const compiled = validateRegisterMap(map, {bus:profile.transport.bus,
+    regCount:profile.resources.length,addressSpaces});
   const resources = new Map(profile.resources.map(r => [r.id, r]));
   if (resources.size !== profile.resources.length) throw new Error("Duplicate resource ID in profile");
+  const indices = new Map(), occupied = new Set();
+  for (const r of profile.resources) {
+    const space = addressSpaces.find(s => s.id === r.space), address = Number(r.address);
+    if ((addressSpaces.length && !space) || (!addressSpaces.length && r.space !== undefined) ||
+        !Number.isInteger(address) || address < 0 || address >= (space?.register_count || profile.resources.length))
+      throw new Error("Invalid resource address space");
+    const index = (space?.first || 0) + address;
+    if (occupied.has(index)) throw new Error("Duplicate resource location");
+    occupied.add(index); indices.set(r.id,index);
+  }
   return state => {
     if (state.subsystem !== profile.transport.bus || state.device !== profile.id) throw new Error("CACHE target does not match the local profile");
     if (!state.synchronized) return {device:profile.id, synchronized:false, reason:state.reason, summary:[]};
@@ -28,7 +45,7 @@ export async function createDecoder(profilePath, mapPath) {
           !["unknown","settings","device"].includes(e.source)) throw new Error("CACHE resource does not match the local profile");
       const value = Number(e.value);
       if (!Number.isSafeInteger(value) || value < 0 || value >= 2 ** width) throw new Error("Invalid cached value");
-      return {reg:Number(r.address), val:value, valid:e.valid, source:e.source, updated_ms:e.updated_ms};
+      return {reg:indices.get(r.id), val:value, valid:e.valid, source:e.source, updated_ms:e.updated_ms};
     });
     const decoded = decodeRegisterMap(compiled, cache);
     return {device:profile.id, synchronized:true, generation:state.generation, revision:state.revision,

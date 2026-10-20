@@ -33,6 +33,8 @@ void bvstk_i2c_slave_hw_shutdown(bvstk_i2c_slave_hw_t *hardware);
 bvstk_status_t bvstk_i2c_slave_hw_set_address(
     bvstk_i2c_slave_hw_t *hardware,
     uint8_t addr_7b);
+bvstk_status_t bvstk_i2c_slave_hw_set_addresses(
+    bvstk_i2c_slave_hw_t *, const uint8_t *, size_t);
 bvstk_status_t bvstk_i2c_slave_hw_clear_irq(bvstk_i2c_slave_hw_t *hardware);
 bvstk_status_t bvstk_i2c_slave_hw_capture_irq(
     bvstk_i2c_slave_hw_t *hardware,

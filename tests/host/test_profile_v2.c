@@ -81,9 +81,9 @@ static void policy_mdio(const mdio_phy_config_t *a,const mdio_phy_config_t *b)
 }
 static void migrations(const char *root,const char *legacy)
 {
-    const char *i2c_names[]={"i2c/axp15060.json","i2c/pca9536.json"};
+    const char *i2c_names[]={"i2c/axp15060.json"};
     const char *mdio_names[]={"mdio/lan8720.json","mdio/dp83848c.json","mdio/ksz8081rna.json"}; size_t n;
-    for(unsigned i=0;i<2;++i) {
+    for(size_t i=0;i<sizeof(i2c_names)/sizeof(i2c_names[0]);++i) {
         i2c_device_config_t old,current,saved;
         read_profile(legacy,i2c_names[i]); assert(bvstk_i2c_config_parse_json(json,&old)==BVSTK_OK && !old.profile.version);
         read_profile(root,i2c_names[i]); assert(bvstk_i2c_config_parse_json(json,&current)==BVSTK_OK && current.profile.version==2);
@@ -94,7 +94,7 @@ static void migrations(const char *root,const char *legacy)
         assert(bvstk_device_profile_format_i2c(&old,encoded,sizeof(encoded),&n)==BVSTK_OK);
         assert(bvstk_i2c_config_parse_json(encoded,&saved)==BVSTK_OK); same_i2c(&old,&saved);
     }
-    for(unsigned i=0;i<3;++i) {
+    for(size_t i=0;i<sizeof(mdio_names)/sizeof(mdio_names[0]);++i) {
         mdio_phy_config_t old,current,saved;
         read_profile(legacy,mdio_names[i]); assert(bvstk_mdio_config_parse(json,&old)==BVSTK_OK && !old.profile.version);
         read_profile(root,mdio_names[i]); assert(bvstk_mdio_config_parse(json,&current)==BVSTK_OK && current.profile.version==2);
@@ -166,11 +166,11 @@ static void malformed(const char *root)
     assert(bvstk_mdio_config_parse(changed,&c)==BVSTK_OK && strstr(c.profile.model,"Физика \"PHY\""));
     assert(bvstk_device_profile_format_mdio(&c,json,sizeof(json),&n)==BVSTK_OK);
     assert(bvstk_mdio_config_parse(json,&round)==BVSTK_OK); same_metadata(&c.profile,&round.profile,c.reg_count);
-    read_profile(root,"i2c/pca9536.json");
+    read_profile(root,"i2c/axp15060.json");
     replace(json,"\"capture_cache_on_save\": true","\"capture_cache_on_save\": false"); reject(changed,0);
-    replace(json,"\"max_write_value\": \"0x0F\"","\"max_write_value\": \"0x41\""); reject(changed,0);
+    replace(json,"\"max_write_value\": \"0x40\"","\"max_write_value\": \"0x100\""); reject(changed,0);
     replace(json,"\"address_bits\": 7","\"address_bits\": 10"); reject(changed,0);
-    replace(json,"\"address\": \"0x41\"","\"address\": \"0x10041\""); reject(changed,0);
+    replace(json,"\"address\": \"0x36\"","\"address\": \"0x10036\""); reject(changed,0);
     memset(changed,' ',sizeof(changed)); memcpy(changed,"{}",2); changed[sizeof(changed)-1]=0; unsigned version;
     assert(bvstk_device_profile_version(changed,&version)==BVSTK_OK && version==0);
     char *oversize=malloc(BVSTK_PROFILE_JSON_MAX+2U); assert(oversize);
@@ -227,6 +227,6 @@ static void mutable_settings(void)
 int main(int argc,char **argv)
 {
     assert(argc==3); migrations(argv[1],argv[2]); malformed(argv[1]); mutable_settings();
-    puts("v2 profiles: five migrations, all policy values, strict rejection, metadata, cache and polling round trips passed");
+    puts("v2 profiles: four migrations, all policy values, strict rejection, metadata, cache and polling round trips passed");
     return 0;
 }

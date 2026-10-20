@@ -41,9 +41,14 @@ def profile_files(directory: Path) -> list[tuple[str, bytes, str]]:
     # Flash.  A legacy */profile.json is accepted while source trees migrate
     # to the canonical */<device>.json name.
     candidates: dict[str, Path] = {}
-    for p in directory.glob("*/*.json"):
+    for p in sorted(directory.rglob("*.json")):
         if p.name == "profile.json" or p.stem.lower() == p.parent.name.lower():
-            candidates[p.parent.name.lower()] = p
+            key = p.parent.name.lower()
+            previous = candidates.get(key)
+            if previous and previous.parent != p.parent:
+                raise ValueError(f"Duplicate device bundle: {previous} and {p}")
+            if previous is None or p.name != "profile.json":
+                candidates[key] = p
     for p in directory.glob("*.json"):
         if p.name != "register_map.json" and not p.name.endswith("_register_map.json"):
             candidates.setdefault(p.stem.lower(), p)

@@ -1,0 +1,1361 @@
+{
+  "schema_version": 2,
+  "id": "p24c02a",
+  "device": {
+    "model": "P24C02A",
+    "vendor": "Puya",
+    "class": "memory",
+    "label": "P24C02A"
+  },
+  "transport": {
+    "bus": "i2c",
+    "controller": "pl_i2c_0",
+    "address": "0x57",
+    "address_bits": 7,
+    "parent": "pca9545a",
+    "channel": 0
+  },
+  "protocol": {
+    "driver": "bvstk_i2c_bridge",
+    "options": {
+      "max_write_value": "0xFF",
+      "capture_cache_on_save": true
+    },
+    "transfer": {
+      "address_bytes": 1,
+      "address_order": "big",
+      "address_base": "0x0000",
+      "read_restart": true,
+      "read_sequence": {
+        "mode": "wrap",
+        "span": 0
+      },
+      "write_sequence": {
+        "mode": "wrap",
+        "span": 8
+      },
+      "write_cycle_ms": 5,
+      "verify_write": "readback",
+      "cache_after_write": "value",
+      "host_read": "fresh",
+      "host_current_read": true
+    }
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 8,
+      "access": "rw",
+      "write_mask": "0xFF",
+      "cache": {
+        "mode": "driver"
+      },
+      "verify": {
+        "mode": "driver"
+      }
+    }
+  },
+  "resources": [
+    {
+      "id": "reg_00",
+      "kind": "register",
+      "address": "0x00"
+    },
+    {
+      "id": "reg_01",
+      "kind": "register",
+      "address": "0x01"
+    },
+    {
+      "id": "reg_02",
+      "kind": "register",
+      "address": "0x02"
+    },
+    {
+      "id": "reg_03",
+      "kind": "register",
+      "address": "0x03"
+    },
+    {
+      "id": "reg_04",
+      "kind": "register",
+      "address": "0x04"
+    },
+    {
+      "id": "reg_05",
+      "kind": "register",
+      "address": "0x05"
+    },
+    {
+      "id": "reg_06",
+      "kind": "register",
+      "address": "0x06"
+    },
+    {
+      "id": "reg_07",
+      "kind": "register",
+      "address": "0x07"
+    },
+    {
+      "id": "reg_08",
+      "kind": "register",
+      "address": "0x08"
+    },
+    {
+      "id": "reg_09",
+      "kind": "register",
+      "address": "0x09"
+    },
+    {
+      "id": "reg_0a",
+      "kind": "register",
+      "address": "0x0A"
+    },
+    {
+      "id": "reg_0b",
+      "kind": "register",
+      "address": "0x0B"
+    },
+    {
+      "id": "reg_0c",
+      "kind": "register",
+      "address": "0x0C"
+    },
+    {
+      "id": "reg_0d",
+      "kind": "register",
+      "address": "0x0D"
+    },
+    {
+      "id": "reg_0e",
+      "kind": "register",
+      "address": "0x0E"
+    },
+    {
+      "id": "reg_0f",
+      "kind": "register",
+      "address": "0x0F"
+    },
+    {
+      "id": "reg_10",
+      "kind": "register",
+      "address": "0x10"
+    },
+    {
+      "id": "reg_11",
+      "kind": "register",
+      "address": "0x11"
+    },
+    {
+      "id": "reg_12",
+      "kind": "register",
+      "address": "0x12"
+    },
+    {
+      "id": "reg_13",
+      "kind": "register",
+      "address": "0x13"
+    },
+    {
+      "id": "reg_14",
+      "kind": "register",
+      "address": "0x14"
+    },
+    {
+      "id": "reg_15",
+      "kind": "register",
+      "address": "0x15"
+    },
+    {
+      "id": "reg_16",
+      "kind": "register",
+      "address": "0x16"
+    },
+    {
+      "id": "reg_17",
+      "kind": "register",
+      "address": "0x17"
+    },
+    {
+      "id": "reg_18",
+      "kind": "register",
+      "address": "0x18"
+    },
+    {
+      "id": "reg_19",
+      "kind": "register",
+      "address": "0x19"
+    },
+    {
+      "id": "reg_1a",
+      "kind": "register",
+      "address": "0x1A"
+    },
+    {
+      "id": "reg_1b",
+      "kind": "register",
+      "address": "0x1B"
+    },
+    {
+      "id": "reg_1c",
+      "kind": "register",
+      "address": "0x1C"
+    },
+    {
+      "id": "reg_1d",
+      "kind": "register",
+      "address": "0x1D"
+    },
+    {
+      "id": "reg_1e",
+      "kind": "register",
+      "address": "0x1E"
+    },
+    {
+      "id": "reg_1f",
+      "kind": "register",
+      "address": "0x1F"
+    },
+    {
+      "id": "reg_20",
+      "kind": "register",
+      "address": "0x20"
+    },
+    {
+      "id": "reg_21",
+      "kind": "register",
+      "address": "0x21"
+    },
+    {
+      "id": "reg_22",
+      "kind": "register",
+      "address": "0x22"
+    },
+    {
+      "id": "reg_23",
+      "kind": "register",
+      "address": "0x23"
+    },
+    {
+      "id": "reg_24",
+      "kind": "register",
+      "address": "0x24"
+    },
+    {
+      "id": "reg_25",
+      "kind": "register",
+      "address": "0x25"
+    },
+    {
+      "id": "reg_26",
+      "kind": "register",
+      "address": "0x26"
+    },
+    {
+      "id": "reg_27",
+      "kind": "register",
+      "address": "0x27"
+    },
+    {
+      "id": "reg_28",
+      "kind": "register",
+      "address": "0x28"
+    },
+    {
+      "id": "reg_29",
+      "kind": "register",
+      "address": "0x29"
+    },
+    {
+      "id": "reg_2a",
+      "kind": "register",
+      "address": "0x2A"
+    },
+    {
+      "id": "reg_2b",
+      "kind": "register",
+      "address": "0x2B"
+    },
+    {
+      "id": "reg_2c",
+      "kind": "register",
+      "address": "0x2C"
+    },
+    {
+      "id": "reg_2d",
+      "kind": "register",
+      "address": "0x2D"
+    },
+    {
+      "id": "reg_2e",
+      "kind": "register",
+      "address": "0x2E"
+    },
+    {
+      "id": "reg_2f",
+      "kind": "register",
+      "address": "0x2F"
+    },
+    {
+      "id": "reg_30",
+      "kind": "register",
+      "address": "0x30"
+    },
+    {
+      "id": "reg_31",
+      "kind": "register",
+      "address": "0x31"
+    },
+    {
+      "id": "reg_32",
+      "kind": "register",
+      "address": "0x32"
+    },
+    {
+      "id": "reg_33",
+      "kind": "register",
+      "address": "0x33"
+    },
+    {
+      "id": "reg_34",
+      "kind": "register",
+      "address": "0x34"
+    },
+    {
+      "id": "reg_35",
+      "kind": "register",
+      "address": "0x35"
+    },
+    {
+      "id": "reg_36",
+      "kind": "register",
+      "address": "0x36"
+    },
+    {
+      "id": "reg_37",
+      "kind": "register",
+      "address": "0x37"
+    },
+    {
+      "id": "reg_38",
+      "kind": "register",
+      "address": "0x38"
+    },
+    {
+      "id": "reg_39",
+      "kind": "register",
+      "address": "0x39"
+    },
+    {
+      "id": "reg_3a",
+      "kind": "register",
+      "address": "0x3A"
+    },
+    {
+      "id": "reg_3b",
+      "kind": "register",
+      "address": "0x3B"
+    },
+    {
+      "id": "reg_3c",
+      "kind": "register",
+      "address": "0x3C"
+    },
+    {
+      "id": "reg_3d",
+      "kind": "register",
+      "address": "0x3D"
+    },
+    {
+      "id": "reg_3e",
+      "kind": "register",
+      "address": "0x3E"
+    },
+    {
+      "id": "reg_3f",
+      "kind": "register",
+      "address": "0x3F"
+    },
+    {
+      "id": "reg_40",
+      "kind": "register",
+      "address": "0x40"
+    },
+    {
+      "id": "reg_41",
+      "kind": "register",
+      "address": "0x41"
+    },
+    {
+      "id": "reg_42",
+      "kind": "register",
+      "address": "0x42"
+    },
+    {
+      "id": "reg_43",
+      "kind": "register",
+      "address": "0x43"
+    },
+    {
+      "id": "reg_44",
+      "kind": "register",
+      "address": "0x44"
+    },
+    {
+      "id": "reg_45",
+      "kind": "register",
+      "address": "0x45"
+    },
+    {
+      "id": "reg_46",
+      "kind": "register",
+      "address": "0x46"
+    },
+    {
+      "id": "reg_47",
+      "kind": "register",
+      "address": "0x47"
+    },
+    {
+      "id": "reg_48",
+      "kind": "register",
+      "address": "0x48"
+    },
+    {
+      "id": "reg_49",
+      "kind": "register",
+      "address": "0x49"
+    },
+    {
+      "id": "reg_4a",
+      "kind": "register",
+      "address": "0x4A"
+    },
+    {
+      "id": "reg_4b",
+      "kind": "register",
+      "address": "0x4B"
+    },
+    {
+      "id": "reg_4c",
+      "kind": "register",
+      "address": "0x4C"
+    },
+    {
+      "id": "reg_4d",
+      "kind": "register",
+      "address": "0x4D"
+    },
+    {
+      "id": "reg_4e",
+      "kind": "register",
+      "address": "0x4E"
+    },
+    {
+      "id": "reg_4f",
+      "kind": "register",
+      "address": "0x4F"
+    },
+    {
+      "id": "reg_50",
+      "kind": "register",
+      "address": "0x50"
+    },
+    {
+      "id": "reg_51",
+      "kind": "register",
+      "address": "0x51"
+    },
+    {
+      "id": "reg_52",
+      "kind": "register",
+      "address": "0x52"
+    },
+    {
+      "id": "reg_53",
+      "kind": "register",
+      "address": "0x53"
+    },
+    {
+      "id": "reg_54",
+      "kind": "register",
+      "address": "0x54"
+    },
+    {
+      "id": "reg_55",
+      "kind": "register",
+      "address": "0x55"
+    },
+    {
+      "id": "reg_56",
+      "kind": "register",
+      "address": "0x56"
+    },
+    {
+      "id": "reg_57",
+      "kind": "register",
+      "address": "0x57"
+    },
+    {
+      "id": "reg_58",
+      "kind": "register",
+      "address": "0x58"
+    },
+    {
+      "id": "reg_59",
+      "kind": "register",
+      "address": "0x59"
+    },
+    {
+      "id": "reg_5a",
+      "kind": "register",
+      "address": "0x5A"
+    },
+    {
+      "id": "reg_5b",
+      "kind": "register",
+      "address": "0x5B"
+    },
+    {
+      "id": "reg_5c",
+      "kind": "register",
+      "address": "0x5C"
+    },
+    {
+      "id": "reg_5d",
+      "kind": "register",
+      "address": "0x5D"
+    },
+    {
+      "id": "reg_5e",
+      "kind": "register",
+      "address": "0x5E"
+    },
+    {
+      "id": "reg_5f",
+      "kind": "register",
+      "address": "0x5F"
+    },
+    {
+      "id": "reg_60",
+      "kind": "register",
+      "address": "0x60"
+    },
+    {
+      "id": "reg_61",
+      "kind": "register",
+      "address": "0x61"
+    },
+    {
+      "id": "reg_62",
+      "kind": "register",
+      "address": "0x62"
+    },
+    {
+      "id": "reg_63",
+      "kind": "register",
+      "address": "0x63"
+    },
+    {
+      "id": "reg_64",
+      "kind": "register",
+      "address": "0x64"
+    },
+    {
+      "id": "reg_65",
+      "kind": "register",
+      "address": "0x65"
+    },
+    {
+      "id": "reg_66",
+      "kind": "register",
+      "address": "0x66"
+    },
+    {
+      "id": "reg_67",
+      "kind": "register",
+      "address": "0x67"
+    },
+    {
+      "id": "reg_68",
+      "kind": "register",
+      "address": "0x68"
+    },
+    {
+      "id": "reg_69",
+      "kind": "register",
+      "address": "0x69"
+    },
+    {
+      "id": "reg_6a",
+      "kind": "register",
+      "address": "0x6A"
+    },
+    {
+      "id": "reg_6b",
+      "kind": "register",
+      "address": "0x6B"
+    },
+    {
+      "id": "reg_6c",
+      "kind": "register",
+      "address": "0x6C"
+    },
+    {
+      "id": "reg_6d",
+      "kind": "register",
+      "address": "0x6D"
+    },
+    {
+      "id": "reg_6e",
+      "kind": "register",
+      "address": "0x6E"
+    },
+    {
+      "id": "reg_6f",
+      "kind": "register",
+      "address": "0x6F"
+    },
+    {
+      "id": "reg_70",
+      "kind": "register",
+      "address": "0x70"
+    },
+    {
+      "id": "reg_71",
+      "kind": "register",
+      "address": "0x71"
+    },
+    {
+      "id": "reg_72",
+      "kind": "register",
+      "address": "0x72"
+    },
+    {
+      "id": "reg_73",
+      "kind": "register",
+      "address": "0x73"
+    },
+    {
+      "id": "reg_74",
+      "kind": "register",
+      "address": "0x74"
+    },
+    {
+      "id": "reg_75",
+      "kind": "register",
+      "address": "0x75"
+    },
+    {
+      "id": "reg_76",
+      "kind": "register",
+      "address": "0x76"
+    },
+    {
+      "id": "reg_77",
+      "kind": "register",
+      "address": "0x77"
+    },
+    {
+      "id": "reg_78",
+      "kind": "register",
+      "address": "0x78"
+    },
+    {
+      "id": "reg_79",
+      "kind": "register",
+      "address": "0x79"
+    },
+    {
+      "id": "reg_7a",
+      "kind": "register",
+      "address": "0x7A"
+    },
+    {
+      "id": "reg_7b",
+      "kind": "register",
+      "address": "0x7B"
+    },
+    {
+      "id": "reg_7c",
+      "kind": "register",
+      "address": "0x7C"
+    },
+    {
+      "id": "reg_7d",
+      "kind": "register",
+      "address": "0x7D"
+    },
+    {
+      "id": "reg_7e",
+      "kind": "register",
+      "address": "0x7E"
+    },
+    {
+      "id": "reg_7f",
+      "kind": "register",
+      "address": "0x7F"
+    },
+    {
+      "id": "reg_80",
+      "kind": "register",
+      "address": "0x80"
+    },
+    {
+      "id": "reg_81",
+      "kind": "register",
+      "address": "0x81"
+    },
+    {
+      "id": "reg_82",
+      "kind": "register",
+      "address": "0x82"
+    },
+    {
+      "id": "reg_83",
+      "kind": "register",
+      "address": "0x83"
+    },
+    {
+      "id": "reg_84",
+      "kind": "register",
+      "address": "0x84"
+    },
+    {
+      "id": "reg_85",
+      "kind": "register",
+      "address": "0x85"
+    },
+    {
+      "id": "reg_86",
+      "kind": "register",
+      "address": "0x86"
+    },
+    {
+      "id": "reg_87",
+      "kind": "register",
+      "address": "0x87"
+    },
+    {
+      "id": "reg_88",
+      "kind": "register",
+      "address": "0x88"
+    },
+    {
+      "id": "reg_89",
+      "kind": "register",
+      "address": "0x89"
+    },
+    {
+      "id": "reg_8a",
+      "kind": "register",
+      "address": "0x8A"
+    },
+    {
+      "id": "reg_8b",
+      "kind": "register",
+      "address": "0x8B"
+    },
+    {
+      "id": "reg_8c",
+      "kind": "register",
+      "address": "0x8C"
+    },
+    {
+      "id": "reg_8d",
+      "kind": "register",
+      "address": "0x8D"
+    },
+    {
+      "id": "reg_8e",
+      "kind": "register",
+      "address": "0x8E"
+    },
+    {
+      "id": "reg_8f",
+      "kind": "register",
+      "address": "0x8F"
+    },
+    {
+      "id": "reg_90",
+      "kind": "register",
+      "address": "0x90"
+    },
+    {
+      "id": "reg_91",
+      "kind": "register",
+      "address": "0x91"
+    },
+    {
+      "id": "reg_92",
+      "kind": "register",
+      "address": "0x92"
+    },
+    {
+      "id": "reg_93",
+      "kind": "register",
+      "address": "0x93"
+    },
+    {
+      "id": "reg_94",
+      "kind": "register",
+      "address": "0x94"
+    },
+    {
+      "id": "reg_95",
+      "kind": "register",
+      "address": "0x95"
+    },
+    {
+      "id": "reg_96",
+      "kind": "register",
+      "address": "0x96"
+    },
+    {
+      "id": "reg_97",
+      "kind": "register",
+      "address": "0x97"
+    },
+    {
+      "id": "reg_98",
+      "kind": "register",
+      "address": "0x98"
+    },
+    {
+      "id": "reg_99",
+      "kind": "register",
+      "address": "0x99"
+    },
+    {
+      "id": "reg_9a",
+      "kind": "register",
+      "address": "0x9A"
+    },
+    {
+      "id": "reg_9b",
+      "kind": "register",
+      "address": "0x9B"
+    },
+    {
+      "id": "reg_9c",
+      "kind": "register",
+      "address": "0x9C"
+    },
+    {
+      "id": "reg_9d",
+      "kind": "register",
+      "address": "0x9D"
+    },
+    {
+      "id": "reg_9e",
+      "kind": "register",
+      "address": "0x9E"
+    },
+    {
+      "id": "reg_9f",
+      "kind": "register",
+      "address": "0x9F"
+    },
+    {
+      "id": "reg_a0",
+      "kind": "register",
+      "address": "0xA0"
+    },
+    {
+      "id": "reg_a1",
+      "kind": "register",
+      "address": "0xA1"
+    },
+    {
+      "id": "reg_a2",
+      "kind": "register",
+      "address": "0xA2"
+    },
+    {
+      "id": "reg_a3",
+      "kind": "register",
+      "address": "0xA3"
+    },
+    {
+      "id": "reg_a4",
+      "kind": "register",
+      "address": "0xA4"
+    },
+    {
+      "id": "reg_a5",
+      "kind": "register",
+      "address": "0xA5"
+    },
+    {
+      "id": "reg_a6",
+      "kind": "register",
+      "address": "0xA6"
+    },
+    {
+      "id": "reg_a7",
+      "kind": "register",
+      "address": "0xA7"
+    },
+    {
+      "id": "reg_a8",
+      "kind": "register",
+      "address": "0xA8"
+    },
+    {
+      "id": "reg_a9",
+      "kind": "register",
+      "address": "0xA9"
+    },
+    {
+      "id": "reg_aa",
+      "kind": "register",
+      "address": "0xAA"
+    },
+    {
+      "id": "reg_ab",
+      "kind": "register",
+      "address": "0xAB"
+    },
+    {
+      "id": "reg_ac",
+      "kind": "register",
+      "address": "0xAC"
+    },
+    {
+      "id": "reg_ad",
+      "kind": "register",
+      "address": "0xAD"
+    },
+    {
+      "id": "reg_ae",
+      "kind": "register",
+      "address": "0xAE"
+    },
+    {
+      "id": "reg_af",
+      "kind": "register",
+      "address": "0xAF"
+    },
+    {
+      "id": "reg_b0",
+      "kind": "register",
+      "address": "0xB0"
+    },
+    {
+      "id": "reg_b1",
+      "kind": "register",
+      "address": "0xB1"
+    },
+    {
+      "id": "reg_b2",
+      "kind": "register",
+      "address": "0xB2"
+    },
+    {
+      "id": "reg_b3",
+      "kind": "register",
+      "address": "0xB3"
+    },
+    {
+      "id": "reg_b4",
+      "kind": "register",
+      "address": "0xB4"
+    },
+    {
+      "id": "reg_b5",
+      "kind": "register",
+      "address": "0xB5"
+    },
+    {
+      "id": "reg_b6",
+      "kind": "register",
+      "address": "0xB6"
+    },
+    {
+      "id": "reg_b7",
+      "kind": "register",
+      "address": "0xB7"
+    },
+    {
+      "id": "reg_b8",
+      "kind": "register",
+      "address": "0xB8"
+    },
+    {
+      "id": "reg_b9",
+      "kind": "register",
+      "address": "0xB9"
+    },
+    {
+      "id": "reg_ba",
+      "kind": "register",
+      "address": "0xBA"
+    },
+    {
+      "id": "reg_bb",
+      "kind": "register",
+      "address": "0xBB"
+    },
+    {
+      "id": "reg_bc",
+      "kind": "register",
+      "address": "0xBC"
+    },
+    {
+      "id": "reg_bd",
+      "kind": "register",
+      "address": "0xBD"
+    },
+    {
+      "id": "reg_be",
+      "kind": "register",
+      "address": "0xBE"
+    },
+    {
+      "id": "reg_bf",
+      "kind": "register",
+      "address": "0xBF"
+    },
+    {
+      "id": "reg_c0",
+      "kind": "register",
+      "address": "0xC0"
+    },
+    {
+      "id": "reg_c1",
+      "kind": "register",
+      "address": "0xC1"
+    },
+    {
+      "id": "reg_c2",
+      "kind": "register",
+      "address": "0xC2"
+    },
+    {
+      "id": "reg_c3",
+      "kind": "register",
+      "address": "0xC3"
+    },
+    {
+      "id": "reg_c4",
+      "kind": "register",
+      "address": "0xC4"
+    },
+    {
+      "id": "reg_c5",
+      "kind": "register",
+      "address": "0xC5"
+    },
+    {
+      "id": "reg_c6",
+      "kind": "register",
+      "address": "0xC6"
+    },
+    {
+      "id": "reg_c7",
+      "kind": "register",
+      "address": "0xC7"
+    },
+    {
+      "id": "reg_c8",
+      "kind": "register",
+      "address": "0xC8"
+    },
+    {
+      "id": "reg_c9",
+      "kind": "register",
+      "address": "0xC9"
+    },
+    {
+      "id": "reg_ca",
+      "kind": "register",
+      "address": "0xCA"
+    },
+    {
+      "id": "reg_cb",
+      "kind": "register",
+      "address": "0xCB"
+    },
+    {
+      "id": "reg_cc",
+      "kind": "register",
+      "address": "0xCC"
+    },
+    {
+      "id": "reg_cd",
+      "kind": "register",
+      "address": "0xCD"
+    },
+    {
+      "id": "reg_ce",
+      "kind": "register",
+      "address": "0xCE"
+    },
+    {
+      "id": "reg_cf",
+      "kind": "register",
+      "address": "0xCF"
+    },
+    {
+      "id": "reg_d0",
+      "kind": "register",
+      "address": "0xD0"
+    },
+    {
+      "id": "reg_d1",
+      "kind": "register",
+      "address": "0xD1"
+    },
+    {
+      "id": "reg_d2",
+      "kind": "register",
+      "address": "0xD2"
+    },
+    {
+      "id": "reg_d3",
+      "kind": "register",
+      "address": "0xD3"
+    },
+    {
+      "id": "reg_d4",
+      "kind": "register",
+      "address": "0xD4"
+    },
+    {
+      "id": "reg_d5",
+      "kind": "register",
+      "address": "0xD5"
+    },
+    {
+      "id": "reg_d6",
+      "kind": "register",
+      "address": "0xD6"
+    },
+    {
+      "id": "reg_d7",
+      "kind": "register",
+      "address": "0xD7"
+    },
+    {
+      "id": "reg_d8",
+      "kind": "register",
+      "address": "0xD8"
+    },
+    {
+      "id": "reg_d9",
+      "kind": "register",
+      "address": "0xD9"
+    },
+    {
+      "id": "reg_da",
+      "kind": "register",
+      "address": "0xDA"
+    },
+    {
+      "id": "reg_db",
+      "kind": "register",
+      "address": "0xDB"
+    },
+    {
+      "id": "reg_dc",
+      "kind": "register",
+      "address": "0xDC"
+    },
+    {
+      "id": "reg_dd",
+      "kind": "register",
+      "address": "0xDD"
+    },
+    {
+      "id": "reg_de",
+      "kind": "register",
+      "address": "0xDE"
+    },
+    {
+      "id": "reg_df",
+      "kind": "register",
+      "address": "0xDF"
+    },
+    {
+      "id": "reg_e0",
+      "kind": "register",
+      "address": "0xE0"
+    },
+    {
+      "id": "reg_e1",
+      "kind": "register",
+      "address": "0xE1"
+    },
+    {
+      "id": "reg_e2",
+      "kind": "register",
+      "address": "0xE2"
+    },
+    {
+      "id": "reg_e3",
+      "kind": "register",
+      "address": "0xE3"
+    },
+    {
+      "id": "reg_e4",
+      "kind": "register",
+      "address": "0xE4"
+    },
+    {
+      "id": "reg_e5",
+      "kind": "register",
+      "address": "0xE5"
+    },
+    {
+      "id": "reg_e6",
+      "kind": "register",
+      "address": "0xE6"
+    },
+    {
+      "id": "reg_e7",
+      "kind": "register",
+      "address": "0xE7"
+    },
+    {
+      "id": "reg_e8",
+      "kind": "register",
+      "address": "0xE8"
+    },
+    {
+      "id": "reg_e9",
+      "kind": "register",
+      "address": "0xE9"
+    },
+    {
+      "id": "reg_ea",
+      "kind": "register",
+      "address": "0xEA"
+    },
+    {
+      "id": "reg_eb",
+      "kind": "register",
+      "address": "0xEB"
+    },
+    {
+      "id": "reg_ec",
+      "kind": "register",
+      "address": "0xEC"
+    },
+    {
+      "id": "reg_ed",
+      "kind": "register",
+      "address": "0xED"
+    },
+    {
+      "id": "reg_ee",
+      "kind": "register",
+      "address": "0xEE"
+    },
+    {
+      "id": "reg_ef",
+      "kind": "register",
+      "address": "0xEF"
+    },
+    {
+      "id": "reg_f0",
+      "kind": "register",
+      "address": "0xF0"
+    },
+    {
+      "id": "reg_f1",
+      "kind": "register",
+      "address": "0xF1"
+    },
+    {
+      "id": "reg_f2",
+      "kind": "register",
+      "address": "0xF2"
+    },
+    {
+      "id": "reg_f3",
+      "kind": "register",
+      "address": "0xF3"
+    },
+    {
+      "id": "reg_f4",
+      "kind": "register",
+      "address": "0xF4"
+    },
+    {
+      "id": "reg_f5",
+      "kind": "register",
+      "address": "0xF5"
+    },
+    {
+      "id": "reg_f6",
+      "kind": "register",
+      "address": "0xF6"
+    },
+    {
+      "id": "reg_f7",
+      "kind": "register",
+      "address": "0xF7"
+    },
+    {
+      "id": "reg_f8",
+      "kind": "register",
+      "address": "0xF8"
+    },
+    {
+      "id": "reg_f9",
+      "kind": "register",
+      "address": "0xF9"
+    },
+    {
+      "id": "reg_fa",
+      "kind": "register",
+      "address": "0xFA"
+    },
+    {
+      "id": "reg_fb",
+      "kind": "register",
+      "address": "0xFB"
+    },
+    {
+      "id": "reg_fc",
+      "kind": "register",
+      "address": "0xFC"
+    },
+    {
+      "id": "reg_fd",
+      "kind": "register",
+      "address": "0xFD"
+    },
+    {
+      "id": "reg_fe",
+      "kind": "register",
+      "address": "0xFE"
+    },
+    {
+      "id": "reg_ff",
+      "kind": "register",
+      "address": "0xFF"
+    }
+  ],
+  "policy": {
+    "read": {
+      "mode": "blacklist",
+      "rules": []
+    },
+    "write": {
+      "mode": "whitelist",
+      "rules": [],
+      "inactive_rules": []
+    }
+  },
+  "settings": {
+    "desired": [],
+    "cache_seed": [],
+    "apply_on_startup": false
+  },
+  "observability": {
+    "telemetry": true,
+    "events": true
+  },
+  "register_map": "register_map.json",
+  "view": "view.js"
+}

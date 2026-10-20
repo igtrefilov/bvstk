@@ -89,7 +89,7 @@ scp -i build/neutrino/ax7020_ssh_client -r \
 ## Загрузка и восстановление
 
 DCP2 FS предоставляет чтение. Для записи FreeRTOS доступны
-[HTTP](interfaces/http/files.md#загрузка-файла-и-архива), SCP, SFTP
+[HTTP](interfaces/http/reference/files.md#загрузка-файла-и-архива), SCP, SFTP
 и [файловые команды консоли](interfaces/console.md#файлы-и-каталоги).
 Перед восстановлением сохраните нынешний набор,
 проверьте JSON на компьютере и наличие свободного места. HTTP-загрузка

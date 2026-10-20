@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "kind": "register_map",
+  "id": "pca9545a",
+  "device": "PCA9545A",
+  "bus": "i2c",
+  "width_bits": 8,
+  "register_count": 1,
+  "source": {
+    "title": "PCA9545A data sheet",
+    "document": "PCA9545A",
+    "revision": "Rev. 10, 2022-09-27",
+    "url": "https://www.nxp.com/docs/en/data-sheet/PCA9545A_45B_45C.pdf"
+  },
+  "notes": "0x00 — логический адрес единственного управляющего байта. Маска каналов вступает в силу после STOP. При внутренних обращениях PS временно выбирает один канал и восстанавливает прежнюю маску.",
+  "registers": [
+    {
+      "id": "control",
+      "address": 0,
+      "name": "CONTROL",
+      "label": "Каналы и прерывания",
+      "section": "6.2–6.4",
+      "fields": [
+        {
+          "id": "ch0",
+          "label": "Канал 0",
+          "lsb": 0,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Отключён"
+            },
+            "1": {
+              "label": "Подключён"
+            }
+          }
+        },
+        {
+          "id": "ch1",
+          "label": "Канал 1",
+          "lsb": 1,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Отключён"
+            },
+            "1": {
+              "label": "Подключён"
+            }
+          }
+        },
+        {
+          "id": "ch2",
+          "label": "Канал 2",
+          "lsb": 2,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Отключён"
+            },
+            "1": {
+              "label": "Подключён"
+            }
+          }
+        },
+        {
+          "id": "ch3",
+          "label": "Канал 3",
+          "lsb": 3,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Отключён"
+            },
+            "1": {
+              "label": "Подключён"
+            }
+          }
+        },
+        {
+          "id": "int0",
+          "label": "INT0",
+          "lsb": 4,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от входа",
+          "values": {
+            "0": {
+              "label": "Нет запроса"
+            },
+            "1": {
+              "label": "Запрос активен"
+            }
+          },
+          "note": "Единица соответствует низкому уровню входа INT0."
+        },
+        {
+          "id": "int1",
+          "label": "INT1",
+          "lsb": 5,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от входа",
+          "values": {
+            "0": {
+              "label": "Нет запроса"
+            },
+            "1": {
+              "label": "Запрос активен"
+            }
+          },
+          "note": "Единица соответствует низкому уровню входа INT1."
+        },
+        {
+          "id": "int2",
+          "label": "INT2",
+          "lsb": 6,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от входа",
+          "values": {
+            "0": {
+              "label": "Нет запроса"
+            },
+            "1": {
+              "label": "Запрос активен"
+            }
+          },
+          "note": "Единица соответствует низкому уровню входа INT2."
+        },
+        {
+          "id": "int3",
+          "label": "INT3",
+          "lsb": 7,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от входа",
+          "values": {
+            "0": {
+              "label": "Нет запроса"
+            },
+            "1": {
+              "label": "Запрос активен"
+            }
+          },
+          "note": "Единица соответствует низкому уровню входа INT3."
+        }
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "id": "channel_0",
+      "label": "Канал 0",
+      "field": "control.ch0"
+    },
+    {
+      "id": "channel_1",
+      "label": "Канал 1",
+      "field": "control.ch1"
+    },
+    {
+      "id": "channel_2",
+      "label": "Канал 2",
+      "field": "control.ch2"
+    },
+    {
+      "id": "channel_3",
+      "label": "Канал 3",
+      "field": "control.ch3"
+    },
+    {
+      "id": "interrupt_0",
+      "label": "Прерывание 0",
+      "field": "control.int0"
+    },
+    {
+      "id": "interrupt_1",
+      "label": "Прерывание 1",
+      "field": "control.int1"
+    },
+    {
+      "id": "interrupt_2",
+      "label": "Прерывание 2",
+      "field": "control.int2"
+    },
+    {
+      "id": "interrupt_3",
+      "label": "Прерывание 3",
+      "field": "control.int3"
+    }
+  ]
+}

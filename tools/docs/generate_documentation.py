@@ -465,6 +465,7 @@ def main():
     from dcp2_examples import generate as dcp2_examples
     from dcp2_policies import generate as dcp2_policies
     from configuration_diagrams import generate as configuration_diagrams
+    from http_guides import generate as http_guides
 
     drawing.OUT=OUT
     figures = (startup,ps_pl,irq,volumes,network,
@@ -472,7 +473,8 @@ def main():
     for generate in figures:
         generate()
     count = (len(figures) + dcp2_introduction() + dcp2_reference()
-             + dcp2_fields() + dcp2_examples() + dcp2_policies() + configuration_diagrams())
+             + dcp2_fields() + dcp2_examples() + dcp2_policies() + configuration_diagrams()
+             + http_guides())
     print(f"Generated {count} documentation figures")
 
 

@@ -74,7 +74,8 @@ const i2c_device_config_t *config_store_find_i2c_device_by_name(const char *name
 }
 const i2c_device_config_t *config_store_find_i2c_device_by_addr(uint8_t address)
 {
-    return address == i2c_config.addr_7b ? &i2c_config : NULL;
+    return bvstk_i2c_address_space(&i2c_config.endpoint,i2c_config.addr_7b,address)>=0 ?
+        &i2c_config : NULL;
 }
 int config_store_set_i2c_device(const i2c_device_config_t *config)
 {

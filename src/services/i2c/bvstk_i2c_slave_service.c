@@ -13,6 +13,12 @@ static bvstk_status_t service_status(const bvstk_i2c_slave_service_t *service)
     return BVSTK_OK;
 }
 
+static size_t write_register(const bvstk_i2c_device_t *device, size_t start, size_t offset)
+{
+    return bvstk_i2c_next_register(bvstk_i2c_transfer_options(&device->endpoint).write_sequence,
+        device->reg_count, start, offset);
+}
+
 static bvstk_status_t load_window(bvstk_i2c_slave_service_t *service,
                                   size_t device_id,
                                   uint8_t reg,
@@ -34,10 +40,15 @@ static bvstk_status_t load_window(bvstk_i2c_slave_service_t *service,
         return BVSTK_ERR_RANGE;
     }
     count = 0U;
+    bvstk_i2c_transfer_t transfer = bvstk_i2c_transfer_options(&device.endpoint);
+    /* A configured pointer advances by the single byte actually offered to PL. */
+    if (transfer.configured && capacity > 1U) capacity = 1U;
     for (i = 0U;
          i < capacity && (size_t)reg + i < device.reg_count;
          ++i) {
-        if (bvstk_i2c_cache_is_valid(
+        if (!transfer.host_read_fresh &&
+            (!transfer.configured || !service->cache->seeded[device_id][reg + i]) &&
+            bvstk_i2c_cache_is_valid(
                 service->cache,
                 device_id,
                 (uint8_t)((size_t)reg + i)) &&
@@ -87,6 +98,10 @@ bvstk_status_t bvstk_i2c_slave_service_init(
     service->cache = cache;
     service->master = master;
     service->target_device = target_device;
+    service->target_space = 0;
+    for (size_t i = 0; i < devices->count; ++i)
+        if (devices->items[i].endpoint.parent[0] || devices->items[i].endpoint.transfer.configured)
+            service->multi_device = 1;
     service->initialized = 1U;
     return BVSTK_OK;
 }
@@ -110,6 +125,7 @@ bvstk_status_t bvstk_i2c_slave_service_set_target(
         return BVSTK_ERR_NOT_FOUND;
     }
     service->target_device = target_device;
+    service->target_space = 0;
     return BVSTK_OK;
 }
 
@@ -121,11 +137,31 @@ size_t bvstk_i2c_slave_service_target(
                : 0U;
 }
 
+bvstk_status_t bvstk_i2c_slave_service_select_address(
+    bvstk_i2c_slave_service_t *service, uint8_t address)
+{
+    size_t target;
+    bvstk_status_t status = service_status(service);
+    if (status != BVSTK_OK) return status;
+    if (!service->multi_device)
+        return service->devices->items[service->target_device].addr_7b == address ?
+            BVSTK_OK : BVSTK_ERR_NOT_FOUND;
+    status = bvstk_i2c_master_service_resolve_host(service->master, address, &target);
+    if (status == BVSTK_OK) {
+        const bvstk_i2c_device_t *d = &service->devices->items[target];
+        int space = bvstk_i2c_address_space(&d->endpoint, d->addr_7b, address);
+        if (space < 0) return BVSTK_ERR_NOT_FOUND;
+        service->target_device = target;
+        service->target_space = (uint8_t)space;
+    }
+    return status;
+}
+
 void bvstk_i2c_slave_service_end_transaction(
     bvstk_i2c_slave_service_t *service)
 {
     if (service_status(service) == BVSTK_OK) {
-        service->read_armed[service->target_device] = 0U;
+        service->read_armed[service->target_device][service->target_space] = 0U;
     }
 }
 
@@ -161,20 +197,30 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
         return status;
     }
 
+    bvstk_i2c_transfer_t transfer = bvstk_i2c_transfer_options(&device.endpoint);
+    size_t prefix = transfer.address_bytes;
+    unsigned space = service->target_space, first = 0, address_on_bus = device.addr_7b;
+    if (device.endpoint.space_count) {
+        if (space >= device.endpoint.space_count) return BVSTK_ERR_RANGE;
+        first = device.endpoint.spaces[space].first;
+        device.reg_count = device.endpoint.spaces[space].count;
+        address_on_bus = device.endpoint.spaces[space].address;
+    }
+
     if (read_phase != 0U) {
-        reg = service->register_pointer[target];
-        bvstk_i2c_master_service_observe(service->master, target,
+        reg = service->register_pointer[target][space];
+        bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
             BVSTK_EVENT_SLAVE_READ_REQUEST, BVSTK_EVENT_OP_READ,
             (uint8_t)reg, 0, BVSTK_OK);
-        if (service->read_armed[target] == 0U) {
+        if (service->read_armed[target][space] == 0U && prefix && !transfer.host_current_read) {
             return BVSTK_OK;
         }
         if (reg >= device.reg_count) {
-            reg = 0U;
+            return BVSTK_ERR_RANGE;
         }
         status = load_window(service,
                              target,
-                             (uint8_t)reg,
+                             (uint8_t)(first + reg),
                              read_window,
                              read_window_capacity,
                              read_window_size,
@@ -184,72 +230,85 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
         }
         count = *read_window_size;
         for (i = 0; i < count; ++i)
-            bvstk_i2c_master_service_observe(service->master, target,
+            bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
                 BVSTK_EVENT_SLAVE_REPLY_PREPARED, BVSTK_EVENT_OP_READ,
-                (uint8_t)(reg + i), read_window[i], BVSTK_OK);
-        service->register_pointer[target] =
-            (uint8_t)((count != 0U && reg + count < device.reg_count) ?
-                          reg + count : 0U);
+                (uint32_t)bvstk_i2c_next_register(transfer.read_sequence, device.reg_count, reg, i),
+                read_window[i], BVSTK_OK);
+        service->register_pointer[target][space] = (uint16_t)bvstk_i2c_next_register(
+            transfer.read_sequence, device.reg_count, reg, count);
         return BVSTK_OK;
     }
 
     /* A new write phase replaces the previous pointer. Invalid frames and
      * rejected writes must never leave an older read armed. */
-    service->read_armed[target] = 0U;
-    if (frame == NULL || frame_size == 0U) {
+    service->read_armed[target][space] = 0U;
+    if (frame == NULL || frame_size == 0U || frame_size < prefix) {
+        service->register_pointer[target][space] = device.reg_count;
         return BVSTK_ERR_MALFORMED;
     }
-    reg = frame[0];
-    bvstk_i2c_master_service_observe(service->master, target,
-        BVSTK_EVENT_SLAVE_POINTER, BVSTK_EVENT_OP_WRITE, (uint8_t)reg, frame[0], BVSTK_OK);
-    for (i = 1U; i < frame_size; ++i)
-        bvstk_i2c_master_service_observe(service->master, target,
+    uint32_t address = 0;
+    for (i = 0; i < prefix; ++i)
+        address |= (uint32_t)frame[i] << (8U * (transfer.little_endian ? i : prefix - 1U - i));
+    reg = address >= transfer.address_base ? address - transfer.address_base : device.reg_count;
+    if (prefix) bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
+        BVSTK_EVENT_SLAVE_POINTER, BVSTK_EVENT_OP_WRITE, (uint32_t)reg, frame[0], BVSTK_OK);
+    for (i = prefix; i < frame_size; ++i)
+        bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
             BVSTK_EVENT_CAPTURE_WRITE, BVSTK_EVENT_OP_WRITE,
-            (uint32_t)(reg + i - 1U), frame[i], BVSTK_OK);
+            (uint32_t)write_register(&device, reg, i - prefix), frame[i], BVSTK_OK);
     if (reg >= device.reg_count) {
-        for (i = 1; i < frame_size; ++i) {
-            bvstk_i2c_master_service_observe(service->master, target,
+        service->register_pointer[target][space] = device.reg_count;
+        for (i = prefix; i < frame_size; ++i) {
+            bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
                 BVSTK_EVENT_REG_ATTEMPT, BVSTK_EVENT_OP_WRITE,
-                (uint32_t)(reg + i - 1U), frame[i], BVSTK_OK);
-            bvstk_i2c_master_service_observe(service->master, target,
+                (uint32_t)(reg + i - prefix), frame[i], BVSTK_OK);
+            bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
                 BVSTK_EVENT_FAULT, BVSTK_EVENT_OP_WRITE,
-                (uint32_t)(reg + i - 1U), frame[i], BVSTK_ERR_RANGE);
+                (uint32_t)(reg + i - prefix), frame[i], BVSTK_ERR_RANGE);
         }
         return BVSTK_ERR_RANGE;
     }
-    service->register_pointer[target] = (uint8_t)reg;
-    service->read_armed[target] = frame_size == 1U ? 1U : 0U;
-    for (i = 1U; i < frame_size; ++i) {
-        uint8_t current_reg = (uint8_t)(reg + i - 1U);
-        if (reg + i - 1U >= device.reg_count) {
+    service->register_pointer[target][space] = (uint16_t)reg;
+    service->read_armed[target][space] = frame_size == prefix ? 1U : 0U;
+    for (i = prefix; i < frame_size; ++i) {
+        size_t next_reg = write_register(&device, reg, i - prefix);
+        uint8_t current_reg = (uint8_t)next_reg;
+        if (next_reg >= device.reg_count) {
             for (; i < frame_size; ++i) {
-                bvstk_i2c_master_service_observe(service->master, target,
+                bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
                     BVSTK_EVENT_REG_ATTEMPT, BVSTK_EVENT_OP_WRITE,
-                    (uint32_t)(reg + i - 1U), frame[i], BVSTK_OK);
-                bvstk_i2c_master_service_observe(service->master, target,
+                    (uint32_t)write_register(&device, reg, i - prefix), frame[i], BVSTK_OK);
+                bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
                     BVSTK_EVENT_FAULT, BVSTK_EVENT_OP_WRITE,
-                    (uint32_t)(reg + i - 1U), frame[i], BVSTK_ERR_RANGE);
+                    (uint32_t)write_register(&device, reg, i - prefix), frame[i], BVSTK_ERR_RANGE);
             }
-            break;
+            service->register_pointer[target][space] = device.reg_count;
+            return BVSTK_ERR_RANGE;
         }
+        uint8_t data = frame[i];
+        const bvstk_i2c_switch_t *router = &device.endpoint.router;
+        if (router->channel_count && current_reg == router->reg)
+            data &= router->select_mask | router->preserve_mask;
         status = bvstk_i2c_master_service_write(service->master,
                                                 target,
-                                                current_reg,
-                                                frame[i],
+                                                (uint8_t)(first + current_reg),
+                                                data,
                                                 BVSTK_EVENT_SOURCE_HOST,
                                                 timeout_ms);
         if (status != BVSTK_OK) {
             /* Preserve stop-on-error forwarding, but audit the unprocessed tail. */
             for (++i; i < frame_size; ++i) {
-                bvstk_i2c_master_service_observe(service->master, target,
+                bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
                     BVSTK_EVENT_REG_ATTEMPT, BVSTK_EVENT_OP_WRITE,
-                    (uint32_t)(reg + i - 1U), frame[i], BVSTK_OK);
-                bvstk_i2c_master_service_observe(service->master, target,
+                    (uint32_t)write_register(&device, reg, i - prefix), frame[i], BVSTK_OK);
+                bvstk_i2c_master_service_observe_address(service->master, target, address_on_bus,
                     BVSTK_EVENT_FAULT, BVSTK_EVENT_OP_WRITE,
-                    (uint32_t)(reg + i - 1U), frame[i], BVSTK_ERR_NOT_READY);
+                    (uint32_t)write_register(&device, reg, i - prefix), frame[i], BVSTK_ERR_NOT_READY);
             }
             return status;
         }
+        if (transfer.configured)
+            service->register_pointer[target][space] = (uint16_t)write_register(&device, reg, i - prefix + 1U);
     }
     return BVSTK_OK;
 }

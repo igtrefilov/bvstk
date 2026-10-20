@@ -36,6 +36,8 @@ void bvstk_journal_publish(bvstk_journal_t *, const bvstk_event_t *);
 uint64_t bvstk_journal_head(const bvstk_journal_t *, unsigned bus, unsigned channel);
 void bvstk_journal_read(const bvstk_journal_t *, unsigned bus, unsigned channel,
     int address, uint64_t after, bvstk_journal_batch_t *);
+void bvstk_journal_read_device(const bvstk_journal_t *, unsigned bus, unsigned channel,
+    int address, int device_slot, uint64_t after, bvstk_journal_batch_t *);
 int bvstk_event_is_telemetry(uint16_t type);
 
 #endif

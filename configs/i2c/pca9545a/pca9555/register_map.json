@@ -1,0 +1,1260 @@
+{
+  "schema_version": 1,
+  "kind": "register_map",
+  "id": "pca9555",
+  "device": "PCA9555",
+  "bus": "i2c",
+  "width_bits": 8,
+  "register_count": 8,
+  "source": {
+    "title": "PCA9555 data sheet",
+    "document": "PCA9555",
+    "revision": "Rev. 10, 2017-11-08",
+    "url": "https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf"
+  },
+  "notes": "Input показывает считанный уровень с учётом инверсии; Output хранит выходную защёлку. Configuration: 1 — вход, 0 — выход. Значение защёлки само по себе не подтверждает уровень на ножке. Чтение входного порта может сбросить его запрос INT.",
+  "registers": [
+    {
+      "id": "input0",
+      "address": 0,
+      "name": "INPUT0",
+      "label": "Вход порта 0",
+      "section": "6.2.2",
+      "fields": [
+        {
+          "id": "p0_0",
+          "label": "IO0_0",
+          "lsb": 0,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_1",
+          "label": "IO0_1",
+          "lsb": 1,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_2",
+          "label": "IO0_2",
+          "lsb": 2,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_3",
+          "label": "IO0_3",
+          "lsb": 3,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_4",
+          "label": "IO0_4",
+          "lsb": 4,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_5",
+          "label": "IO0_5",
+          "lsb": 5,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_6",
+          "label": "IO0_6",
+          "lsb": 6,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_7",
+          "label": "IO0_7",
+          "lsb": 7,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "input1",
+      "address": 1,
+      "name": "INPUT1",
+      "label": "Вход порта 1",
+      "section": "6.2.2",
+      "fields": [
+        {
+          "id": "p1_0",
+          "label": "IO1_0",
+          "lsb": 0,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_1",
+          "label": "IO1_1",
+          "lsb": 1,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_2",
+          "label": "IO1_2",
+          "lsb": 2,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_3",
+          "label": "IO1_3",
+          "lsb": 3,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_4",
+          "label": "IO1_4",
+          "lsb": 4,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_5",
+          "label": "IO1_5",
+          "lsb": 5,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_6",
+          "label": "IO1_6",
+          "lsb": 6,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_7",
+          "label": "IO1_7",
+          "lsb": 7,
+          "width": 1,
+          "type": "enum",
+          "access": "ro",
+          "reset": "зависит от уровня",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "output0",
+      "address": 2,
+      "name": "OUTPUT0",
+      "label": "Защёлка порта 0",
+      "section": "6.2.3",
+      "fields": [
+        {
+          "id": "p0_0",
+          "label": "IO0_0",
+          "lsb": 0,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_1",
+          "label": "IO0_1",
+          "lsb": 1,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_2",
+          "label": "IO0_2",
+          "lsb": 2,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_3",
+          "label": "IO0_3",
+          "lsb": 3,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_4",
+          "label": "IO0_4",
+          "lsb": 4,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_5",
+          "label": "IO0_5",
+          "lsb": 5,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_6",
+          "label": "IO0_6",
+          "lsb": 6,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p0_7",
+          "label": "IO0_7",
+          "lsb": 7,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "output1",
+      "address": 3,
+      "name": "OUTPUT1",
+      "label": "Защёлка порта 1",
+      "section": "6.2.3",
+      "fields": [
+        {
+          "id": "p1_0",
+          "label": "IO1_0",
+          "lsb": 0,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_1",
+          "label": "IO1_1",
+          "lsb": 1,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_2",
+          "label": "IO1_2",
+          "lsb": 2,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_3",
+          "label": "IO1_3",
+          "lsb": 3,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_4",
+          "label": "IO1_4",
+          "lsb": 4,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_5",
+          "label": "IO1_5",
+          "lsb": 5,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_6",
+          "label": "IO1_6",
+          "lsb": 6,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        },
+        {
+          "id": "p1_7",
+          "label": "IO1_7",
+          "lsb": 7,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "0"
+            },
+            "1": {
+              "label": "1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "polarity0",
+      "address": 4,
+      "name": "POLARITY0",
+      "label": "Инверсия порта 0",
+      "section": "6.2.4",
+      "fields": [
+        {
+          "id": "p0_0",
+          "label": "IO0_0",
+          "lsb": 0,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p0_1",
+          "label": "IO0_1",
+          "lsb": 1,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p0_2",
+          "label": "IO0_2",
+          "lsb": 2,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p0_3",
+          "label": "IO0_3",
+          "lsb": 3,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p0_4",
+          "label": "IO0_4",
+          "lsb": 4,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p0_5",
+          "label": "IO0_5",
+          "lsb": 5,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p0_6",
+          "label": "IO0_6",
+          "lsb": 6,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p0_7",
+          "label": "IO0_7",
+          "lsb": 7,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "polarity1",
+      "address": 5,
+      "name": "POLARITY1",
+      "label": "Инверсия порта 1",
+      "section": "6.2.4",
+      "fields": [
+        {
+          "id": "p1_0",
+          "label": "IO1_0",
+          "lsb": 0,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p1_1",
+          "label": "IO1_1",
+          "lsb": 1,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p1_2",
+          "label": "IO1_2",
+          "lsb": 2,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p1_3",
+          "label": "IO1_3",
+          "lsb": 3,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p1_4",
+          "label": "IO1_4",
+          "lsb": 4,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p1_5",
+          "label": "IO1_5",
+          "lsb": 5,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p1_6",
+          "label": "IO1_6",
+          "lsb": 6,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        },
+        {
+          "id": "p1_7",
+          "label": "IO1_7",
+          "lsb": 7,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "0",
+          "values": {
+            "0": {
+              "label": "Прямая"
+            },
+            "1": {
+              "label": "Инвертирована"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "config0",
+      "address": 6,
+      "name": "CONFIGURATION0",
+      "label": "Направление порта 0",
+      "section": "6.2.5",
+      "fields": [
+        {
+          "id": "p0_0",
+          "label": "IO0_0",
+          "lsb": 0,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p0_1",
+          "label": "IO0_1",
+          "lsb": 1,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p0_2",
+          "label": "IO0_2",
+          "lsb": 2,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p0_3",
+          "label": "IO0_3",
+          "lsb": 3,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p0_4",
+          "label": "IO0_4",
+          "lsb": 4,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p0_5",
+          "label": "IO0_5",
+          "lsb": 5,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p0_6",
+          "label": "IO0_6",
+          "lsb": 6,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p0_7",
+          "label": "IO0_7",
+          "lsb": 7,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "config1",
+      "address": 7,
+      "name": "CONFIGURATION1",
+      "label": "Направление порта 1",
+      "section": "6.2.5",
+      "fields": [
+        {
+          "id": "p1_0",
+          "label": "IO1_0",
+          "lsb": 0,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p1_1",
+          "label": "IO1_1",
+          "lsb": 1,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p1_2",
+          "label": "IO1_2",
+          "lsb": 2,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p1_3",
+          "label": "IO1_3",
+          "lsb": 3,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p1_4",
+          "label": "IO1_4",
+          "lsb": 4,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p1_5",
+          "label": "IO1_5",
+          "lsb": 5,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p1_6",
+          "label": "IO1_6",
+          "lsb": 6,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        },
+        {
+          "id": "p1_7",
+          "label": "IO1_7",
+          "lsb": 7,
+          "width": 1,
+          "type": "enum",
+          "access": "rw",
+          "reset": "1",
+          "values": {
+            "0": {
+              "label": "Выход"
+            },
+            "1": {
+              "label": "Вход"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "id": "pin0_0",
+      "label": "IO0_0",
+      "field": "input0.p0_0"
+    },
+    {
+      "id": "pin0_1",
+      "label": "IO0_1",
+      "field": "input0.p0_1"
+    },
+    {
+      "id": "pin0_2",
+      "label": "IO0_2",
+      "field": "input0.p0_2"
+    },
+    {
+      "id": "pin0_3",
+      "label": "IO0_3",
+      "field": "input0.p0_3"
+    },
+    {
+      "id": "pin0_4",
+      "label": "IO0_4",
+      "field": "input0.p0_4"
+    },
+    {
+      "id": "pin0_5",
+      "label": "IO0_5",
+      "field": "input0.p0_5"
+    },
+    {
+      "id": "pin0_6",
+      "label": "IO0_6",
+      "field": "input0.p0_6"
+    },
+    {
+      "id": "pin0_7",
+      "label": "IO0_7",
+      "field": "input0.p0_7"
+    },
+    {
+      "id": "pin1_0",
+      "label": "IO1_0",
+      "field": "input1.p1_0"
+    },
+    {
+      "id": "pin1_1",
+      "label": "IO1_1",
+      "field": "input1.p1_1"
+    },
+    {
+      "id": "pin1_2",
+      "label": "IO1_2",
+      "field": "input1.p1_2"
+    },
+    {
+      "id": "pin1_3",
+      "label": "IO1_3",
+      "field": "input1.p1_3"
+    },
+    {
+      "id": "pin1_4",
+      "label": "IO1_4",
+      "field": "input1.p1_4"
+    },
+    {
+      "id": "pin1_5",
+      "label": "IO1_5",
+      "field": "input1.p1_5"
+    },
+    {
+      "id": "pin1_6",
+      "label": "IO1_6",
+      "field": "input1.p1_6"
+    },
+    {
+      "id": "pin1_7",
+      "label": "IO1_7",
+      "field": "input1.p1_7"
+    }
+  ]
+}

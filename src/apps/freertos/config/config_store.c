@@ -35,8 +35,8 @@ static void build_cfg_path(char *out_primary, size_t out_primary_sz,
                            char *out_fallback, size_t out_fallback_sz,
                            const char *rel_suffix)
 {
-    char p1[160];
-    char p2[160];
+    char p1[384];
+    char p2[384];
     if (!rel_suffix) rel_suffix = "";
     if (rel_suffix[0] == '/') rel_suffix++;
     if (rel_suffix[0]) {
@@ -307,7 +307,7 @@ static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
  * replace: a completed backup is recovered before defaults/migration on boot. */
 static int write_device_file(const char *path, const void *data, size_t len)
 {
-    char tmp[200], backup[200];
+    char tmp[384], backup[384];
     FIL file;
     UINT written = 0;
     FRESULT result, close_result;
@@ -339,7 +339,7 @@ static int recover_device_configs_level(const char *path, int bundles)
     if (result == FR_NO_PATH || result == FR_NO_FILE) return 1;
     if (result != FR_OK) return 0;
     for (;;) {
-        char backup[200], canonical[200];
+        char backup[384], canonical[384];
         size_t len;
         result = f_readdir(&dir, &entry);
         if (result != FR_OK || !entry.fname[0]) break;
@@ -378,12 +378,20 @@ static int recover_device_configs(const char *path)
 }
 static int ensure_device_parent(const char *path)
 {
-    char parent[200], *slash;
+    char parent[384], *slash;
     if (strlen(path) >= sizeof(parent)) return 0;
     strcpy(parent, path);
     slash = strrchr(parent, '/');
     if (!slash) return 0;
     *slash = 0;
+    for (char *p = strchr(parent, '/'); p && *++p;) {
+        p = strchr(p, '/');
+        if (!p) break;
+        *p = 0;
+        int ok = ensure_dir_exists(parent);
+        *p = '/';
+        if (!ok) return 0;
+    }
     return ensure_dir_exists(parent);
 }
 static int profile_file_present(const char *path)
@@ -395,11 +403,12 @@ static int profile_file_present(const char *path)
     return 1;
 }
 /* A bundle supersedes its flat copy. Other JSON files inside the bundle are
- * reference data, never candidate configurations. No recursive traversal. */
+ * reference data, never candidate configurations. Traversal is handled by
+ * the bounded directory scanner below. */
 static int profile_candidate(const char *directory, const FILINFO *entry,
                              char relative[I2C_CFG_FILE_NAME_MAX])
 {
-    char path[200], canonical[I2C_CFG_FILE_NAME_MAX], legacy[I2C_CFG_FILE_NAME_MAX];
+    char path[384], canonical[I2C_CFG_FILE_NAME_MAX], legacy[I2C_CFG_FILE_NAME_MAX];
     size_t n = strlen(entry->fname);
     int length, present;
     if (entry->fattrib & AM_DIR) {
@@ -441,6 +450,58 @@ static int profile_candidate(const char *directory, const FILINFO *entry,
     strcpy(relative, entry->fname);
     return 1;
 }
+
+/* Bounded iterative traversal: no deep FatFs frames on the startup task stack.
+ * Every directory may contain a bundle plus nested channel/device directories. */
+static char s_scan_dirs[128][I2C_CFG_FILE_NAME_MAX];
+static char s_scan_files[I2C_CFG_MAX_DEVICES][I2C_CFG_FILE_NAME_MAX];
+static size_t s_scan_count;
+static int collect_profiles(const char *root)
+{
+    size_t count = 1;
+    s_scan_dirs[0][0] = 0;
+    s_scan_count = 0;
+    for (size_t d = 0; d < count; ++d) {
+        char directory[384];
+        DIR dir; FILINFO entry;
+        if (snprintf(directory, sizeof(directory), "%s%s%s", root,
+            s_scan_dirs[d][0] ? "/" : "", s_scan_dirs[d]) >= (int)sizeof(directory))
+            return 0;
+        if (d && !recover_device_configs_level(directory, 0)) return 0;
+        FRESULT st = f_opendir(&dir, directory);
+        if (st == FR_NO_PATH || st == FR_NO_FILE) continue;
+        if (st != FR_OK) return 0;
+        for (;;) {
+            char candidate[I2C_CFG_FILE_NAME_MAX], relative[I2C_CFG_FILE_NAME_MAX];
+            st = f_readdir(&dir, &entry);
+            if (st != FR_OK || !entry.fname[0]) break;
+            if (entry.fname[0] == '.') continue;
+            if (entry.fattrib & AM_DIR) {
+                if (snprintf(relative, sizeof(relative), "%s%s%s", s_scan_dirs[d],
+                    d ? "/" : "", entry.fname) >= (int)sizeof(relative) || count >= 128U) {
+                    st = FR_INVALID_NAME; break;
+                }
+                strcpy(s_scan_dirs[count++], relative);
+                char child[384];
+                if (snprintf(child, sizeof(child), "%s/%s", root, relative) >= (int)sizeof(child) ||
+                    !recover_device_configs_level(child, 0)) { st = FR_DISK_ERR; break; }
+            } else if (d) continue; /* Bundle files are found from their parent. */
+            int found = profile_candidate(directory, &entry, candidate);
+            if (found < 0) { st = FR_DISK_ERR; break; }
+            if (!found) continue;
+            if (s_scan_count >= I2C_CFG_MAX_DEVICES ||
+                snprintf(relative, sizeof(relative), "%s%s%s", s_scan_dirs[d],
+                    d ? "/" : "", candidate) >= (int)sizeof(relative) ||
+                !bvstk_device_profile_path_valid(relative)) {
+                st = FR_INVALID_NAME; break;
+            }
+            strcpy(s_scan_files[s_scan_count++], relative);
+        }
+        (void)f_closedir(&dir);
+        if (st != FR_OK) return 0;
+    }
+    return 1;
+}
 /* Materialize the canonical bundle filename without deleting legacy files.
  * This keeps old installations readable while making the on-device layout
  * self-describing for the web UI and future saves. */
@@ -452,7 +513,7 @@ static int migrate_profile_layout(const char *directory)
     if (result == FR_NO_PATH || result == FR_NO_FILE) return 1;
     if (result != FR_OK) return 0;
     for (;;) {
-        char canonical[200], legacy[200], source[200];
+        char canonical[384], legacy[384], source[384];
         size_t n;
         result = f_readdir(&dir, &entry);
         if (result != FR_OK || !entry.fname[0]) break;
@@ -488,7 +549,7 @@ static int migrate_profile_layout(const char *directory)
 /* Do not install defaults over an existing profile in any supported layout. */
 static int profile_exists(const char *path)
 {
-    char alternate[200], flat[200], *slash;
+    char alternate[384], flat[384], *slash;
     if (profile_file_present(path) != 0) return 1;
     if (strlen(path) >= sizeof(alternate)) return 1;
     strcpy(alternate, path);
@@ -524,17 +585,6 @@ static int profile_exists(const char *path)
     return 0;
 }
 
-static const char *canonical_profile_name(const char *device,
-                                          char *out, size_t capacity)
-{
-    int length;
-    if (!device || !device[0] || !out || capacity == 0U) return NULL;
-    length = snprintf(out, capacity, "%s/%s.json", device, device);
-    if (length <= 0 || (size_t)length >= capacity ||
-        !bvstk_device_profile_path_valid(out)) return NULL;
-    return out;
-}
-
 /* Read-only compatibility with old on-device paths. Never remove or overwrite
  * existing user policies; errors disable MDIO rather than install permissive defaults. */
 static int migrate_mdio_configs(const char *destination)
@@ -552,7 +602,7 @@ static int migrate_mdio_configs(const char *destination)
         if (result == FR_NO_PATH || result == FR_NO_FILE) continue;
         if (result != FR_OK) return 0;
         for (;;) {
-            char src[200], dst[200];
+            char src[384], dst[384];
             size_t len;
             result = f_readdir(&dir, &entry);
             if (result != FR_OK || !entry.fname[0]) break;
@@ -574,6 +624,7 @@ static int migrate_mdio_configs(const char *destination)
 static void config_task(void *arg)
 {
     int i2c_load_failed = 0;
+    int i2c_first_start = 0;
     int mdio_load_failed = 0;
     int mdio_files_seen = 0;
     int mdio_first_start = 0;
@@ -589,12 +640,13 @@ static void config_task(void *arg)
     char net_cfg_path[128], net_cfg_path_fb[128];
     char i2c_dir_path[128], i2c_dir_path_fb[128];
     char mdio_dir_path[128], mdio_dir_path_fb[128];
-    char mdio_marker[160];
+    char mdio_marker[160], i2c_marker[160];
     build_cfg_path(dir_path, sizeof(dir_path), dir_path_fb, sizeof(dir_path_fb), "");
     build_cfg_path(net_cfg_path, sizeof(net_cfg_path), net_cfg_path_fb, sizeof(net_cfg_path_fb), NETWORK_CFG_NAME);
     build_cfg_path(i2c_dir_path, sizeof(i2c_dir_path), i2c_dir_path_fb, sizeof(i2c_dir_path_fb), I2C_CFG_SUBDIR_NAME);
     build_cfg_path(mdio_dir_path, sizeof(mdio_dir_path), mdio_dir_path_fb, sizeof(mdio_dir_path_fb), MDIO_CFG_SUBDIR_NAME);
     snprintf(mdio_marker, sizeof(mdio_marker), "%s/.initialized", mdio_dir_path);
+    snprintf(i2c_marker, sizeof(i2c_marker), "%s/.initialized", i2c_dir_path);
 
     if (!dir_path[0] || !dir_path_fb[0] ||
         !net_cfg_path[0] || !net_cfg_path_fb[0] ||
@@ -617,21 +669,34 @@ static void config_task(void *arg)
         if (!recover_device_configs(i2c_dir_path) || !recover_device_configs(i2c_dir_path_fb) ||
             !migrate_profile_layout(i2c_dir_path) || !migrate_profile_layout(i2c_dir_path_fb))
             i2c_load_failed = 1;
-        for (unsigned i = 0; !i2c_load_failed && i < DEFAULT_I2C_CONFIG_FILES_COUNT; ++i) {
+        if (!i2c_load_failed && !file_exists(i2c_marker)) {
+            size_t existing = 0;
+            if (!collect_profiles(i2c_dir_path)) i2c_load_failed = 1;
+            else existing = s_scan_count;
+            if (!collect_profiles(i2c_dir_path_fb)) i2c_load_failed = 1;
+            else existing += s_scan_count;
+            i2c_first_start = existing == 0;
+        }
+        /* A supplied topology is a complete configuration set. Do not append
+         * unrelated built-in endpoints or resurrect deliberately removed ones. */
+        for (unsigned i = 0; i2c_first_start && !i2c_load_failed && i < DEFAULT_I2C_CONFIG_FILES_COUNT; ++i) {
             const default_json_file_t *d = &DEFAULT_I2C_CONFIG_FILES[i];
-            char cfg_path[160], cfg_path_fb[160];
-            char suf[96];
+            char cfg_path[384], cfg_path_fb[384];
+            char suf[256];
             snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_SUBDIR_NAME, d->file_name);
             build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
             if (!cfg_path[0] || !cfg_path_fb[0]) continue;
             if (!profile_exists(cfg_path) && !profile_exists(cfg_path_fb)) {
                 if (!ensure_device_parent(cfg_path) || !write_file_atomic(cfg_path, d->json, d->json_len)) {
                     xil_printf("CFG: failed to write default %s\r\n", cfg_path);
+                    i2c_load_failed = 1;
                 } else {
                     xil_printf("CFG: wrote default %s\r\n", cfg_path);
                 }
             }
         }
+        if (!i2c_load_failed && !file_exists(i2c_marker) &&
+            !write_file_atomic(i2c_marker, "i2c-v2\n", 7U)) i2c_load_failed = 1;
 
         mdio_first_start = !file_exists(mdio_marker);
         if (!recover_device_configs(mdio_dir_path) || !recover_device_configs(mdio_dir_path_fb) ||
@@ -639,8 +704,8 @@ static void config_task(void *arg)
             !migrate_profile_layout(mdio_dir_path) || !migrate_profile_layout(mdio_dir_path_fb)) mdio_load_failed = 1;
         for (unsigned i = 0; mdio_first_start && !mdio_load_failed && i < DEFAULT_MDIO_CONFIG_FILES_COUNT; ++i) {
             const default_json_file_t *d = &DEFAULT_MDIO_CONFIG_FILES[i];
-            char cfg_path[160], cfg_path_fb[160];
-            char suf[96];
+            char cfg_path[384], cfg_path_fb[384];
+            char suf[256];
             snprintf(suf, sizeof(suf), "%s/%s", MDIO_CFG_SUBDIR_NAME, d->file_name);
             build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
             if (!cfg_path[0] || !cfg_path_fb[0]) continue;
@@ -679,7 +744,7 @@ static void config_task(void *arg)
                     if (fl < 6) continue;
                     if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
 
-                    char src_p[200], dst_p[200];
+                    char src_p[384], dst_p[384];
                     int sn = snprintf(src_p, sizeof(src_p), "%s/%s", i2c_dir_path_fb, fn);
                     int dn = snprintf(dst_p, sizeof(dst_p), "%s/%s", i2c_dir_path, fn);
                     if (sn <= 0 || dn <= 0) continue;
@@ -709,7 +774,7 @@ static void config_task(void *arg)
                     if (fl < 6) continue;
                     if (strcasecmp(fn + fl - 5, ".json") != 0) continue;
 
-                    char src_p[200], dst_p[200];
+                    char src_p[384], dst_p[384];
                     int sn = snprintf(src_p, sizeof(src_p), "%s/%s", mdio_dir_path_fb, fn);
                     int dn = snprintf(dst_p, sizeof(dst_p), "%s/%s", mdio_dir_path, fn);
                     if (sn <= 0 || dn <= 0) continue;
@@ -743,29 +808,23 @@ static void config_task(void *arg)
         for (int pass = 0; pass < 2; ++pass) {
             const char *scan_dir = (pass == 0) ? i2c_dir_path : i2c_dir_path_fb;
             if (!scan_dir || !scan_dir[0] || !dir_exists(scan_dir)) continue;
-            DIR d;
-            FILINFO fno;
-            if (f_opendir(&d, scan_dir) != FR_OK) { i2c_load_failed = 1; break; }
-            for (;;) {
-                if (f_readdir(&d, &fno) != FR_OK) { i2c_load_failed = 1; break; }
-                if (!fno.fname[0]) break;
-                char fn[I2C_CFG_FILE_NAME_MAX];
-                int candidate = profile_candidate(scan_dir, &fno, fn);
-                if (candidate < 0) { i2c_load_failed = 1; break; }
-                if (!candidate) continue;
+            if (!collect_profiles(scan_dir)) { i2c_load_failed = 1; break; }
+            for (size_t file = 0; file < s_scan_count; ++file) {
+                const char *fn = s_scan_files[file];
                 size_t fl = strlen(fn);
                 /* A fallback copy cannot replace the primary file's policy. */
                 bool same_file = false;
                 for (size_t j = 0; pass && j < s_i2c_cfg_count; ++j)
                     if (bvstk_device_profile_same_file(s_i2c_cfgs[j].file_name, fn)) same_file = true;
                 if (same_file) continue;
-                char pth[200];
+                char pth[384];
                 int pn = snprintf(pth, sizeof(pth), "%s/%s", scan_dir, fn);
                 i2c_device_config_t tmp;
                 if (s_i2c_cfg_count >= I2C_CFG_MAX_DEVICES || fl >= I2C_CFG_FILE_NAME_MAX ||
                     pn <= 0 || (size_t)pn >= sizeof(pth) ||
                     !read_file_to_buf(pth, s_cfg_buf, sizeof(s_cfg_buf), &blen) ||
-                    !parse_i2c_device_json(s_cfg_buf, &tmp)) {
+                    !parse_i2c_device_json(s_cfg_buf, &tmp) ||
+                    !bvstk_device_profile_location_valid(fn, tmp.name, tmp.endpoint.parent)) {
                     xil_printf("CFG: invalid I2C profile %s\r\n", fn);
                     i2c_load_failed = 1; break;
                 }
@@ -775,13 +834,15 @@ static void config_task(void *arg)
                 for (size_t j = 0; j < s_i2c_cfg_count; ++j) {
                     if (strcasecmp(s_i2c_cfgs[j].name, tmp.name) == 0) { dup = true; break; }
                 }
-                if (dup) continue;
+                if (dup) {
+                    if (pass) continue;
+                    i2c_load_failed = 1; break;
+                }
 
                 strncpy(tmp.file_name, fn, sizeof(tmp.file_name) - 1);
                 tmp.file_name[sizeof(tmp.file_name) - 1] = '\0';
                 s_i2c_cfgs[s_i2c_cfg_count++] = tmp;
             }
-            (void)f_closedir(&d);
             if (i2c_load_failed) break;
         }
     }
@@ -791,7 +852,8 @@ static void config_task(void *arg)
         s_i2c_cfg_count = 0;
         xil_printf("CFG: I2C disabled: stored profiles could not be loaded\r\n");
     }
-    if (s_i2c_cfg_count == 0 && !i2c_load_failed) {
+    if (s_i2c_cfg_count == 0 && !i2c_load_failed &&
+        (i2c_first_start || !qspi_fs_is_ready())) {
         for (unsigned i = 0; i < DEFAULT_I2C_CONFIG_FILES_COUNT && s_i2c_cfg_count < I2C_CFG_MAX_DEVICES; ++i) {
             const default_json_file_t *d = &DEFAULT_I2C_CONFIG_FILES[i];
             i2c_device_config_t tmp;
@@ -808,22 +870,13 @@ static void config_task(void *arg)
     if (qspi_fs_is_ready() && !mdio_load_failed) {
         for (int pass = 0; pass < 2; ++pass) {
             const char *scan_dir = pass ? mdio_dir_path_fb : mdio_dir_path;
-            DIR d;
-            FILINFO fno;
-            FRESULT result = f_opendir(&d, scan_dir);
-            if (result == FR_NO_PATH || result == FR_NO_FILE) continue;
-            if (result != FR_OK) { mdio_load_failed = 1; break; }
-            for (;;) {
-                char pth[200], fn[MDIO_CFG_FILE_NAME_MAX];
+            if (!collect_profiles(scan_dir)) { mdio_load_failed = 1; break; }
+            for (size_t file = 0; file < s_scan_count; ++file) {
+                char pth[384];
+                const char *fn = s_scan_files[file];
                 mdio_phy_config_t tmp;
                 size_t fl;
                 bool duplicate = false;
-                result = f_readdir(&d, &fno);
-                if (result != FR_OK) { mdio_load_failed = 1; break; }
-                if (!fno.fname[0]) break;
-                int candidate = profile_candidate(scan_dir, &fno, fn);
-                if (candidate < 0) { mdio_load_failed = 1; break; }
-                if (!candidate) continue;
                 fl = strlen(fn);
                 mdio_files_seen = 1;
                 /* Same filename in fallback must not override a primary policy. */
@@ -844,7 +897,6 @@ static void config_task(void *arg)
                 if (bvstk_mdio_config_validate(&tmp) != BVSTK_OK) { mdio_load_failed = 1; break; }
                 s_mdio_cfgs[s_mdio_cfg_count++] = tmp;
             }
-            (void)f_closedir(&d);
         }
     }
     if (!mdio_files_seen && !mdio_load_failed && mdio_first_start) {
@@ -942,11 +994,15 @@ const i2c_device_config_t *config_store_find_i2c_device_by_name(const char *name
 
 const i2c_device_config_t *config_store_find_i2c_device_by_addr(uint8_t addr_7b)
 {
+    const i2c_device_config_t *found = NULL;
     if (!config_store_is_ready()) return NULL;
     for (size_t i = 0; i < s_i2c_cfg_count; ++i) {
-        if (s_i2c_cfgs[i].addr_7b == (addr_7b & 0x7Fu)) return &s_i2c_cfgs[i];
+        if (bvstk_i2c_address_space(&s_i2c_cfgs[i].endpoint, s_i2c_cfgs[i].addr_7b, addr_7b) >= 0) {
+            if (found) return NULL;
+            found = &s_i2c_cfgs[i];
+        }
     }
-    return NULL;
+    return found;
 }
 
 int config_store_set_i2c_device(const i2c_device_config_t *cfg)
@@ -1060,13 +1116,11 @@ static int save_i2c_device_locked(const i2c_device_config_t *cfg)
         status = bvstk_i2c_config_serialize_json(cfg, json, json_cap, &pos);
     if (status != BVSTK_OK) return 0;
 
-    char cfg_path[160], cfg_path_fb[160];
-    char suf[96];
+    char cfg_path[384], cfg_path_fb[384];
+    char suf[256];
     char tmp_fn[I2C_CFG_FILE_NAME_MAX];
-    const char *fn = canonical_profile_name(cfg->name, tmp_fn, sizeof(tmp_fn));
-    if (!fn && cfg->file_name[0]) fn = cfg->file_name;
-    if (!fn) return 0;
-    if (!bvstk_device_profile_path_valid(fn)) return 0;
+    if (!bvstk_device_profile_save_path(cfg->name, cfg->file_name, tmp_fn, sizeof(tmp_fn))) return 0;
+    const char *fn = tmp_fn;
     snprintf(suf, sizeof(suf), "%s/%s", I2C_CFG_SUBDIR_NAME, fn);
     build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
     if (!cfg_path[0] || !cfg_path_fb[0]) return 0;
@@ -1111,13 +1165,11 @@ static int save_mdio_device_locked(const mdio_phy_config_t *cfg)
         status = bvstk_mdio_config_format(cfg, json, json_cap, &pos);
     if (status != BVSTK_OK) return 0;
 
-    char cfg_path[160], cfg_path_fb[160];
-    char suf[96];
+    char cfg_path[384], cfg_path_fb[384];
+    char suf[256];
     char tmp_fn[MDIO_CFG_FILE_NAME_MAX];
-    const char *fn = canonical_profile_name(cfg->name, tmp_fn, sizeof(tmp_fn));
-    if (!fn && cfg->file_name[0]) fn = cfg->file_name;
-    if (!fn) return 0;
-    if (!bvstk_device_profile_path_valid(fn)) return 0;
+    if (!bvstk_device_profile_save_path(cfg->name, cfg->file_name, tmp_fn, sizeof(tmp_fn))) return 0;
+    const char *fn = tmp_fn;
     snprintf(suf, sizeof(suf), "%s/%s", MDIO_CFG_SUBDIR_NAME, fn);
     build_cfg_path(cfg_path, sizeof(cfg_path), cfg_path_fb, sizeof(cfg_path_fb), suf);
     if (!cfg_path[0] || !cfg_path_fb[0]) return 0;

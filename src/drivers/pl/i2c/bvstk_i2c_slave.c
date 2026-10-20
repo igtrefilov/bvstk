@@ -104,18 +104,23 @@ bvstk_status_t bvstk_i2c_slave_hw_set_address(
     bvstk_i2c_slave_hw_t *hardware,
     uint8_t addr_7b)
 {
+    addr_7b &= UINT8_C(0x7F);
+    return bvstk_i2c_slave_hw_set_addresses(hardware, &addr_7b, 1U);
+}
+
+bvstk_status_t bvstk_i2c_slave_hw_set_addresses(
+    bvstk_i2c_slave_hw_t *hardware, const uint8_t *addresses, size_t count)
+{
     uint32_t address_list[4] = {0U, 0U, 0U, 0U};
-    size_t word;
-    size_t bit;
     size_t i;
 
-    if (hardware == NULL || hardware->initialized == 0U) {
+    if (hardware == NULL || hardware->initialized == 0U || (count && !addresses)) {
         return BVSTK_ERR_NOT_READY;
     }
-    addr_7b &= UINT8_C(0x7F);
-    word = (size_t)addr_7b / 32U;
-    bit = (size_t)addr_7b % 32U;
-    address_list[word] = UINT32_C(1) << bit;
+    for (i = 0; i < count; ++i) {
+        if (addresses[i] > 0x7fU) return BVSTK_ERR_RANGE;
+        address_list[addresses[i] / 32U] |= UINT32_C(1) << (addresses[i] % 32U);
+    }
     for (i = 0U; i < 4U; ++i) {
         if (write32(&hardware->slave,
                     BVSTK_I2C_SLV_ADDR_LIST_0 + i * sizeof(uint32_t),

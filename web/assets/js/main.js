@@ -5,6 +5,7 @@ import {busPage} from "./buses.js";
 import {filesPage} from "./files.js";
 import {systemPage} from "./system.js";
 import {startConnectionMonitor} from "./connection.js";
+import {updateDeviceTree} from "./device-tree.js";
 
 startConnectionMonitor(document.getElementById("connection"));
 
@@ -33,7 +34,10 @@ function selectNavigation(reveal = false) {
       el.setAttribute("aria-current","page");
       // Reveal a new destination, not the same object on every API refresh.
       const target = el.getAttribute("href"), branch = el.closest("details");
-      if (branch && (reveal || target !== selectedNavigation)) branch.open = true;
+      if (branch && (reveal || target !== selectedNavigation)) {
+        for (let ancestor = branch; ancestor; ancestor = ancestor.parentElement?.closest("details"))
+          ancestor.open = true;
+      }
       selectedNavigation = target;
     } else el.removeAttribute("aria-current");
   });
@@ -45,21 +49,7 @@ window.addEventListener("bvstk-devices", event => {
   const {bus,data} = event.detail; knownBuses.set(bus,Date.now());
   const tree = sidebar.querySelector(`[data-device-tree="${bus}"]`);
   if (!tree) return;
-  const previous = new Map([...tree.children].map(el => [el.dataset.deviceName,el]));
-  data.devices.forEach((device,index) => {
-    const link = previous.get(device.name) || document.createElement("a");
-    const state = deviceState(bus,device);
-    previous.delete(device.name);
-    link.href = `#${bus}?name=${encodeURIComponent(device.name)}`;
-    link.dataset.deviceBus = bus; link.dataset.deviceName = device.name;
-    link.dataset.deviceReady = String(state.ready);
-    link.title = `${device.name}: ${state.label}`;
-    link.setAttribute("aria-label",link.title);
-    link.innerHTML = `${icon("chip",{ready:state.ready})}${esc(device.name)}`;
-    // Keep the focused anchor and manual branch state across status refreshes.
-    if (tree.children[index] !== link) tree.insertBefore(link,tree.children[index] || null);
-  });
-  previous.forEach(link => link.remove());
+  updateDeviceTree(tree,bus,data.devices);
   selectNavigation();
 });
 function staleDeviceIndicators() {

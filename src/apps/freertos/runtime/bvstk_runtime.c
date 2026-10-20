@@ -78,7 +78,8 @@ static int initialize_i2c(const i2c_device_config_t *configs,
                           size_t config_count,
                           const bvstk_event_sink_t *events)
 {
-    bvstk_i2c_device_t target_device;
+    uint8_t addresses[128];
+    size_t address_count = config_count ? 1U : 0U;
     bvstk_status_t status;
 
     status = bvstk_i2c_devices_init_from_config(&s_i2c_devices,
@@ -122,13 +123,16 @@ static int initialize_i2c(const i2c_device_config_t *configs,
     if (bvstk_cache_attach_i2c(&s_cache_i2c, &s_cache_registry, &s_i2c_master_service, configs) != BVSTK_OK)
         xil_printf("[cache] I2C catalog registration failed\r\n");
     s_i2c_ready = 1;
+    for (size_t i = 0; i < config_count; ++i) {
+        addresses[i] = configs[i].addr_7b;
+        if (configs[i].endpoint.parent[0] || configs[i].endpoint.transfer.configured)
+            address_count = config_count;
+    }
+    if (address_count == config_count)
+        address_count = bvstk_i2c_devices_addresses(&s_i2c_devices, addresses);
     if (config_count != 0U &&
-        bvstk_i2c_master_service_device_info(&s_i2c_master_service,
-                                             0U,
-                                             &target_device) == BVSTK_OK &&
         bvstk_i2c_slave_hw_init(&s_i2c_slave_hw) == BVSTK_OK &&
-        bvstk_i2c_slave_hw_set_address(&s_i2c_slave_hw,
-                                       target_device.addr_7b) == BVSTK_OK &&
+        bvstk_i2c_slave_hw_set_addresses(&s_i2c_slave_hw, addresses, address_count) == BVSTK_OK &&
         bvstk_i2c_slave_service_init(&s_i2c_slave_service,
                                      &s_i2c_devices,
                                      &s_i2c_cache,
@@ -289,6 +293,7 @@ static int snapshot_i2c_device_config(size_t device_id, int include_cache_values
     config->addr_7b = device.addr_7b;
     config->reg_count = device.reg_count;
     config->max_value_code = device.max_value_code;
+    config->endpoint = device.endpoint;
     config->policy = policy.mode;
     memcpy(config->whitelist,
            policy.whitelist,

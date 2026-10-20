@@ -16,6 +16,7 @@ SOURCES = (
     'src/apps/freertos/services/http/http_ui_bus.c',
     'web/assets/js/register-map.js',
     'web/assets/js/device-view.js',
+    'web/assets/js/indicators.js',
 )
 
 
@@ -237,26 +238,34 @@ def cache():
 
 
 def profile():
-    p = ConfigurationFigure('profile', 'Состав профиля устройства')
-    p.data('file', 60, 90, 1680, 1035, 'device_a.json', file=True)
-    p.data('identity', 100, 185, 450, 155, 'id и device', 'Экземпляр и описание', parent='file')
-    p.data('connection', 100, 415, 450, 220, 'Подключение', 'transport\nprotocol', parent='file')
-    p.data('presentation', 100, 745, 450, 175, 'Отображение', 'register_map\nview', parent='file')
-    p.data('defaults', 690, 185, 370, 155, 'defaults.register', 'Общие свойства', parent='file')
-    p.data('resources', 690, 445, 370, 380, 'resources', parent='file')
-    p.data('reg00', 720, 515, 310, 105, 'reg_00', 'address: 0x00', parent='resources')
-    p.data('reg01', 720, 660, 310, 125, 'reg_01', 'address: 0x01', parent='resources')
-    p.data('policy', 1200, 445, 490, 190, 'policy', 'Правила операций\nresource: reg_01', parent='file')
-    p.data('settings', 1200, 690, 490, 165, 'settings.cache_seed', 'resource: reg_01\nvalue: 0x00', parent='file')
-    p.data('observe', 690, 960, 1000, 115, 'observability', 'Публикация наблюдений и событий', parent='file')
-    p.edge('defaults', 'resources', 'ref', start='S', end='N')
-    p.path('policy', 'reg01', ((1200, 570), (1140, 570), (1140, 700), (1030, 700)), 'ref')
-    p.path('settings', 'reg01', ((1200, 750), (1030, 750)), 'ref')
-    # File and data cards have opaque backgrounds. References must remain visible
-    # over their enclosing JSON containers, including the resource array.
+    p = ConfigurationFigure('profile', 'Структура JSON-профиля устройства', width=1900)
+    p.data('file', 60, 80, 1780, 1270, 'device_a.json {}', file=True)
+    p.data('schema_version', 120, 170, 430, 130, 'schema_version', '2', parent='file')
+    p.data('profile_id', 610, 170, 430, 130, 'id', '"device_a"', parent='file')
+    p.data('register_map', 1200, 170, 580, 130, 'register_map', '"register_map.json"', parent='file')
+    p.data('view', 1200, 360, 580, 130, 'view', '"view.js"', parent='file')
+    p.data('device', 120, 360, 430, 260, 'device {}',
+           'model\nvendor\nclass\nlabel', parent='file')
+    p.data('transport', 610, 360, 430, 260, 'transport {}',
+           'bus\ncontroller\naddress\naddress_bits', parent='file')
+    p.data('protocol', 1200, 570, 580, 300, 'protocol {}', 'driver', parent='file')
+    p.data('options', 1240, 700, 500, 120, 'options {}', 'Параметры обработчика', parent='protocol')
+    p.data('defaults', 120, 725, 370, 260, 'defaults {}', parent='file')
+    p.data('register_defaults', 155, 815, 300, 120, 'register {}', 'Общие свойства', parent='defaults')
+    p.data('resources', 610, 725, 430, 310, 'resources []', parent='file')
+    p.data('resource', 650, 810, 350, 180, 'Элемент {}',
+           'id: reg_03\nkind: register\naddress: 0x03', parent='resources')
+    p.data('policy', 1200, 960, 580, 200, 'policy {}', 'read {}\nwrite {}', parent='file')
+    p.data('settings', 610, 1110, 430, 200, 'settings {}',
+           'cache_seed []\ndesired []\napply_on_startup', parent='file')
+    p.data('observe', 120, 1080, 370, 175, 'observability {}', 'telemetry\nevents', parent='file')
+    p.path('register_defaults', 'resources', ((455, 875), (610, 875)), 'ref')
+    p.path('policy', 'resources', ((1200, 1060), (1120, 1060), (1120, 950), (1040, 950)), 'ref')
+    p.edge('settings', 'resources', 'ref', start='N', end='S')
+    # References cross enclosing JSON objects, so keep them above container fills.
     p.root.remove(p.edges)
     p.root.insert(list(p.root).index(p.notes), p.edges)
-    p.legend_note = 'Вложенность — состав JSON. Пунктирная стрелка — связь данных. Показана часть полей.'
+    p.legend_note = 'Вложенность — состав JSON. {} — объект, [] — массив. Пунктир — использование ресурса или общих свойств.'
     p.save()
 
 
@@ -276,7 +285,7 @@ def defaults():
 
 def decode():
     p = ConfigurationFigure('decode', 'Расшифровка битового поля')
-    p.data('map', 60, 110, 480, 180, 'register_map.json', 'reg_01.ready\nlsb: 0, width: 1', file=True)
+    p.data('map', 60, 110, 480, 180, 'register_map.json', 'status.ready\nlsb: 0, width: 1', file=True)
     p.data('cache', 60, 460, 480, 180, 'Кэш: регистр 0x01', '0x01 после чтения')
     p.frame('browser', 660, 70, 1080, 650, 'Веб-интерфейс', 'L4')
     p.node('decode', 710, 160, 430, 420, 'Выделение поля', layer='L4', parent='browser')
@@ -322,18 +331,20 @@ def view():
 
 
 def generate():
+    from configuration_details import generate as details
     previous = ARROWS.get('ref')
     ARROWS['ref'] = ('#788794', 'Связь данных', '4 5')
     figures = (devices, package, storage, loading, state, cache, profile, defaults, decode, view)
     try:
         for figure in figures:
             figure()
+        detail_count = details(ConfigurationFigure)
     finally:
         if previous is None:
             del ARROWS['ref']
         else:
             ARROWS['ref'] = previous
-    return len(figures)
+    return len(figures) + detail_count
 
 
 if __name__ == '__main__':

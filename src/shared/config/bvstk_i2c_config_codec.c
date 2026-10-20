@@ -288,6 +288,79 @@ static int parse_rule_array(const char *cursor,
     }
 }
 
+bvstk_status_t bvstk_i2c_endpoint_validate(const bvstk_i2c_endpoint_t *e, uint16_t count)
+{
+    bvstk_i2c_transfer_t t;
+    const bvstk_i2c_switch_t *s;
+    if (!e || !count || count > I2C_CFG_MAX_REG_COUNT ||
+        !memchr(e->parent, 0, sizeof(e->parent)) ||
+        e->channel >= BVSTK_I2C_SWITCH_CHANNELS_MAX || (!e->parent[0] && e->channel))
+        return BVSTK_ERR_MALFORMED;
+    for (size_t i = 0; e->parent[i]; ++i) {
+        char c = e->parent[i];
+        if (!((c >= 'a' && c <= 'z') ||
+              (i && ((c >= '0' && c <= '9') || c == '_' || c == '-'))))
+            return BVSTK_ERR_MALFORMED;
+    }
+    t = bvstk_i2c_transfer_options(e); s = &e->router;
+    unsigned largest = count, total = 0;
+    if (e->space_count > BVSTK_ADDRESS_SPACES_MAX) return BVSTK_ERR_RANGE;
+    if (e->space_count) {
+        if (!t.configured || !t.address_bytes || s->channel_count) return BVSTK_ERR_UNSUPPORTED;
+        largest = 0;
+        for (unsigned i = 0; i < e->space_count; ++i) {
+            const bvstk_address_space_t *space = &e->spaces[i];
+            if (!memchr(space->id, 0, sizeof(space->id)) ||
+                space->id[0] < 'a' || space->id[0] > 'z' || space->address > 127 ||
+                space->first != total || !space->count || space->count > count - total)
+                return BVSTK_ERR_MALFORMED;
+            for (unsigned k = 0; space->id[k]; ++k)
+                if (!((space->id[k] >= 'a' && space->id[k] <= 'z') ||
+                    (space->id[k] >= '0' && space->id[k] <= '9') ||
+                    space->id[k] == '_' || space->id[k] == '-')) return BVSTK_ERR_MALFORMED;
+            for (unsigned j = 0; j < i; ++j)
+                if (!strcmp(space->id, e->spaces[j].id) || space->address == e->spaces[j].address)
+                    return BVSTK_ERR_MALFORMED;
+            total += space->count;
+            if (space->count > largest) largest = space->count;
+        }
+        if (total != count) return BVSTK_ERR_MALFORMED;
+    }
+    if (t.configured > 1 || t.address_bytes > 2 || t.little_endian > 1 ||
+        t.stop_before_read > 1 || t.verify_readback > 1 || t.invalidate_after_write > 1 ||
+        t.host_read_fresh > 1 || t.host_current_read > 1 || t.write_cycle_ms > 1000 ||
+        (!t.address_bytes && (count != 1 || t.address_base)) ||
+        (t.address_bytes && (uint32_t)t.address_base + largest - 1U >
+            (t.address_bytes == 1 ? 255U : 65535U))) return BVSTK_ERR_RANGE;
+    const bvstk_i2c_sequence_t *seq[2] = {&t.read_sequence, &t.write_sequence};
+    for (unsigned i = 0; i < 2; ++i) {
+        unsigned span = seq[i]->span;
+        if (seq[i]->mode > BVSTK_I2C_SEQUENCE_WRAP ||
+            (seq[i]->mode != BVSTK_I2C_SEQUENCE_WRAP && span) ||
+            (span && (span > count || count % span || t.address_base % span)))
+            return BVSTK_ERR_RANGE;
+        for (unsigned j = 0; span && j < e->space_count; ++j)
+            if (e->spaces[j].count % span) return BVSTK_ERR_RANGE;
+    }
+    if (s->channel_count) {
+        if (!t.configured || s->channel_count > BVSTK_I2C_SWITCH_CHANNELS_MAX ||
+            s->reg >= count || !s->select_mask || (s->select_mask & s->preserve_mask) ||
+            (e->read_only[s->reg / 8U] & (1U << (s->reg % 8U))))
+            return BVSTK_ERR_MALFORMED;
+        for (unsigned i = 0; i < s->channel_count; ++i) {
+            const bvstk_i2c_channel_t *c = &s->channels[i];
+            if (!c->match_mask || ((c->match_mask | c->select) & ~s->select_mask))
+                return BVSTK_ERR_MALFORMED;
+            /* Each selection used for an internal route must isolate one channel. */
+            for (unsigned j = 0; j < s->channel_count; ++j)
+                if (j != i && (c->select & s->channels[j].match_mask) ==
+                    (s->channels[j].select & s->channels[j].match_mask))
+                    return BVSTK_ERR_MALFORMED;
+        }
+    }
+    return BVSTK_OK;
+}
+
 bvstk_status_t bvstk_i2c_config_validate(
     const i2c_device_config_t *config)
 {
@@ -296,8 +369,9 @@ bvstk_status_t bvstk_i2c_config_validate(
     if (config == NULL || config->name[0] == '\0' ||
         memchr(config->name, '\0', sizeof(config->name)) == NULL ||
         config->addr_7b > UINT8_C(0x7F) || config->reg_count == 0U ||
+        (config->endpoint.space_count && config->addr_7b != config->endpoint.spaces[0].address) ||
         config->reg_count > I2C_CFG_MAX_REG_COUNT ||
-        config->max_value_code > UINT8_C(64) ||
+        bvstk_i2c_endpoint_validate(&config->endpoint, config->reg_count) != BVSTK_OK ||
         (config->policy != I2C_POLICY_WHITELIST &&
          config->policy != I2C_POLICY_BLACKLIST) ||
         config->whitelist_len > I2C_CFG_RULES_MAX ||
@@ -366,7 +440,7 @@ bvstk_status_t bvstk_i2c_config_parse_json(const char *json,
 
     value = find_key(json, "max_value_code");
     (void)parse_u32(value, &number, &ok);
-    if (value == NULL || ok == 0 || number > 64U) {
+    if (value == NULL || ok == 0 || number > 255U) {
         return BVSTK_ERR_MALFORMED;
     }
     config->max_value_code = (uint8_t)number;

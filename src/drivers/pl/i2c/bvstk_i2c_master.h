@@ -38,6 +38,16 @@ bvstk_status_t bvstk_i2c_master_hw_transfer(
     size_t read_size,
     uint32_t timeout_ms);
 
+/* A routed transaction owns this lock across selection, transfer and restore.
+ * transfer_locked must only be called between a successful lock and unlock. */
+bvstk_status_t bvstk_i2c_master_hw_lock(bvstk_i2c_master_hw_t *, uint32_t);
+void bvstk_i2c_master_hw_unlock(bvstk_i2c_master_hw_t *);
+bvstk_status_t bvstk_i2c_master_hw_transfer_locked(bvstk_i2c_master_hw_t *,
+    uint8_t, const uint8_t *, size_t, uint8_t *, size_t, uint32_t);
+/* Descriptor-driven operations never replay a possibly completed transaction. */
+bvstk_status_t bvstk_i2c_master_hw_transfer_once_locked(bvstk_i2c_master_hw_t *,
+    uint8_t, const uint8_t *, size_t, uint8_t *, size_t, uint32_t);
+
 bvstk_status_t bvstk_i2c_master_hw_read_reg(bvstk_i2c_master_hw_t *hardware,
                                             uint8_t addr_7b,
                                             uint8_t reg,

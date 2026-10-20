@@ -722,11 +722,17 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
         return dcp2_send_response(fd, srv, opcode, seq,
                                   DCP2_STATUS_ERR_RANGE, NULL, 0);
     }
+    bvstk_i2c_device_t device;
+    uint8_t reg;
+    if (bvstk_i2c_master_service_device_info(service, dev_idx, &device) != BVSTK_OK ||
+        !bvstk_i2c_address_register(&device.endpoint, device.addr_7b, device.reg_count,
+                                    body[0], body[1], &reg))
+        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
     if (opcode == DCP2_OP_I2C_READ_REG) {
         uint8_t value = 0U;
         status = bvstk_i2c_master_service_read_from(service,
                                                dev_idx,
-                                               body[1],
+                                               reg,
                                                &value,
                                                BVSTK_EVENT_SOURCE_DCP,
                                                100U);
@@ -743,7 +749,7 @@ static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, co
     if (opcode == DCP2_OP_I2C_WRITE_REG) {
         status = bvstk_i2c_master_service_write(service,
                                                 dev_idx,
-                                                body[1],
+                                                reg,
                                                 body[2],
                                                 BVSTK_EVENT_SOURCE_DCP,
                                                 100U);

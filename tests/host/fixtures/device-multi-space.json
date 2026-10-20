@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "id": "dual",
+  "device": {"model": "Dual-window fixture", "class": "generic"},
+  "transport": {
+    "bus": "i2c",
+    "controller": "pl_i2c_0",
+    "address_spaces": [
+      {"id": "identity", "address": "0x50", "register_count": 4},
+      {"id": "diagnostics", "address": "0x51", "register_count": 4}
+    ]
+  },
+  "protocol": {
+    "driver": "bvstk_i2c_bridge",
+    "options": {"max_write_value": "0xFF"},
+    "transfer": {
+      "address_bytes": 1,
+      "read_sequence": {"mode": "wrap"},
+      "write_sequence": {"mode": "linear"},
+      "host_read": "fresh",
+      "host_current_read": true
+    }
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 8, "access": "rw", "write_mask": "0xFF",
+      "cache": {"mode": "driver"}, "verify": {"mode": "driver"}
+    }
+  },
+  "resources": [
+    {"id": "identity_00", "space": "identity", "kind": "register", "address": "0x00"},
+    {"id": "identity_01", "space": "identity", "kind": "register", "address": "0x01"},
+    {"id": "identity_02", "space": "identity", "kind": "register", "address": "0x02"},
+    {"id": "identity_03", "space": "identity", "kind": "register", "address": "0x03"},
+    {"id": "diagnostics_00", "space": "diagnostics", "kind": "register", "address": "0x00"},
+    {"id": "diagnostics_01", "space": "diagnostics", "kind": "register", "address": "0x01"},
+    {"id": "diagnostics_02", "space": "diagnostics", "kind": "register", "address": "0x02"},
+    {"id": "diagnostics_03", "space": "diagnostics", "kind": "register", "address": "0x03"}
+  ],
+  "policy": {
+    "read": {"mode": "blacklist", "rules": []},
+    "write": {
+      "mode": "whitelist",
+      "rules": [{"resource": "diagnostics_00", "match": {"value": "0x12", "mask": "0xFF"}}]
+    }
+  },
+  "settings": {"cache_seed": [{"resource": "identity_00", "value": "0x03"}]}
+}

@@ -28,4 +28,19 @@ for (const [bus, device] of [["mdio","lan8720"],["i2c","axp15060"]]) {
   assert.deepEqual(decode({...state, synchronized:false}).summary, []);
   assert.throws(() => decode({...state, device:"different"}), /profile/);
 }
+{
+  const profilePath = fileURLToPath(new URL("../host/fixtures/device-multi-space.json",import.meta.url));
+  const mapPath = fileURLToPath(new URL("../host/fixtures/device-multi-space_register_map.json",import.meta.url));
+  const profile = JSON.parse(await readFile(profilePath,"utf8"));
+  const decode = await createDecoder(profilePath,mapPath);
+  const state = {subsystem:"i2c",device:"dual",synchronized:true,generation:1,revision:1,presence:"ready",
+    resources:profile.resources.map(r => ({id:r.id,width_bits:8,value:r.space==="identity"?"0x11":"0x22",
+      valid:true,source:"device",updated_ms:1000}))};
+  assert.deepEqual(decode(state).summary.map(s=>s.text),["17","34"]);
+  state.resources[4].value="0x33";
+  assert.deepEqual(decode(state).summary.map(s=>s.text),["17","51"]);
+  state.resources[4].valid=false;
+  assert.equal(decode(state).summary[1].status,"missing");
+  assert.equal(decode(state).summary[0].text,"17");
+}
 console.log("DCP2 CACHE indicators tests passed");

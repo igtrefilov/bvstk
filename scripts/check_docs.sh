@@ -75,9 +75,9 @@ check_forbidden_docs \
 # I2C has no autopoll fields. The shared HTTP guide also describes MDIO, which
 # keeps its own autopoll configuration, so check only the legacy I2C sections.
 check_forbidden_docs \
-    "I2C HTTP autopoll fields in docs/interfaces/http/devices.md" \
+    "I2C HTTP autopoll fields in docs/interfaces/http/reference/devices.md" \
     'autopoll_(enabled|regs|reg_delay_ms|cycle_delay_ms)' \
-    < <(sed -n '/^## GET \/api\/i2c$/,/^## MDIO$/p' docs/interfaces/http/devices.md)
+    < <(sed -n '/^## GET \/api\/i2c$/,/^## MDIO$/p' docs/interfaces/http/reference/devices.md)
 
 if (( fail != 0 )); then
     exit 1

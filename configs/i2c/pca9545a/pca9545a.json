@@ -1,0 +1,141 @@
+{
+  "schema_version": 2,
+  "id": "pca9545a",
+  "device": {
+    "model": "PCA9545APW",
+    "vendor": "NXP",
+    "class": "bridge",
+    "label": "PCA9545A"
+  },
+  "transport": {
+    "bus": "i2c",
+    "controller": "pl_i2c_0",
+    "address": "0x70",
+    "address_bits": 7
+  },
+  "protocol": {
+    "driver": "bvstk_i2c_bridge",
+    "options": {
+      "max_write_value": "0x0F",
+      "capture_cache_on_save": true
+    },
+    "transfer": {
+      "address_bytes": 0,
+      "address_order": "big",
+      "address_base": "0x0000",
+      "read_restart": true,
+      "read_sequence": {
+        "mode": "fixed"
+      },
+      "write_sequence": {
+        "mode": "fixed"
+      },
+      "write_cycle_ms": 0,
+      "verify_write": "none",
+      "cache_after_write": "invalidate",
+      "host_read": "fresh",
+      "host_current_read": true
+    },
+    "switch": {
+      "resource": "reg_00",
+      "select_mask": "0x0F",
+      "preserve_mask": "0x00",
+      "channels": [
+        {
+          "select": "0x01",
+          "match_mask": "0x01"
+        },
+        {
+          "select": "0x02",
+          "match_mask": "0x02"
+        },
+        {
+          "select": "0x04",
+          "match_mask": "0x04"
+        },
+        {
+          "select": "0x08",
+          "match_mask": "0x08"
+        }
+      ]
+    }
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 8,
+      "access": "rw",
+      "write_mask": "0xFF",
+      "cache": {
+        "mode": "driver"
+      },
+      "verify": {
+        "mode": "driver"
+      }
+    }
+  },
+  "resources": [
+    {
+      "id": "reg_00",
+      "kind": "register",
+      "address": "0x00"
+    }
+  ],
+  "policy": {
+    "read": {
+      "mode": "blacklist",
+      "rules": []
+    },
+    "write": {
+      "mode": "whitelist",
+      "rules": [
+        {
+          "resource": "reg_00",
+          "match": {
+            "value": "0x00",
+            "mask": "0xFF"
+          }
+        },
+        {
+          "resource": "reg_00",
+          "match": {
+            "value": "0x01",
+            "mask": "0xFF"
+          }
+        },
+        {
+          "resource": "reg_00",
+          "match": {
+            "value": "0x02",
+            "mask": "0xFF"
+          }
+        },
+        {
+          "resource": "reg_00",
+          "match": {
+            "value": "0x04",
+            "mask": "0xFF"
+          }
+        },
+        {
+          "resource": "reg_00",
+          "match": {
+            "value": "0x08",
+            "mask": "0xFF"
+          }
+        }
+      ],
+      "inactive_rules": []
+    }
+  },
+  "settings": {
+    "desired": [],
+    "cache_seed": [],
+    "apply_on_startup": false
+  },
+  "observability": {
+    "telemetry": true,
+    "events": true
+  },
+  "register_map": "register_map.json",
+  "view": "view.js"
+}

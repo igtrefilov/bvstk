@@ -141,6 +141,7 @@ bvstk_status_t bvstk_dcp2_process_policy(
     int is_i2c;
     bvstk_status_t status;
     uint8_t op, list;
+    unsigned first = 0, window = 256;
     union {
         bvstk_i2c_policy_entry_t i2c;
         bvstk_mdio_policy_entry_t mdio;
@@ -167,11 +168,35 @@ bvstk_status_t bvstk_dcp2_process_policy(
     status = is_i2c ? bvstk_i2c_master_service_find_by_addr(i2c, request->body[0], &device_id) :
                      bvstk_mdio_service_find_by_phy(mdio, request->body[0], &device_id);
     if (status != BVSTK_OK) return policy_status(status);
+    if (is_i2c) {
+        bvstk_i2c_device_t device;
+        status = bvstk_i2c_master_service_device_info(i2c, device_id, &device);
+        if (status != BVSTK_OK) return policy_status(status);
+        int space = bvstk_i2c_address_space(&device.endpoint, device.addr_7b, request->body[0]);
+        if (space < 0) return BVSTK_ERR_RANGE;
+        if (device.endpoint.space_count) {
+            first = device.endpoint.spaces[space].first;
+            window = device.endpoint.spaces[space].count;
+        } else window = device.reg_count;
+    }
     if (op == BVSTK_DCP2_OP_I2C_POLICY_GET) {
         size_t white, black;
         status = is_i2c ? bvstk_i2c_master_service_get_policy(i2c, device_id, &snapshot.i2c) :
                          bvstk_mdio_service_get_policy(mdio, device_id, &snapshot.mdio);
         if (status != BVSTK_OK) return policy_status(status);
+        if (is_i2c) {
+            i2c_rule_entry_t *rules[2] = {snapshot.i2c.whitelist, snapshot.i2c.blacklist};
+            size_t *length[2] = {&snapshot.i2c.whitelist_len, &snapshot.i2c.blacklist_len};
+            for (unsigned l = 0; l < 2; ++l) {
+                size_t kept = 0;
+                for (size_t r = 0; r < *length[l]; ++r)
+                    if (rules[l][r].reg >= first && rules[l][r].reg - first < window) {
+                        rules[l][kept] = rules[l][r];
+                        rules[l][kept++].reg -= (uint8_t)first;
+                    }
+                *length[l] = kept;
+            }
+        }
         white = is_i2c ? snapshot.i2c.whitelist_len : snapshot.mdio.whitelist_len;
         black = is_i2c ? snapshot.i2c.blacklist_len : snapshot.mdio.blacklist_len;
         if (white > (is_i2c ? I2C_CFG_RULES_MAX : MDIO_CFG_RULES_MAX) ||
@@ -203,13 +228,15 @@ bvstk_status_t bvstk_dcp2_process_policy(
         status = is_i2c ? bvstk_i2c_master_service_set_policy(i2c, device_id, (i2c_policy_t)list) :
                          bvstk_mdio_service_set_policy(mdio, device_id, (mdio_policy_t)list);
     } else if (op == BVSTK_DCP2_OP_I2C_POLICY_CLEAR) {
-        status = is_i2c ? bvstk_i2c_master_service_rule_clear_list(i2c, device_id, (i2c_policy_t)list) :
+        status = is_i2c ? bvstk_i2c_master_service_rule_clear_range(i2c, device_id, (i2c_policy_t)list, first, window) :
                          bvstk_mdio_service_rule_clear_list(mdio, device_id, (mdio_policy_t)list);
     } else if (is_i2c) {
+        if (request->body[2] >= window) return BVSTK_ERR_RANGE;
+        uint8_t reg = (uint8_t)(first + request->body[2]);
         status = op == BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE ?
-            bvstk_i2c_master_service_rule_remove(i2c, device_id, (i2c_policy_t)list, request->body[2], request->body[3]) :
-            list == 0U ? bvstk_i2c_master_service_rule_allow(i2c, device_id, request->body[2], request->body[3]) :
-                         bvstk_i2c_master_service_rule_deny(i2c, device_id, request->body[2], request->body[3]);
+            bvstk_i2c_master_service_rule_remove(i2c, device_id, (i2c_policy_t)list, reg, request->body[3]) :
+            list == 0U ? bvstk_i2c_master_service_rule_allow(i2c, device_id, reg, request->body[3]) :
+                         bvstk_i2c_master_service_rule_deny(i2c, device_id, reg, request->body[3]);
     } else {
         uint16_t value = bvstk_dcp2_read_be16(request->body + 3);
         uint16_t mask = bvstk_dcp2_read_be16(request->body + 5);
@@ -228,7 +255,7 @@ static bvstk_status_t process_i2c(bvstk_control_api_t *control,
 {
     size_t device_id;
     bvstk_status_t status;
-    uint8_t address;
+    uint8_t address, reg;
 
     if (request->opcode >= BVSTK_DCP2_OP_I2C_POLICY_SET &&
         request->opcode <= BVSTK_DCP2_OP_I2C_POLICY_CLEAR) {
@@ -251,13 +278,18 @@ static bvstk_status_t process_i2c(bvstk_control_api_t *control,
     if (status != BVSTK_OK) {
         return status;
     }
+    bvstk_i2c_device_t device;
+    status = bvstk_i2c_master_service_device_info(control->i2c, device_id, &device);
+    if (status != BVSTK_OK) return status;
+    if (!bvstk_i2c_address_register(&device.endpoint, device.addr_7b,
+            device.reg_count, address, request->body[1], &reg)) return BVSTK_ERR_RANGE;
     if (request->opcode == BVSTK_DCP2_OP_I2C_READ_REG) {
         if (request->body_size != 2U) {
             return BVSTK_ERR_MALFORMED;
         }
         status = bvstk_control_i2c_read(control,
                                         device_id,
-                                        request->body[1],
+                                        reg,
                                         body,
                                         100U);
         *body_size = status == BVSTK_OK ? 1U : 0U;
@@ -269,7 +301,7 @@ static bvstk_status_t process_i2c(bvstk_control_api_t *control,
         }
         status = bvstk_control_i2c_write(control,
                                          device_id,
-                                         request->body[1],
+                                         reg,
                                          request->body[2],
                                          BVSTK_EVENT_SOURCE_DCP,
                                          100U);

@@ -48,7 +48,7 @@ static void put(const char *p,const char *data) {assert(ensure_device_parent(p))
 static void startup(void) {config_task(NULL);assert(s_ready&&s_startup_done);}
 static void policy_storage_roundtrip(void)
 {
-    i2c_device_config_t original_i2c = s_i2c_cfgs[0], i = original_i2c;
+    i2c_device_config_t original_i2c = (*config_store_find_i2c_device_by_name("axp15060")), i = original_i2c;
     mdio_phy_config_t original_mdio = s_mdio_cfgs[0], m = original_mdio;
     i.policy = I2C_POLICY_BLACKLIST;
     i.whitelist_len = i.blacklist_len = 1;
@@ -60,16 +60,16 @@ static void policy_storage_roundtrip(void)
     m.blacklist[0] = (mdio_rule_entry_t){0, 0x8000, 0x8000};
     assert(save_i2c_device_locked(&i) && save_mdio_device_locked(&m));
     startup();
-    assert(s_i2c_cfgs[0].policy == I2C_POLICY_BLACKLIST);
-    assert(s_i2c_cfgs[0].whitelist_len == 1 && s_i2c_cfgs[0].whitelist[0].val == 0x12);
-    assert(s_i2c_cfgs[0].blacklist_len == 1 && s_i2c_cfgs[0].blacklist[0].val == 0x10);
+    assert((*config_store_find_i2c_device_by_name("axp15060")).policy == I2C_POLICY_BLACKLIST);
+    assert((*config_store_find_i2c_device_by_name("axp15060")).whitelist_len == 1 && (*config_store_find_i2c_device_by_name("axp15060")).whitelist[0].val == 0x12);
+    assert((*config_store_find_i2c_device_by_name("axp15060")).blacklist_len == 1 && (*config_store_find_i2c_device_by_name("axp15060")).blacklist[0].val == 0x10);
     assert(s_mdio_cfgs[0].policy == MDIO_POLICY_BLACKLIST);
     assert(s_mdio_cfgs[0].whitelist_len == 1 && s_mdio_cfgs[0].whitelist[0].mask == 0x2000);
     assert(s_mdio_cfgs[0].blacklist_len == 1 && s_mdio_cfgs[0].blacklist[0].val == 0x8000);
     assert(s_mdio_cfgs[0].blacklist[0].mask == 0x8000);
-    assert(s_i2c_cfgs[0].settings_len == original_i2c.settings_len);
+    assert((*config_store_find_i2c_device_by_name("axp15060")).settings_len == original_i2c.settings_len);
     assert(s_mdio_cfgs[0].settings_len == original_mdio.settings_len);
-    assert(!strcmp(s_i2c_cfgs[0].profile.register_map, original_i2c.profile.register_map));
+    assert(!strcmp((*config_store_find_i2c_device_by_name("axp15060")).profile.register_map, original_i2c.profile.register_map));
     assert(!strcmp(s_mdio_cfgs[0].profile.view, original_mdio.profile.view));
     /* A failed flush must report failure and leave the previous profile usable. */
     sync_failure = 1;
@@ -77,17 +77,54 @@ static void policy_storage_roundtrip(void)
     assert(!save_mdio_device_locked(&original_mdio));
     sync_failure = 0;
     startup();
-    assert(s_i2c_cfgs[0].policy == I2C_POLICY_BLACKLIST);
+    assert((*config_store_find_i2c_device_by_name("axp15060")).policy == I2C_POLICY_BLACKLIST);
     assert(s_mdio_cfgs[0].policy == MDIO_POLICY_BLACKLIST);
     assert(save_i2c_device_locked(&original_i2c) && save_mdio_device_locked(&original_mdio));
     startup();
 }
+static void nested_storage_roundtrip(void)
+{
+    const char *path=QSPI_ROOT "config/i2c/pca9545a/pcf8563/pcf8563.json";
+    const i2c_device_config_t *stored=config_store_find_i2c_device_by_name("pcf8563");
+    assert(stored && !strcmp(stored->file_name,"pca9545a/pcf8563/pcf8563.json"));
+    i2c_device_config_t changed=*stored;
+    strcpy(changed.profile.label,"RTC");
+    assert(save_i2c_device_locked(&changed));
+    assert(!file_exists(QSPI_ROOT "config/i2c/pcf8563/pcf8563.json"));
+    startup();
+    stored=config_store_find_i2c_device_by_name("pcf8563");
+    assert(stored && !strcmp(stored->profile.label,"RTC"));
+    assert(!memcmp(&stored->endpoint,&changed.endpoint,sizeof(stored->endpoint)));
+    assert(f_unlink(path)==FR_OK); /* interrupted replace: restore nested .bak */
+    startup();
+    stored=config_store_find_i2c_device_by_name("pcf8563");
+    assert(stored && !strcmp(stored->endpoint.parent,"pca9545a"));
+    assert(!strcmp(stored->file_name,"pca9545a/pcf8563/pcf8563.json"));
+    assert(file_exists(path));
+}
+static void supplied_configuration(void)
+{
+    /* A supplied subset is complete; first startup must not add defaults. */
+    char previous[sizeof(storage)];
+    strcpy(previous,storage);
+    assert(strlen(previous)+8<sizeof(storage));
+    strcat(storage,"/subset");assert(!mkdir(storage,0700));
+    put(QSPI_ROOT "config/i2c/axp15060/axp15060.json",DEFAULT_I2C_AXP15060_JSON);
+    startup();
+    assert(s_i2c_cfg_count==1 && !strcmp(s_i2c_cfgs[0].name,"axp15060"));
+    assert(!file_exists(QSPI_ROOT "config/i2c/pca9545a/pca9545a.json"));
+    assert(file_exists(QSPI_ROOT "config/i2c/.initialized"));
+    assert(f_unlink(QSPI_ROOT "config/i2c/axp15060/axp15060.json")==FR_OK);
+    startup();assert(s_i2c_cfg_count==0);
+    strcpy(storage,previous);
+}
 int main(int argc,char **argv) {
     assert(argc==2&&strlen(argv[1])<sizeof(storage));strcpy(storage,argv[1]);assert(!mkdir(storage,0700));
     startup();
-    assert(s_i2c_cfg_count==2 && s_mdio_cfg_count==3);
+    assert(s_i2c_cfg_count==DEFAULT_I2C_CONFIG_FILES_COUNT && s_mdio_cfg_count==3);
     policy_storage_roundtrip();
-    assert(!strcmp(s_i2c_cfgs[0].file_name,"axp15060/axp15060.json"));
+    nested_storage_roundtrip();
+    assert(!strcmp((*config_store_find_i2c_device_by_name("axp15060")).file_name,"axp15060/axp15060.json"));
     assert(!strcmp(s_mdio_cfgs[0].file_name,"lan8720/lan8720.json"));
     assert(file_exists(QSPI_ROOT "config/mdio/lan8720/lan8720.json"));
     // Maps, JS and arbitrary extra JSON inside a bundle are not devices.
@@ -98,7 +135,7 @@ int main(int argc,char **argv) {
     // Nested policy takes precedence even over malformed flat copies.
     put(QSPI_ROOT "config/mdio/lan8720.json","broken flat shadow");
     put(QSPI_ROOT "config/i2c/axp15060.json","broken flat shadow");
-    startup();assert(s_i2c_cfg_count==2&&s_mdio_cfg_count==3);
+    startup();assert(s_i2c_cfg_count==DEFAULT_I2C_CONFIG_FILES_COUNT&&s_mdio_cfg_count==3);
     mdio_phy_config_t m=s_mdio_cfgs[0];m.policy=MDIO_POLICY_BLACKLIST;m.blacklist_len=0;
     assert(save_mdio_device_locked(&m));
     assert(file_exists(QSPI_ROOT "config/mdio/lan8720/lan8720.json.bak"));
@@ -110,9 +147,9 @@ int main(int argc,char **argv) {
     // Flat profiles remain usable; they are not replaced by bundled defaults.
     assert(f_unlink(QSPI_ROOT "config/i2c/axp15060.json")==FR_OK);
     assert(f_rename(QSPI_ROOT "config/i2c/axp15060/axp15060.json",QSPI_ROOT "config/i2c/axp15060.json")==FR_OK);
-    startup();assert(s_i2c_cfg_count==2 && !strcmp(s_i2c_cfgs[0].file_name,"axp15060/axp15060.json"));
-    i2c_device_config_t i=s_i2c_cfgs[0];i.policy=I2C_POLICY_BLACKLIST;assert(save_i2c_device_locked(&i));
-    startup();assert(s_i2c_cfgs[0].policy==I2C_POLICY_BLACKLIST);
+    startup();assert(s_i2c_cfg_count==DEFAULT_I2C_CONFIG_FILES_COUNT && !strcmp((*config_store_find_i2c_device_by_name("axp15060")).file_name,"axp15060/axp15060.json"));
+    i2c_device_config_t i=(*config_store_find_i2c_device_by_name("axp15060"));i.policy=I2C_POLICY_BLACKLIST;assert(save_i2c_device_locked(&i));
+    startup();assert((*config_store_find_i2c_device_by_name("axp15060")).policy==I2C_POLICY_BLACKLIST);
     assert(file_exists(QSPI_ROOT "config/i2c/axp15060/axp15060.json"));
     // Read failure in a bundle is NOT interpreted as a missing optional map.
     stat_failure=QSPI_ROOT "config/mdio/lan8720/lan8720.json";
@@ -126,16 +163,33 @@ int main(int argc,char **argv) {
     snprintf(primary,sizeof(primary),"%s/config/i2c",storage);
     snprintf(fallback,sizeof(fallback),"%s/configs/i2c",storage);
     assert(bvstk_neutrino_i2c_config_store_init(&nto,primary,fallback));
-    assert(nto.device_count==2);
-    const i2c_device_config_t *p=bvstk_neutrino_i2c_config_store_find_name(&nto,"pca9536",NULL);
-    assert(p && !strcmp(p->file_name,"pca9536/pca9536.json"));
+    assert(nto.device_count==DEFAULT_I2C_CONFIG_FILES_COUNT);
+    const i2c_device_config_t *p=bvstk_neutrino_i2c_config_store_find_name(&nto,"axp15060",NULL);
+    assert(p && !strcmp(p->file_name,"axp15060/axp15060.json"));
     i=*p;strcpy(i.profile.register_map,"register_map.json");strcpy(i.profile.view,"view.js");
     assert(bvstk_neutrino_i2c_config_store_save(&nto,&i));
-    put(QSPI_ROOT "config/i2c/pca9536/other.json","not a profile");
-    put(QSPI_ROOT "config/i2c/pca9536.json","invalid shadow");
+    put(QSPI_ROOT "config/i2c/axp15060/other.json","not a profile");
+    put(QSPI_ROOT "config/i2c/axp15060.json","invalid shadow");
     assert(bvstk_neutrino_i2c_config_store_init(&nto,primary,fallback));
-    p=bvstk_neutrino_i2c_config_store_find_name(&nto,"pca9536",NULL);
-    assert(nto.device_count==2 && p && !strcmp(p->profile.view,"view.js"));
+    p=bvstk_neutrino_i2c_config_store_find_name(&nto,"axp15060",NULL);
+    assert(nto.device_count==DEFAULT_I2C_CONFIG_FILES_COUNT && p && !strcmp(p->profile.view,"view.js"));
+    p=bvstk_neutrino_i2c_config_store_find_name(&nto,"p24c02a",NULL);
+    assert(p && !strcmp(p->file_name,"pca9545a/p24c02a/p24c02a.json"));
+    i=*p;strcpy(i.profile.label,"EEPROM");
+    assert(bvstk_neutrino_i2c_config_store_save(&nto,&i));
+    assert(!file_exists(QSPI_ROOT "config/i2c/p24c02a/p24c02a.json"));
+    assert(bvstk_neutrino_i2c_config_store_init(&nto,primary,fallback));
+    p=bvstk_neutrino_i2c_config_store_find_name(&nto,"p24c02a",NULL);
+    assert(p && !strcmp(p->profile.label,"EEPROM"));
+    assert(!memcmp(&p->endpoint,&i.endpoint,sizeof(i.endpoint)));
+    /* Profiles in the wrong directory fail closed; no root-address fallback. */
+    assert(f_rename(QSPI_ROOT "config/i2c/pca9545a/p24c02a/p24c02a.json",
+                    QSPI_ROOT "config/i2c/pca9545a/pca9545a.json")==FR_EXIST);
+    put(QSPI_ROOT "config/i2c/other/other.json",DEFAULT_I2C_PCF8563_JSON);
+    startup();assert(s_i2c_cfg_count==0);
+    assert(!bvstk_neutrino_i2c_config_store_init(&nto,primary,fallback));
+    assert(nto.device_count==0);
+    supplied_configuration();
     puts("Config bundles: startup, sidecars, flat compatibility, precedence, explicit save, backup recovery and fail-closed passed");
     return 0;
 }

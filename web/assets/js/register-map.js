@@ -30,7 +30,7 @@ export function validRegisterMapName(name) {
   return typeof name === "string" && name.length < 64 && /^[a-zA-Z0-9_-]+\.json$/.test(name) &&
     (name === "register_map.json" || /_register_map\.json$/i.test(name));
 }
-export function validateRegisterMap(map, {bus, regCount} = {}) {
+export function validateRegisterMap(map, {bus, regCount, addressSpaces = []} = {}) {
   keys(map,["schema_version","kind","id","device","bus","width_bits","register_count","source","notes","identity","registers","summary"]);
   if (map.schema_version !== 1 || map.kind !== "register_map") fail("неподдерживаемая версия");
   if (!validId(map.id)) fail("неверный идентификатор");
@@ -39,18 +39,38 @@ export function validateRegisterMap(map, {bus, regCount} = {}) {
   if (map.width_bits !== (map.bus === "mdio" ? 16 : 8)) fail("неверная разрядность");
   const count = uint(map.register_count, map.bus === "mdio" ? 32 : 256);
   if (!count || (regCount !== undefined && count !== regCount)) fail("число регистров не совпадает с профилем");
+  list(addressSpaces,8);
+  let total = 0;
+  const spaceIds = new Set(), busAddresses = new Set();
+  addressSpaces = addressSpaces.map(space => {
+    if (!object(space)) fail("неверное адресное пространство");
+    const address = uint(space.address,127), first = uint(space.first,255),
+      register_count = uint(space.register_count,256);
+    if (map.bus !== "i2c" || typeof space.id !== "string" || !/^[a-z][a-z0-9_-]{0,30}$/.test(space.id) ||
+        spaceIds.has(space.id) || busAddresses.has(address) ||
+        first !== total || !register_count)
+      fail("неверное адресное пространство");
+    total += register_count;
+    spaceIds.add(space.id); busAddresses.add(address);
+    return {...space,address,first,register_count};
+  });
+  if (addressSpaces.length && total !== count) fail("размер адресных пространств не совпадает с профилем");
   keys(map.source,["title","document","revision","url"]);
   for (const key of ["title","document","revision","url"]) text(map.source[key]);
   if (!/^https:\/\//.test(map.source.url)) fail("неверная ссылка на документацию");
   list(map.registers,count,count);
-  const fields = new Map(), addresses = new Set(), ids = new Set();
+  const fields = new Map(), addresses = new Set(), ids = new Set(), registerIndices = new Map();
   for (const reg of map.registers) {
-    keys(reg,["id","address","name","label","section","reserved","note","fields"]);
+    keys(reg,["id","address","name","label","section","reserved","note","fields","space"]);
     if (!validId(reg.id) || ids.has(reg.id)) fail("повторяющийся или неверный ID регистра");
     ids.add(reg.id);
-    const addr = uint(reg.address,count-1);
+    const space = addressSpaces.find(s => s.id === reg.space);
+    if ((addressSpaces.length && !space) || (!addressSpaces.length && reg.space !== undefined))
+      fail("пространство регистра не совпадает с профилем");
+    const addr = (space?.first || 0) + uint(reg.address,(space?.register_count || count)-1);
     if (addresses.has(addr)) fail("повторяющийся адрес");
     addresses.add(addr);
+    registerIndices.set(reg.id,addr);
     text(reg.name); text(reg.label); text(reg.section);
     if (reg.reserved !== undefined && typeof reg.reserved !== "boolean") fail("reserved должен быть boolean");
     if (reg.note !== undefined) text(reg.note);
@@ -127,7 +147,7 @@ export function validateRegisterMap(map, {bus, regCount} = {}) {
       item.cases.forEach(entry => { keys(entry,["when","field","values","label","tone"]); list(entry.when,16,1); entry.when.forEach(condition); output(entry); });
     }
   }
-  return {map,fields};
+  return {map,fields,registerIndices};
 }
 const rawHex = (v, bits) => "0x" + v.toString(16).toUpperCase().padStart(Math.ceil(bits/4),"0");
 const missing = label => ({status:"missing",label:label || "Нет данных",tone:"unknown",raw:null,updated_ms:null});

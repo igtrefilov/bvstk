@@ -141,6 +141,7 @@ static int sync_i2c_config_locked(
     config.addr_7b = device.addr_7b;
     config.reg_count = device.reg_count;
     config.max_value_code = device.max_value_code;
+    config.endpoint = device.endpoint;
     config.policy = policy.mode;
     memcpy(config.whitelist,
            policy.whitelist,
@@ -359,8 +360,18 @@ int bvstk_neutrino_i2c_runtime_init(
         goto fail;
     }
     runtime->slave_hardware_initialized = 1U;
-    if (bvstk_i2c_slave_hw_set_address(&runtime->slave_hardware,
-                                        first_config->addr_7b) != BVSTK_OK ||
+    uint8_t addresses[128];
+    size_t address_count = 1U;
+    for (size_t i = 0; i < runtime->devices.count; ++i) {
+        const bvstk_i2c_device_t *d = &runtime->devices.items[i];
+        addresses[i] = d->addr_7b;
+        if (d->endpoint.parent[0] || d->endpoint.transfer.configured)
+            address_count = runtime->devices.count;
+    }
+    if (address_count == runtime->devices.count)
+        address_count = bvstk_i2c_devices_addresses(&runtime->devices, addresses);
+    if (bvstk_i2c_slave_hw_set_addresses(&runtime->slave_hardware,
+                                        addresses, address_count) != BVSTK_OK ||
         bvstk_i2c_slave_service_init(&runtime->slave_service,
                                      &runtime->devices,
                                      &runtime->cache,
@@ -490,6 +501,25 @@ static const i2c_device_config_t *select_device(
                : NULL;
 }
 
+static int parse_register(const i2c_device_config_t *config,
+                          const char *text, uint32_t *value)
+{
+    const char *colon;
+    uint32_t local;
+    if (!config->endpoint.space_count) return parse_number(text, UINT8_MAX, value);
+    if (!text || !(colon = strchr(text, ':')) ||
+        !parse_number(colon + 1, UINT8_MAX, &local)) return 0;
+    for (unsigned i = 0; i < config->endpoint.space_count; ++i) {
+        const bvstk_address_space_t *space = &config->endpoint.spaces[i];
+        if (strlen(space->id) == (size_t)(colon - text) &&
+            !strncmp(space->id, text, (size_t)(colon - text)) && local < space->count) {
+            *value = space->first + local;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static void command_help(response_writer_t *writer)
 {
     response_append(writer,
@@ -506,21 +536,26 @@ static void command_help(response_writer_t *writer)
                     "  i2c <name> policy whitelist clear\n"
                     "  i2c <name> policy blacklist add|del <reg> <val>\n"
                     "  i2c <name> policy blacklist clear\n"
-                    "  (address selector: @0xNN or numeric address)\n");
+                    "  (address selector: @0xNN or numeric address)\n"
+                    "  Multiple address spaces: use <name> and <space>:<reg>.\n");
 }
 
 static void show_rule_list(response_writer_t *writer,
                            const char *name,
                            const i2c_rule_entry_t *rules,
-                           size_t count)
+                           size_t count,
+                           const bvstk_i2c_endpoint_t *endpoint)
 {
     size_t index;
 
     response_append(writer, "%s (%u):\n", name, (unsigned)count);
     for (index = 0U; index < count; ++index) {
+        const bvstk_address_space_t *space =
+            bvstk_i2c_register_space(endpoint, rules[index].reg);
         response_append(writer,
-                        "  { reg:0x%02X val:0x%02X }\n",
-                        (unsigned)rules[index].reg,
+                        "  { reg:%s%s0x%02X val:0x%02X }\n",
+                        space ? space->id : "", space ? ":" : "",
+                        (unsigned)(rules[index].reg - (space ? space->first : 0U)),
                         (unsigned)rules[index].val);
     }
 }
@@ -531,8 +566,11 @@ static int show_policy(bvstk_neutrino_i2c_runtime_t *runtime,
                        response_writer_t *writer)
 {
     bvstk_i2c_policy_entry_t policy;
+    bvstk_i2c_device_t device;
 
-    if (bvstk_i2c_master_service_get_policy(&runtime->master_service,
+    if (bvstk_i2c_master_service_device_info(&runtime->master_service,
+                                            device_id, &device) != BVSTK_OK ||
+        bvstk_i2c_master_service_get_policy(&runtime->master_service,
                                             device_id,
                                             &policy) != BVSTK_OK) {
         response_append(writer, "ERR (no device)\n");
@@ -553,25 +591,25 @@ static int show_policy(bvstk_neutrino_i2c_runtime_t *runtime,
         show_rule_list(writer,
                        "WHITELIST",
                        policy.whitelist,
-                       policy.whitelist_len);
+                       policy.whitelist_len, &device.endpoint);
         show_rule_list(writer,
                        "BLACKLIST",
                        policy.blacklist,
-                       policy.blacklist_len);
+                       policy.blacklist_len, &device.endpoint);
         return 0;
     }
     if (strcasecmp(what, "whitelist") == 0) {
         show_rule_list(writer,
                        "WHITELIST",
                        policy.whitelist,
-                       policy.whitelist_len);
+                       policy.whitelist_len, &device.endpoint);
         return 0;
     }
     if (strcasecmp(what, "blacklist") == 0) {
         show_rule_list(writer,
                        "BLACKLIST",
                        policy.blacklist,
-                       policy.blacklist_len);
+                       policy.blacklist_len, &device.endpoint);
         return 0;
     }
     response_append(writer, "ERR\n");
@@ -656,7 +694,7 @@ static int policy_edit(bvstk_neutrino_i2c_runtime_t *runtime,
             int found = 0;
 
             if (argument_count != 6U ||
-                !parse_number(arguments[4], UINT8_MAX, &reg) ||
+                !parse_register(config, arguments[4], &reg) ||
                 !parse_number(arguments[5], UINT8_MAX, &value) ||
                 reg >= next.reg_count || value > next.max_value_code) {
                 response_append(writer, "ERR\n");
@@ -764,6 +802,10 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
         return 1;
     }
     operation = argument_count > 1U ? arguments[1] : "info";
+    if (config->endpoint.space_count && strcasecmp(arguments[0], config->name)) {
+        response_append(writer, "ERR use the device name and <space>:<reg>\n");
+        return 2;
+    }
     if (strcasecmp(operation, "info") == 0) {
         bvstk_i2c_device_t device;
         bvstk_i2c_policy_entry_t policy;
@@ -794,6 +836,11 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
                         (unsigned)policy.whitelist_len,
                         (unsigned)policy.blacklist_len,
                         (unsigned)config->settings_len);
+        for (unsigned i = 0; i < config->endpoint.space_count; ++i)
+            response_append(writer, "space=%s addr=0x%02X regs=%u\n",
+                            config->endpoint.spaces[i].id,
+                            (unsigned)config->endpoint.spaces[i].address,
+                            (unsigned)config->endpoint.spaces[i].count);
         return 0;
     }
     if (strcasecmp(operation, "r") == 0 ||
@@ -803,7 +850,7 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
         bvstk_status_t status;
 
         if (argument_count != 3U ||
-            !parse_number(arguments[2], UINT8_MAX, &reg)) {
+            !parse_register(config, arguments[2], &reg)) {
             response_append(writer, "ERR\n");
             return 2;
         }
@@ -818,7 +865,10 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
                             bvstk_status_string(status));
             return 1;
         }
-        response_append(writer,
+        if (config->endpoint.space_count)
+            response_append(writer, "OK REG %s = 0x%02X %u\n",
+                            arguments[2], (unsigned)value, (unsigned)value);
+        else response_append(writer,
                         "OK REG 0x%02X = 0x%02X %u\n",
                         (unsigned)reg,
                         (unsigned)value,
@@ -832,7 +882,7 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
         bvstk_status_t status;
 
         if (argument_count != 4U ||
-            !parse_number(arguments[2], UINT8_MAX, &reg) ||
+            !parse_register(config, arguments[2], &reg) ||
             !parse_number(arguments[3], UINT8_MAX, &value)) {
             response_append(writer, "ERR\n");
             return 2;

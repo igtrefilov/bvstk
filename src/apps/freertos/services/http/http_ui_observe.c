@@ -1,5 +1,6 @@
 #include "apps/freertos/services/http/http_ui.h"
 #include "apps/freertos/runtime/bvstk_observer.h"
+#include "apps/freertos/runtime/bvstk_runtime.h"
 #include "shared/interfaces/bvstk_clock.h"
 #include "shared/protocols/http/bvstk_http_input.h"
 #include <string.h>
@@ -23,7 +24,7 @@ static int cursor_value(const char *text, uint64_t *value)
 }
 int http_ui_observe(const http_request_t *r, http_conn_t *c)
 {
-    char bus_text[12], channel_text[16], text[24];
+    char bus_text[12], channel_text[16], text[24], device[32];
     unsigned bus, channel;
     uint32_t address = 0;
     uint64_t after = BVSTK_JOURNAL_HISTORY;
@@ -50,7 +51,16 @@ int http_ui_observe(const http_request_t *r, http_conn_t *c)
     if (field < 0 || (field && !cursor_value(text, &after))) {
         http_ui_error(c->fd, 400, "invalid cursor"); return 1;
     }
-    bvstk_observer_read(bus, channel, filter, after, &batch);
+    field = bvstk_http_query(r->path, "device", device, sizeof(device));
+    if (field < 0) { http_ui_error(c->fd, 400, "invalid device"); return 1; }
+    if (field && bus == BVSTK_EVENT_BUS_I2C) {
+        size_t id;
+        if (bvstk_i2c_master_service_find_by_name(bvstk_runtime_i2c_master_service(),
+                device, &id) != BVSTK_OK) {
+            http_ui_error(c->fd, 404, "device not found"); return 1;
+        }
+        bvstk_observer_read_device(bus, channel, (int)id, after, &batch);
+    } else bvstk_observer_read(bus, channel, filter, after, &batch);
     http_ui_header(c->fd, "application/json; charset=utf-8", -1);
     http_ui_printf(c->fd,
         "{\"ok\":true,\"next\":\"%llu\",\"head\":\"%llu\",\"lost\":\"%llu\",\"reset\":%s,\"more\":%s,\"capacity\":%u,\"uptime_ms\":%llu,\"records\":[",

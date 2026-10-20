@@ -43,6 +43,16 @@ int main(void)
     bvstk_journal_publish(&journal, &event);
     bvstk_journal_read(&journal, 0, 0, -1, UINT64_C(0xFFFFFFFF), &a);
     assert(a.next == UINT64_C(0x100000000) && a.count == 1);
+    memset(&journal,0,sizeof(journal));
+    event.bus=BVSTK_EVENT_BUS_I2C;event.type=BVSTK_EVENT_MASTER_READ;event.arg0=0x51;
+    event.flags=BVSTK_EVENT_FLAG_DEVICE_SLOT | (2U << BVSTK_EVENT_DEVICE_SHIFT);
+    bvstk_journal_publish(&journal,&event);
+    event.flags=BVSTK_EVENT_FLAG_DEVICE_SLOT | (3U << BVSTK_EVENT_DEVICE_SHIFT);
+    bvstk_journal_publish(&journal,&event);
+    bvstk_journal_read_device(&journal,0,1,-1,2,0,&a);
+    assert(a.count==1 && a.records[0].sequence==1 && a.next==2);
+    bvstk_journal_read_device(&journal,0,1,-1,3,0,&a);
+    assert(a.count==1 && a.records[0].sequence==2);
     puts("Observation journal tests passed");
     return 0;
 }

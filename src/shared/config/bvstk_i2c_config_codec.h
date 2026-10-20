@@ -11,6 +11,8 @@ bvstk_status_t bvstk_i2c_config_parse_json(const char *json,
                                            i2c_device_config_t *config);
 bvstk_status_t bvstk_i2c_config_validate(
     const i2c_device_config_t *config);
+bvstk_status_t bvstk_i2c_endpoint_validate(
+    const bvstk_i2c_endpoint_t *endpoint, uint16_t reg_count);
 bvstk_status_t bvstk_i2c_config_serialize_json(
     const i2c_device_config_t *config,
     char *json,

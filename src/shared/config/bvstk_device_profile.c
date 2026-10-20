@@ -333,7 +333,7 @@ int bvstk_device_profile_is_register_map(const char *filename)
 }
 int bvstk_device_profile_path_valid(const char *path)
 {
-    size_t i, n, slash = 0;
+    size_t i, n, slash = 0, component = 0, depth = 0;
     const char *leaf;
     if (!path || !memchr(path, 0, I2C_CFG_FILE_NAME_MAX) ||
         (n = strlen(path)) < 6U || strstr(path, "..")) return 0;
@@ -341,8 +341,11 @@ int bvstk_device_profile_path_valid(const char *path)
     for (i = 0; i < n; ++i) {
         char c = path[i];
         if (c == '/') {
-            if (!i || slash || i >= I2C_CFG_NAME_MAX) return 0;
+            if (i == component || i - component >= I2C_CFG_NAME_MAX ||
+                ++depth > 1U + BVSTK_I2C_ROUTE_MAX) return 0;
+            for (size_t j = component; j < i; ++j) if (path[j] == '.') return 0;
             slash = i;
+            component = i + 1U;
         } else if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
                      digit(c) || c == '_' || c == '-' || c == '.')) return 0;
     }
@@ -359,28 +362,28 @@ int bvstk_device_profile_path_valid(const char *path)
     /* A bundle directory has no extension.  The old profile.json leaf is
      * accepted for migration, while new files must be named after the
      * directory: <device>/<device>.json. */
-    for (i = 0; i < slash; ++i) if (path[i] == '.') return 0;
+    component = slash;
+    while (component && path[component - 1U] != '/') --component;
     leaf = path + slash + 1U;
     if (!strcasecmp(leaf, "profile.json")) return 1;
-    if (strlen(leaf) != slash + 5U) return 0;
-    for (i = 0; i < slash; ++i) {
-        char a = path[i], b = leaf[i];
+    n = slash - component;
+    if (strlen(leaf) != n + 5U) return 0;
+    for (i = 0; i < n; ++i) {
+        char a = path[component + i], b = leaf[i];
         if (a >= 'A' && a <= 'Z') a = (char)(a - 'A' + 'a');
         if (b >= 'A' && b <= 'Z') b = (char)(b - 'A' + 'a');
         if (a != b) return 0;
     }
-    return leaf[slash] == '.' &&
-           (leaf[slash + 1U] == 'j' || leaf[slash + 1U] == 'J') &&
-           (leaf[slash + 2U] == 's' || leaf[slash + 2U] == 'S') &&
-           (leaf[slash + 3U] == 'o' || leaf[slash + 3U] == 'O') &&
-           (leaf[slash + 4U] == 'n' || leaf[slash + 4U] == 'N');
+    return !strcasecmp(leaf + n, ".json");
 }
 int bvstk_device_profile_same_file(const char *a, const char *b)
 {
     const char *sa, *sb;
     size_t na, nb, i;
     if (!bvstk_device_profile_path_valid(a) || !bvstk_device_profile_path_valid(b)) return 0;
-    sa = strchr(a, '/'); sb = strchr(b, '/');
+    sa = strrchr(a, '/'); sb = strrchr(b, '/');
+    if (sa) { const char *start = sa; while (start > a && start[-1] != '/') --start; a = start; }
+    if (sb) { const char *start = sb; while (start > b && start[-1] != '/') --start; b = start; }
     na = sa ? (size_t)(sa - a) : strlen(a) - 5U;
     nb = sb ? (size_t)(sb - b) : strlen(b) - 5U;
     if (na != nb) return 0;
@@ -391,6 +394,45 @@ int bvstk_device_profile_same_file(const char *a, const char *b)
         if (ca != cb) return 0;
     }
     return 1;
+}
+int bvstk_device_profile_save_path(const char *id, const char *existing,
+                                  char *out, size_t capacity)
+{
+    const char *leaf;
+    int length;
+    if (!id || !id[0] || !out || !capacity) return 0;
+    if (existing && existing[0] && !bvstk_device_profile_path_valid(existing)) return 0;
+    leaf = existing ? strrchr(existing, '/') : NULL;
+    if (leaf) {
+        const char *directory = leaf;
+        while (directory > existing && directory[-1] != '/') --directory;
+        if (strlen(id) != (size_t)(leaf - directory) ||
+            strncasecmp(id, directory, (size_t)(leaf - directory))) return 0;
+        length = snprintf(out, capacity, "%.*s/%s.json",
+                          (int)(leaf - existing), existing, id);
+    } else {
+        length = snprintf(out, capacity, "%s/%s.json", id, id);
+    }
+    return length > 0 && (size_t)length < capacity &&
+           bvstk_device_profile_path_valid(out);
+}
+int bvstk_device_profile_location_valid(const char *path, const char *id,
+                                       const char *parent)
+{
+    const char *leaf, *directory, *ancestor, *end;
+    if (!bvstk_device_profile_path_valid(path) || !id || !parent) return 0;
+    leaf = strrchr(path, '/');
+    if (!leaf) return !parent[0]; /* old arbitrary flat filenames */
+    directory = leaf;
+    while (directory > path && directory[-1] != '/') --directory;
+    if (strlen(id) != (size_t)(leaf - directory) ||
+        strncasecmp(id, directory, (size_t)(leaf - directory))) return 0;
+    if (directory == path) return !parent[0];
+    end = directory - 1;
+    ancestor = end;
+    while (ancestor > path && ancestor[-1] != '/') --ancestor;
+    return parent[0] && strlen(parent) == (size_t)(end - ancestor) &&
+           !strncasecmp(parent, ancestor, (size_t)(end - ancestor));
 }
 static int asset_name_valid(const char *filename, const char *extension)
 {
@@ -470,14 +512,118 @@ static int no_refresh(view_t v)
     return !v.p || (fields(v, keys, 2, f) && empty_array(f[0]) && (!f[1].p || number(f[1], 0, &n)));
 }
 
+static int sequence(view_t v, bvstk_i2c_sequence_t *out)
+{
+    static const char *const keys[] = {"mode", "span"};
+    view_t f[2];
+    uint32_t n = 0;
+    if (!v.p) return 1;
+    if (!fields(v, keys, 2, f)) return 0;
+    if (equal(f[0], "linear")) out->mode = BVSTK_I2C_SEQUENCE_LINEAR;
+    else if (equal(f[0], "fixed")) out->mode = BVSTK_I2C_SEQUENCE_FIXED;
+    else if (equal(f[0], "wrap")) out->mode = BVSTK_I2C_SEQUENCE_WRAP;
+    else return 0;
+    if (f[1].p && (!number(f[1], 256, &n) || out->mode != BVSTK_I2C_SEQUENCE_WRAP)) return 0;
+    out->span = (uint16_t)n;
+    return 1;
+}
+static int transfer_options(view_t v, bvstk_i2c_transfer_t *out)
+{
+    static const char *const keys[] = {"address_bytes", "address_order", "address_base",
+        "read_sequence", "write_sequence", "write_cycle_ms", "verify_write",
+        "cache_after_write", "host_read", "host_current_read", "read_restart"};
+    view_t f[11];
+    uint32_t n;
+    int flag;
+    if (!v.p) return 1;
+    if (!fields(v, keys, 11, f)) return 0;
+    out->configured = 1;
+    out->address_bytes = 1;
+    out->read_sequence.mode = BVSTK_I2C_SEQUENCE_WRAP;
+    if (f[0].p) { if (!number(f[0], 2, &n)) return 0; out->address_bytes = (uint8_t)n; }
+    if (f[1].p) {
+        if (equal(f[1], "little")) out->little_endian = 1;
+        else if (!equal(f[1], "big")) return 0;
+    }
+    if (f[2].p) { if (!hex(f[2], 65535, &n)) return 0; out->address_base = (uint16_t)n; }
+    if (!sequence(f[3], &out->read_sequence) || !sequence(f[4], &out->write_sequence)) return 0;
+    if (f[5].p) { if (!number(f[5], 1000, &n)) return 0; out->write_cycle_ms = (uint16_t)n; }
+    if (f[6].p) {
+        if (equal(f[6], "readback")) out->verify_readback = 1;
+        else if (!equal(f[6], "none")) return 0;
+    }
+    if (f[7].p) {
+        if (equal(f[7], "invalidate")) out->invalidate_after_write = 1;
+        else if (!equal(f[7], "value")) return 0;
+    }
+    if (f[8].p) {
+        if (equal(f[8], "fresh")) out->host_read_fresh = 1;
+        else if (!equal(f[8], "cache")) return 0;
+    }
+    if (f[9].p) { if (!boolean(f[9], &flag)) return 0; out->host_current_read = (uint8_t)flag; }
+    if (f[10].p) { if (!boolean(f[10], &flag)) return 0; out->stop_before_read = !flag; }
+    return 1;
+}
+static int switch_options(view_t v, const bvstk_profile_metadata_t *meta,
+                          unsigned count, bvstk_i2c_switch_t *out)
+{
+    static const char *const keys[] = {"resource", "select_mask", "preserve_mask", "channels"};
+    static const char *const channel_keys[] = {"select", "match_mask"};
+    view_t f[4], c[2], entry;
+    const char *cursor = NULL;
+    uint32_t n;
+    unsigned reg;
+    int next;
+    if (!v.p) return 1;
+    if (!fields(v, keys, 4, f) || !lookup(f[0], meta, count, &reg) ||
+        !hex(f[1], 255, &n)) return 0;
+    out->reg = (uint8_t)reg; out->select_mask = (uint8_t)n;
+    if (f[2].p) { if (!hex(f[2], 255, &n)) return 0; out->preserve_mask = (uint8_t)n; }
+    while ((next = item(f[3], &cursor, &entry)) == 1) {
+        bvstk_i2c_channel_t *channel;
+        if (out->channel_count >= BVSTK_I2C_SWITCH_CHANNELS_MAX ||
+            !fields(entry, channel_keys, 2, c)) return 0;
+        channel = &out->channels[out->channel_count++];
+        if (!hex(c[0], 255, &n)) return 0;
+        channel->select = (uint8_t)n;
+        if (!hex(c[1], 255, &n)) return 0;
+        channel->match_mask = (uint8_t)n;
+    }
+    return next == 0 && out->channel_count != 0;
+}
+
+static int address_spaces(view_t array, bvstk_i2c_endpoint_t *out)
+{
+    static const char *const keys[] = {"id", "address", "register_count"};
+    view_t entry, f[3];
+    const char *cursor = NULL;
+    unsigned total = 0;
+    uint32_t n;
+    int next;
+    while ((next = item(array, &cursor, &entry)) == 1) {
+        if (out->space_count >= BVSTK_ADDRESS_SPACES_MAX || !fields(entry, keys, 3, f))
+            return 0;
+        bvstk_address_space_t *space = &out->spaces[out->space_count++];
+        if (!text(f[0], space->id, sizeof(space->id)) || !id_valid(space->id) ||
+            !hex(f[1], 127, &n)) return 0;
+        space->address = (uint8_t)n;
+        if (!number(f[2], I2C_CFG_MAX_REG_COUNT, &n) || !n ||
+            total + n > I2C_CFG_MAX_REG_COUNT) return 0;
+        space->first = (uint16_t)total;
+        space->count = (uint16_t)n;
+        total += n;
+    }
+    return next == 0 && out->space_count != 0;
+}
+
 static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c, mdio_phy_config_t *m)
 {
     static const char *const root_keys[] = {"schema_version", "id", "device", "transport", "protocol", "resources", "defaults", "policy", "settings", "observability", "register_map", "view"};
     static const char *const device_keys[] = {"model", "vendor", "class", "label"};
-    static const char *const transport_keys[] = {"bus", "controller", "address", "address_bits"};
-    static const char *const protocol_keys[] = {"driver", "options"};
+    static const char *const transport_keys[] = {"bus", "controller", "address", "address_bits", "parent", "channel", "address_spaces"};
+    static const char *const protocol_keys[] = {"driver", "options", "transfer", "switch"};
     static const char *const option_keys[] = {"max_write_value", "capture_cache_on_save", "autopoll_enabled", "autopoll_order", "autopoll_reg_delay_ms", "autopoll_cycle_delay_ms"};
-    static const char *const resource_keys[] = {"id", "kind", "address", "width_bits", "access", "write_mask", "cache", "verify", "refresh", "persist_mask", "read_effect", "write_effect", "fields"};
+    static const char *const resource_keys[] = {"id", "kind", "address", "width_bits", "access", "write_mask", "cache", "verify", "refresh", "persist_mask", "read_effect", "write_effect", "fields", "space"};
     static const char *const defaults_keys[] = {"register"};
     static const char *const policy_keys[] = {"read", "write"};
     static const char *const policy_entry_keys[] = {"mode", "rules", "inactive_rules"};
@@ -488,8 +634,9 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     static const char *const observe_keys[] = {"telemetry", "events"};
     bvstk_profile_metadata_t *meta = mdio ? &m->profile : &i2c->profile;
     char *name = mdio ? m->name : i2c->name;
-    view_t root, r[12], f[13], defaults[13] = {{0}}, options[6] = {{0}}, policies[2];
+    view_t root, r[12], f[14], defaults[14] = {{0}}, options[6] = {{0}}, policies[2];
     view_t entry, part[3], list[2], rule[2], match[2];
+    view_t router = {0};
     const char *cursor;
     uint8_t seen[256] = {0};
     unsigned count = 0, reg, width = mdio ? 16U : 8U, maximum = mdio ? 65535U : 255U;
@@ -508,14 +655,32 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     if (f[2].p && !text(f[2], meta->device_class, sizeof(meta->device_class))) return BVSTK_ERR_MALFORMED;
     if (!class_valid(meta->device_class)) return BVSTK_ERR_MALFORMED;
     if (f[3].p && (!text(f[3], meta->label, sizeof(meta->label)) || !meta->label[0])) return BVSTK_ERR_MALFORMED;
-    if (!fields(r[3], transport_keys, 4, f) || !equal(f[0], mdio ? "mdio" : "i2c") ||
-        !equal(f[1], mdio ? "pl_mdio_0" : "pl_i2c_0") || !hex(f[2], mdio ? 31U : 127U, &n)) return BVSTK_ERR_UNSUPPORTED;
-    if (mdio) { if (f[3].p) return BVSTK_ERR_MALFORMED; m->phy_addr = (uint8_t)n; }
+    if (!fields(r[3], transport_keys, 7, f) || !equal(f[0], mdio ? "mdio" : "i2c") ||
+        !equal(f[1], mdio ? "pl_mdio_0" : "pl_i2c_0")) return BVSTK_ERR_UNSUPPORTED;
+    if (f[6].p) {
+        if (mdio || f[2].p || !address_spaces(f[6], &i2c->endpoint))
+            return BVSTK_ERR_UNSUPPORTED;
+        n = i2c->endpoint.spaces[0].address;
+    } else if (!hex(f[2], mdio ? 31U : 127U, &n)) return BVSTK_ERR_MALFORMED;
+    if (mdio) { if (f[3].p || f[4].p || f[5].p) return BVSTK_ERR_MALFORMED; m->phy_addr = (uint8_t)n; }
     else {
         i2c->addr_7b = (uint8_t)n;
         if (f[3].p && (!number(f[3], 7, &n) || n != 7U)) return BVSTK_ERR_UNSUPPORTED;
+        if (f[4].p || f[5].p) {
+            if (!text(f[4], i2c->endpoint.parent, sizeof(i2c->endpoint.parent)) ||
+                !id_valid(i2c->endpoint.parent) || !strcmp(i2c->endpoint.parent, name) ||
+                !number(f[5], BVSTK_I2C_SWITCH_CHANNELS_MAX - 1U, &n)) return BVSTK_ERR_MALFORMED;
+            i2c->endpoint.channel = (uint8_t)n;
+        }
     }
-    if (!fields(r[4], protocol_keys, 2, f) || !equal(f[0], mdio ? "bvstk_mdio_bridge" : "bvstk_i2c_bridge")) return BVSTK_ERR_UNSUPPORTED;
+    if (!fields(r[4], protocol_keys, 4, f)) return BVSTK_ERR_MALFORMED;
+    if (mdio) {
+        if (!equal(f[0], "bvstk_mdio_bridge") || f[2].p || f[3].p) return BVSTK_ERR_UNSUPPORTED;
+    } else {
+        if (!equal(f[0], "bvstk_i2c_bridge") ||
+            !transfer_options(f[2], &i2c->endpoint.transfer)) return BVSTK_ERR_UNSUPPORTED;
+        router = f[3];
+    }
     if (f[1].p && !fields(f[1], option_keys, 6, options)) return BVSTK_ERR_MALFORMED;
     if (mdio) {
         if (options[0].p || options[1].p) return BVSTK_ERR_MALFORMED;
@@ -524,23 +689,31 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
         if (options[4].p && !number(options[4], 60000, &m->autopoll_reg_delay_ms)) return BVSTK_ERR_MALFORMED;
         if (options[5].p && !number(options[5], 600000, &m->autopoll_cycle_delay_ms)) return BVSTK_ERR_MALFORMED;
     } else {
-        if (!hex(options[0], 64, &n)) return BVSTK_ERR_MALFORMED;
+        if (!hex(options[0], 255, &n)) return BVSTK_ERR_MALFORMED;
         i2c->max_value_code = (uint8_t)n;
         if (options[1].p && (!boolean(options[1], &flag) || !flag)) return BVSTK_ERR_UNSUPPORTED;
         for (k = 2; k < 6; ++k) if (options[k].p) return BVSTK_ERR_UNSUPPORTED;
     }
     if (r[6].p) {
         if (!fields(r[6], defaults_keys, 1, f)) return BVSTK_ERR_UNSUPPORTED;
-        if (f[0].p && (!fields(f[0], resource_keys, 13, defaults) || defaults[0].p || defaults[1].p || defaults[2].p)) return BVSTK_ERR_MALFORMED;
+        if (f[0].p && (!fields(f[0], resource_keys, 14, defaults) || defaults[0].p || defaults[1].p || defaults[2].p || defaults[13].p)) return BVSTK_ERR_MALFORMED;
     }
     meta->ids_size = 1;
     cursor = NULL;
     while ((next = item(r[5], &cursor, &entry)) == 1) {
         char id[32];
         size_t len;
-        if (!fields(entry, resource_keys, 13, f) || !text(f[0], id, sizeof(id)) || !id_valid(id) ||
+        if (!fields(entry, resource_keys, 14, f) || !text(f[0], id, sizeof(id)) || !id_valid(id) ||
             !equal(f[1], "register") || !hex(f[2], mdio ? 31U : 255U, &n)) return BVSTK_ERR_MALFORMED;
         reg = n;
+        if (!mdio && i2c->endpoint.space_count) {
+            unsigned s;
+            for (s = 0; s < i2c->endpoint.space_count; ++s)
+                if (equal(f[13], i2c->endpoint.spaces[s].id)) break;
+            if (s == i2c->endpoint.space_count || reg >= i2c->endpoint.spaces[s].count)
+                return BVSTK_ERR_MALFORMED;
+            reg += i2c->endpoint.spaces[s].first;
+        } else if (f[13].p) return BVSTK_ERR_MALFORMED;
         if (seen[reg] || count >= (mdio ? 32U : 256U)) return BVSTK_ERR_MALFORMED;
         for (k = 0; k < 256; ++k)
             if (seen[k] && !strcmp(id, meta->ids + meta->id_offset[k])) return BVSTK_ERR_MALFORMED;
@@ -550,7 +723,9 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
         meta->id_offset[reg] = meta->ids_size;
         memcpy(meta->ids + meta->ids_size, id, len); meta->ids_size += (uint16_t)len;
         for (k = 3; k < 13; ++k) if (!f[k].p) f[k] = defaults[k];
-        if (!number(f[3], width, &n) || n != width || !equal(f[4], "rw") ||
+        if (!mdio && equal(f[4], "ro"))
+            i2c->endpoint.read_only[reg / 8U] |= (uint8_t)(1U << (reg % 8U));
+        if (!number(f[3], width, &n) || n != width || (!equal(f[4], "rw") && (mdio || !equal(f[4], "ro"))) ||
             !hex(f[5], maximum, &n) || n != maximum || !driver_mode(f[6]) || !driver_mode(f[7]) ||
             !no_refresh(f[8]) || (f[9].p && !hex(f[9], 0, &n)) ||
             !zero_effect(f[10], 0) || !zero_effect(f[11], 1) || !empty_array(f[12])) return BVSTK_ERR_UNSUPPORTED;
@@ -558,6 +733,7 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     if (next < 0 || !count) return BVSTK_ERR_MALFORMED;
     for (k = 0; k < count; ++k) if (!seen[k]) return BVSTK_ERR_UNSUPPORTED;
     if (mdio) m->reg_count = (uint8_t)count; else i2c->reg_count = (uint16_t)count;
+    if (!mdio && !switch_options(router, meta, count, &i2c->endpoint.router)) return BVSTK_ERR_MALFORMED;
     if (mdio) {
         memset(seen, 0, sizeof(seen)); cursor = NULL;
         while ((next = item(options[3], &cursor, &entry)) == 1) {
@@ -679,6 +855,43 @@ static void reference(writer_t *w, const bvstk_profile_metadata_t *p, unsigned r
     char fallback[16];
     quoted(w, resource_id(p, reg, fallback));
 }
+static const char *sequence_name(unsigned mode)
+{
+    return mode == BVSTK_I2C_SEQUENCE_FIXED ? "fixed" :
+        mode == BVSTK_I2C_SEQUENCE_WRAP ? "wrap" : "linear";
+}
+static void format_transfer(writer_t *w, const bvstk_i2c_endpoint_t *endpoint,
+                             const bvstk_profile_metadata_t *meta)
+{
+    const bvstk_i2c_transfer_t *t = &endpoint->transfer;
+    const bvstk_i2c_switch_t *s = &endpoint->router;
+    if (t->configured) {
+        append(w, ", \"transfer\": {\"address_bytes\": %u, \"address_order\": \"%s\", "
+            "\"address_base\": \"0x%04X\", \"read_restart\": %s",
+            t->address_bytes, t->little_endian ? "little" : "big", t->address_base,
+            t->stop_before_read ? "false" : "true");
+        const bvstk_i2c_sequence_t *seq[2] = {&t->read_sequence, &t->write_sequence};
+        for (unsigned i = 0; i < 2; ++i) {
+            append(w, ", \"%s_sequence\": {\"mode\": \"%s\"", i ? "write" : "read", sequence_name(seq[i]->mode));
+            if (seq[i]->mode == BVSTK_I2C_SEQUENCE_WRAP) append(w, ", \"span\": %u", seq[i]->span);
+            append(w, "}");
+        }
+        append(w, ", \"write_cycle_ms\": %u, \"verify_write\": \"%s\", "
+            "\"cache_after_write\": \"%s\", \"host_read\": \"%s\", \"host_current_read\": %s}",
+            t->write_cycle_ms, t->verify_readback ? "readback" : "none",
+            t->invalidate_after_write ? "invalidate" : "value",
+            t->host_read_fresh ? "fresh" : "cache", t->host_current_read ? "true" : "false");
+    }
+    if (s->channel_count) {
+        append(w, ", \"switch\": {\"resource\": "); reference(w, meta, s->reg);
+        append(w, ", \"select_mask\": \"0x%02X\", \"preserve_mask\": \"0x%02X\", \"channels\": [",
+            s->select_mask, s->preserve_mask);
+        for (unsigned i = 0; i < s->channel_count; ++i)
+            append(w, "%s{\"select\": \"0x%02X\", \"match_mask\": \"0x%02X\"}",
+                i ? ", " : "", s->channels[i].select, s->channels[i].match_mask);
+        append(w, "]}");
+    }
+}
 static bvstk_status_t format(int mdio, const i2c_device_config_t *i2c, const mdio_phy_config_t *m,
                              char *out, size_t cap, size_t *length)
 {
@@ -701,20 +914,43 @@ static bvstk_status_t format(int mdio, const i2c_device_config_t *i2c, const mdi
     append(&w, ", \"class\": "); quoted(&w, meta->version ? meta->device_class : mdio ? "phy" : "generic");
     if (meta->version && meta->vendor[0]) { append(&w, ", \"vendor\": "); quoted(&w, meta->vendor); }
     if (meta->version && meta->label[0]) { append(&w, ", \"label\": "); quoted(&w, meta->label); }
-    append(&w, "},\n  \"transport\": {\"bus\": \"%s\", \"controller\": \"pl_%s_0\", \"address\": \"0x%02X\"%s},\n",
-           mdio ? "mdio" : "i2c", mdio ? "mdio" : "i2c", address, mdio ? "" : ", \"address_bits\": 7");
-    append(&w, "  \"protocol\": {\"driver\": \"bvstk_%s_bridge\", \"options\": {", mdio ? "mdio" : "i2c");
+    append(&w, "},\n  \"transport\": {\"bus\": \"%s\", \"controller\": \"pl_%s_0\"",
+           mdio ? "mdio" : "i2c", mdio ? "mdio" : "i2c");
+    if (!mdio && i2c->endpoint.space_count) {
+        append(&w, ", \"address_spaces\": [");
+        for (unsigned s = 0; s < i2c->endpoint.space_count; ++s) {
+            const bvstk_address_space_t *space = &i2c->endpoint.spaces[s];
+            append(&w, "%s{\"id\": ", s ? ", " : ""); quoted(&w, space->id);
+            append(&w, ", \"address\": \"0x%02X\", \"register_count\": %u}",
+                space->address, space->count);
+        }
+        append(&w, "]");
+    } else append(&w, ", \"address\": \"0x%02X\"", address);
+    if (!mdio) append(&w, ", \"address_bits\": 7");
+    if (!mdio && i2c->endpoint.parent[0]) {
+        append(&w, ", \"parent\": "); quoted(&w, i2c->endpoint.parent);
+        append(&w, ", \"channel\": %u", i2c->endpoint.channel);
+    }
+    append(&w, "},\n  \"protocol\": {\"driver\": \"%s\", \"options\": {",
+        mdio ? "bvstk_mdio_bridge" : "bvstk_i2c_bridge");
     if (mdio) {
         append(&w, "\"autopoll_enabled\": %s, \"autopoll_reg_delay_ms\": %lu, \"autopoll_cycle_delay_ms\": %lu, \"autopoll_order\": [",
                m->autopoll_enabled ? "true" : "false", (unsigned long)m->autopoll_reg_delay_ms, (unsigned long)m->autopoll_cycle_delay_ms);
         for (i = 0; i < m->autopoll_regs_len; ++i) { if (i) append(&w, ", "); reference(&w, meta, m->autopoll_regs[i]); }
         append(&w, "]");
     } else append(&w, "\"max_write_value\": \"0x%02X\", \"capture_cache_on_save\": true", i2c->max_value_code);
-    append(&w, "}},\n  \"defaults\": {\"register\": {\"width_bits\": %u, \"access\": \"rw\", \"write_mask\": \"0x%0*X\", \"cache\": {\"mode\": \"driver\"}, \"verify\": {\"mode\": \"driver\"}}},\n  \"resources\": [\n",
+    append(&w, "}");
+    if (!mdio) format_transfer(&w, &i2c->endpoint, meta);
+    append(&w, "},\n  \"defaults\": {\"register\": {\"width_bits\": %u, \"access\": \"rw\", \"write_mask\": \"0x%0*X\", \"cache\": {\"mode\": \"driver\"}, \"verify\": {\"mode\": \"driver\"}}},\n  \"resources\": [\n",
            width, (int)(width / 4U), mdio ? 65535U : 255U);
     for (i = 0; i < count; ++i) {
+        const bvstk_address_space_t *space = mdio ? NULL :
+            bvstk_i2c_register_space(&i2c->endpoint, (unsigned)i);
         append(&w, "    {\"id\": "); reference(&w, meta, (unsigned)i);
-        append(&w, ", \"kind\": \"register\", \"address\": \"0x%02X\"}%s\n", (unsigned)i, i + 1U == count ? "" : ",");
+        if (space) { append(&w, ", \"space\": "); quoted(&w, space->id); }
+        append(&w, ", \"kind\": \"register\", \"address\": \"0x%02X\"%s}%s\n", (unsigned)i - (space ? space->first : 0U),
+            !mdio && (i2c->endpoint.read_only[i / 8U] & (1U << (i % 8U))) ? ", \"access\": \"ro\"" : "",
+            i + 1U == count ? "" : ",");
     }
     append(&w, "  ],\n  \"policy\": {\"read\": {\"mode\": \"blacklist\", \"rules\": []}, \"write\": {\"mode\": \"%s\"",
            black ? "blacklist" : "whitelist");

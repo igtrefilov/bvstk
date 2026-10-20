@@ -1,5 +1,16 @@
 export const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 export const hex = (n, width = 2) => Number.isInteger(n) ? "0x" + n.toString(16).toUpperCase().padStart(width, "0") : "—";
+export function registerToken(reg, spaces = []) {
+  const space = spaces.find(s => reg >= s.first && reg < s.first + s.register_count);
+  return space ? `${space.id}:${hex(reg-space.first)}` : hex(reg);
+}
+export function registerNumber(text, count, spaces = []) {
+  if (!spaces.length) return number(text,count-1,"Регистр");
+  const parts = String(text).trim().split(":");
+  const space = spaces.find(s => s.id === parts[0]);
+  if (parts.length !== 2 || !space) throw Error("Укажите регистр в формате пространство:0x00");
+  return space.first + number(parts[1],space.register_count-1,"Регистр");
+}
 export function bytes(n) {
   if (n == null || !Number.isFinite(n)) return "Нет данных";
   const units = ["Б", "КиБ", "МиБ", "ГиБ"];

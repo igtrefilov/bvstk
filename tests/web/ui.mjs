@@ -33,8 +33,8 @@ function apiProjection(p) {
       autopoll_cycle_delay_ms:options.autopoll_cycle_delay_ms}:
       {addr_7b:Number(p.transport.address),max_value_code:Number(options.max_write_value)})};
 }
-for (const [bus,name] of [['i2c','pca9536'],['mdio','dp83848c'],['mdio','ksz8081rna']]) {
-  additional[bus].push(apiProjection(JSON.parse(await readFile(new URL(`../../configs/${bus}/${name}/${name}.json`,import.meta.url),'utf8'))));
+for (const [bus,name,directory=name] of [['i2c','pca9555','pca9545a/pca9555'],['mdio','dp83848c'],['mdio','ksz8081rna']]) {
+  additional[bus].push(apiProjection(JSON.parse(await readFile(new URL(`../../configs/${bus}/${directory}/${name}.json`,import.meta.url),'utf8'))));
 }
 const presence = {i2c:'responding',mdio:'responding'};
 const revision={mdio:1,i2c:1},saved={mdio:true,i2c:true};
@@ -222,10 +222,10 @@ try{
   assert(subsystemStates.length > 0);
   assert(subsystemStates.every(state => ['Готово','Не готово'].includes(state.trim())),`Unexpected subsystem state: ${subsystemStates.join(', ')}`);
   assert.equal(await page.locator('[data-subsystem="i2c:axp15060"] td').nth(3).textContent(),'Готово');
-  assert.equal(await page.locator('[data-subsystem="i2c:pca9536"] td').nth(3).textContent(),'Не готово');
+  assert.equal(await page.locator('[data-subsystem="i2c:pca9555"] td').nth(3).textContent(),'Не готово');
   assert.equal(await page.locator('[data-subsystem="mdio:lan8720"] td').nth(3).textContent(),'Готово');
   assert.equal(await page.locator('[data-subsystem="mdio:dp83848c"] td').nth(3).textContent(),'Не готово');
-  assert.equal(await page.locator('[data-subsystem="i2c:pca9536"] .badge.offline').count(),1);
+  assert.equal(await page.locator('[data-subsystem="i2c:pca9555"] .badge.offline').count(),1);
   assert.equal(await page.locator('[data-subsystem="mdio:dp83848c"] .badge.offline').count(),1);
   assert.deepEqual(await page.locator('.nav-branch > summary').allTextContents(),['Подсистемы','Файлы','Система']);
   await page.locator('[data-device-name="lan8720"]').waitFor();
@@ -238,7 +238,7 @@ try{
   assert.equal(await page.locator('[data-device-tree="i2c"] a').count(),2);
   assert.equal(await page.locator('[data-device-tree="mdio"] a').count(),3);
   for(const name of ['axp15060','lan8720'])await checkDeviceIcon(name,true);
-  for(const name of ['pca9536','dp83848c','ksz8081rna'])await checkDeviceIcon(name,false);
+  for(const name of ['pca9555','dp83848c','ksz8081rna'])await checkDeviceIcon(name,false);
   assert.equal(await page.locator('[data-subsystem="mdio:lan8720"] td').nth(2).textContent(),'0x01');
   assert(await page.locator('[data-icon-name="settings"] path').evaluate(el=>{
     const values=el.getAttribute('d').match(/-?\d+(?:\.\d+)?/g).map(Number),points=[];
@@ -261,7 +261,7 @@ try{
   await page.locator('[data-subsystem="mdio:lan8720"]').click();
   await page.locator('#overview-inspector').getByText('Сохранена',{exact:true}).waitFor();
   await screenshot("01-overview");
-  for(const [name,address] of [['pca9536','0x41'],['dp83848c','0x02'],['ksz8081rna','0x03']]) {
+  for(const [name,address] of [['pca9555','0x20'],['dp83848c','0x02'],['ksz8081rna','0x03']]) {
     await page.locator(`[data-device-name="${name}"]`).click();
     await page.locator('.device-name').filter({hasText:name}).waitFor();
     assert.equal(await page.locator('.device-meta>span').first().textContent(),'Адрес '+address);
@@ -348,9 +348,9 @@ try{
   await page.locator('[data-tab="telemetry"]').click();
   await page.locator('[data-live-rows] .empty').filter({hasText:'Нет подтверждённых взаимодействий'}).waitFor();
   assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),0);
-  observed('i2c','telemetry',{address:65,reg:2,value:255});
-  await page.locator('[data-device-name="pca9536"]').click();
-  await page.locator('.device-name').filter({hasText:'pca9536'}).waitFor();
+  observed('i2c','telemetry',{address:32,reg:2,value:255});
+  await page.locator('[data-device-name="pca9555"]').click();
+  await page.locator('.device-name').filter({hasText:'pca9555'}).waitFor();
   await page.locator('[data-tab="telemetry"]').click();
   await page.locator('[data-live-rows] .empty').filter({hasText:'Нет подтверждённых взаимодействий'}).waitFor();
   assert.equal(await page.locator('[data-live-rows] tr[data-record-id]').count(),0);

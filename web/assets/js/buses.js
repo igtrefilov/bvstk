@@ -1,5 +1,5 @@
 import * as api from "./api.js";
-import {esc, hex, head, kv, badge, footer, ask, notice, number, clearNotice, deviceState} from "./ui.js";
+import {esc, hex, head, kv, badge, footer, ask, notice, number, clearNotice, deviceState, registerToken, registerNumber} from "./ui.js";
 
 import {registerWorkspace} from "./registers.js";
 import {policyWorkspace} from "./policy.js";
@@ -28,6 +28,9 @@ export async function busPage(root, params, ctx, bus) {
   const changed = () => !!detail && (invalid || JSON.stringify(draft) !== JSON.stringify(detail.config));
   const maxValue = () => mdio ? 65535 : draft.max_value_code;
   const maxReg = () => draft.reg_count - 1;
+  const addresses = () => detail.address_spaces?.length ?
+    detail.address_spaces.map(s => `${s.id} ${hex(s.address)}`).join(", ") :
+    hex(mdio ? draft.phy_addr : draft.addr_7b);
   async function locked(work) {
     busy++; root.inert = true;
     try { return await work(); }
@@ -110,7 +113,7 @@ export async function busPage(root, params, ctx, bus) {
     root.querySelector("[data-discard]")?.addEventListener("click", () => { resetDraft(); render(); });
   }
   function content() {
-    if (tab === "overview") return `<article class="card"><h2>Устройство ${esc(selected)}</h2>${kv([["Подсистема",label],["Адрес",hex(mdio ? draft.phy_addr : draft.addr_7b)],["Регистров",draft.reg_count],["Политика",detail.config.policy],["Разрешающих правил",detail.config.whitelist.length],["Запрещающих правил",detail.config.blacklist.length]])}</article>${mdio && detail.stats ? `<article class="card"><h2>Счётчики подсистемы MDIO</h2>${kv([["Чтения",detail.stats.reads],["Переданные записи",detail.stats.writes],["Отказы политики",detail.stats.denied],["Ошибки",detail.stats.errors],["Обработанные входные ячейки",detail.stats.observed]])}<p class="muted">Общие счётчики всех PHY. PL может объединять входные записи; точное число потерянных кадров неизвестно.</p></article>` : ""}`;
+    if (tab === "overview") return `<article class="card"><h2>Устройство ${esc(selected)}</h2>${kv([["Подсистема",label],["Адрес",addresses()],["Регистров",draft.reg_count],["Политика",detail.config.policy],["Разрешающих правил",detail.config.whitelist.length],["Запрещающих правил",detail.config.blacklist.length]])}</article>${mdio && detail.stats ? `<article class="card"><h2>Счётчики подсистемы MDIO</h2>${kv([["Чтения",detail.stats.reads],["Переданные записи",detail.stats.writes],["Отказы политики",detail.stats.denied],["Ошибки",detail.stats.errors],["Обработанные входные ячейки",detail.stats.observed]])}<p class="muted">Общие счётчики всех PHY. PL может объединять входные записи; точное число потерянных кадров неизвестно.</p></article>` : ""}`;
     if (tab === "policy") return '<div id="policy-workspace"></div>';
     if (tab === "registers") return '<div id="register-workspace"></div>';
     if (tab === "indicators") return '<div id="indicators-workspace"></div>';
@@ -122,7 +125,7 @@ export async function busPage(root, params, ctx, bus) {
     stopObservation(); stopRegisters(); stopIndicators();
     ctx.setContext({name:selected,tab});
     const state = deviceState(bus,detail);
-    root.innerHTML = `<div class="page-head"><div class="device-heading"><h1>${label}</h1><span class="device-name">${esc(selected)}</span></div></div><div class="device-meta"><span>Адрес <strong class="mono">${hex(mdio ? detail.config.phy_addr : detail.config.addr_7b)}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${!["registers","indicators"].includes(tab) || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
+    root.innerHTML = `<div class="page-head"><div class="device-heading"><h1>${label}</h1><span class="device-name">${esc(selected)}</span></div></div><div class="device-meta"><span>Адрес <strong class="mono">${esc(addresses())}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${!["registers","indicators"].includes(tab) || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
     if (tab === "indicators") indicators = indicatorsWorkspace(root.querySelector("#indicators-workspace"),{bus,detail,signal:ctx.signal,busy:() => !!busy});
     if (tab === "registers") {
       const view = registerWorkspace(root.querySelector("#register-workspace"), {bus,detail,state:regState,canOperate:!changed(),onRead:reg => registerOp(reg,false),onWrite:(reg,val) => registerOp(reg,true,val)});
@@ -149,10 +152,10 @@ export async function busPage(root, params, ctx, bus) {
     if (tab === "telemetry" || tab === "events") {
       const address = mdio ? detail.config.phy_addr : detail.config.addr_7b, key = `${selected}:${address}:${tab}`;
       if (!observations.has(key)) observations.set(key, {});
-      stopObservation = observationWorkspace(root.querySelector("#observation-workspace"), {bus,address,channel:tab,signal:ctx.signal,state:observations.get(key)});
+      stopObservation = observationWorkspace(root.querySelector("#observation-workspace"), {bus,address,device:selected,channel:tab,signal:ctx.signal,state:observations.get(key)});
       if (!changed()) root.querySelector(".save-bar")?.remove();
     }
-    if (tab === "policy") policyWorkspace(root.querySelector("#policy-workspace"), {bus,base:detail.config,draft,ids:ruleIds,state:ruleState,onChange:value => { invalid = value; updateBar(); },onAdd:key => { if (invalid) { notice("Сначала исправьте неверные значения полей",true); return; } editRule(key); }});
+    if (tab === "policy") policyWorkspace(root.querySelector("#policy-workspace"), {bus,base:detail.config,draft,ids:ruleIds,state:ruleState,spaces:detail.address_spaces,onChange:value => { invalid = value; updateBar(); },onAdd:key => { if (invalid) { notice("Сначала исправьте неверные значения полей",true); return; } editRule(key); }});
     wireSave();
     root.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { if (invalid) { notice("Сначала исправьте неверные значения полей",true); return; } clearNotice(); tab = b.dataset.tab; render(); });
 
@@ -162,15 +165,15 @@ export async function busPage(root, params, ctx, bus) {
     const [key, index] = spec.split(":"), i = index == null ? -1 : Number(index);
     if (i < 0 && draft[key].length >= (mdio ? 64 : 256)) { notice("Достигнут предел количества строк",true); return; }
     const row = i < 0 ? {reg:0,val:0,mask:65535} : draft[key][i];
-    await ask({title:"Правило записи",submit:"Готово",body:`<label>Регистр<input name="reg" value="${hex(row.reg)}" required></label><label>Значение<input name="val" value="${hex(row.val,mdio ? 4 : 2)}" required></label>${mdio ? `<label>Маска<input name="mask" value="${hex(row.mask,4)}" required></label><small>0x0000 допускает любое значение. 0xFFFF — точное совпадение.</small>` : ""}`,run:async form => {
-      const next = {reg:number(form.elements.reg.value,maxReg(),"Регистр"),val:number(form.elements.val.value,maxValue())};
+    await ask({title:"Правило записи",submit:"Готово",body:`<label>Регистр<input name="reg" value="${esc(registerToken(row.reg,detail.address_spaces))}" required></label><label>Значение<input name="val" value="${hex(row.val,mdio ? 4 : 2)}" required></label>${mdio ? `<label>Маска<input name="mask" value="${hex(row.mask,4)}" required></label><small>0x0000 допускает любое значение. 0xFFFF — точное совпадение.</small>` : ""}`,run:async form => {
+      const next = {reg:registerNumber(form.elements.reg.value,maxReg()+1,detail.address_spaces),val:number(form.elements.val.value,maxValue())};
       if (mdio) next.mask = number(form.elements.mask.value,65535,"Маска");
       if (i < 0) { draft[key].push(next); if (ruleIds[key]) { ruleIds[key].push(-1); ruleState.index = draft[key].length-1; ruleState.list = key; } } else draft[key][i] = next; render();
     }});
   }
   async function registerOp(reg, write, val) {
     if (changed()) throw new Error("Сначала примените или отбросьте черновик конфигурации");
-    if (write && !await ask({title:"Записать регистр?",body:`<p>${esc(selected)}: регистр <code>${hex(reg)}</code>, значение <code>${hex(val,mdio ? 4 : 2)}</code>.</p><p>Операция проверяется активной политикой. Запись не повторяется автоматически.</p>`,submit:"Записать"})) return;
+    if (write && !await ask({title:"Записать регистр?",body:`<p>${esc(selected)}: регистр <code>${esc(registerToken(reg,detail.address_spaces))}</code>, значение <code>${hex(val,mdio ? 4 : 2)}</code>.</p><p>Операция проверяется активной политикой. Запись не повторяется автоматически.</p>`,submit:"Записать"})) return;
     await locked(async () => {
       const result = await api.busAction(bus,selected,write ? "write" : "read",{reg,val,confirm:write ? true : undefined});
       if (!write) regState.value = hex(result.val,mdio ? 4 : 2);

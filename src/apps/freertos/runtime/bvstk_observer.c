@@ -32,3 +32,10 @@ void bvstk_observer_read(unsigned bus, unsigned channel, int address,
     bvstk_journal_read(&journal, bus, channel, address, after, out);
     taskEXIT_CRITICAL();
 }
+void bvstk_observer_read_device(unsigned bus, unsigned channel, int device_slot,
+    uint64_t after, bvstk_journal_batch_t *out)
+{
+    taskENTER_CRITICAL();
+    bvstk_journal_read_device(&journal, bus, channel, -1, device_slot, after, out);
+    taskEXIT_CRITICAL();
+}

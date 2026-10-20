@@ -1,0 +1,393 @@
+{
+  "schema_version": 1,
+  "kind": "register_map",
+  "id": "sfp",
+  "device": "SFP",
+  "bus": "i2c",
+  "width_bits": 8,
+  "register_count": 256,
+  "source": {
+    "title": "Management Interface for SFP+",
+    "document": "SFF-8472",
+    "revision": "12.5a, 2026-01-16",
+    "url": "https://members.snia.org/document/dl/25916"
+  },
+  "notes": "Базовые 128 байт A0h (I²C 0x50) и A2h (0x51). Поля изготовителя и условные области показаны сырыми байтами. Многобайтовые величины и калибровку обрабатывает view.js. Страницы 128–255 не входят в профиль. Карта описывает свойства полей; профиль запрещает запись.",
+  "identity": [
+    {
+      "field": "a0_00.v",
+      "equals": 3
+    }
+  ],
+  "registers": [
+    {"id":"a0_00","space":"identity","address":0,"name":"A0_00","label":"Identifier","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"enum","access":"ro","reset":"-","values":{"3":{"label":"SFP"}}}]},
+    {"id":"a0_01","space":"identity","address":1,"name":"A0_01","label":"Extended ID","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_02","space":"identity","address":2,"name":"A0_02","label":"Connector","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_03","space":"identity","address":3,"name":"A0_03","label":"Compliance 0","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_04","space":"identity","address":4,"name":"A0_04","label":"Compliance 1","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_05","space":"identity","address":5,"name":"A0_05","label":"Compliance 2","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_06","space":"identity","address":6,"name":"A0_06","label":"Compliance 3","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_07","space":"identity","address":7,"name":"A0_07","label":"Compliance 4","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_08","space":"identity","address":8,"name":"A0_08","label":"Compliance 5","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_09","space":"identity","address":9,"name":"A0_09","label":"Compliance 6","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_0a","space":"identity","address":10,"name":"A0_0A","label":"Compliance 7","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_0b","space":"identity","address":11,"name":"A0_0B","label":"Encoding","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_0c","space":"identity","address":12,"name":"A0_0C","label":"Rate, 100 MBd","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_0d","space":"identity","address":13,"name":"A0_0D","label":"Rate ID","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_0e","space":"identity","address":14,"name":"A0_0E","label":"SMF km or attenuation","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_0f","space":"identity","address":15,"name":"A0_0F","label":"SMF 100 m or attenuation","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_10","space":"identity","address":16,"name":"A0_10","label":"OM2, 10 m","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_11","space":"identity","address":17,"name":"A0_11","label":"OM1, 10 m","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_12","space":"identity","address":18,"name":"A0_12","label":"OM4 or cable","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_13","space":"identity","address":19,"name":"A0_13","label":"OM3 or cable","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_14","space":"identity","address":20,"name":"A0_14","label":"Vendor [0]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_15","space":"identity","address":21,"name":"A0_15","label":"Vendor [1]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_16","space":"identity","address":22,"name":"A0_16","label":"Vendor [2]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_17","space":"identity","address":23,"name":"A0_17","label":"Vendor [3]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_18","space":"identity","address":24,"name":"A0_18","label":"Vendor [4]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_19","space":"identity","address":25,"name":"A0_19","label":"Vendor [5]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_1a","space":"identity","address":26,"name":"A0_1A","label":"Vendor [6]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_1b","space":"identity","address":27,"name":"A0_1B","label":"Vendor [7]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_1c","space":"identity","address":28,"name":"A0_1C","label":"Vendor [8]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_1d","space":"identity","address":29,"name":"A0_1D","label":"Vendor [9]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_1e","space":"identity","address":30,"name":"A0_1E","label":"Vendor [10]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_1f","space":"identity","address":31,"name":"A0_1F","label":"Vendor [11]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_20","space":"identity","address":32,"name":"A0_20","label":"Vendor [12]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_21","space":"identity","address":33,"name":"A0_21","label":"Vendor [13]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_22","space":"identity","address":34,"name":"A0_22","label":"Vendor [14]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_23","space":"identity","address":35,"name":"A0_23","label":"Vendor [15]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_24","space":"identity","address":36,"name":"A0_24","label":"Расширенный код","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_25","space":"identity","address":37,"name":"A0_25","label":"OUI [0]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_26","space":"identity","address":38,"name":"A0_26","label":"OUI [1]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_27","space":"identity","address":39,"name":"A0_27","label":"OUI [2]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_28","space":"identity","address":40,"name":"A0_28","label":"Part [0]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_29","space":"identity","address":41,"name":"A0_29","label":"Part [1]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_2a","space":"identity","address":42,"name":"A0_2A","label":"Part [2]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_2b","space":"identity","address":43,"name":"A0_2B","label":"Part [3]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_2c","space":"identity","address":44,"name":"A0_2C","label":"Part [4]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_2d","space":"identity","address":45,"name":"A0_2D","label":"Part [5]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_2e","space":"identity","address":46,"name":"A0_2E","label":"Part [6]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_2f","space":"identity","address":47,"name":"A0_2F","label":"Part [7]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_30","space":"identity","address":48,"name":"A0_30","label":"Part [8]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_31","space":"identity","address":49,"name":"A0_31","label":"Part [9]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_32","space":"identity","address":50,"name":"A0_32","label":"Part [10]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_33","space":"identity","address":51,"name":"A0_33","label":"Part [11]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_34","space":"identity","address":52,"name":"A0_34","label":"Part [12]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_35","space":"identity","address":53,"name":"A0_35","label":"Part [13]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_36","space":"identity","address":54,"name":"A0_36","label":"Part [14]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_37","space":"identity","address":55,"name":"A0_37","label":"Part [15]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_38","space":"identity","address":56,"name":"A0_38","label":"Revision [0]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_39","space":"identity","address":57,"name":"A0_39","label":"Revision [1]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_3a","space":"identity","address":58,"name":"A0_3A","label":"Revision [2]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_3b","space":"identity","address":59,"name":"A0_3B","label":"Revision [3]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_3c","space":"identity","address":60,"name":"A0_3C","label":"Wavelength / cable [0]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_3d","space":"identity","address":61,"name":"A0_3D","label":"Wavelength / cable [1]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_3e","space":"identity","address":62,"name":"A0_3E","label":"Скорости FC","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_3f","space":"identity","address":63,"name":"A0_3F","label":"CC_BASE","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_40","space":"identity","address":64,"name":"A0_40","label":"Опции, старший","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_41","space":"identity","address":65,"name":"A0_41","label":"Опции, младший","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_42","space":"identity","address":66,"name":"A0_42","label":"Скорость, max","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_43","space":"identity","address":67,"name":"A0_43","label":"Скорость, min","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_44","space":"identity","address":68,"name":"A0_44","label":"Serial [0]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_45","space":"identity","address":69,"name":"A0_45","label":"Serial [1]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_46","space":"identity","address":70,"name":"A0_46","label":"Serial [2]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_47","space":"identity","address":71,"name":"A0_47","label":"Serial [3]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_48","space":"identity","address":72,"name":"A0_48","label":"Serial [4]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_49","space":"identity","address":73,"name":"A0_49","label":"Serial [5]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_4a","space":"identity","address":74,"name":"A0_4A","label":"Serial [6]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_4b","space":"identity","address":75,"name":"A0_4B","label":"Serial [7]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_4c","space":"identity","address":76,"name":"A0_4C","label":"Serial [8]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_4d","space":"identity","address":77,"name":"A0_4D","label":"Serial [9]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_4e","space":"identity","address":78,"name":"A0_4E","label":"Serial [10]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_4f","space":"identity","address":79,"name":"A0_4F","label":"Serial [11]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_50","space":"identity","address":80,"name":"A0_50","label":"Serial [12]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_51","space":"identity","address":81,"name":"A0_51","label":"Serial [13]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_52","space":"identity","address":82,"name":"A0_52","label":"Serial [14]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_53","space":"identity","address":83,"name":"A0_53","label":"Serial [15]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_54","space":"identity","address":84,"name":"A0_54","label":"Date [0]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_55","space":"identity","address":85,"name":"A0_55","label":"Date [1]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_56","space":"identity","address":86,"name":"A0_56","label":"Date [2]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_57","space":"identity","address":87,"name":"A0_57","label":"Date [3]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_58","space":"identity","address":88,"name":"A0_58","label":"Date [4]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_59","space":"identity","address":89,"name":"A0_59","label":"Date [5]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_5a","space":"identity","address":90,"name":"A0_5A","label":"Date [6]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_5b","space":"identity","address":91,"name":"A0_5B","label":"Date [7]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_5c","space":"identity","address":92,"name":"A0_5C","label":"Вид диагностики","section":"8.8–8.9","fields":[{"id":"r0","label":"Резерв","lsb":0,"width":1,"type":"reserved","access":"none","reset":"-"},{"id":"rpm","label":"Удалённый мониторинг","lsb":1,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"address_change","label":"Переключение адреса","lsb":2,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Не требуется"},"1":{"label":"Требуется","tone":"warn"}}},{"id":"rx_average","label":"Измерение RX","lsb":3,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"OMA"},"1":{"label":"Средняя мощность"}}},{"id":"external","label":"Внешняя калибровка","lsb":4,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"internal","label":"Внутренняя калибровка","lsb":5,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"ddm","label":"Цифровая диагностика","lsb":6,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"r7","label":"Резерв","lsb":7,"width":1,"type":"reserved","access":"none","reset":"-"}]},
+    {"id":"a0_5d","space":"identity","address":93,"name":"A0_5D","label":"Опции диагностики","section":"8.10","fields":[{"id":"r0","label":"Резерв","lsb":0,"width":1,"type":"reserved","access":"none","reset":"-"},{"id":"rs1","label":"Программный RS1","lsb":1,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"app_select","label":"Выбор приложения","lsb":2,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"rs0","label":"Программный RS0","lsb":3,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"los","label":"Контроль RX_LOS","lsb":4,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"fault","label":"Контроль TX_FAULT","lsb":5,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"disable","label":"Программный TX_DISABLE","lsb":6,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}},{"id":"flags","label":"Флаги аварий","lsb":7,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть"}}}]},
+    {"id":"a0_5e","space":"identity","address":94,"name":"A0_5E","label":"Версия SFF-8472","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_5f","space":"identity","address":95,"name":"A0_5F","label":"CC_EXT","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_60","space":"identity","address":96,"name":"A0_60","label":"Vendor [96]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_61","space":"identity","address":97,"name":"A0_61","label":"Vendor [97]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_62","space":"identity","address":98,"name":"A0_62","label":"Vendor [98]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_63","space":"identity","address":99,"name":"A0_63","label":"Vendor [99]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_64","space":"identity","address":100,"name":"A0_64","label":"Vendor [100]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_65","space":"identity","address":101,"name":"A0_65","label":"Vendor [101]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_66","space":"identity","address":102,"name":"A0_66","label":"Vendor [102]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_67","space":"identity","address":103,"name":"A0_67","label":"Vendor [103]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_68","space":"identity","address":104,"name":"A0_68","label":"Vendor [104]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_69","space":"identity","address":105,"name":"A0_69","label":"Vendor [105]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_6a","space":"identity","address":106,"name":"A0_6A","label":"Vendor [106]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_6b","space":"identity","address":107,"name":"A0_6B","label":"Vendor [107]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_6c","space":"identity","address":108,"name":"A0_6C","label":"Vendor [108]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_6d","space":"identity","address":109,"name":"A0_6D","label":"Vendor [109]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_6e","space":"identity","address":110,"name":"A0_6E","label":"Vendor [110]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_6f","space":"identity","address":111,"name":"A0_6F","label":"Vendor [111]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_70","space":"identity","address":112,"name":"A0_70","label":"Vendor [112]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_71","space":"identity","address":113,"name":"A0_71","label":"Vendor [113]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_72","space":"identity","address":114,"name":"A0_72","label":"Vendor [114]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_73","space":"identity","address":115,"name":"A0_73","label":"Vendor [115]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_74","space":"identity","address":116,"name":"A0_74","label":"Vendor [116]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_75","space":"identity","address":117,"name":"A0_75","label":"Vendor [117]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_76","space":"identity","address":118,"name":"A0_76","label":"Vendor [118]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_77","space":"identity","address":119,"name":"A0_77","label":"Vendor [119]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_78","space":"identity","address":120,"name":"A0_78","label":"Vendor [120]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_79","space":"identity","address":121,"name":"A0_79","label":"Vendor [121]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_7a","space":"identity","address":122,"name":"A0_7A","label":"Vendor [122]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_7b","space":"identity","address":123,"name":"A0_7B","label":"Vendor [123]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_7c","space":"identity","address":124,"name":"A0_7C","label":"Vendor [124]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_7d","space":"identity","address":125,"name":"A0_7D","label":"Vendor [125]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_7e","space":"identity","address":126,"name":"A0_7E","label":"Vendor [126]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a0_7f","space":"identity","address":127,"name":"A0_7F","label":"Vendor [127]","section":"4.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_00","space":"diagnostics","address":0,"name":"A2_00","label":"Temperature HA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_01","space":"diagnostics","address":1,"name":"A2_01","label":"Temperature HA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_02","space":"diagnostics","address":2,"name":"A2_02","label":"Temperature LA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_03","space":"diagnostics","address":3,"name":"A2_03","label":"Temperature LA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_04","space":"diagnostics","address":4,"name":"A2_04","label":"Temperature HW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_05","space":"diagnostics","address":5,"name":"A2_05","label":"Temperature HW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_06","space":"diagnostics","address":6,"name":"A2_06","label":"Temperature LW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_07","space":"diagnostics","address":7,"name":"A2_07","label":"Temperature LW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_08","space":"diagnostics","address":8,"name":"A2_08","label":"Vcc HA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_09","space":"diagnostics","address":9,"name":"A2_09","label":"Vcc HA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_0a","space":"diagnostics","address":10,"name":"A2_0A","label":"Vcc LA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_0b","space":"diagnostics","address":11,"name":"A2_0B","label":"Vcc LA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_0c","space":"diagnostics","address":12,"name":"A2_0C","label":"Vcc HW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_0d","space":"diagnostics","address":13,"name":"A2_0D","label":"Vcc HW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_0e","space":"diagnostics","address":14,"name":"A2_0E","label":"Vcc LW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_0f","space":"diagnostics","address":15,"name":"A2_0F","label":"Vcc LW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_10","space":"diagnostics","address":16,"name":"A2_10","label":"TX bias HA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_11","space":"diagnostics","address":17,"name":"A2_11","label":"TX bias HA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_12","space":"diagnostics","address":18,"name":"A2_12","label":"TX bias LA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_13","space":"diagnostics","address":19,"name":"A2_13","label":"TX bias LA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_14","space":"diagnostics","address":20,"name":"A2_14","label":"TX bias HW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_15","space":"diagnostics","address":21,"name":"A2_15","label":"TX bias HW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_16","space":"diagnostics","address":22,"name":"A2_16","label":"TX bias LW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_17","space":"diagnostics","address":23,"name":"A2_17","label":"TX bias LW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_18","space":"diagnostics","address":24,"name":"A2_18","label":"TX power HA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_19","space":"diagnostics","address":25,"name":"A2_19","label":"TX power HA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_1a","space":"diagnostics","address":26,"name":"A2_1A","label":"TX power LA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_1b","space":"diagnostics","address":27,"name":"A2_1B","label":"TX power LA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_1c","space":"diagnostics","address":28,"name":"A2_1C","label":"TX power HW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_1d","space":"diagnostics","address":29,"name":"A2_1D","label":"TX power HW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_1e","space":"diagnostics","address":30,"name":"A2_1E","label":"TX power LW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_1f","space":"diagnostics","address":31,"name":"A2_1F","label":"TX power LW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_20","space":"diagnostics","address":32,"name":"A2_20","label":"RX power HA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_21","space":"diagnostics","address":33,"name":"A2_21","label":"RX power HA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_22","space":"diagnostics","address":34,"name":"A2_22","label":"RX power LA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_23","space":"diagnostics","address":35,"name":"A2_23","label":"RX power LA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_24","space":"diagnostics","address":36,"name":"A2_24","label":"RX power HW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_25","space":"diagnostics","address":37,"name":"A2_25","label":"RX power HW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_26","space":"diagnostics","address":38,"name":"A2_26","label":"RX power LW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_27","space":"diagnostics","address":39,"name":"A2_27","label":"RX power LW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_28","space":"diagnostics","address":40,"name":"A2_28","label":"Laser temp/wavelength HA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_29","space":"diagnostics","address":41,"name":"A2_29","label":"Laser temp/wavelength HA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_2a","space":"diagnostics","address":42,"name":"A2_2A","label":"Laser temp/wavelength LA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_2b","space":"diagnostics","address":43,"name":"A2_2B","label":"Laser temp/wavelength LA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_2c","space":"diagnostics","address":44,"name":"A2_2C","label":"Laser temp/wavelength HW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_2d","space":"diagnostics","address":45,"name":"A2_2D","label":"Laser temp/wavelength HW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_2e","space":"diagnostics","address":46,"name":"A2_2E","label":"Laser temp/wavelength LW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_2f","space":"diagnostics","address":47,"name":"A2_2F","label":"Laser temp/wavelength LW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_30","space":"diagnostics","address":48,"name":"A2_30","label":"TEC current HA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_31","space":"diagnostics","address":49,"name":"A2_31","label":"TEC current HA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_32","space":"diagnostics","address":50,"name":"A2_32","label":"TEC current LA MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_33","space":"diagnostics","address":51,"name":"A2_33","label":"TEC current LA LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_34","space":"diagnostics","address":52,"name":"A2_34","label":"TEC current HW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_35","space":"diagnostics","address":53,"name":"A2_35","label":"TEC current HW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_36","space":"diagnostics","address":54,"name":"A2_36","label":"TEC current LW MSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_37","space":"diagnostics","address":55,"name":"A2_37","label":"TEC current LW LSB","section":"9.4","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_38","space":"diagnostics","address":56,"name":"A2_38","label":"Calibration / options [56]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_39","space":"diagnostics","address":57,"name":"A2_39","label":"Calibration / options [57]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_3a","space":"diagnostics","address":58,"name":"A2_3A","label":"Calibration / options [58]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_3b","space":"diagnostics","address":59,"name":"A2_3B","label":"Calibration / options [59]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_3c","space":"diagnostics","address":60,"name":"A2_3C","label":"Calibration / options [60]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_3d","space":"diagnostics","address":61,"name":"A2_3D","label":"Calibration / options [61]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_3e","space":"diagnostics","address":62,"name":"A2_3E","label":"Calibration / options [62]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_3f","space":"diagnostics","address":63,"name":"A2_3F","label":"Calibration / options [63]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_40","space":"diagnostics","address":64,"name":"A2_40","label":"Calibration / options [64]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_41","space":"diagnostics","address":65,"name":"A2_41","label":"Calibration / options [65]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_42","space":"diagnostics","address":66,"name":"A2_42","label":"Calibration / options [66]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_43","space":"diagnostics","address":67,"name":"A2_43","label":"Calibration / options [67]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_44","space":"diagnostics","address":68,"name":"A2_44","label":"Calibration / options [68]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_45","space":"diagnostics","address":69,"name":"A2_45","label":"Calibration / options [69]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_46","space":"diagnostics","address":70,"name":"A2_46","label":"Calibration / options [70]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_47","space":"diagnostics","address":71,"name":"A2_47","label":"Calibration / options [71]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_48","space":"diagnostics","address":72,"name":"A2_48","label":"Calibration / options [72]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_49","space":"diagnostics","address":73,"name":"A2_49","label":"Calibration / options [73]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_4a","space":"diagnostics","address":74,"name":"A2_4A","label":"Calibration / options [74]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_4b","space":"diagnostics","address":75,"name":"A2_4B","label":"Calibration / options [75]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_4c","space":"diagnostics","address":76,"name":"A2_4C","label":"Calibration / options [76]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_4d","space":"diagnostics","address":77,"name":"A2_4D","label":"Calibration / options [77]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_4e","space":"diagnostics","address":78,"name":"A2_4E","label":"Calibration / options [78]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_4f","space":"diagnostics","address":79,"name":"A2_4F","label":"Calibration / options [79]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_50","space":"diagnostics","address":80,"name":"A2_50","label":"Calibration / options [80]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_51","space":"diagnostics","address":81,"name":"A2_51","label":"Calibration / options [81]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_52","space":"diagnostics","address":82,"name":"A2_52","label":"Calibration / options [82]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_53","space":"diagnostics","address":83,"name":"A2_53","label":"Calibration / options [83]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_54","space":"diagnostics","address":84,"name":"A2_54","label":"Calibration / options [84]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_55","space":"diagnostics","address":85,"name":"A2_55","label":"Calibration / options [85]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_56","space":"diagnostics","address":86,"name":"A2_56","label":"Calibration / options [86]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_57","space":"diagnostics","address":87,"name":"A2_57","label":"Calibration / options [87]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_58","space":"diagnostics","address":88,"name":"A2_58","label":"Calibration / options [88]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_59","space":"diagnostics","address":89,"name":"A2_59","label":"Calibration / options [89]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_5a","space":"diagnostics","address":90,"name":"A2_5A","label":"Calibration / options [90]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_5b","space":"diagnostics","address":91,"name":"A2_5B","label":"Calibration / options [91]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_5c","space":"diagnostics","address":92,"name":"A2_5C","label":"Calibration / options [92]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_5d","space":"diagnostics","address":93,"name":"A2_5D","label":"Calibration / options [93]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_5e","space":"diagnostics","address":94,"name":"A2_5E","label":"Calibration / options [94]","section":"9.5–9.6","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_5f","space":"diagnostics","address":95,"name":"A2_5F","label":"CC_DMI","section":"9.7","note":"Сумма 0–94 при старте. После изменения опций изготовитель может сохранять прежнюю сумму.","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_60","space":"diagnostics","address":96,"name":"A2_60","label":"Temperature MSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_61","space":"diagnostics","address":97,"name":"A2_61","label":"Temperature LSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_62","space":"diagnostics","address":98,"name":"A2_62","label":"Vcc MSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_63","space":"diagnostics","address":99,"name":"A2_63","label":"Vcc LSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_64","space":"diagnostics","address":100,"name":"A2_64","label":"TX bias MSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_65","space":"diagnostics","address":101,"name":"A2_65","label":"TX bias LSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_66","space":"diagnostics","address":102,"name":"A2_66","label":"TX power MSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_67","space":"diagnostics","address":103,"name":"A2_67","label":"TX power LSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_68","space":"diagnostics","address":104,"name":"A2_68","label":"RX power MSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_69","space":"diagnostics","address":105,"name":"A2_69","label":"RX power LSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_6a","space":"diagnostics","address":106,"name":"A2_6A","label":"Laser temp/wavelength MSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_6b","space":"diagnostics","address":107,"name":"A2_6B","label":"Laser temp/wavelength LSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_6c","space":"diagnostics","address":108,"name":"A2_6C","label":"TEC current MSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_6d","space":"diagnostics","address":109,"name":"A2_6D","label":"TEC current LSB","section":"9.8","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_6e","space":"diagnostics","address":110,"name":"A2_6E","label":"Состояние и управление","section":"9.8","note":"Опциональные биты интерпретируются с учётом A0h 93. RX_LOS сам по себе не определяет состояние Ethernet link.","fields":[{"id":"not_ready","label":"Данные DDM","lsb":0,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Готовы"},"1":{"label":"Не готовы","tone":"warn"}}},{"id":"los","label":"RX_LOS","lsb":1,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"0"},"1":{"label":"1","tone":"warn"}}},{"id":"fault","label":"TX_FAULT","lsb":2,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"0"},"1":{"label":"1","tone":"bad"}}},{"id":"soft_rs0","label":"Программный RS0","lsb":3,"width":1,"type":"enum","access":"rw","reset":"-","values":{"0":{"label":"0"},"1":{"label":"1"}}},{"id":"rs0","label":"Вывод RS0","lsb":4,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"0"},"1":{"label":"1"}}},{"id":"rs1","label":"Вывод RS1","lsb":5,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"0"},"1":{"label":"1"}}},{"id":"soft_disable","label":"Программный TX_DISABLE","lsb":6,"width":1,"type":"enum","access":"rw","reset":"-","values":{"0":{"label":"0"},"1":{"label":"1"}}},{"id":"disable","label":"Вывод TX_DISABLE","lsb":7,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"0"},"1":{"label":"1"}}}]},
+    {"id":"a2_6f","space":"diagnostics","address":111,"name":"A2_6F","label":"Резерв","section":"9","reserved":true,"fields":[{"id":"r0","label":"Резерв","lsb":0,"width":8,"type":"reserved","access":"none","reset":"-"}]},
+    {"id":"a2_70","space":"diagnostics","address":112,"name":"A2_70","label":"Флаги аварий","section":"9.9","fields":[{"id":"low3","label":"Мощность TX ниже","lsb":0,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"high3","label":"Мощность TX выше","lsb":1,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"low2","label":"Ток TX ниже","lsb":2,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"high2","label":"Ток TX выше","lsb":3,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"low1","label":"Питание ниже","lsb":4,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"high1","label":"Питание выше","lsb":5,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"low0","label":"Температура ниже","lsb":6,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"high0","label":"Температура выше","lsb":7,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}}]},
+    {"id":"a2_71","space":"diagnostics","address":113,"name":"A2_71","label":"Флаги аварий","section":"9.9","fields":[{"id":"r0","label":"Резерв","lsb":0,"width":2,"type":"reserved","access":"none","reset":"-"},{"id":"low6","label":"Ток TEC ниже","lsb":2,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"high6","label":"Ток TEC выше","lsb":3,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"low5","label":"Температура лазера ниже","lsb":4,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"high5","label":"Температура лазера выше","lsb":5,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"low4","label":"Мощность RX ниже","lsb":6,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}},{"id":"high4","label":"Мощность RX выше","lsb":7,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"bad"}}}]},
+    {"id":"a2_72","space":"diagnostics","address":114,"name":"A2_72","label":"Эквалайзер TX","section":"9.9","fields":[{"id":"low","label":"RATE LOW","lsb":0,"width":4,"type":"hex","access":"rw","reset":"-"},{"id":"high","label":"RATE HIGH","lsb":4,"width":4,"type":"hex","access":"rw","reset":"-"}]},
+    {"id":"a2_73","space":"diagnostics","address":115,"name":"A2_73","label":"Предыскажения RX","section":"9.9","fields":[{"id":"low","label":"RATE LOW","lsb":0,"width":4,"type":"hex","access":"rw","reset":"-"},{"id":"high","label":"RATE HIGH","lsb":4,"width":4,"type":"hex","access":"rw","reset":"-"}]},
+    {"id":"a2_74","space":"diagnostics","address":116,"name":"A2_74","label":"Флаги предупреждений","section":"9.9","fields":[{"id":"low3","label":"Мощность TX ниже","lsb":0,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"high3","label":"Мощность TX выше","lsb":1,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"low2","label":"Ток TX ниже","lsb":2,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"high2","label":"Ток TX выше","lsb":3,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"low1","label":"Питание ниже","lsb":4,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"high1","label":"Питание выше","lsb":5,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"low0","label":"Температура ниже","lsb":6,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"high0","label":"Температура выше","lsb":7,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}}]},
+    {"id":"a2_75","space":"diagnostics","address":117,"name":"A2_75","label":"Флаги предупреждений","section":"9.9","fields":[{"id":"r0","label":"Резерв","lsb":0,"width":2,"type":"reserved","access":"none","reset":"-"},{"id":"low6","label":"Ток TEC ниже","lsb":2,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"high6","label":"Ток TEC выше","lsb":3,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"low5","label":"Температура лазера ниже","lsb":4,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"high5","label":"Температура лазера выше","lsb":5,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"low4","label":"Мощность RX ниже","lsb":6,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}},{"id":"high4","label":"Мощность RX выше","lsb":7,"width":1,"type":"enum","access":"ro","reset":"-","values":{"0":{"label":"Нет"},"1":{"label":"Есть","tone":"warn"}}}]},
+    {"id":"a2_76","space":"diagnostics","address":118,"name":"A2_76","label":"Расширенное управление","section":"10","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"rw","reset":"-"}]},
+    {"id":"a2_77","space":"diagnostics","address":119,"name":"A2_77","label":"Extended status","section":"10","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_78","space":"diagnostics","address":120,"name":"A2_78","label":"Vendor [120]","section":"9","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_79","space":"diagnostics","address":121,"name":"A2_79","label":"Vendor [121]","section":"9","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_7a","space":"diagnostics","address":122,"name":"A2_7A","label":"Vendor [122]","section":"9","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_7b","space":"diagnostics","address":123,"name":"A2_7B","label":"Vendor [123]","section":"9","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_7c","space":"diagnostics","address":124,"name":"A2_7C","label":"Vendor [124]","section":"9","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_7d","space":"diagnostics","address":125,"name":"A2_7D","label":"Vendor [125]","section":"9","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_7e","space":"diagnostics","address":126,"name":"A2_7E","label":"Vendor [126]","section":"9","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"ro","reset":"-"}]},
+    {"id":"a2_7f","space":"diagnostics","address":127,"name":"A2_7F","label":"Выбор страницы","section":"4.3","note":"Запись запрещена профилем; верхняя половина страницы не обслуживается.","fields":[{"id":"v","label":"Byte","lsb":0,"width":8,"type":"hex","access":"rw","reset":"-"}]}
+  ],
+  "summary": [
+    {
+      "id": "ddm",
+      "label": "Цифровая диагностика",
+      "field": "a0_5c.ddm"
+    },
+    {
+      "id": "calibration",
+      "label": "Калибровка",
+      "cases": [
+        {
+          "when": [
+            {
+              "field": "a0_5c.ddm",
+              "equals": 0
+            }
+          ],
+          "label": "Диагностика отсутствует"
+        },
+        {
+          "when": [
+            {
+              "field": "a0_5c.internal",
+              "equals": 1
+            },
+            {
+              "field": "a0_5c.external",
+              "equals": 0
+            }
+          ],
+          "label": "Внутренняя"
+        },
+        {
+          "when": [
+            {
+              "field": "a0_5c.internal",
+              "equals": 0
+            },
+            {
+              "field": "a0_5c.external",
+              "equals": 1
+            }
+          ],
+          "label": "Внешняя"
+        }
+      ]
+    },
+    {
+      "id": "data_ready",
+      "label": "Данные DDM",
+      "cases": [
+        {
+          "when": [
+            {
+              "field": "a0_5c.ddm",
+              "equals": 1
+            },
+            {
+              "field": "a0_5c.address_change",
+              "equals": 0
+            }
+          ],
+          "field": "a2_6e.not_ready"
+        }
+      ]
+    },
+    {
+      "id": "rx_los",
+      "label": "Приём RX_LOS",
+      "cases": [
+        {
+          "when": [
+            {
+              "field": "a0_5c.ddm",
+              "equals": 1
+            },
+            {
+              "field": "a0_5c.address_change",
+              "equals": 0
+            },
+            {
+              "field": "a0_5d.los",
+              "equals": 1
+            }
+          ],
+          "field": "a2_6e.los"
+        }
+      ]
+    },
+    {
+      "id": "tx_fault",
+      "label": "Передатчик TX_FAULT",
+      "cases": [
+        {
+          "when": [
+            {
+              "field": "a0_5c.ddm",
+              "equals": 1
+            },
+            {
+              "field": "a0_5c.address_change",
+              "equals": 0
+            },
+            {
+              "field": "a0_5d.fault",
+              "equals": 1
+            }
+          ],
+          "field": "a2_6e.fault"
+        }
+      ]
+    }
+  ]
+}

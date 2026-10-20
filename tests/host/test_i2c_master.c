@@ -9,7 +9,7 @@ static uint64_t now, started;
 static unsigned starts, resets, clears, bram_reads;
 static int mode, active;
 static uint32_t irq;
-enum { REPLY, NACK, NO_REPLY };
+enum { REPLY, NACK, NO_REPLY, STUCK };
 
 uint64_t bvstk_platform_now_ms(void) { return now; }
 void bvstk_platform_sleep_ms(uint32_t ms) { now += ms; }
@@ -28,7 +28,7 @@ int bvstk_mmio_read32(const bvstk_mmio_region_t *r,size_t offset,uint32_t *value
     assert(r->physical_base==BVSTK_I2C_MASTER_BASE);
     if (active && mode==NACK && now-started>=1U) irq|=BVSTK_I2C_MSTR_IRQ_ERR_ACK;
     if (active && mode==REPLY && now-started>=4U) irq|=BVSTK_I2C_MSTR_IRQ_DATA_VALID;
-    if (offset==BVSTK_I2C_MSTR_CSR_OFFSET) *value=active && now-started<2U ? 1U : 0U;
+    if (offset==BVSTK_I2C_MSTR_CSR_OFFSET) *value=active && (mode==STUCK || now-started<2U) ? 1U : 0U;
     else { assert(offset==BVSTK_I2C_MSTR_IRQ_OFFSET);*value=irq; }
     return 0;
 }
@@ -64,6 +64,12 @@ int main(void)
     reset_case(NO_REPLY);value=0xcc;
     assert(bvstk_i2c_master_hw_read_reg(&hw,0x41,0,&value,5)==BVSTK_ERR_TIMEOUT);
     assert(value==0xcc && starts==3 && clears==3 && bram_reads==0);
+    reset_case(STUCK);
+    const uint8_t tx[] = {0, 0x12};
+    assert(bvstk_i2c_master_hw_lock(&hw,5)==BVSTK_OK);
+    assert(bvstk_i2c_master_hw_transfer_once_locked(&hw,0x57,tx,sizeof(tx),NULL,0,5)==BVSTK_ERR_TIMEOUT);
+    bvstk_i2c_master_hw_unlock(&hw);
+    assert(starts==1 && clears==1); /* configurable writes never replay on timeout */
     reset_case(REPLY);value=0xcc;
     assert(bvstk_i2c_master_hw_read_reg(&hw,0x36,0,&value,10)==BVSTK_OK);
     assert(value==0x5a);

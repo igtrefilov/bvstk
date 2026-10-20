@@ -39,7 +39,7 @@ g:target &gt; rect { stroke-width: 5; }
       <path d="M60,110 H514 L540,136 V290 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
       <path d="M514,110 V136 H540" fill="none" stroke="#607487" stroke-width="2" />
       <text x="82" y="153.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
-      <text x="82" y="192" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">reg_01.ready</text>
+      <text x="82" y="192" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">status.ready</text>
       <text x="82" y="224" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">lsb: 0, width: 1</text>
     </g>
     <g id="cache" data-kind="data">
@@ -95,7 +95,8 @@ g:target &gt; rect { stroke-width: 5; }
     "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
     "src/apps/freertos/services/http/http_ui_bus.c",
     "web/assets/js/register-map.js",
-    "web/assets/js/device-view.js"
+    "web/assets/js/device-view.js",
+    "web/assets/js/indicators.js"
   ],
   "cross_sheet_links": [],
   "article_notes": []

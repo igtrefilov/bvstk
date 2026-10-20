@@ -23,6 +23,10 @@ typedef struct {
                                 uint8_t reg,
                                 uint8_t value,
                                 uint32_t timeout_ms);
+    bvstk_status_t (*transfer)(void *, uint8_t, const uint8_t *, size_t,
+                              uint8_t *, size_t, uint32_t);
+    bvstk_status_t (*lock)(void *, uint32_t);
+    void (*unlock)(void *);
 } bvstk_i2c_master_io_t;
 
 typedef enum {
@@ -42,6 +46,10 @@ typedef struct {
     void (*cache_config_changed)(void *, size_t, const i2c_device_config_t *);
     /* Last physical-read result; configured/cached values are not evidence. */
     uint8_t presence[I2C_CFG_MAX_DEVICES];
+    uint8_t space_presence[I2C_CFG_MAX_DEVICES][BVSTK_ADDRESS_SPACES_MAX];
+    /* Last confirmed persistent switch masks; temporary PS routes are restored. */
+    uint8_t switch_value[I2C_CFG_MAX_DEVICES];
+    uint8_t switch_known[I2C_CFG_MAX_DEVICES];
     uint8_t initialized;
 } bvstk_i2c_master_service_t;
 
@@ -73,6 +81,8 @@ bvstk_status_t bvstk_i2c_master_service_find_by_addr(
     const bvstk_i2c_master_service_t *service,
     uint8_t addr_7b,
     size_t *device_id);
+bvstk_status_t bvstk_i2c_master_service_resolve_host(
+    const bvstk_i2c_master_service_t *, uint8_t address, size_t *device_id);
 
 bvstk_status_t bvstk_i2c_master_service_read(
     bvstk_i2c_master_service_t *service,
@@ -87,6 +97,8 @@ bvstk_status_t bvstk_i2c_master_service_read_from(
 /* Host-facing PL observations; prepared replies are not confirmed wire reads. */
 void bvstk_i2c_master_service_observe(bvstk_i2c_master_service_t *, size_t,
     uint16_t type, bvstk_event_op_t, uint32_t reg, uint8_t value, bvstk_status_t);
+void bvstk_i2c_master_service_observe_address(bvstk_i2c_master_service_t *, size_t,
+    unsigned address, uint16_t type, bvstk_event_op_t, uint32_t reg, uint8_t value, bvstk_status_t);
 bvstk_status_t bvstk_i2c_master_service_read_cached(
     const bvstk_i2c_master_service_t *service,
     size_t device_id,
@@ -149,5 +161,7 @@ bvstk_status_t bvstk_i2c_master_service_rule_clear_list(
     bvstk_i2c_master_service_t *service,
     size_t device_id,
     i2c_policy_t list);
+bvstk_status_t bvstk_i2c_master_service_rule_clear_range(
+    bvstk_i2c_master_service_t *, size_t, i2c_policy_t, unsigned first, unsigned count);
 
 #endif /* BVSTK_I2C_MASTER_SERVICE_H */

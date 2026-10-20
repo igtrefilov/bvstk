@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "register_map",
+  "id": "dual",
+  "device": "Dual-window fixture",
+  "bus": "i2c",
+  "width_bits": 8,
+  "register_count": 8,
+  "source": {"title":"Test fixture","document":"Test fixture","revision":"1","url":"https://example.invalid/fixture"},
+  "notes": "Synthetic data for address-space isolation tests.",
+  "registers": [
+    {"id":"identity_00","space":"identity","address":"0x00","name":"ID0","label":"Identity 0","section":"Fixture","fields":[{"id":"value","label":"Byte","lsb":0,"width":8,"type":"uint","access":"rw","reset":"unknown"}]},
+    {"id":"identity_01","space":"identity","address":"0x01","name":"ID1","label":"Identity 1","section":"Fixture","fields":[{"id":"value","label":"Byte","lsb":0,"width":8,"type":"uint","access":"rw","reset":"unknown"}]},
+    {"id":"identity_02","space":"identity","address":"0x02","name":"ID2","label":"Identity 2","section":"Fixture","fields":[{"id":"value","label":"Byte","lsb":0,"width":8,"type":"uint","access":"rw","reset":"unknown"}]},
+    {"id":"identity_03","space":"identity","address":"0x03","name":"ID3","label":"Identity 3","section":"Fixture","fields":[{"id":"value","label":"Byte","lsb":0,"width":8,"type":"uint","access":"rw","reset":"unknown"}]},
+    {"id":"diagnostics_00","space":"diagnostics","address":"0x00","name":"D0","label":"Diagnostics 0","section":"Fixture","fields":[{"id":"value","label":"Byte","lsb":0,"width":8,"type":"uint","access":"rw","reset":"unknown"}]},
+    {"id":"diagnostics_01","space":"diagnostics","address":"0x01","name":"D1","label":"Diagnostics 1","section":"Fixture","fields":[{"id":"value","label":"Byte","lsb":0,"width":8,"type":"uint","access":"rw","reset":"unknown"}]},
+    {"id":"diagnostics_02","space":"diagnostics","address":"0x02","name":"D2","label":"Diagnostics 2","section":"Fixture","fields":[{"id":"value","label":"Byte","lsb":0,"width":8,"type":"uint","access":"rw","reset":"unknown"}]},
+    {"id":"diagnostics_03","space":"diagnostics","address":"0x03","name":"D3","label":"Diagnostics 3","section":"Fixture","fields":[{"id":"value","label":"Byte","lsb":0,"width":8,"type":"uint","access":"rw","reset":"unknown"}]}
+  ],
+  "summary": [
+    {"id":"identity","label":"Identity","field":"identity_00.value"},
+    {"id":"diagnostics","label":"Diagnostics","field":"diagnostics_00.value"}
+  ]
+}

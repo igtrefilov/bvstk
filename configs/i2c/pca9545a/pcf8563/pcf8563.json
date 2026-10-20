@@ -1,0 +1,160 @@
+{
+  "schema_version": 2,
+  "id": "pcf8563",
+  "device": {
+    "model": "PCF8563-compatible RTC",
+    "class": "generic",
+    "label": "PCF8563"
+  },
+  "transport": {
+    "bus": "i2c",
+    "controller": "pl_i2c_0",
+    "address": "0x51",
+    "address_bits": 7,
+    "parent": "pca9545a",
+    "channel": 0
+  },
+  "protocol": {
+    "driver": "bvstk_i2c_bridge",
+    "options": {
+      "max_write_value": "0xFF",
+      "capture_cache_on_save": true
+    },
+    "transfer": {
+      "address_bytes": 1,
+      "address_order": "big",
+      "address_base": "0x0000",
+      "read_restart": true,
+      "read_sequence": {
+        "mode": "wrap",
+        "span": 0
+      },
+      "write_sequence": {
+        "mode": "wrap",
+        "span": 0
+      },
+      "write_cycle_ms": 0,
+      "verify_write": "none",
+      "cache_after_write": "invalidate",
+      "host_read": "fresh",
+      "host_current_read": true
+    }
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 8,
+      "access": "rw",
+      "write_mask": "0xFF",
+      "cache": {
+        "mode": "driver"
+      },
+      "verify": {
+        "mode": "driver"
+      }
+    }
+  },
+  "resources": [
+    {
+      "id": "reg_00",
+      "kind": "register",
+      "address": "0x00"
+    },
+    {
+      "id": "reg_01",
+      "kind": "register",
+      "address": "0x01"
+    },
+    {
+      "id": "reg_02",
+      "kind": "register",
+      "address": "0x02"
+    },
+    {
+      "id": "reg_03",
+      "kind": "register",
+      "address": "0x03"
+    },
+    {
+      "id": "reg_04",
+      "kind": "register",
+      "address": "0x04"
+    },
+    {
+      "id": "reg_05",
+      "kind": "register",
+      "address": "0x05"
+    },
+    {
+      "id": "reg_06",
+      "kind": "register",
+      "address": "0x06"
+    },
+    {
+      "id": "reg_07",
+      "kind": "register",
+      "address": "0x07"
+    },
+    {
+      "id": "reg_08",
+      "kind": "register",
+      "address": "0x08"
+    },
+    {
+      "id": "reg_09",
+      "kind": "register",
+      "address": "0x09"
+    },
+    {
+      "id": "reg_0a",
+      "kind": "register",
+      "address": "0x0A"
+    },
+    {
+      "id": "reg_0b",
+      "kind": "register",
+      "address": "0x0B"
+    },
+    {
+      "id": "reg_0c",
+      "kind": "register",
+      "address": "0x0C"
+    },
+    {
+      "id": "reg_0d",
+      "kind": "register",
+      "address": "0x0D"
+    },
+    {
+      "id": "reg_0e",
+      "kind": "register",
+      "address": "0x0E"
+    },
+    {
+      "id": "reg_0f",
+      "kind": "register",
+      "address": "0x0F"
+    }
+  ],
+  "policy": {
+    "read": {
+      "mode": "blacklist",
+      "rules": []
+    },
+    "write": {
+      "mode": "whitelist",
+      "rules": [],
+      "inactive_rules": []
+    }
+  },
+  "settings": {
+    "desired": [],
+    "cache_seed": [],
+    "apply_on_startup": false
+  },
+  "observability": {
+    "telemetry": true,
+    "events": true
+  },
+  "register_map": "register_map.json",
+  "view": "view.js"
+}

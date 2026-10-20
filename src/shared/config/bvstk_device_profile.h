@@ -17,9 +17,16 @@ bvstk_status_t bvstk_device_profile_format_mdio(const mdio_phy_config_t *, char 
 bvstk_status_t bvstk_device_profile_metadata_validate(const bvstk_profile_metadata_t *, size_t);
 /* Sidecar descriptions are not device profiles, even when stored beside them. */
 int bvstk_device_profile_is_register_map(const char *filename);
-/* Canonical <device>/<device>.json, legacy <device>/profile.json, or a flat
- * legacy leaf.json. */
+/* Canonical [<switch>/...]<device>/<device>.json, legacy profile.json,
+ * or a flat legacy leaf.json. */
 int bvstk_device_profile_path_valid(const char *path);
 int bvstk_device_profile_same_file(const char *a, const char *b);
+/* Preserve the existing bundle hierarchy and canonicalize its JSON leaf. */
+int bvstk_device_profile_save_path(const char *id, const char *existing,
+                                  char *out, size_t capacity);
+/* Directory nesting must match the declared immediate parent. Flat legacy
+ * profiles have no parent. The loader checks the complete graph separately. */
+int bvstk_device_profile_location_valid(const char *path, const char *id,
+                                       const char *parent);
 
 #endif

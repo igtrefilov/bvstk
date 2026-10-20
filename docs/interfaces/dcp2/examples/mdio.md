@@ -43,4 +43,4 @@ FreeRTOS. Клиент сначала читает регистр 1, затем 
 ---
 
 Далее: [Политики I²C и MDIO](policies.md).
-[Формат команд](../03-commands.md).
+[Формат команд](../reference/commands.md).

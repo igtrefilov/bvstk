@@ -33,6 +33,20 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" -o "$TEST_TMP/test_device_profiles"
 "$TEST_TMP/test_device_profiles" "$REPO_ROOT/configs"
 
+cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_i2c_topology.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_cache.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_slave_service.c" \
+  "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" \
+  -o "$TEST_TMP/test_i2c_topology"
+"$TEST_TMP/test_i2c_topology" "$REPO_ROOT/configs"
+
 cc -std=c11 -Wall -Wextra -Werror -pedantic -Wno-overlength-strings -ffunction-sections -fdata-sections \
   -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" -I"$REPO_ROOT/src/apps/freertos/config" \
   "$SCRIPT_DIR/test_config_bundles.c" \
@@ -147,6 +161,8 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   -o "$TEST_TMP/dcp2_cache_server"
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_dcp2_cache.py" "$TEST_TMP/dcp2_cache_server"
 node "$REPO_ROOT/tests/web/cache-indicators.mjs"
+node "$REPO_ROOT/tests/web/i2c-maps.mjs"
+node "$REPO_ROOT/tests/web/sfp.mjs"
 
 cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic \
   -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \

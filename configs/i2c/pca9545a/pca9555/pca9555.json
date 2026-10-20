@@ -1,0 +1,123 @@
+{
+  "schema_version": 2,
+  "id": "pca9555",
+  "device": {
+    "model": "PCA9555PW",
+    "vendor": "NXP",
+    "class": "gpio",
+    "label": "PCA9555"
+  },
+  "transport": {
+    "bus": "i2c",
+    "controller": "pl_i2c_0",
+    "address": "0x20",
+    "address_bits": 7,
+    "parent": "pca9545a",
+    "channel": 3
+  },
+  "protocol": {
+    "driver": "bvstk_i2c_bridge",
+    "options": {
+      "max_write_value": "0xFF",
+      "capture_cache_on_save": true
+    },
+    "transfer": {
+      "address_bytes": 1,
+      "address_order": "big",
+      "address_base": "0x0000",
+      "read_restart": true,
+      "read_sequence": {
+        "mode": "wrap",
+        "span": 2
+      },
+      "write_sequence": {
+        "mode": "wrap",
+        "span": 2
+      },
+      "write_cycle_ms": 0,
+      "verify_write": "none",
+      "cache_after_write": "invalidate",
+      "host_read": "fresh",
+      "host_current_read": true
+    }
+  },
+  "defaults": {
+    "register": {
+      "width_bits": 8,
+      "access": "rw",
+      "write_mask": "0xFF",
+      "cache": {
+        "mode": "driver"
+      },
+      "verify": {
+        "mode": "driver"
+      }
+    }
+  },
+  "resources": [
+    {
+      "id": "reg_00",
+      "kind": "register",
+      "address": "0x00",
+      "access": "ro"
+    },
+    {
+      "id": "reg_01",
+      "kind": "register",
+      "address": "0x01",
+      "access": "ro"
+    },
+    {
+      "id": "reg_02",
+      "kind": "register",
+      "address": "0x02"
+    },
+    {
+      "id": "reg_03",
+      "kind": "register",
+      "address": "0x03"
+    },
+    {
+      "id": "reg_04",
+      "kind": "register",
+      "address": "0x04"
+    },
+    {
+      "id": "reg_05",
+      "kind": "register",
+      "address": "0x05"
+    },
+    {
+      "id": "reg_06",
+      "kind": "register",
+      "address": "0x06"
+    },
+    {
+      "id": "reg_07",
+      "kind": "register",
+      "address": "0x07"
+    }
+  ],
+  "policy": {
+    "read": {
+      "mode": "blacklist",
+      "rules": []
+    },
+    "write": {
+      "mode": "whitelist",
+      "rules": [],
+      "inactive_rules": []
+    }
+  },
+  "settings": {
+    "desired": [],
+    "cache_seed": [],
+    "apply_on_startup": false
+  },
+  "observability": {
+    "telemetry": true,
+    "events": true
+  },
+  "register_map": "register_map.json",
+  "view": "view.js"
+}

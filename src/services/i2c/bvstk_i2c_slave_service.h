@@ -17,9 +17,11 @@ typedef struct {
     bvstk_i2c_cache_t *cache;
     bvstk_i2c_master_service_t *master;
     size_t target_device;
-    uint8_t register_pointer[I2C_CFG_MAX_DEVICES];
-    uint8_t read_armed[I2C_CFG_MAX_DEVICES];
+    uint8_t target_space;
+    uint16_t register_pointer[I2C_CFG_MAX_DEVICES][BVSTK_ADDRESS_SPACES_MAX];
+    uint8_t read_armed[I2C_CFG_MAX_DEVICES][BVSTK_ADDRESS_SPACES_MAX];
     uint8_t initialized;
+    uint8_t multi_device;
 } bvstk_i2c_slave_service_t;
 
 bvstk_status_t bvstk_i2c_slave_service_init(
@@ -34,6 +36,8 @@ bvstk_status_t bvstk_i2c_slave_service_set_target(
     size_t target_device);
 size_t bvstk_i2c_slave_service_target(
     const bvstk_i2c_slave_service_t *service);
+bvstk_status_t bvstk_i2c_slave_service_select_address(
+    bvstk_i2c_slave_service_t *, uint8_t);
 void bvstk_i2c_slave_service_end_transaction(
     bvstk_i2c_slave_service_t *service);
 

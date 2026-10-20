@@ -11,7 +11,7 @@ function time(us) {
   return `${Math.floor(seconds / 3600).toString().padStart(2,"0")}:${Math.floor(seconds / 60 % 60).toString().padStart(2,"0")}:${(seconds % 60).toString().padStart(2,"0")}.${(ms % 1000).toString().padStart(3,"0")}`;
 }
 
-export function observationWorkspace(root, {bus, address, channel, signal, state}) {
+export function observationWorkspace(root, {bus, address, device, channel, signal, state}) {
   const events = channel === "events", title = events ? "События" : "Телеметрия";
   const terminalEvent = type => type === 2 || type === 3 || type === 5;
   const terminalTelemetry = type => type === 258 || type === 259;
@@ -73,7 +73,7 @@ export function observationWorkspace(root, {bus, address, channel, signal, state
     const generation = pauseGeneration;
     try {
       if (stopped || state.paused || document.hidden || api.pending || Date.now() < api.downloadPauseUntil) return;
-      const response = await api.get(api.url("/api/ui/observe", {bus,channel,address,after:state.cursor}),controller.signal);
+      const response = await api.get(api.url("/api/ui/observe", {bus,channel,address,device,after:state.cursor}),controller.signal);
       if (stopped || state.paused || generation !== pauseGeneration) return;
       if (!Array.isArray(response.records) || !/^\d+$/.test(response.next) || !/^\d+$/.test(response.lost)) throw new Error("Неверный ответ журнала");
       if (response.reset || (state.uptime != null && response.uptime_ms < state.uptime)) {
