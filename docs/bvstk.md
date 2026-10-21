@@ -22,6 +22,7 @@ BVSTK — программное обеспечение платформы Burev
 
 | Задача | Раздел |
 |---|---|
+| Выбрать протокол или интерфейс управления | [Протоколы и API](interfaces/interfaces.md) |
 | Подключиться к консоли и выполнить команды | [Консоль](interfaces/console.md) |
 | Обращаться к системе через HTTP | [HTTP: запросы, поля и примеры](interfaces/http/http.md) |
 | Работать через DCP2 | [Протокол](interfaces/dcp2/01-intro.md) и [готовый клиент](interfaces/dcp2/client.md) |
