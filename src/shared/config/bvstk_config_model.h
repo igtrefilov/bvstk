@@ -158,6 +158,10 @@ typedef struct {
     uint8_t addr_7b;
     uint16_t reg_count;
     uint8_t max_value_code;
+    /* Read-only physical presence check.  The register is a profile resource
+     * chosen for safe reads; disabled checks leave presence unknown. */
+    uint8_t presence_check_enabled;
+    uint8_t presence_check_reg;
     bvstk_i2c_endpoint_t endpoint;
     i2c_policy_t policy;
     i2c_rule_entry_t whitelist[I2C_CFG_RULES_MAX];

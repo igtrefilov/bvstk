@@ -51,6 +51,9 @@ static volatile int s_mdio_ready;
 static volatile int s_spi_ready;
 #if BVSTK_PL_RUNTIME_ENABLED
 static TaskHandle_t s_runtime_task;
+#if BVSTK_PL_HAS_I2C_CORE
+static TaskHandle_t s_i2c_health_task;
+#endif
 #endif
 
 static void update_setting(i2c_device_config_t *config,
@@ -147,6 +150,53 @@ static int initialize_i2c(const i2c_device_config_t *configs,
 }
 #endif
 
+#if BVSTK_PL_HAS_I2C_CORE
+enum {
+    /* One read per turn keeps the bus available to external masters and
+     * lets a six-device topology settle in roughly 1.5 seconds. */
+    BVSTK_I2C_HEALTH_PERIOD_MS = 250U,
+    BVSTK_I2C_HEALTH_TIMEOUT_MS = 100U,
+    BVSTK_I2C_HEALTH_STACK = 1536U,
+    BVSTK_I2C_HEALTH_PRIORITY = tskIDLE_PRIORITY + 1
+};
+
+static void i2c_health_task(void *argument)
+{
+    size_t device_id = 0U;
+    (void)argument;
+
+    for (;;) {
+        size_t count = bvstk_i2c_master_service_device_count(&s_i2c_master_service);
+        if (s_i2c_ready != 0 && count != 0U) {
+            bvstk_i2c_device_t device;
+            if (device_id >= count) device_id = 0U;
+            if (bvstk_i2c_master_service_device_info(&s_i2c_master_service,
+                                                     device_id, &device) == BVSTK_OK &&
+                device.reg_count != 0U) {
+                if (device.presence_check_enabled) {
+                    (void)bvstk_i2c_master_service_probe(
+                        &s_i2c_master_service, device_id,
+                        device.presence_check_reg,
+                        BVSTK_I2C_HEALTH_TIMEOUT_MS);
+                }
+            }
+            device_id = (device_id + 1U) % count;
+        }
+        vTaskDelay(pdMS_TO_TICKS(BVSTK_I2C_HEALTH_PERIOD_MS));
+    }
+}
+
+static void start_i2c_health_task(void)
+{
+    if (s_i2c_health_task != NULL || s_i2c_ready == 0) return;
+    if (xTaskCreate(i2c_health_task, "i2c_health", BVSTK_I2C_HEALTH_STACK,
+                    NULL, BVSTK_I2C_HEALTH_PRIORITY, &s_i2c_health_task) != pdPASS) {
+        s_i2c_health_task = NULL;
+        xil_printf("[i2c] health poll task creation failed\r\n");
+    }
+}
+#endif
+
 static void runtime_task(void *argument)
 {
 #if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_MDIO_CORE
@@ -189,7 +239,8 @@ static void runtime_task(void *argument)
 #if BVSTK_PL_HAS_I2C_CORE
         devices = config_store_get_i2c_devices();
         device_count = config_store_get_i2c_device_count();
-        (void)initialize_i2c(devices, device_count, &events);
+        if (initialize_i2c(devices, device_count, &events))
+            start_i2c_health_task();
 #endif
 
 #if BVSTK_PL_HAS_MDIO_CORE
@@ -293,6 +344,8 @@ static int snapshot_i2c_device_config(size_t device_id, int include_cache_values
     config->addr_7b = device.addr_7b;
     config->reg_count = device.reg_count;
     config->max_value_code = device.max_value_code;
+    config->presence_check_enabled = device.presence_check_enabled;
+    config->presence_check_reg = device.presence_check_reg;
     config->endpoint = device.endpoint;
     config->policy = policy.mode;
     memcpy(config->whitelist,

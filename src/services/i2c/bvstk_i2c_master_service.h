@@ -94,6 +94,11 @@ bvstk_status_t bvstk_i2c_master_service_read(
 bvstk_status_t bvstk_i2c_master_service_read_from(
     bvstk_i2c_master_service_t *, size_t, uint8_t, uint8_t *,
     bvstk_event_source_t, uint32_t);
+/* Read one register as a background presence check.  The transaction updates
+ * presence and the cache, while its internal bus traffic stays out of the
+ * user-facing telemetry journal. */
+bvstk_status_t bvstk_i2c_master_service_probe(
+    bvstk_i2c_master_service_t *, size_t, uint8_t, uint32_t);
 /* Host-facing PL observations; prepared replies are not confirmed wire reads. */
 void bvstk_i2c_master_service_observe(bvstk_i2c_master_service_t *, size_t,
     uint16_t type, bvstk_event_op_t, uint32_t reg, uint8_t value, bvstk_status_t);

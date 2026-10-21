@@ -273,6 +273,7 @@ static void direct(const i2c_device_config_t *profile)
 static void sequences_and_verification(void)
 {
     uint8_t value;
+    unsigned transactions_before;
     direct(&profiles[3]);
     assert(bvstk_i2c_master_service_write(&master,0,0,1,BVSTK_EVENT_SOURCE_HOST,20)==BVSTK_ERR_DENIED);
     done(0); /* Input ports are read-only even under a permissive policy. */
@@ -295,6 +296,25 @@ static void sequences_and_verification(void)
     assert(!bvstk_i2c_cache_is_valid(&cache,0,4));
     done(1);
     direct(&profiles[1]);
+    /* Background presence checks are physical reads, but stay out of the
+     * user-facing telemetry journal. They still establish presence and cache
+     * the selected safe resource. */
+    transactions_before = endpoint_transactions;
+    rd(0x51, profiles[1].presence_check_reg, 0x5A);
+    assert(bvstk_i2c_master_service_probe(&master, 0,
+        profiles[1].presence_check_reg, 20) == BVSTK_OK);
+    assert(endpoint_transactions == transactions_before);
+    assert(master.presence[0] == BVSTK_I2C_PRESENCE_RESPONDING);
+    assert(bvstk_i2c_cache_read(&cache, 0, profiles[1].presence_check_reg,
+        &value) == BVSTK_OK && value == 0x5A);
+    done(1);
+    operation(0x51, 1, profiles[1].presence_check_reg, 0, 0, 1, 0,
+        BVSTK_ERR_IO);
+    assert(bvstk_i2c_master_service_probe(&master, 0,
+        profiles[1].presence_check_reg, 20) == BVSTK_ERR_IO);
+    assert(master.presence[0] == BVSTK_I2C_PRESENCE_UNAVAILABLE);
+    assert(!bvstk_i2c_cache_is_valid(&cache, 0, profiles[1].presence_check_reg));
+    done(1);
     uint8_t pointer=15;
     assert(host(&pointer,1,0,NULL)==BVSTK_OK);
     rd(0x51,15,1);assert(host(NULL,0,1,&value)==BVSTK_OK);

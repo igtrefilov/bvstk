@@ -371,6 +371,8 @@ bvstk_status_t bvstk_i2c_config_validate(
         config->addr_7b > UINT8_C(0x7F) || config->reg_count == 0U ||
         (config->endpoint.space_count && config->addr_7b != config->endpoint.spaces[0].address) ||
         config->reg_count > I2C_CFG_MAX_REG_COUNT ||
+        config->presence_check_enabled > 1U ||
+        (config->presence_check_enabled && config->presence_check_reg >= config->reg_count) ||
         bvstk_i2c_endpoint_validate(&config->endpoint, config->reg_count) != BVSTK_OK ||
         (config->policy != I2C_POLICY_WHITELIST &&
          config->policy != I2C_POLICY_BLACKLIST) ||
@@ -417,6 +419,8 @@ bvstk_status_t bvstk_i2c_config_parse_json(const char *json,
     if (version == 2U) return bvstk_device_profile_parse_i2c(json, config);
     memset(config, 0, sizeof(*config));
     config->policy = I2C_POLICY_WHITELIST;
+    config->presence_check_enabled = 1U;
+    config->presence_check_reg = 0U;
 
     value = find_key(json, "name");
     (void)parse_string(value, config->name, sizeof(config->name), &ok);

@@ -19,6 +19,8 @@ static int item_valid(const bvstk_i2c_device_t *item)
            memchr(item->name, 0, sizeof(item->name)) &&
            item->addr_7b <= UINT8_C(0x7F) && item->reg_count != 0U &&
            item->reg_count <= I2C_CFG_MAX_REG_COUNT &&
+           item->presence_check_enabled <= 1U &&
+           (!item->presence_check_enabled || item->presence_check_reg < item->reg_count) &&
            (!item->endpoint.space_count || item->addr_7b == item->endpoint.spaces[0].address) &&
            bvstk_i2c_endpoint_validate(&item->endpoint, item->reg_count) == BVSTK_OK;
 }
@@ -62,6 +64,8 @@ bvstk_status_t bvstk_i2c_devices_init_from_config(
         item->addr_7b = configs[i].addr_7b;
         item->reg_count = configs[i].reg_count;
         item->max_value_code = configs[i].max_value_code;
+        item->presence_check_enabled = configs[i].presence_check_enabled;
+        item->presence_check_reg = configs[i].presence_check_reg;
         item->endpoint = configs[i].endpoint;
         if (!item_valid(item)) return BVSTK_ERR_MALFORMED;
     }

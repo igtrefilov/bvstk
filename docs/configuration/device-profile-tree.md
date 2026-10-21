@@ -30,6 +30,8 @@
 <details><summary><a class="internal-link" data-href="device-profile.md#Параметры обработчика" href="device-profile.md#Параметры%20обработчика">options {}</a></summary>
 <p><a class="internal-link" data-href="device-profile.md#Параметры обработчика" href="device-profile.md#Параметры%20обработчика">max_write_value</a></p>
 <p><a class="internal-link" data-href="device-profile.md#Параметры обработчика" href="device-profile.md#Параметры%20обработчика">capture_cache_on_save</a></p>
+<p><a class="internal-link" data-href="device-profile.md#Параметры обработчика" href="device-profile.md#Параметры%20обработчика">presence_check_enabled</a></p>
+<p><a class="internal-link" data-href="device-profile.md#Параметры обработчика" href="device-profile.md#Параметры%20обработчика">presence_check_resource</a></p>
 <p><a class="internal-link" data-href="device-profile.md#Параметры обработчика" href="device-profile.md#Параметры%20обработчика">autopoll_enabled</a></p>
 <p><a class="internal-link" data-href="device-profile.md#Параметры обработчика" href="device-profile.md#Параметры%20обработчика">autopoll_order []</a></p>
 <p><a class="internal-link" data-href="device-profile.md#Параметры обработчика" href="device-profile.md#Параметры%20обработчика">autopoll_reg_delay_ms</a></p>

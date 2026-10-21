@@ -622,7 +622,7 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     static const char *const device_keys[] = {"model", "vendor", "class", "label"};
     static const char *const transport_keys[] = {"bus", "controller", "address", "address_bits", "parent", "channel", "address_spaces"};
     static const char *const protocol_keys[] = {"driver", "options", "transfer", "switch"};
-    static const char *const option_keys[] = {"max_write_value", "capture_cache_on_save", "autopoll_enabled", "autopoll_order", "autopoll_reg_delay_ms", "autopoll_cycle_delay_ms"};
+    static const char *const option_keys[] = {"max_write_value", "capture_cache_on_save", "autopoll_enabled", "autopoll_order", "autopoll_reg_delay_ms", "autopoll_cycle_delay_ms", "presence_check_enabled", "presence_check_resource"};
     static const char *const resource_keys[] = {"id", "kind", "address", "width_bits", "access", "write_mask", "cache", "verify", "refresh", "persist_mask", "read_effect", "write_effect", "fields", "space"};
     static const char *const defaults_keys[] = {"register"};
     static const char *const policy_keys[] = {"read", "write"};
@@ -634,7 +634,7 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     static const char *const observe_keys[] = {"telemetry", "events"};
     bvstk_profile_metadata_t *meta = mdio ? &m->profile : &i2c->profile;
     char *name = mdio ? m->name : i2c->name;
-    view_t root, r[12], f[14], defaults[14] = {{0}}, options[6] = {{0}}, policies[2];
+    view_t root, r[12], f[14], defaults[14] = {{0}}, options[8] = {{0}}, policies[2];
     view_t entry, part[3], list[2], rule[2], match[2];
     view_t router = {0};
     const char *cursor;
@@ -642,6 +642,7 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     unsigned count = 0, reg, width = mdio ? 16U : 8U, maximum = mdio ? 65535U : 255U;
     uint32_t n, val, mask;
     int next, flag, mode;
+    char presence_resource[32] = {0};
     size_t k, which, nr;
     if (!document(json, &root) || !fields(root, root_keys, 12, r) ||
         !number(r[0], 2, &n) || n != 2U || !text(r[1], name, 32) || !id_valid(name)) return BVSTK_ERR_MALFORMED;
@@ -665,6 +666,8 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     if (mdio) { if (f[3].p || f[4].p || f[5].p) return BVSTK_ERR_MALFORMED; m->phy_addr = (uint8_t)n; }
     else {
         i2c->addr_7b = (uint8_t)n;
+        i2c->presence_check_enabled = 1U;
+        i2c->presence_check_reg = 0U;
         if (f[3].p && (!number(f[3], 7, &n) || n != 7U)) return BVSTK_ERR_UNSUPPORTED;
         if (f[4].p || f[5].p) {
             if (!text(f[4], i2c->endpoint.parent, sizeof(i2c->endpoint.parent)) ||
@@ -681,8 +684,9 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
             !transfer_options(f[2], &i2c->endpoint.transfer)) return BVSTK_ERR_UNSUPPORTED;
         router = f[3];
     }
-    if (f[1].p && !fields(f[1], option_keys, 6, options)) return BVSTK_ERR_MALFORMED;
+    if (f[1].p && !fields(f[1], option_keys, 8, options)) return BVSTK_ERR_MALFORMED;
     if (mdio) {
+        if (options[6].p || options[7].p) return BVSTK_ERR_UNSUPPORTED;
         if (options[0].p || options[1].p) return BVSTK_ERR_MALFORMED;
         m->autopoll_cycle_delay_ms = 50U;
         if (options[2].p) { if (!boolean(options[2], &flag)) return BVSTK_ERR_MALFORMED; m->autopoll_enabled = flag != 0; }
@@ -693,6 +697,12 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
         i2c->max_value_code = (uint8_t)n;
         if (options[1].p && (!boolean(options[1], &flag) || !flag)) return BVSTK_ERR_UNSUPPORTED;
         for (k = 2; k < 6; ++k) if (options[k].p) return BVSTK_ERR_UNSUPPORTED;
+        if (options[6].p) {
+            if (!boolean(options[6], &flag)) return BVSTK_ERR_MALFORMED;
+            i2c->presence_check_enabled = (uint8_t)(flag != 0);
+        }
+        if (options[7].p && (!text(options[7], presence_resource, sizeof(presence_resource)) ||
+            !presence_resource[0])) return BVSTK_ERR_MALFORMED;
     }
     if (r[6].p) {
         if (!fields(r[6], defaults_keys, 1, f)) return BVSTK_ERR_UNSUPPORTED;
@@ -731,6 +741,14 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
             !zero_effect(f[10], 0) || !zero_effect(f[11], 1) || !empty_array(f[12])) return BVSTK_ERR_UNSUPPORTED;
     }
     if (next < 0 || !count) return BVSTK_ERR_MALFORMED;
+    if (!mdio && presence_resource[0]) {
+        for (reg = 0U; reg < count; ++reg) {
+            if (meta->id_offset[reg] &&
+                !strcmp(presence_resource, meta->ids + meta->id_offset[reg])) break;
+        }
+        if (reg == count) return BVSTK_ERR_MALFORMED;
+        i2c->presence_check_reg = (uint8_t)reg;
+    }
     for (k = 0; k < count; ++k) if (!seen[k]) return BVSTK_ERR_UNSUPPORTED;
     if (mdio) m->reg_count = (uint8_t)count; else i2c->reg_count = (uint16_t)count;
     if (!mdio && !switch_options(router, meta, count, &i2c->endpoint.router)) return BVSTK_ERR_MALFORMED;
@@ -938,7 +956,12 @@ static bvstk_status_t format(int mdio, const i2c_device_config_t *i2c, const mdi
                m->autopoll_enabled ? "true" : "false", (unsigned long)m->autopoll_reg_delay_ms, (unsigned long)m->autopoll_cycle_delay_ms);
         for (i = 0; i < m->autopoll_regs_len; ++i) { if (i) append(&w, ", "); reference(&w, meta, m->autopoll_regs[i]); }
         append(&w, "]");
-    } else append(&w, "\"max_write_value\": \"0x%02X\", \"capture_cache_on_save\": true", i2c->max_value_code);
+    } else {
+        append(&w, "\"max_write_value\": \"0x%02X\", \"capture_cache_on_save\": true, "
+            "\"presence_check_enabled\": %s, \"presence_check_resource\": ",
+            i2c->max_value_code, i2c->presence_check_enabled ? "true" : "false");
+        reference(&w, meta, i2c->presence_check_reg);
+    }
     append(&w, "}");
     if (!mdio) format_transfer(&w, &i2c->endpoint, meta);
     append(&w, "},\n  \"defaults\": {\"register\": {\"width_bits\": %u, \"access\": \"rw\", \"write_mask\": \"0x%0*X\", \"cache\": {\"mode\": \"driver\"}, \"verify\": {\"mode\": \"driver\"}}},\n  \"resources\": [\n",

@@ -28,7 +28,9 @@
   "protocol": {
     "driver": "bvstk_i2c_bridge",
     "options": {
-      "max_write_value": "0xFF"
+      "max_write_value": "0xFF",
+      "presence_check_enabled": true,
+      "presence_check_resource": "a0_00"
     },
     "transfer": {
       "address_bytes": 1,

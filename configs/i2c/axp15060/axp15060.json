@@ -17,7 +17,9 @@
     "driver": "bvstk_i2c_bridge",
     "options": {
       "max_write_value": "0x40",
-      "capture_cache_on_save": true
+      "capture_cache_on_save": true,
+      "presence_check_enabled": true,
+      "presence_check_resource": "reg_00"
     }
   },
   "defaults": {

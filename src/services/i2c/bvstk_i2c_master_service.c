@@ -172,20 +172,24 @@ static bvstk_status_t register_transfer(bvstk_i2c_master_service_t *service,
 /* Internal selection/restoration is real I/O and belongs to the switch's
  * telemetry, independently of the downstream endpoint's transaction. */
 static bvstk_status_t route_control(bvstk_i2c_master_service_t *service, size_t id,
-    uint8_t *value, int write, int restore, uint32_t ms)
+    uint8_t *value, int write, int restore, uint32_t ms, int quiet)
 {
     const bvstk_i2c_device_t *device = &service->devices->items[id];
     uint8_t reg = device->endpoint.router.reg;
     int was_present = presence_confirmed(service, id, reg), permitted;
     if (write) {
-        emit(service, BVSTK_EVENT_REG_ATTEMPT, 0, BVSTK_EVENT_SOURCE_INTERNAL,
-            BVSTK_EVENT_OP_WRITE, device, reg, *value);
+        if (!quiet) {
+            emit(service, BVSTK_EVENT_REG_ATTEMPT, 0, BVSTK_EVENT_SOURCE_INTERNAL,
+                BVSTK_EVENT_OP_WRITE, device, reg, *value);
+        }
         bvstk_cache_sink_enter(&service->cache->sink);
         permitted = restore || bvstk_i2c_policy_permits(service->policy, id, device, reg, *value);
         bvstk_cache_sink_leave(&service->cache->sink);
         if (!permitted) {
-            emit(service, BVSTK_EVENT_REG_DENIED, BVSTK_ERR_DENIED, BVSTK_EVENT_SOURCE_INTERNAL,
-                BVSTK_EVENT_OP_WRITE, device, reg, *value);
+            if (!quiet) {
+                emit(service, BVSTK_EVENT_REG_DENIED, BVSTK_ERR_DENIED, BVSTK_EVENT_SOURCE_INTERNAL,
+                    BVSTK_EVENT_OP_WRITE, device, reg, *value);
+            }
             return BVSTK_ERR_DENIED;
         }
     }
@@ -194,17 +198,20 @@ static bvstk_status_t route_control(bvstk_i2c_master_service_t *service, size_t 
     emit_flags(service, write ? BVSTK_EVENT_MASTER_WRITE : BVSTK_EVENT_MASTER_READ,
         (uint16_t)status, BVSTK_EVENT_SOURCE_INTERNAL, write ? BVSTK_EVENT_OP_WRITE : BVSTK_EVENT_OP_READ,
         device, reg, *value, (was_present || status == BVSTK_OK) ?
-            BVSTK_EVENT_FLAG_NONE : BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
+            quiet ? BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED : BVSTK_EVENT_FLAG_NONE :
+            BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
     cache_response(service, id, device, reg, *value,
         write ? BVSTK_ERR_NOT_READY : status);
-    if (write) emit(service, status == BVSTK_OK ? BVSTK_EVENT_REG_COMMIT : BVSTK_EVENT_FAULT,
-        (uint16_t)status, BVSTK_EVENT_SOURCE_INTERNAL, BVSTK_EVENT_OP_WRITE, device, reg, *value);
+    if (write && !quiet)
+        emit(service, status == BVSTK_OK ? BVSTK_EVENT_REG_COMMIT : BVSTK_EVENT_FAULT,
+            (uint16_t)status, BVSTK_EVENT_SOURCE_INTERNAL, BVSTK_EVENT_OP_WRITE, device, reg, *value);
     return status;
 }
 
 static bvstk_status_t routed_transfer(bvstk_i2c_master_service_t *service,
     const bvstk_i2c_device_t *device, uint8_t reg, uint8_t *value,
-    int write, uint32_t ms, int *performed, bvstk_status_t *target_status)
+    int write, uint32_t ms, int *performed, bvstk_status_t *target_status,
+    int quiet)
 {
     size_t id, route[BVSTK_I2C_ROUTE_MAX], depth, opened = 0;
     uint8_t channels[BVSTK_I2C_ROUTE_MAX], saved[BVSTK_I2C_ROUTE_MAX];
@@ -222,14 +229,14 @@ static bvstk_status_t routed_transfer(bvstk_i2c_master_service_t *service,
         const bvstk_i2c_switch_t *router = &sw->endpoint.router;
         uint8_t select;
         saved[i] = 0;
-        status = route_control(service, route[i], &saved[i], 0, 0, ms);
+        status = route_control(service, route[i], &saved[i], 0, 0, ms, quiet);
         if (status != BVSTK_OK) { switch_state(service, route[i], 0, 0); break; }
         switch_state(service, route[i], saved[i], 1);
         saved[i] &= router->select_mask | router->preserve_mask;
         select = (saved[i] & router->preserve_mask) | router->channels[channels[i]].select;
         /* Include a possibly partially completed selection in cleanup. */
         opened = i + 1U;
-        status = route_control(service, route[i], &select, 1, 0, ms);
+        status = route_control(service, route[i], &select, 1, 0, ms, quiet);
         if (status == BVSTK_ERR_DENIED) opened = i;
         if (status != BVSTK_OK) break;
     }
@@ -242,7 +249,7 @@ static bvstk_status_t routed_transfer(bvstk_i2c_master_service_t *service,
     }
     while (opened) {
         size_t i = --opened;
-        bvstk_status_t restored = route_control(service, route[i], &saved[i], 1, 1, ms);
+        bvstk_status_t restored = route_control(service, route[i], &saved[i], 1, 1, ms, quiet);
         switch_state(service, route[i], saved[i], restored == BVSTK_OK);
         if (restored != BVSTK_OK) cleanup = restored;
     }
@@ -256,7 +263,8 @@ static bvstk_status_t backend_read(bvstk_i2c_master_service_t *service,
                                    uint8_t reg,
                                    uint8_t *value,
                                    uint32_t timeout_ms, int *performed,
-                                   bvstk_status_t *target_status)
+                                   bvstk_status_t *target_status,
+                                   int quiet)
 {
     bvstk_status_t status;
     *performed = 0;
@@ -264,7 +272,7 @@ static bvstk_status_t backend_read(bvstk_i2c_master_service_t *service,
     if (device->endpoint.parent[0] || device->endpoint.transfer.configured ||
         (service->io.transfer && !service->io.read_reg)) {
         *value = 0;
-        return routed_transfer(service, device, reg, value, 0, timeout_ms, performed, target_status);
+        return routed_transfer(service, device, reg, value, 0, timeout_ms, performed, target_status, quiet);
     }
     if (service->io.read_reg != NULL) {
         *performed = 1;
@@ -330,7 +338,7 @@ static bvstk_status_t backend_write(bvstk_i2c_master_service_t *service,
     *target_status = BVSTK_ERR_NOT_READY;
     if (device->endpoint.parent[0] || device->endpoint.transfer.configured ||
         (service->io.transfer && !service->io.write_reg))
-        return routed_transfer(service, device, reg, &value, 1, timeout_ms, performed, target_status);
+        return routed_transfer(service, device, reg, &value, 1, timeout_ms, performed, target_status, 0);
     if (service->io.write_reg != NULL) {
         *performed = 1;
         status = service->io.write_reg(service->io.context,
@@ -507,7 +515,7 @@ bvstk_status_t bvstk_i2c_master_service_read_from(
         return BVSTK_ERR_RANGE;
     }
     was_present = presence_confirmed(service, device_id, reg);
-    status = backend_read(service, &device, reg, value, timeout_ms, &performed, &target_status);
+    status = backend_read(service, &device, reg, value, timeout_ms, &performed, &target_status, 0);
     /* A route failure is not a transaction with the downstream device.
      * Its telemetry and presence must reflect actual endpoint I/O only. */
     if (performed) {
@@ -517,6 +525,34 @@ bvstk_status_t bvstk_i2c_master_service_read_from(
             (was_present || target_status == BVSTK_OK) ? BVSTK_EVENT_FLAG_NONE :
                 BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
         cache_response(service, device_id, &device, reg, target_status == BVSTK_OK ? *value : 0, target_status);
+    }
+    return status;
+}
+
+bvstk_status_t bvstk_i2c_master_service_probe(
+    bvstk_i2c_master_service_t *service, size_t device_id, uint8_t reg,
+    uint32_t timeout_ms)
+{
+    bvstk_i2c_device_t device;
+    int performed;
+    bvstk_status_t target_status;
+    bvstk_status_t status = service_status(service, device_id);
+
+    if (status != BVSTK_OK) return status;
+    if (bvstk_i2c_devices_get(service->devices, device_id, &device) != BVSTK_OK ||
+        reg >= device.reg_count) return BVSTK_ERR_RANGE;
+
+    /* A health check is still a real read: presence and the selected cache
+     * entry must follow the physical result.  It is marked quiet only so a
+     * periodic worker cannot fill the user telemetry ring with its own work. */
+    uint8_t value = 0U;
+    status = backend_read(service, &device, reg, &value, timeout_ms,
+                          &performed, &target_status, 1);
+    if (performed) {
+        record_response(service, device_id, wire_address(&device, reg),
+                        target_status, 1);
+        cache_response(service, device_id, &device, reg,
+                       target_status == BVSTK_OK ? value : 0U, target_status);
     }
     return status;
 }
@@ -688,6 +724,8 @@ bvstk_status_t bvstk_i2c_master_service_set_config(
     if (config == NULL || config->name[0] == '\0' || config->reg_count == 0U ||
         config->reg_count > I2C_CFG_MAX_REG_COUNT ||
         config->addr_7b > UINT8_C(0x7F) ||
+        config->presence_check_enabled > 1U ||
+        (config->presence_check_enabled && config->presence_check_reg >= config->reg_count) ||
         !memchr(config->name, 0, sizeof(config->name)) ||
         bvstk_i2c_endpoint_validate(&config->endpoint, config->reg_count) != BVSTK_OK) {
         return BVSTK_ERR_MALFORMED;
@@ -710,6 +748,8 @@ bvstk_status_t bvstk_i2c_master_service_set_config(
     device.addr_7b = config->addr_7b;
     device.reg_count = config->reg_count;
     device.max_value_code = config->max_value_code;
+    device.presence_check_enabled = config->presence_check_enabled;
+    device.presence_check_reg = config->presence_check_reg;
     device.endpoint = config->endpoint;
     bvstk_cache_sink_enter(&service->cache->sink);
     status = bvstk_i2c_devices_set(service->devices, device_id, &device);
@@ -763,6 +803,8 @@ bvstk_status_t bvstk_i2c_master_service_get_config(
     out->addr_7b = device.addr_7b;
     out->reg_count = device.reg_count;
     out->max_value_code = device.max_value_code;
+    out->presence_check_enabled = device.presence_check_enabled;
+    out->presence_check_reg = device.presence_check_reg;
     out->endpoint = device.endpoint;
     out->policy = policy.mode;
     memcpy(out->whitelist,

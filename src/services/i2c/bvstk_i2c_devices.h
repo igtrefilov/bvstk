@@ -13,6 +13,8 @@ typedef struct {
     uint8_t addr_7b;
     uint16_t reg_count;
     uint8_t max_value_code;
+    uint8_t presence_check_enabled;
+    uint8_t presence_check_reg;
     bvstk_i2c_endpoint_t endpoint;
 } bvstk_i2c_device_t;
 
