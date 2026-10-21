@@ -1,352 +1,448 @@
-"""Configuration figures: shared layout conventions, generic device examples."""
-import json
-import xml.etree.ElementTree as ET
-
-import generate_pl_subsystem as drawing
-from generate_pl_subsystem import ARROWS, NS, PALETTE, Box, Page, el
-from transaction_drawing import owned
-
-SOURCES = (
-    'src/shared/config/bvstk_device_profile.c',
-    'src/shared/config/bvstk_config_model.h',
-    'src/apps/freertos/config/config_store.c',
-    'src/apps/freertos/runtime/bvstk_runtime.c',
-    'src/apps/neutrino/config/bvstk_i2c_config_store.c',
-    'src/apps/neutrino/runtime/bvstk_i2c_runtime.c',
-    'src/apps/freertos/services/http/http_ui_bus.c',
-    'web/assets/js/register-map.js',
-    'web/assets/js/device-view.js',
-    'web/assets/js/indicators.js',
-)
+"""Generate the SVG figures for the profile article; no Markdown is rewritten."""
+from configuration_canvas import Figure, PALETTE
 
 
-class ConfigurationFigure(Page):
-    def __init__(self, name, title, width=1800):
-        super().__init__('configuration/' + name + '.svg', title, title, SOURCES)
-        self.width = width
-        self.root.set('width', str(width))
-        self.background.set('width', str(width))
-        self.legend_note = 'Лист — файл. Белая карточка — данные. Цвет компонента — уровень абстракции.'
-
-    def data(self, key, x, y, w, h, title, detail='', parent=None, file=False):
-        owner = self.nodes[parent].group if parent else self.blocks
-        g = el(owner, 'g', id=key, data_kind='artifact' if file else 'data', data_parent=parent)
-        if file:
-            el(g, 'path', d=f'M{x},{y} H{x+w-26} L{x+w},{y+26} V{y+h} H{x} Z',
-               fill='white', stroke='#607487', stroke_width=2)
-            el(g, 'path', d=f'M{x+w-26},{y} V{y+26} H{x+w}',
-               fill='none', stroke='#607487', stroke_width=2)
-        else:
-            el(g, 'rect', x=x, y=y, width=w, height=h, rx=8,
-               fill='white', stroke='#9baab6', stroke_width=1.8)
-        self.text(g, x+22, y+43, title, 25, bold=True, width=w-48)
-        if detail:
-            self.text(g, x+22, y+82, detail, 23, width=w-44, line_height=32)
-        self.nodes[key] = Box(key, x, y, w, h, g, title)
-        self.min_y = min(self.min_y, y)
-        self.max_y = max(self.max_y, y+h)
-        return key
-
-    def folder(self, key, x, y, w, h, title, parent=None):
-        owner = self.nodes[parent].group if parent else self.blocks
-        g = el(owner, 'g', id=key, data_kind='directory', data_parent=parent)
-        el(g, 'rect', x=x, y=y, width=w, height=h, rx=8,
-           fill='white', stroke='#9baab6', stroke_width=1.8)
-        # Keep the folder symbol compact; the card width follows the label.
-        cy = y + h / 2
-        el(g, 'path', d=f'M{x+18},{cy-20} h22 l8,7 h26 v34 h-56 Z',
-           fill='#f7f9fb', stroke='#607487', stroke_width=2)
-        self.text(g, x+92, cy+9, title, 26, bold=True, width=w-108)
-        self.nodes[key] = Box(key, x, y, w, h, g, title)
-        self.min_y = min(self.min_y, y)
-        self.max_y = max(self.max_y, y+h)
-        return key
-
-    def branch(self, points):
-        el(self.edges, 'path',
-           d='M' + ' L'.join(f'{x:g},{y:g}' for x, y in points),
-           fill='none', stroke='#9baab6', stroke_width=2.5,
-           stroke_linejoin='round', data_kind='directory-membership')
-
-    def save(self):
-        # Other documentation modules register extra arrow types. Keep this
-        # series identical whether generated alone or from the main entry point.
-        defs = self.root.find(f'{{{NS}}}defs')
-        used_markers = {f'{kind}-{suffix}' for kind in self.used_arrows
-                        for suffix in ('arrow', 'source')}
-        for marker in list(defs.findall(f'{{{NS}}}marker')):
-            if marker.get('id') not in used_markers:
-                defs.remove(marker)
-        super().save()
-        path = drawing.OUT / self.name
-        tree = ET.parse(path)
-        metadata = tree.getroot().find(f'{{{NS}}}metadata')
-        data = json.loads(metadata.text)
-        data['generator'] = 'tools/docs/configuration_diagrams.py'
-        metadata.text = json.dumps(data, ensure_ascii=False, indent=2)
-        tree.write(path, encoding='utf-8', xml_declaration=True)
+def instances():
+    p = Figure("instances", "Отдельные профили устройств на разных шинах", 940)
+    p.frame(40, 45, 330, 825, "BVSTK")
+    p.box("a", 70, 230, 270, 110, "Контроллер A", layer="PL")
+    p.box("b", 70, 690, 270, 110, "Контроллер B", layer="PL")
+    for key, y in (("device_a", 100), ("device_b", 390), ("device_m", 680)):
+        p.box(key, 600, y, 300, 130, "Устройство", "Отдельный экземпляр", "L0")
+        p.box(key+"_file", 1130, y, 420, 130, "<id>.json",
+              "Профиль экземпляра", file=True)
+        p.edge(key+"_file", key, "ref", start="W", end="E")
+    wire = PALETTE["L0"][1]
+    p.line([(340, 285), (460, 285)], wire, 3)
+    p.line([(460, 165), (460, 455)], wire, 3)
+    p.line([(460, 165), (600, 165)], wire, 3)
+    p.line([(460, 455), (600, 455)], wire, 3)
+    p.line([(340, 745), (600, 745)], wire, 3)
+    p.text(425, 570, "Шина A", 24, True)
+    p.text(425, 835, "Шина B", 24, True)
+    p.save("Сплошные линии — подключение к шине. Пунктир — профиль описывает свой экземпляр.")
 
 
-def devices():
-    p = ConfigurationFigure('devices', 'Устройства на шинах и их пакеты', width=1920)
-    p.frame('bvstk', 60, 90, 310, 930, 'BVSTK', None)
-    p.node('port_a', 105, 340, 220, 120, 'Порт A', layer='L0', parent='bvstk')
-    p.node('port_b', 105, 830, 220, 120, 'Порт B', layer='L0', parent='bvstk')
-    p.frame('files', 1250, 90, 610, 930, 'Пакеты в BVSTK', None)
-    color = PALETTE['L0'][1]
-    bus_a = el(p.edges, 'g', id='bus_a', data_kind='bus', data_layer='L0')
-    for path in ('M325,400 H520', 'M520,190 V610',
-                 'M520,190 H670', 'M520,400 H670', 'M520,610 H670'):
-        el(bus_a, 'path', d=path, fill='none', stroke=color, stroke_width=4)
-    for cy in (190, 400, 610):
-        el(bus_a, 'circle', cx=520, cy=cy, r=5, fill=color)
-    p.text(p.notes, 480, 155, 'Шина A', 24, bold=True, color=color)
-    el(p.edges, 'path', id='bus_b', d='M325,890 H670', fill='none',
-       stroke=color, stroke_width=4, data_kind='bus', data_layer='L0')
-    p.text(p.notes, 480, 860, 'Шина B', 24, bold=True, color=color)
-    for name, y in (('a', 120), ('b', 330), ('c', 540), ('d', 820)):
-        p.node('device_' + name, 670, y, 340, 140, 'device_' + name, layer='L0')
-        p.folder('package_' + name, 1310, y+20, 490, 100,
-                 'device_' + name, parent='files')
-        p.edge('package_' + name, 'device_' + name, 'ref', start='W', end='E')
-    p.legend_note = 'Сплошные линии — шины. Пунктир связывает пакет с описываемым устройством.'
-    p.save()
-
-
-def storage():
-    p = ConfigurationFigure('storage', 'Каталоги и файлы описания устройств', width=1920)
-    p.folder('root', 60, 500, 240, 100, 'config')
-    p.folder('subsystem_a', 420, 310, 390, 100, '<подсистема_a>')
-    p.folder('subsystem_b', 420, 900, 390, 100, '<подсистема_b>')
-    for key, y in (('a', 182.5), ('b', 410), ('c', 630), ('d', 900)):
-        p.folder('dir_' + key, 930, y, 310, 100, 'device_' + key)
-    # The files are expanded for every device. Optional files produce different
-    # branch sizes, reflecting an actual package rather than a fixed template.
-    for key, y, name in (
-        ('a_profile', 60, 'device_a.json'),
-        ('a_map', 190, 'register_map.json'),
-        ('a_view', 320, 'view.js'),
-        ('b_profile', 417.5, 'device_b.json'),
-        ('c_profile', 572.5, 'device_c.json'),
-        ('c_map', 702.5, 'register_map.json'),
-        ('d_profile', 842.5, 'device_d.json'),
-        ('d_map', 972.5, 'register_map.json'),
-    ):
-        p.data(key, 1390, y, 470, 85, name, file=True)
-    p.branch(((300, 550), (355, 550)))
-    p.branch(((355, 360), (355, 950)))
-    p.branch(((355, 360), (420, 360)))
-    p.branch(((355, 950), (420, 950)))
-    p.branch(((810, 360), (870, 360)))
-    p.branch(((870, 232.5), (870, 680)))
-    for cy in (232.5, 460, 680):
-        p.branch(((870, cy), (930, cy)))
-    p.branch(((810, 950), (930, 950)))
-    # Separate vertical lanes prevent one device's branch from merging with
-    # the next. These are containment lines, not runtime transfers.
-    for key, ys in (('a', (102.5, 232.5, 362.5)), ('b', (460,)),
-                    ('c', (615, 745)), ('d', (885, 1015))):
-        _, cy = p.nodes['dir_' + key].point('E')
-        p.branch(((1240, cy), (1300, cy)))
-        p.branch(((1300, min(cy, min(ys))), (1300, max(cy, max(ys)))))
-        for fy in ys:
-            p.branch(((1300, fy), (1390, fy)))
-    p.legend_note = 'Значок папки — каталог, лист — файл. Линии показывают вложенность. Карта и форма необязательны.'
-    p.save()
+def role():
+    p = Figure("role", "Профиль, сервис и физическое устройство", 640)
+    p.box("file", 50, 70, 450, 200, "<id>.json",
+          "Подключение\nФормат обмена\nРесурсы и политика", file=True)
+    p.box("service", 680, 70, 430, 200, "Сервис устройства",
+          "Рабочие настройки\nКэш значений", "L3")
+    p.box("device", 1230, 70, 320, 200, "Устройство",
+          "Физические регистры", "L0")
+    p.box("driver", 680, 420, 430, 150, "Драйвер PL", "Операция обмена", "L3")
+    p.box("pl", 1230, 420, 320, 150, "Ядро PL", "Передача по шине", "PL")
+    p.edge("file", "service", label="Загрузка")
+    p.edge("service", "driver", "call", "Запрос", "S", "N", (1000, 355))
+    p.edge("driver", "pl", "mmio")
+    p.edge("pl", "device", "data", "Данные", "N", "S", (1460, 355))
+    p.save("Лист — файл. Цвет блока — уровень компонента.")
 
 
 def package():
-    p = ConfigurationFigure('package', 'Файлы пакета и их потребители')
-    p.frame('folder', 60, 100, 590, 870, 'Пакет device_a', None)
-    p.data('profile', 140, 185, 460, 245, 'device_a.json',
-           'Подключение и политика\nРегистры и настройки\nregister_map\nview', parent='folder', file=True)
-    p.data('map', 140, 525, 460, 145, 'register_map.json', 'Регистры и поля', parent='folder', file=True)
-    p.data('view', 140, 790, 460, 135, 'view.js', 'Форма', parent='folder', file=True)
-    p.path('profile', 'map', ((140, 331), (98, 331), (98, 597), (140, 597)), 'ref')
-    p.path('profile', 'view', ((140, 363), (78, 363), (78, 857), (140, 857)), 'ref')
-    p.node('service', 1030, 210, 660, 175, 'Сервис PS', layer='L3')
-    p.frame('browser', 950, 460, 800, 510, 'Веб-интерфейс', 'L4')
-    p.node('decode', 1030, 525, 660, 145, 'Расшифровка кэша', layer='L4', parent='browser')
-    p.node('form', 1030, 790, 660, 135, 'Индивидуальная форма', layer='L4', parent='browser')
-    p.edge('profile', 'service', 'data', 'Настройки', start='E', end='W', a_offset=-10, label_xy=(820, 270))
-    p.edge('map', 'decode', 'data', start='E', end='W')
-    p.edge('view', 'form', 'data', start='E', end='W')
-    p.edge('service', 'decode', 'data', 'Снимок кэша', start='S', end='N', label_xy=(1480, 430))
-    p.edge('decode', 'form', 'data', 'Показатели', start='S', end='N', label_xy=(1480, 735))
-    p.legend_note = 'Листы — файлы пакета. Карта и форма необязательны. Профиль передаётся сервису при загрузке.'
-    p.save()
+    p = Figure("package", "Состав пакета устройства", 760)
+    p.frame(50, 40, 510, 660, "Пакет устройства")
+    p.box("profile", 90, 115, 430, 150, "<id>.json", "Профиль", file=True)
+    p.box("map", 90, 380, 430, 120, "register_map.json", "Карта регистров", file=True)
+    p.box("view", 90, 570, 430, 110, "view.js", "Необязательная форма", file=True)
+    p.box("service", 1000, 115, 550, 150, "Сервис PS", "Настройки устройства", "L3")
+    p.frame(940, 315, 630, 385, "Веб-интерфейс", "L4")
+    p.box("decode", 1000, 385, 550, 110, "Расшифровка", layer="L4")
+    p.box("form", 1000, 575, 550, 100, "Отображение", layer="L4")
+    p.edge("profile", "service", label="Параметры")
+    p.edge("map", "decode")
+    p.edge("view", "form")
+    p.edge("service", "decode", label="Снимок кэша", start="S", end="N", at=(1380, 305))
+    p.edge("decode", "form", label="Показатели", start="S", end="N", at=(1390, 545))
+    p.save("Листы — файлы пакета. Цветные блоки — использующие их компоненты.")
 
 
 def loading():
-    p = ConfigurationFigure('loading', 'Чтение профиля и общий код')
-    owned(p, 'freertos', 50, 100, 470, 650, 'FreeRTOS')
-    owned(p, 'neutrino', 1280, 100, 470, 650, 'Нейтрино')
-    p.node('ft_store', 90, 210, 390, 170, 'config_store', 'Чтение файлов', layer='L4', parent='freertos')
-    p.node('nt_store', 1320, 210, 390, 170, 'Хранилище профилей', 'Чтение файлов', layer='L4', parent='neutrino')
-    p.node('codec', 665, 210, 470, 170, 'Общий кодек', 'Проверка и разбор', layer='L4')
-    p.data('model', 690, 530, 420, 150, 'Модель конфигурации', 'Параметры в памяти')
-    p.node('ft_runtime', 90, 530, 390, 150, 'Код запуска', layer='L4', parent='freertos')
-    p.node('nt_runtime', 1320, 530, 390, 150, 'Код запуска', layer='L4', parent='neutrino')
-    p.node('service', 665, 880, 470, 170, 'Общий сервис', 'Экземпляр устройства', layer='L3')
-    p.edge('ft_store', 'codec', 'data', 'JSON', start='E', end='W')
-    p.edge('nt_store', 'codec', 'data', 'JSON', start='W', end='E')
-    p.edge('codec', 'model', 'data', start='S', end='N')
-    p.edge('model', 'ft_runtime', 'data', start='W', end='E')
-    p.edge('model', 'nt_runtime', 'data', start='E', end='W')
-    p.path('ft_runtime', 'service', ((285, 680), (285, 965), (665, 965)), 'call',
-           'Создать', label_xy=(480, 945))
-    p.path('nt_runtime', 'service', ((1515, 680), (1515, 965), (1135, 965)), 'call',
-           'Создать', label_xy=(1325, 945))
-    p.legend_note = 'Пунктир — части ОС. Общий код используется раздельно: каждая программа создаёт свои экземпляры.'
-    p.save()
+    p = Figure("loading", "Загрузка профиля в двух средах выполнения", 820)
+    p.frame(50, 60, 390, 410, "FreeRTOS", os=True)
+    p.frame(1160, 60, 390, 410, "Нейтрино", os=True)
+    p.box("ffile", 80, 145, 330, 115, "Профиль", "flash:/config", file=True)
+    p.box("nfile", 1190, 145, 330, 115, "Профиль", "/flash/config", file=True)
+    p.box("fload", 80, 340, 330, 100, "Загрузчик", layer="L4")
+    p.box("nload", 1190, 340, 330, 100, "Загрузчик", layer="L4")
+    p.box("codec", 595, 300, 410, 180, "Общий кодек",
+          "Поля и ссылки\nПараметры обработчика", "L4")
+    p.box("runtime", 595, 620, 410, 145, "Рабочий экземпляр",
+          "Настройки, политика, кэш", "L3")
+    p.edge("ffile", "fload", start="S", end="N")
+    p.edge("nfile", "nload", start="S", end="N")
+    p.edge("fload", "codec", label="JSON")
+    p.edge("nload", "codec", label="JSON", start="W", end="E")
+    p.edge("codec", "runtime", label="Модель", start="S", end="N", at=(920, 560))
+    p.save("Пунктирные области — код среды выполнения. В центре — общие части.")
 
 
-def state():
-    p = ConfigurationFigure('state', 'Сохранённый профиль и рабочие настройки', width=1700)
-    p.data('file', 70, 230, 420, 220, 'device_a.json', 'Сохранённый профиль', file=True)
-    p.node('service', 1000, 230, 600, 220, 'Рабочие настройки', 'Сервис устройства', layer='L3')
-    p.node('editor', 1000, 760, 600, 175, 'Черновик', 'Редактор настроек', layer='L4')
-    p.edge('file', 'service', 'data', 'Загрузить', start='E', end='W',
-           a_offset=-50, b_offset=-50, label_xy=(745, 270))
-    p.edge('service', 'file', 'data', 'Сохранить', start='W', end='E',
-           a_offset=50, b_offset=50, label_xy=(745, 425))
-    p.edge('editor', 'service', 'call', 'Применить', start='N', end='S',
-           a_offset=-110, b_offset=-110, label_xy=(1060, 610))
-    p.edge('service', 'editor', 'data', 'Получить настройки', start='S', end='N',
-           a_offset=110, b_offset=110, label_xy=(1545, 650))
-    p.legend_note = 'Лист — файл. Загрузка и сохранение проходят через кодек и слой хранения.'
+def write():
+    p = Figure("write", "Запрос записи и его результат", 640)
+    p.box("request", 50, 100, 300, 180, "Запрос",
+          "Устройство\nРесурс и значение")
+    p.box("service", 470, 75, 470, 230, "Проверка сервиса",
+          "Регистр и значение\nДоступ ресурса\nПолитика", "L3")
+    p.box("device", 1120, 100, 430, 180, "Устройство",
+          "Физическая запись", "L0")
+    p.box("deny", 470, 450, 470, 135, "Отказ", "Запись не передана устройству")
+    p.box("cache", 1120, 450, 430, 135, "Кэш",
+          "Новое значение\nили сброс достоверности")
+    p.edge("request", "service")
+    p.edge("service", "device", label="Допуск")
+    p.edge("service", "deny", "call", "Запрет", "S", "N", (810, 390))
+    p.edge("device", "cache", label="Результат", start="S", end="N", at=(1450, 390))
+    p.save("Аппаратный обмен показан без детализации драйвера и ядра PL.")
+
+
+def read():
+    p = Figure("read", "Чтение устройства и получение показателя", 690)
+    p.box("service", 80, 90, 470, 230, "Сервис PS", "Программное чтение", "L3")
+    p.box("device", 1060, 90, 470, 230, "Устройство", "Регистр", "L0")
+    p.path([(550, 175), (1060, 175)], "data", "Запрос чтения")
+    p.path([(1060, 270), (550, 270)], "data", "Прочитанное значение", (805, 250))
+    p.box("cache", 80, 490, 470, 150, "Кэш",
+          "Значение ресурса\nИсточник и время чтения")
+    p.box("display", 1060, 490, 470, 150, "Веб-интерфейс",
+          "Расшифрованный показатель", "L4")
+    p.edge("service", "cache", start="S", end="N")
+    p.edge("cache", "display", label="Снимок")
     p.save()
 
 
 def cache():
-    p = ConfigurationFigure('cache', 'Начальное значение и результат обмена')
-    p.data('seed', 60, 160, 450, 165, 'device_a.json', 'cache_seed: reg_01 = 0x00', file=True)
-    p.node('device', 60, 600, 450, 145, 'Устройство', 'Чтение вернуло 0x01', layer='L0')
-    p.frame('cache', 670, 85, 470, 710, 'Кэш сервиса', 'L3')
-    p.data('initial', 710, 160, 390, 165, 'reg_01 = 0x00', 'source: settings', parent='cache')
-    p.data('actual', 710, 590, 390, 165, 'reg_01 = 0x01', 'Результат обмена', parent='cache')
-    p.frame('ui', 1280, 85, 460, 710, 'Веб-интерфейс', 'L4')
-    p.data('unknown', 1320, 160, 380, 165, 'ready', 'Нет данных\nот устройства', parent='ui')
-    p.data('known', 1320, 605, 380, 135, 'ready', 'Готово', parent='ui')
-    p.edge('seed', 'initial', 'data', 'При загрузке', start='E', end='W')
-    p.edge('device', 'actual', 'data', 'После чтения', start='E', end='W')
-    p.edge('initial', 'actual', 'data', 'Обновление', start='S', end='N', label_xy=(1010, 465))
-    p.edge('initial', 'unknown', 'data', start='E', end='W')
-    p.edge('actual', 'known', 'data', start='E', end='W')
-    p.legend_note = 'Два состояния записи кэша. Справа — результат расшифровки по карте.'
+    p = Figure("cache", "Происхождение значения в кэше", 790)
+    p.box("seed", 60, 75, 430, 190, "Профиль",
+          "settings.cache_seed", file=True)
+    p.box("initial", 820, 75, 720, 190, "Начальная запись",
+          "Подготовленное значение\nИсточник settings\nСостояние устройства ещё не прочитано")
+    p.box("device", 60, 440, 430, 225, "Устройство", "Чтение ресурса", "L0")
+    p.box("observed", 820, 440, 720, 225, "Запись после чтения",
+          "Полученное значение\nДействительно\nИсточник и время обмена")
+    p.edge("seed", "initial", label="Загрузка")
+    p.edge("device", "observed", label="Ответ устройства")
+    p.edge("initial", "observed", "call", "Замена записи", "S", "N", (1300, 370))
+    p.save("Справа показаны два состояния одной записи кэша.")
+
+
+def resource():
+    p = Figure("resource", "Выбор свойства ресурса при разборе профиля", 670)
+    p.box("defaults", 50, 65, 580, 220, "defaults.register",
+          "Общие свойства\nдля всех ресурсов")
+    p.box("resource", 970, 65, 580, 220, "resources[]",
+          "Собственные свойства\nданного ресурса")
+    p.box("result", 510, 435, 580, 180, "Параметры ресурса",
+          "Полный набор свойств\nпосле разбора профиля")
+    p.path([(340, 285), (340, 525), (510, 525)], "data",
+           "Своего свойства нет", (170, 370))
+    p.path([(1260, 285), (1260, 525), (1090, 525)], "data",
+           "Своё свойство есть", (1430, 370))
+    p.save("Для каждого свойства выбирается один источник. Вложенные объекты заменяются целиком.")
+
+
+def transfer():
+    p = Figure("transfer", "Параметры передачи и обращение к ресурсу", 650)
+    p.box("resource", 50, 60, 480, 160, "Ресурс",
+          "Локальный address\nЗначение для записи")
+    p.box("options", 1030, 60, 520, 210, "protocol.transfer",
+          "Адресный префикс\nПереход к чтению\nДействия после записи")
+    p.box("prepare", 50, 400, 480, 180, "Подготовка обмена",
+          "База + локальный адрес\nДлина и порядок префикса", "L3")
+    p.box("exchange", 700, 400, 330, 180, "Обмен", "Чтение или запись", "L3")
+    p.box("after", 1200, 400, 350, 180, "Завершение",
+          "Ожидание и проверка\nОбновление кэша", "L3")
+    p.edge("resource", "prepare", start="S", end="N")
+    p.path([(1030, 200), (640, 200), (640, 335), (460, 335), (460, 400)], "ref")
+    p.path([(1280, 270), (1280, 335), (865, 335), (865, 400)], "ref")
+    p.path([(1450, 270), (1450, 400)], "ref")
+    p.edge("prepare", "exchange")
+    p.edge("exchange", "after")
+    p.save("Пунктир — параметры этапа. Синие стрелки — ход обработки запроса.")
+
+
+def policy():
+    p = Figure("policy", "Допуск запроса записи по профилю", 810)
+    p.box("rules", 50, 70, 550, 250, "policy.write",
+          "Режим\nСсылки на ресурсы\nУсловия на значения")
+    p.box("limits", 880, 70, 670, 165, "Ограничения ресурса",
+          "Диапазон и доступ\nРазрядность и предел значения")
+    p.box("request", 50, 440, 550, 150, "Запрос записи", "Ресурс и значение")
+    p.box("check", 880, 405, 670, 145, "Проверка сервиса",
+          "Ограничения и политика", "L3")
+    p.box("yes", 880, 665, 290, 100, "Разрешено", "Передать запрос")
+    p.box("no", 1260, 665, 290, 100, "Запрещено", "Вернуть отказ")
+    p.path([(600, 195), (750, 195), (750, 450), (880, 450)], "ref")
+    p.path([(600, 515), (880, 515)], "data")
+    p.edge("limits", "check", "ref", start="S", end="N")
+    p.path([(1030, 550), (1030, 665)], "call")
+    p.path([(1405, 550), (1405, 665)], "call")
     p.save()
 
 
-def profile():
-    p = ConfigurationFigure('profile', 'Структура JSON-профиля устройства', width=1900)
-    p.data('file', 60, 80, 1780, 1270, 'device_a.json {}', file=True)
-    p.data('schema_version', 120, 170, 430, 130, 'schema_version', '2', parent='file')
-    p.data('profile_id', 610, 170, 430, 130, 'id', '"device_a"', parent='file')
-    p.data('register_map', 1200, 170, 580, 130, 'register_map', '"register_map.json"', parent='file')
-    p.data('view', 1200, 360, 580, 130, 'view', '"view.js"', parent='file')
-    p.data('device', 120, 360, 430, 260, 'device {}',
-           'model\nvendor\nclass\nlabel', parent='file')
-    p.data('transport', 610, 360, 430, 260, 'transport {}',
-           'bus\ncontroller\naddress\naddress_bits', parent='file')
-    p.data('protocol', 1200, 570, 580, 300, 'protocol {}', 'driver', parent='file')
-    p.data('options', 1240, 700, 500, 120, 'options {}', 'Параметры обработчика', parent='protocol')
-    p.data('defaults', 120, 725, 370, 260, 'defaults {}', parent='file')
-    p.data('register_defaults', 155, 815, 300, 120, 'register {}', 'Общие свойства', parent='defaults')
-    p.data('resources', 610, 725, 430, 310, 'resources []', parent='file')
-    p.data('resource', 650, 810, 350, 180, 'Элемент {}',
-           'id: reg_03\nkind: register\naddress: 0x03', parent='resources')
-    p.data('policy', 1200, 960, 580, 200, 'policy {}', 'read {}\nwrite {}', parent='file')
-    p.data('settings', 610, 1110, 430, 200, 'settings {}',
-           'cache_seed []\ndesired []\napply_on_startup', parent='file')
-    p.data('observe', 120, 1080, 370, 175, 'observability {}', 'telemetry\nevents', parent='file')
-    p.path('register_defaults', 'resources', ((455, 875), (610, 875)), 'ref')
-    p.path('policy', 'resources', ((1200, 1060), (1120, 1060), (1120, 950), (1040, 950)), 'ref')
-    p.edge('settings', 'resources', 'ref', start='N', end='S')
-    # References cross enclosing JSON objects, so keep them above container fills.
-    p.root.remove(p.edges)
-    p.root.insert(list(p.root).index(p.notes), p.edges)
-    p.legend_note = 'Вложенность — состав JSON. {} — объект, [] — массив. Пунктир — использование ресурса или общих свойств.'
-    p.save()
+def topology():
+    p = Figure("topology", "Подключение и вложенность пакетов", 900)
+    p.frame(40, 40, 740, 800, "Физическое подключение")
+    p.box("controller", 80, 120, 650, 110, "Контроллер BVSTK", layer="PL")
+    p.box("switch", 190, 350, 420, 150, "Коммутатор", "Родитель устройства", "L0")
+    p.box("device", 190, 650, 420, 140, "Устройство", "Выбранный канал", "L0")
+    p.line([(400, 230), (400, 350)], PALETTE["L0"][1], 4)
+    p.line([(400, 500), (400, 650)], PALETTE["L0"][1], 4)
+    p.frame(840, 40, 720, 800, "Пакеты подсистемы")
+    p.folder("parent", 880, 140, 470, "<parent>")
+    p.box("pf", 1010, 260, 490, 100, "<parent>.json", file=True)
+    p.folder("child", 1010, 460, 430, "<id>")
+    p.box("cf", 1070, 620, 430, 140, "<id>.json",
+          "parent, channel", file=True)
+    p.line([(910, 216), (910, 498), (1010, 498)])
+    p.line([(910, 310), (1010, 310)])
+    p.line([(1040, 536), (1040, 690), (1070, 690)])
+    p.save("Слева — соединения. Справа — каталоги и файлы; номер канала задаётся в JSON.")
 
 
-def defaults():
-    p = ConfigurationFigure('defaults', 'Общие свойства ресурса', width=1600)
-    p.data('defaults', 60, 185, 490, 200, 'defaults.register',
-           'access: rw\ncache.mode: driver\nverify.mode: driver')
-    p.data('resource', 60, 455, 490, 200, 'resources: reg_01',
-           'id: reg_01\nkind: register\naddress: 0x01')
-    p.data('resolved', 920, 190, 610, 400, 'Описание reg_01',
-           'access: rw\ncache.mode: driver\nverify.mode: driver\n\nid: reg_01\nkind: register\naddress: 0x01')
-    p.path('defaults', 'resolved', ((550, 285), (920, 285)), 'ref')
-    p.path('resource', 'resolved', ((550, 555), (920, 555)), 'ref')
-    p.legend_note = 'Белые карточки — данные. Показан фрагмент; разрядность и маска задаются отдельно.'
-    p.save()
+def route():
+    p = Figure("route", "Выбор и восстановление маршрута при обращении PS", 930)
+    p.box("service", 180, 60, 300, 100, "Сервис PS", layer="L3")
+    p.box("switch", 760, 60, 300, 100, "Коммутатор", layer="L0")
+    p.box("device", 1230, 60, 320, 100, "Устройство", layer="L0")
+    for x in (330, 910, 1390):
+        p.line([(x, 220), (x, 850)], dashed=True)
+    p.line([(105, 220), (75, 220), (75, 850), (105, 850)], width=3)
+    p.text(50, 205, "Блокировка контроллера", 22, True)
+    rows = [
+        (260, 330, 910, "Прочитать управление"),
+        (370, 910, 330, "Прежнее значение"),
+        (495, 330, 910, "Выбор канала по политике"),
+        (625, 330, 1390, "Обмен с устройством"),
+        (770, 330, 910, "Восстановить управление"),
+    ]
+    for n, (y, a, b, label) in enumerate(rows, 1):
+        p.step(145, y, n)
+        p.path([(a, y), (b, y)], "data", label, ((a+b)/2, y-20))
+    p.text(960, 815, "Также после ошибки", 21)
+    p.save("Время идёт сверху вниз. Пунктирные вертикали — участники обмена.")
+
+
+def host_route():
+    p = Figure("host-route", "Однозначный и неоднозначный адрес за коммутатором", 650)
+    p.box("host", 50, 230, 330, 150, "Внешний ведущий", "Запрос по адресу", "L0")
+    p.box("state", 570, 205, 420, 200, "Состояние маршрута",
+          "Подтверждено обменом", "L3")
+    p.box("one", 1180, 70, 370, 165, "Одна цель", "Адрес однозначен\nОбращение допустимо")
+    p.box("both", 1180, 435, 370, 165, "Несколько целей",
+          "Адреса совпадают\nОбращение отклонено")
+    p.edge("host", "state")
+    p.path([(990, 260), (1080, 260), (1080, 152), (1180, 152)], "data")
+    p.path([(990, 350), (1080, 350), (1080, 517), (1180, 517)], "data")
+    p.save("Справа — два варианта активного подключения.")
+
+
+def spaces():
+    p = Figure("spaces", "Связь пространства, ресурса и записи кэша", 930)
+    p.frame(45, 40, 1510, 220, "Один профиль устройства")
+    p.box("identity", 85, 110, 580, 110, "Пространство", "ID, адрес на шине, число регистров")
+    p.box("control", 935, 110, 580, 110, "Следующее пространство", "Свой ID, адрес и число регистров")
+    p.box("ir", 85, 375, 580, 180, "Ресурс",
+          "space ссылается на пространство\naddress задаёт локальный адрес")
+    p.box("cr", 935, 375, 580, 180, "Ресурс",
+          "space ссылается на пространство\naddress задаёт локальный адрес")
+    p.frame(45, 695, 1510, 185, "Кэш устройства")
+    p.box("ic", 85, 765, 580, 80, "Участок пространства")
+    p.box("cc", 935, 765, 580, 80, "Следующий участок")
+    p.edge("identity", "ir", "ref", start="S", end="N")
+    p.edge("control", "cr", "ref", start="S", end="N")
+    p.edge("ir", "ic", start="S", end="N")
+    p.edge("cr", "cc", start="S", end="N")
+    p.text(800, 645, "Индекс кэша = начало пространства + локальный адрес", 24, anchor="middle")
+    p.save("Показаны два соседних пространства. Их число и размеры задаются в профиле.")
 
 
 def decode():
-    p = ConfigurationFigure('decode', 'Расшифровка битового поля')
-    p.data('map', 60, 110, 480, 180, 'register_map.json', 'status.ready\nlsb: 0, width: 1', file=True)
-    p.data('cache', 60, 460, 480, 180, 'Кэш: регистр 0x01', '0x01 после чтения')
-    p.frame('browser', 660, 70, 1080, 650, 'Веб-интерфейс', 'L4')
-    p.node('decode', 710, 160, 430, 420, 'Выделение поля', layer='L4', parent='browser')
-    # Replace the centred node title with a top heading to leave room for bits.
-    g = p.nodes['decode'].group
-    for element in list(g):
-        if element.tag == f'{{{NS}}}text' and element.get('font-size') != '14':
-            g.remove(element)
-    p.text(g, 730, 225, 'Выделение поля', 25, bold=True)
-    p.text(g, 740, 285, 'Старшие биты', 19)
-    for index, (value, label) in enumerate((('…', ''), ('0', '2'), ('0', '1'), ('1', '0'))):
-        x = 740 + index * 90
-        p.text(g, x+35, 325, label, 19, anchor='middle')
-        el(g, 'rect', x=x, y=345, width=70, height=70, rx=6,
-           fill='#d9ebff' if index == 3 else 'white', stroke='#3f75ad' if index == 3 else '#9baab6')
-        p.text(g, x+35, 392, value, 29, bold=index == 3, anchor='middle')
-    p.text(g, 740, 485, 'ready = 1', 28, bold=True)
-    p.data('label', 1300, 300, 380, 140, 'Показатель ready', 'Готово', parent='browser')
-    p.edge('map', 'decode', 'data', start='E', end='W', b_offset=-170)
-    p.edge('cache', 'decode', 'data', start='E', end='W', b_offset=180)
-    p.edge('decode', 'label', 'data', 'values', start='E', end='W', label_xy=(1220, 350))
-    p.legend_note = 'Показан младший бит условного регистра. С кэшем карта связывается по адресу.'
-    p.save()
+    p = Figure("decode", "Связь ресурса, карты и показателя", 760)
+    p.box("profile", 50, 70, 480, 190, "Ресурс профиля",
+          "ID ресурса\nПространство и адрес", file=True)
+    p.box("map", 1020, 70, 530, 190, "Регистр карты",
+          "Те же пространство и адрес\nОписание битовых полей", file=True)
+    p.box("cache", 50, 470, 480, 160, "Запись кэша",
+          "Значение ресурса\nДостоверность и источник")
+    p.box("decode", 680, 460, 330, 180, "Расшифровка", "Коды полей", "L4")
+    p.box("result", 1180, 460, 370, 180, "Показатель", "Число или подпись", "L4")
+    p.edge("profile", "cache", "ref", start="S", end="N")
+    p.path([(1020, 165), (845, 165), (845, 460)], "ref")
+    p.edge("cache", "decode")
+    p.edge("decode", "result")
+    p.save("Сопоставление выполняется по адресу с учётом пространства. ID профиля и карты независимы.")
 
 
 def view():
-    p = ConfigurationFigure('view', 'Создание формы и обновление снимков', width=1920)
-    p.node('ui', 60, 145, 390, 120, 'Веб-интерфейс', layer='L4')
-    p.frame('iframe', 670, 65, 1190, 1140, 'Изолированная область iframe', 'L4')
-    p.node('bridge', 730, 145, 430, 120, 'Среда формы', layer='L4', parent='iframe')
-    p.node('form', 1350, 145, 430, 120, 'view.js', layer='L4', parent='iframe')
-    for x in (255, 945, 1565):
-        el(p.under, 'path', d=f'M{x},265 V1160', fill='none', stroke='#9baab6', stroke_width=2, stroke_dasharray='4 7')
-    p.path('bridge', 'form', ((945, 350), (1565, 350)), 'call', 'mount(root)', label_xy=(1255, 326))
-    p.text(p.notes, 1585, 395, 'Один раз', 21)
-    for y in (500, 855):
-        p.path('ui', 'bridge', ((255, y), (945, y)), 'data', 'Снимок', label_xy=(560, y-22))
-        p.path('bridge', 'form', ((945, y+70), (1565, y+70)), 'call', 'update(snapshot)', label_xy=(1255, y+45))
-    p.data('unknown', 1380, 620, 370, 115, 'ready', 'Нет данных', parent='iframe')
-    p.data('known', 1380, 975, 370, 115, 'ready', 'Готово', parent='iframe')
-    p.legend_note = 'Время идёт сверху вниз. Снимки передаются через postMessage; вызовы формы выполняются внутри iframe.'
+    p = Figure("view", "Снимок данных и обновление индивидуальной формы", 660)
+    p.box("cache", 50, 80, 410, 155, "Снимок кэша", "Числа и достоверность")
+    p.box("map", 50, 420, 410, 120, "register_map.json", "Описание полей", file=True)
+    p.box("decode", 650, 260, 360, 180, "Расшифровка",
+          "fields, summary", "L4")
+    p.box("form", 1190, 260, 360, 180, "Форма",
+          "update(snapshot)", "L4")
+    p.path([(460, 157), (560, 157), (560, 315), (650, 315)], "data")
+    p.path([(460, 480), (560, 480), (560, 395), (650, 395)], "data")
+    p.edge("decode", "form", label="Снимок", at=(1070, 330))
+    p.frame(1140, 195, 450, 315, "Изолированный iframe", "L4")
+    p.save()
+
+
+def storage():
+    p = Figure("storage", "Размещение файлов внутри пакетов", 1060, width=1450)
+    p.folder("root", 50, 40, 400, "config")
+    p.folder("bus", 170, 155, 400, "<подсистема>")
+    p.folder("direct", 340, 270, 360, "<id>")
+    p.frame(910, 60, 500, 395, "Пакет прямого устройства")
+    p.box("df", 950, 130, 350, 90, "<id>.json", file=True)
+    p.box("dm", 950, 235, 350, 90, "register_map.json", file=True)
+    p.box("dv", 950, 340, 350, 90, "view.js", file=True)
+    p.folder("sw", 340, 545, 360, "<parent>")
+    p.box("sf", 950, 520, 350, 90, "<parent>.json", file=True)
+    p.folder("child", 510, 850, 360, "<child>")
+    p.frame(910, 720, 500, 290, "Пакет дочернего устройства")
+    p.box("cf", 950, 795, 350, 90, "<child>.json", file=True)
+    p.box("cm", 950, 900, 350, 90, "register_map.json", file=True)
+    p.line([(80, 116), (80, 193), (170, 193)])
+    p.line([(200, 231), (200, 583), (340, 583)])
+    p.line([(200, 308), (340, 308)])
+    p.line([(510, 308), (910, 308)])
+    p.line([(580, 583), (950, 583)])
+    p.line([(370, 621), (370, 888), (510, 888)])
+    p.line([(725, 888), (910, 888)])
+    p.save("Папки — каталоги. Листы — отдельные файлы. Карта и форма необязательны.")
+
+
+def provision():
+    p = Figure("provision", "Исходный набор, носитель и рабочие настройки", 830)
+    p.box("repo", 50, 60, 480, 175, "configs в репозитории",
+          "Исходные профили\nКарты и формы", file=True)
+    p.box("elf", 1030, 60, 520, 175, "Программа",
+          "Встроенные JSON профилей")
+    p.box("flash", 50, 535, 480, 175, "config на плате",
+          "Сохранённые пакеты", file=True)
+    p.box("runtime", 1030, 535, 520, 175, "Рабочие настройки",
+          "Используются сервисом", "L3")
+    p.edge("repo", "elf", label="Сборка")
+    p.edge("repo", "flash", label="Установка\nфайлов", start="S", end="N", at=(145, 380))
+    p.edge("flash", "runtime", label="Загрузка при запуске")
+    p.path([(1270, 235), (1270, 365), (450, 365), (450, 535)],
+           "data", "Подготовка начального набора", (900, 340))
+    p.save()
+
+
+def state():
+    p = Figure("state", "Применение правила и сохранение профиля", 810)
+    xs = (50, 600, 1150)
+    titles = ("После запуска", "После применения", "После сохранения")
+    values = (("Исходные правила", "Исходные правила"),
+              ("Новые правила", "Исходные правила"),
+              ("Новые правила", "Новые правила"))
+    for i, (x, title, (ram, file)) in enumerate(zip(xs, titles, values)):
+        p.frame(x, 65, 400, 580, title)
+        p.box(f"ram{i}", x+25, 170, 350, 150, "Политика в RAM", ram, "L3")
+        p.box(f"file{i}", x+25, 430, 350, 130, "Профиль", file, file=True)
+    p.edge("ram0", "ram1", "call", "Применить")
+    p.edge("ram1", "ram2", "call", "Сохранить")
+    p.edge("ram2", "file2", start="S", end="N")
+    p.save("Три момента времени. Во всех столбцах показано одно устройство.")
+
+
+def example_display():
+    p = Figure("examples/display", "Разбор двух битов состояния", 730)
+    p.box("value", 50, 65, 410, 150, "Регистр 0x01", "Прочитан байт 0x05")
+    p.box("ready", 650, 65, 380, 150, "Бит 0: ready", "1 — готово")
+    p.box("fault", 650, 385, 380, 150, "Бит 2: fault", "1 — неисправность")
+    p.box("result", 1210, 375, 340, 170, "Сводка", "Неисправность", "L4")
+    p.edge("value", "ready")
+    p.path([(255, 215), (255, 460), (650, 460)], "data")
+    p.edge("fault", "result", label="Приоритет")
+    p.path([(1030, 140), (1380, 140), (1380, 375)], "data")
+    p.save()
+
+
+def example_route():
+    p = Figure("examples/routed-read", "Чтение device_b при исходно отключённых каналах", 710)
+    p.box("before", 50, 70, 410, 190, "switch_a: 0x00",
+          "Оба канала отключены")
+    p.box("select", 720, 70, 830, 190, "switch_a: 0x02",
+          "Канал 1 выбран\nПолитика: reg_00 = 0x02")
+    p.edge("before", "select", label="Запись 0x02")
+    p.box("device", 880, 440, 670, 190, "device_b на канале 1",
+          "Адрес 0x20\nЧтение регистра 0x01", "L0")
+    p.box("restore", 50, 440, 410, 190, "switch_a: 0x00",
+          "Прежний байт восстановлен")
+    p.path([(1215, 260), (1215, 440)], "data", "Чтение", (1320, 365))
+    p.edge("device", "restore", label="После обмена", start="W", end="E")
+    p.save("Карточки switch_a — состояния управляющего регистра во времени.")
+
+
+def example_transfer():
+    p = Figure("examples/transfer", "Однобайтовый префикс и repeated START", 580)
+    p.text(50, 70, "Запись reg_03 = 0x10", 26, True)
+    for key, x, w, title, detail in [
+        ("wa", 50, 360, "Адрес устройства", "0x20, запись"),
+        ("wr", 570, 340, "Адрес регистра", "0x03"),
+        ("wv", 1070, 480, "Значение", "0x10"),
+    ]:
+        p.box(key, x, 105, w, 120, title, detail)
+    p.edge("wa", "wr"); p.edge("wr", "wv")
+    p.text(50, 320, "Чтение reg_01", 26, True)
+    for key, x, w, title, detail in [
+        ("ra", 50, 300, "Устройство", "0x20, запись"),
+        ("rr", 450, 250, "Регистр", "0x01"),
+        ("restart", 850, 320, "Устройство", "0x20, чтение"),
+        ("value", 1270, 280, "Ответ", "0x01"),
+    ]:
+        p.box(key, x, 360, w, 120, title, detail)
+    p.edge("ra", "rr")
+    p.edge("rr", "restart", label="repeated START", at=(775, 340))
+    p.edge("restart", "value")
+    p.save("Показаны поля обмена. START, STOP и подтверждения опущены, кроме repeated START.")
+
+
+def example_spaces():
+    p = Figure("examples/spaces", "Адресные пространства и индексы кэша", 930)
+    p.frame(45, 40, 1510, 220, "Одно устройство device_a")
+    p.box("identity", 85, 110, 580, 110, "identity", "I²C 0x20, регистры 0x00–0x07")
+    p.box("control", 935, 110, 580, 110, "control", "I²C 0x21, регистры 0x00–0x07")
+    p.box("ir", 85, 375, 580, 180, "Ресурс identity_01",
+          "space: identity\naddress: 0x01")
+    p.box("cr", 935, 375, 580, 180, "Ресурс control_01",
+          "space: control\naddress: 0x01")
+    p.frame(45, 695, 1510, 185, "Кэш device_a")
+    p.box("ic", 85, 765, 580, 80, "Индексы 0–7");
+    p.box("cc", 935, 765, 580, 80, "Индексы 8–15")
+    p.edge("identity", "ir", "ref", start="S", end="N")
+    p.edge("control", "cr", "ref", start="S", end="N")
+    p.edge("ir", "ic", label="0 + 1 = 1", start="S", end="N", at=(470, 645))
+    p.edge("cr", "cc", label="8 + 1 = 9", start="S", end="N", at=(1330, 645))
+    p.save("Пунктир — принадлежность ресурса пространству. Синие стрелки — размещение в кэше.")
+
+
+def example_resource():
+    p = Figure("examples/resource", "Общие и собственные свойства ресурса", 670)
+    p.box("defaults", 50, 65, 580, 220, "defaults.register",
+          "width_bits: 8\naccess: rw\ncache.mode: driver")
+    p.box("resource", 970, 65, 580, 220, "resources[]",
+          "id: reg_01, address: 0x01\naccess: ro")
+    p.box("result", 510, 435, 580, 180, "Свойства reg_01",
+          "width_bits: 8\naccess: ro\ncache.mode: driver")
+    p.path([(340, 285), (340, 525), (510, 525)], "data", "Общие", (390, 390))
+    p.path([(1260, 285), (1260, 525), (1090, 525)], "data", "Собственные", (1330, 390))
     p.save()
 
 
 def generate():
-    from configuration_details import generate as details
-    previous = ARROWS.get('ref')
-    ARROWS['ref'] = ('#788794', 'Связь данных', '4 5')
-    figures = (devices, package, storage, loading, state, cache, profile, defaults, decode, view)
-    try:
-        for figure in figures:
-            figure()
-        detail_count = details(ConfigurationFigure)
-    finally:
-        if previous is None:
-            del ARROWS['ref']
-        else:
-            ARROWS['ref'] = previous
-    return len(figures) + detail_count
+    figures = (instances, role, package, loading, write, read, cache, resource,
+               transfer, policy, topology, route, host_route, spaces, decode,
+               view, storage, provision, state, example_display, example_route,
+               example_transfer, example_spaces, example_resource)
+    for figure in figures:
+        figure()
+    return len(figures)
 
 
-if __name__ == '__main__':
-    drawing.OUT = drawing.ROOT / 'docs/figures'
-    print(f'Generated {generate()} configuration figures')
+if __name__ == "__main__":
+    print(f"Generated {generate()} configuration figures")

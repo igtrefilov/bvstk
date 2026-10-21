@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1070" viewBox="0 0 1600 1070" role="img" aria-labelledby="title desc">
+  <title id="title">Отдельные профили устройств на разных шинах</title>
+  <desc id="desc">Отдельные профили устройств на разных шинах</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1070" fill="white" />
+  <g id="regions">
+    <g data-kind="group">
+      <rect x="40" y="45" width="330" height="825" rx="14" fill="white" stroke="#607487" stroke-width="1.8" />
+      <text x="62" y="83" font-size="25" font-weight="700" text-anchor="start" style="fill:#607487">BVSTK</text>
+    </g>
+  </g>
+  <g id="blocks">
+    <g id="a" data-kind="component" data-layer="PL">
+      <rect x="70" y="230" width="270" height="110" rx="10" fill="#e6dcf5" stroke="#8760ba" stroke-width="2" />
+      <text x="90" y="255" font-size="15" font-weight="700" text-anchor="start" style="fill:#8760ba">PL</text>
+      <text x="90" y="291" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Контроллер A</text>
+    </g>
+    <g id="b" data-kind="component" data-layer="PL">
+      <rect x="70" y="690" width="270" height="110" rx="10" fill="#e6dcf5" stroke="#8760ba" stroke-width="2" />
+      <text x="90" y="715" font-size="15" font-weight="700" text-anchor="start" style="fill:#8760ba">PL</text>
+      <text x="90" y="751" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Контроллер B</text>
+    </g>
+    <g id="device_a" data-kind="component" data-layer="L0">
+      <rect x="600" y="100" width="300" height="130" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="620" y="125" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="620" y="161" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="620" y="198" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Отдельный экземпляр</text>
+    </g>
+    <g id="device_a_file" data-kind="file">
+      <path d="M1130 100 H1528 L1550 122 V230 H1130 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1528 100 V122 H1550" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="1150" y="143" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;id&gt;.json</text>
+      <text x="1150" y="180" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Профиль экземпляра</text>
+    </g>
+    <g id="device_b" data-kind="component" data-layer="L0">
+      <rect x="600" y="390" width="300" height="130" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="620" y="415" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="620" y="451" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="620" y="488" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Отдельный экземпляр</text>
+    </g>
+    <g id="device_b_file" data-kind="file">
+      <path d="M1130 390 H1528 L1550 412 V520 H1130 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1528 390 V412 H1550" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="1150" y="433" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;id&gt;.json</text>
+      <text x="1150" y="470" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Профиль экземпляра</text>
+    </g>
+    <g id="device_m" data-kind="component" data-layer="L0">
+      <rect x="600" y="680" width="300" height="130" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="620" y="705" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="620" y="741" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="620" y="778" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Отдельный экземпляр</text>
+    </g>
+    <g id="device_m_file" data-kind="file">
+      <path d="M1130 680 H1528 L1550 702 V810 H1130 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1528 680 V702 H1550" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="1150" y="723" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;id&gt;.json</text>
+      <text x="1150" y="760" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Профиль экземпляра</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M1130,165 L900,165" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" stroke-linejoin="round" data-kind="ref" />
+    <path d="M1130,455 L900,455" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" stroke-linejoin="round" data-kind="ref" />
+    <path d="M1130,745 L900,745" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" stroke-linejoin="round" data-kind="ref" />
+    <path d="M340,285 L460,285" fill="none" stroke="#607487" stroke-width="3" />
+    <path d="M460,165 L460,455" fill="none" stroke="#607487" stroke-width="3" />
+    <path d="M460,165 L600,165" fill="none" stroke="#607487" stroke-width="3" />
+    <path d="M460,455 L600,455" fill="none" stroke="#607487" stroke-width="3" />
+    <path d="M340,745 L600,745" fill="none" stroke="#607487" stroke-width="3" />
+  </g>
+  <g id="labels">
+    <text x="425" y="570" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Шина A</text>
+    <text x="425" y="835" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Шина B</text>
+  </g>
+  <g id="legend">
+    <path d="M50,964 h48" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" />
+    <text x="112" y="970" font-size="17" font-weight="400" text-anchor="start" style="fill:#788794">Связь описаний</text>
+    <rect x="304" y="952" width="27" height="20" rx="3" fill="#e9eef3" stroke="#607487" />
+    <text x="341" y="970" font-size="17" font-weight="400" text-anchor="start" style="fill:#607487">L0</text>
+    <rect x="389" y="952" width="27" height="20" rx="3" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="426" y="970" font-size="17" font-weight="400" text-anchor="start" style="fill:#8760ba">PL</text>
+    <text x="50" y="1018" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Сплошные линии — подключение к шине. Пунктир — профиль описывает свой экземпляр.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

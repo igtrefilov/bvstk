@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960" role="img" aria-labelledby="title desc">
+  <title id="title">Исходный набор, носитель и рабочие настройки</title>
+  <desc id="desc">Исходный набор, носитель и рабочие настройки</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="960" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="repo" data-kind="file">
+      <path d="M50 60 H508 L530 82 V235 H50 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M508 60 V82 H530" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="70" y="103" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">configs в репозитории</text>
+      <text x="70" y="140" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Исходные профили</text>
+      <text x="70" y="172" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Карты и формы</text>
+    </g>
+    <g id="elf" data-kind="data">
+      <rect x="1030" y="60" width="520" height="175" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="1050" y="103" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Программа</text>
+      <text x="1050" y="140" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Встроенные JSON профилей</text>
+    </g>
+    <g id="flash" data-kind="file">
+      <path d="M50 535 H508 L530 557 V710 H50 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M508 535 V557 H530" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="70" y="578" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">config на плате</text>
+      <text x="70" y="615" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Сохранённые пакеты</text>
+    </g>
+    <g id="runtime" data-kind="component" data-layer="L3">
+      <rect x="1030" y="535" width="520" height="175" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="2" />
+      <text x="1050" y="560" font-size="15" font-weight="700" text-anchor="start" style="fill:#287f73">L3</text>
+      <text x="1050" y="596" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Рабочие настройки</text>
+      <text x="1050" y="633" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Используются сервисом</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M530,147.5 L1030,147.5" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M290,235 L290,535" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M530,622.5 L1030,622.5" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1270,235 L1270,365 L450,365 L450,535" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels">
+    <text x="780.0" y="129.5" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Сборка</text>
+    <text x="145" y="380" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Установка</text>
+    <text x="145" y="412" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">файлов</text>
+    <text x="780.0" y="604.5" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Загрузка при запуске</text>
+    <text x="900" y="340" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Подготовка начального набора</text>
+  </g>
+  <g id="legend">
+    <path d="M50,854 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="860" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <rect x="216" y="842" width="27" height="20" rx="3" fill="#d9f0ea" stroke="#287f73" />
+    <text x="253" y="860" font-size="17" font-weight="400" text-anchor="start" style="fill:#287f73">L3</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

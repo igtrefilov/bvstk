@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="780" viewBox="0 0 1600 780" role="img" aria-labelledby="title desc">
+  <title id="title">Однозначный и неоднозначный адрес за коммутатором</title>
+  <desc id="desc">Однозначный и неоднозначный адрес за коммутатором</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="780" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="host" data-kind="component" data-layer="L0">
+      <rect x="50" y="230" width="330" height="150" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="70" y="255" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="70" y="291" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Внешний ведущий</text>
+      <text x="70" y="328" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Запрос по адресу</text>
+    </g>
+    <g id="state" data-kind="component" data-layer="L3">
+      <rect x="570" y="205" width="420" height="200" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="2" />
+      <text x="590" y="230" font-size="15" font-weight="700" text-anchor="start" style="fill:#287f73">L3</text>
+      <text x="590" y="266" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Состояние маршрута</text>
+      <text x="590" y="303" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Подтверждено обменом</text>
+    </g>
+    <g id="one" data-kind="data">
+      <rect x="1180" y="70" width="370" height="165" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="1200" y="113" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Одна цель</text>
+      <text x="1200" y="150" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Адрес однозначен</text>
+      <text x="1200" y="182" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Обращение допустимо</text>
+    </g>
+    <g id="both" data-kind="data">
+      <rect x="1180" y="435" width="370" height="165" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="1200" y="478" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Несколько целей</text>
+      <text x="1200" y="515" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Адреса совпадают</text>
+      <text x="1200" y="547" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Обращение отклонено</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M380,305 L570,305" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M990,260 L1080,260 L1080,152 L1180,152" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M990,350 L1080,350 L1080,517 L1180,517" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels" />
+  <g id="legend">
+    <path d="M50,674 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="680" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <rect x="216" y="662" width="27" height="20" rx="3" fill="#e9eef3" stroke="#607487" />
+    <text x="253" y="680" font-size="17" font-weight="400" text-anchor="start" style="fill:#607487">L0</text>
+    <rect x="301" y="662" width="27" height="20" rx="3" fill="#d9f0ea" stroke="#287f73" />
+    <text x="338" y="680" font-size="17" font-weight="400" text-anchor="start" style="fill:#287f73">L3</text>
+    <text x="50" y="728" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Справа — два варианта активного подключения.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

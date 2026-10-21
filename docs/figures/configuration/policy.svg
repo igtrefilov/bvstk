@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="940" viewBox="0 0 1600 940" role="img" aria-labelledby="title desc">
+  <title id="title">Допуск запроса записи по профилю</title>
+  <desc id="desc">Допуск запроса записи по профилю</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="940" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="rules" data-kind="data">
+      <rect x="50" y="70" width="550" height="250" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="113" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">policy.write</text>
+      <text x="70" y="150" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Режим</text>
+      <text x="70" y="182" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Ссылки на ресурсы</text>
+      <text x="70" y="214" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Условия на значения</text>
+    </g>
+    <g id="limits" data-kind="data">
+      <rect x="880" y="70" width="670" height="165" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="900" y="113" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Ограничения ресурса</text>
+      <text x="900" y="150" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Диапазон и доступ</text>
+      <text x="900" y="182" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Разрядность и предел значения</text>
+    </g>
+    <g id="request" data-kind="data">
+      <rect x="50" y="440" width="550" height="150" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="483" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Запрос записи</text>
+      <text x="70" y="520" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Ресурс и значение</text>
+    </g>
+    <g id="check" data-kind="component" data-layer="L3">
+      <rect x="880" y="405" width="670" height="145" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="2" />
+      <text x="900" y="430" font-size="15" font-weight="700" text-anchor="start" style="fill:#287f73">L3</text>
+      <text x="900" y="466" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Проверка сервиса</text>
+      <text x="900" y="503" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Ограничения и политика</text>
+    </g>
+    <g id="yes" data-kind="data">
+      <rect x="880" y="665" width="290" height="100" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="900" y="708" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Разрешено</text>
+      <text x="900" y="745" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Передать запрос</text>
+    </g>
+    <g id="no" data-kind="data">
+      <rect x="1260" y="665" width="290" height="100" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="1280" y="708" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Запрещено</text>
+      <text x="1280" y="745" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Вернуть отказ</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M600,195 L750,195 L750,450 L880,450" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" stroke-linejoin="round" data-kind="ref" />
+    <path d="M600,515 L880,515" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1215,235 L1215,405" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" stroke-linejoin="round" data-kind="ref" />
+    <path d="M1030,550 L1030,665" fill="none" stroke="#788794" stroke-width="2.8" marker-end="url(#call)" stroke-linejoin="round" data-kind="call" />
+    <path d="M1405,550 L1405,665" fill="none" stroke="#788794" stroke-width="2.8" marker-end="url(#call)" stroke-linejoin="round" data-kind="call" />
+  </g>
+  <g id="labels" />
+  <g id="legend">
+    <path d="M50,834 h48" fill="none" stroke="#788794" stroke-width="2.8" marker-end="url(#call)" />
+    <text x="112" y="840" font-size="17" font-weight="400" text-anchor="start" style="fill:#788794">Вызов</text>
+    <path d="M205,834 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="267" y="840" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <path d="M371,834 h48" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" />
+    <text x="433" y="840" font-size="17" font-weight="400" text-anchor="start" style="fill:#788794">Связь описаний</text>
+    <rect x="625" y="822" width="27" height="20" rx="3" fill="#d9f0ea" stroke="#287f73" />
+    <text x="662" y="840" font-size="17" font-weight="400" text-anchor="start" style="fill:#287f73">L3</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

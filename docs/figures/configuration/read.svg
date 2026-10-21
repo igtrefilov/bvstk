@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="820" viewBox="0 0 1600 820" role="img" aria-labelledby="title desc">
+  <title id="title">Чтение устройства и получение показателя</title>
+  <desc id="desc">Чтение устройства и получение показателя</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="820" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="service" data-kind="component" data-layer="L3">
+      <rect x="80" y="90" width="470" height="230" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="2" />
+      <text x="100" y="115" font-size="15" font-weight="700" text-anchor="start" style="fill:#287f73">L3</text>
+      <text x="100" y="151" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Сервис PS</text>
+      <text x="100" y="188" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Программное чтение</text>
+    </g>
+    <g id="device" data-kind="component" data-layer="L0">
+      <rect x="1060" y="90" width="470" height="230" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="1080" y="115" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="1080" y="151" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="1080" y="188" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Регистр</text>
+    </g>
+    <g id="cache" data-kind="data">
+      <rect x="80" y="490" width="470" height="150" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="100" y="533" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Кэш</text>
+      <text x="100" y="570" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Значение ресурса</text>
+      <text x="100" y="602" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Источник и время чтения</text>
+    </g>
+    <g id="display" data-kind="component" data-layer="L4">
+      <rect x="1060" y="490" width="470" height="150" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="2" />
+      <text x="1080" y="515" font-size="15" font-weight="700" text-anchor="start" style="fill:#3f75ad">L4</text>
+      <text x="1080" y="551" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Веб-интерфейс</text>
+      <text x="1080" y="588" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Расшифрованный показатель</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M550,175 L1060,175" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1060,270 L550,270" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M315,320 L315,490" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M550,565 L1060,565" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels">
+    <text x="805.0" y="157.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запрос чтения</text>
+    <text x="805" y="250" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Прочитанное значение</text>
+    <text x="805.0" y="547.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Снимок</text>
+  </g>
+  <g id="legend">
+    <path d="M50,714 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="720" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <rect x="216" y="702" width="27" height="20" rx="3" fill="#e9eef3" stroke="#607487" />
+    <text x="253" y="720" font-size="17" font-weight="400" text-anchor="start" style="fill:#607487">L0</text>
+    <rect x="301" y="702" width="27" height="20" rx="3" fill="#d9f0ea" stroke="#287f73" />
+    <text x="338" y="720" font-size="17" font-weight="400" text-anchor="start" style="fill:#287f73">L3</text>
+    <rect x="386" y="702" width="27" height="20" rx="3" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="423" y="720" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">L4</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

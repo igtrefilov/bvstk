@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="840" viewBox="0 0 1600 840" role="img" aria-labelledby="title desc">
+  <title id="title">Чтение device_b при исходно отключённых каналах</title>
+  <desc id="desc">Чтение device_b при исходно отключённых каналах</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="840" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="before" data-kind="data">
+      <rect x="50" y="70" width="410" height="190" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="113" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">switch_a: 0x00</text>
+      <text x="70" y="150" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Оба канала отключены</text>
+    </g>
+    <g id="select" data-kind="data">
+      <rect x="720" y="70" width="830" height="190" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="740" y="113" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">switch_a: 0x02</text>
+      <text x="740" y="150" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Канал 1 выбран</text>
+      <text x="740" y="182" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Политика: reg_00 = 0x02</text>
+    </g>
+    <g id="device" data-kind="component" data-layer="L0">
+      <rect x="880" y="440" width="670" height="190" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="900" y="465" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="900" y="501" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">device_b на канале 1</text>
+      <text x="900" y="538" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Адрес 0x20</text>
+      <text x="900" y="570" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Чтение регистра 0x01</text>
+    </g>
+    <g id="restore" data-kind="data">
+      <rect x="50" y="440" width="410" height="190" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="483" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">switch_a: 0x00</text>
+      <text x="70" y="520" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Прежний байт восстановлен</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M460,165 L720,165" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1215,260 L1215,440" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M880,535 L460,535" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels">
+    <text x="590.0" y="147.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Запись 0x02</text>
+    <text x="1320" y="365" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Чтение</text>
+    <text x="670.0" y="517.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">После обмена</text>
+  </g>
+  <g id="legend">
+    <path d="M50,734 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="740" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <rect x="216" y="722" width="27" height="20" rx="3" fill="#e9eef3" stroke="#607487" />
+    <text x="253" y="740" font-size="17" font-weight="400" text-anchor="start" style="fill:#607487">L0</text>
+    <text x="50" y="788" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Карточки switch_a — состояния управляющего регистра во времени.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

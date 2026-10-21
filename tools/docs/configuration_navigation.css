@@ -1,0 +1,70 @@
+/* Standalone JSON navigation notes, including Obsidian sidebars. */
+.bvstk-json-tree {
+  margin: 1em 0;
+  padding: 10px 14px;
+  border: 1px solid var(--background-modifier-border, #d8dce2);
+  border-radius: 6px;
+  background: var(--background-secondary, #f6f7f8);
+  color: var(--text-normal, #252a30);
+  font-family: var(--font-monospace, monospace);
+  font-size: 0.82em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.bvstk-json-tree details,
+.bvstk-json-tree p {
+  margin: 2px 0;
+  padding: 0;
+}
+.bvstk-json-tree details > details,
+.bvstk-json-tree details > p {
+  margin-left: 1.4em;
+}
+.bvstk-json-tree summary {
+  cursor: pointer;
+  padding: 1px 0;
+}
+.bvstk-json-tree summary::marker {
+  color: var(--text-muted, #637080);
+}
+.bvstk-json-tree a.internal-link {
+  color: inherit;
+  text-decoration: none;
+}
+.bvstk-json-tree a.internal-link:hover {
+  color: var(--text-accent, #486baa);
+  text-decoration: underline;
+}
+.workspace-split.mod-left-split .markdown-preview-view:has(.bvstk-json-tree),
+.workspace-split.mod-right-split .markdown-preview-view:has(.bvstk-json-tree) {
+  padding: 12px 10px;
+}
+.workspace-split:is(.mod-left-split, .mod-right-split)
+  .markdown-preview-view:has(.bvstk-json-tree) .inline-title {
+  display: none;
+}
+.workspace-split:is(.mod-left-split, .mod-right-split)
+  .markdown-preview-view:has(.bvstk-json-tree) h1 {
+  font-size: 1.25em;
+  margin: 0 0 12px;
+}
+.workspace-split:is(.mod-left-split, .mod-right-split)
+  .markdown-preview-view:has(.bvstk-json-tree) .el-p {
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+.workspace-split.mod-left-split .bvstk-json-tree,
+.workspace-split.mod-right-split .bvstk-json-tree {
+  margin: 0;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.85em;
+}
+.workspace-split.mod-left-split .bvstk-json-tree details > details,
+.workspace-split.mod-left-split .bvstk-json-tree details > p,
+.workspace-split.mod-right-split .bvstk-json-tree details > details,
+.workspace-split.mod-right-split .bvstk-json-tree details > p {
+  margin-left: 1em;
+}

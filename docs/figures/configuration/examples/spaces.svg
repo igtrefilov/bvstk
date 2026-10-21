@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060" role="img" aria-labelledby="title desc">
+  <title id="title">Адресные пространства и индексы кэша</title>
+  <desc id="desc">Адресные пространства и индексы кэша</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1060" fill="white" />
+  <g id="regions">
+    <g data-kind="group">
+      <rect x="45" y="40" width="1510" height="220" rx="14" fill="white" stroke="#607487" stroke-width="1.8" />
+      <text x="67" y="78" font-size="25" font-weight="700" text-anchor="start" style="fill:#607487">Одно устройство device_a</text>
+    </g>
+    <g data-kind="group">
+      <rect x="45" y="695" width="1510" height="185" rx="14" fill="white" stroke="#607487" stroke-width="1.8" />
+      <text x="67" y="733" font-size="25" font-weight="700" text-anchor="start" style="fill:#607487">Кэш device_a</text>
+    </g>
+  </g>
+  <g id="blocks">
+    <g id="identity" data-kind="data">
+      <rect x="85" y="110" width="580" height="110" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="105" y="153" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">identity</text>
+      <text x="105" y="190" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">I²C 0x20, регистры 0x00–0x07</text>
+    </g>
+    <g id="control" data-kind="data">
+      <rect x="935" y="110" width="580" height="110" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="955" y="153" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">control</text>
+      <text x="955" y="190" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">I²C 0x21, регистры 0x00–0x07</text>
+    </g>
+    <g id="ir" data-kind="data">
+      <rect x="85" y="375" width="580" height="180" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="105" y="418" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Ресурс identity_01</text>
+      <text x="105" y="455" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">space: identity</text>
+      <text x="105" y="487" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">address: 0x01</text>
+    </g>
+    <g id="cr" data-kind="data">
+      <rect x="935" y="375" width="580" height="180" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="955" y="418" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Ресурс control_01</text>
+      <text x="955" y="455" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">space: control</text>
+      <text x="955" y="487" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">address: 0x01</text>
+    </g>
+    <g id="ic" data-kind="data">
+      <rect x="85" y="765" width="580" height="80" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="105" y="808" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Индексы 0–7</text>
+    </g>
+    <g id="cc" data-kind="data">
+      <rect x="935" y="765" width="580" height="80" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="955" y="808" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Индексы 8–15</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M375,220 L375,375" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" stroke-linejoin="round" data-kind="ref" />
+    <path d="M1225,220 L1225,375" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" stroke-linejoin="round" data-kind="ref" />
+    <path d="M375,555 L375,765" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1225,555 L1225,765" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels">
+    <text x="470" y="645" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">0 + 1 = 1</text>
+    <text x="1330" y="645" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">8 + 1 = 9</text>
+  </g>
+  <g id="legend">
+    <path d="M50,954 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="960" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <path d="M216,954 h48" fill="none" stroke="#788794" stroke-width="2.8" stroke-dasharray="4 5" marker-end="url(#ref)" />
+    <text x="278" y="960" font-size="17" font-weight="400" text-anchor="start" style="fill:#788794">Связь описаний</text>
+    <text x="50" y="1008" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Пунктир — принадлежность ресурса пространству. Синие стрелки — размещение в кэше.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

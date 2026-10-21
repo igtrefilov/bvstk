@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="800" viewBox="0 0 1600 800" role="img" aria-labelledby="title desc">
+  <title id="title">Выбор свойства ресурса при разборе профиля</title>
+  <desc id="desc">Выбор свойства ресурса при разборе профиля</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="800" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="defaults" data-kind="data">
+      <rect x="50" y="65" width="580" height="220" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="108" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">defaults.register</text>
+      <text x="70" y="145" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Общие свойства</text>
+      <text x="70" y="177" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">для всех ресурсов</text>
+    </g>
+    <g id="resource" data-kind="data">
+      <rect x="970" y="65" width="580" height="220" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="990" y="108" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">resources[]</text>
+      <text x="990" y="145" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Собственные свойства</text>
+      <text x="990" y="177" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">данного ресурса</text>
+    </g>
+    <g id="result" data-kind="data">
+      <rect x="510" y="435" width="580" height="180" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="530" y="478" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Параметры ресурса</text>
+      <text x="530" y="515" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Полный набор свойств</text>
+      <text x="530" y="547" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">после разбора профиля</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M340,285 L340,525 L510,525" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1260,285 L1260,525 L1090,525" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels">
+    <text x="170" y="370" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Своего свойства нет</text>
+    <text x="1430" y="370" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Своё свойство есть</text>
+  </g>
+  <g id="legend">
+    <path d="M50,694 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="700" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <text x="50" y="748" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Для каждого свойства выбирается один источник. Вложенные объекты заменяются целиком.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

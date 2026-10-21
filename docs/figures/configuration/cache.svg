@@ -1,120 +1,79 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" viewBox="0 45 1800 948" role="img" aria-labelledby="title desc" height="948">
-  <title id="title">Начальное значение и результат обмена</title>
-  <desc id="desc">Начальное значение и результат обмена</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">Происхождение значения в кэше</title>
+  <desc id="desc">Происхождение значения в кэше</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
-a { cursor: pointer; } a:hover text { text-decoration: underline; }
-g:target &gt; rect { stroke-width: 5; }
-.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
 </style>
-    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
       <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
     </marker>
-    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
     </marker>
   </defs>
-  <rect width="1800" height="993" fill="white" />
-  <g id="backgrounds">
-    <rect x="670" y="85" width="470" height="710" rx="16" fill="white" />
-    <rect x="1280" y="85" width="460" height="710" rx="16" fill="white" />
+  <rect width="1600" height="920" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="seed" data-kind="file">
+      <path d="M60 75 H468 L490 97 V265 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M468 75 V97 H490" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="80" y="118" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Профиль</text>
+      <text x="80" y="155" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">settings.cache_seed</text>
+    </g>
+    <g id="initial" data-kind="data">
+      <rect x="820" y="75" width="720" height="190" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="840" y="118" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Начальная запись</text>
+      <text x="840" y="155" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Подготовленное значение</text>
+      <text x="840" y="187" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Источник settings</text>
+      <text x="840" y="219" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Состояние устройства ещё не прочитано</text>
+    </g>
+    <g id="device" data-kind="component" data-layer="L0">
+      <rect x="60" y="440" width="430" height="225" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="80" y="465" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="80" y="501" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="80" y="538" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Чтение ресурса</text>
+    </g>
+    <g id="observed" data-kind="data">
+      <rect x="820" y="440" width="720" height="225" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="840" y="483" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Запись после чтения</text>
+      <text x="840" y="520" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Полученное значение</text>
+      <text x="840" y="552" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Действительно</text>
+      <text x="840" y="584" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Источник и время обмена</text>
+    </g>
   </g>
   <g id="interactions">
-    <g data-kind="interaction" data-from="seed" data-to="initial" data-interaction="data" data-direction="forward">
-      <path d="M510,242.5 L710,242.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M510,242.5 L710,242.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="device" data-to="actual" data-interaction="data" data-direction="forward">
-      <path d="M510,672.5 L710,672.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M510,672.5 L710,672.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="initial" data-to="actual" data-interaction="data" data-direction="forward">
-      <path d="M905,325 L905,590" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M905,325 L905,590" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="initial" data-to="unknown" data-interaction="data" data-direction="forward">
-      <path d="M1100,242.5 L1320,242.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1100,242.5 L1320,242.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="actual" data-to="known" data-interaction="data" data-direction="forward">
-      <path d="M1100,672.5 L1320,672.5" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1100,672.5 L1320,672.5" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-    </g>
+    <path d="M490,170 L820,170" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M490,552.5 L820,552.5" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1180,265 L1180,440" fill="none" stroke="#788794" stroke-width="2.8" marker-end="url(#call)" stroke-linejoin="round" data-kind="call" />
   </g>
-  <g id="components">
-    <g id="seed" data-kind="artifact">
-      <path d="M60,160 H484 L510,186 V325 H60 Z" fill="white" stroke="#607487" stroke-width="2" />
-      <path d="M484,160 V186 H510" fill="none" stroke="#607487" stroke-width="2" />
-      <text x="82" y="203.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
-      <text x="82" y="242" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">cache_seed: reg_01 = 0x00</text>
-    </g>
-    <g id="device" data-kind="component" data-layer="L0" data-label="Устройство" data-ownership="common">
-      <rect x="60" y="600" width="450" height="145" rx="11" fill="#e9eef3" stroke="#607487" stroke-width="1.8" />
-      <text x="80" y="624.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#607487" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-      <text x="80" y="658.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
-      <text x="80" y="697.12" font-size="19" font-weight="400" text-anchor="start" style="fill:#233747">Чтение вернуло 0x01</text>
-    </g>
-    <g id="cache" data-kind="functional-group" data-label="Кэш сервиса" data-layer="L3" data-ownership="common">
-      <rect x="670" y="85" width="470" height="710" rx="16" fill="none" stroke="#287f73" stroke-width="2" />
-      <text x="696" y="122.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#287f73">Кэш сервиса</text>
-      <g id="initial" data-kind="data" data-parent="cache">
-        <rect x="710" y="160" width="390" height="165" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-        <text x="732" y="203.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">reg_01 = 0x00</text>
-        <text x="732" y="242" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">source: settings</text>
-      </g>
-      <g id="actual" data-kind="data" data-parent="cache">
-        <rect x="710" y="590" width="390" height="165" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-        <text x="732" y="633.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">reg_01 = 0x01</text>
-        <text x="732" y="672" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Результат обмена</text>
-      </g>
-    </g>
-    <g id="ui" data-kind="functional-group" data-label="Веб-интерфейс" data-layer="L4" data-ownership="common">
-      <rect x="1280" y="85" width="460" height="710" rx="16" fill="none" stroke="#3f75ad" stroke-width="2" />
-      <text x="1306" y="122.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#3f75ad">Веб-интерфейс</text>
-      <g id="unknown" data-kind="data" data-parent="ui">
-        <rect x="1320" y="160" width="380" height="165" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-        <text x="1342" y="203.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">ready</text>
-        <text x="1342" y="242" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Нет данных</text>
-        <text x="1342" y="274" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">от устройства</text>
-      </g>
-      <g id="known" data-kind="data" data-parent="ui">
-        <rect x="1320" y="605" width="380" height="135" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-        <text x="1342" y="648.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">ready</text>
-        <text x="1342" y="687" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Готово</text>
-      </g>
-    </g>
+  <g id="labels">
+    <text x="655.0" y="152.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Загрузка</text>
+    <text x="655.0" y="534.5" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Ответ устройства</text>
+    <text x="1300" y="370" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Замена записи</text>
   </g>
-  <g id="annotations">
-    <text x="610.0" y="228.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">При загрузке</text>
-    <text x="610.0" y="658.5" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">После чтения</text>
-    <text x="1010" y="465.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Обновление</text>
-    <path d="M60,847 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="142" y="853.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="884" width="32" height="24" rx="4" fill="#e9eef3" stroke="#607487" />
-    <text x="104" y="903.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#607487">L0</tspan></text>
-    <rect x="175" y="884" width="32" height="24" rx="4" fill="#d9f0ea" stroke="#287f73" />
-    <text x="219" y="903.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#287f73">L3</tspan></text>
-    <rect x="290" y="884" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
-    <text x="334" y="903.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-    <text x="60" y="950.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Два состояния записи кэша. Справа — результат расшифровки по карте.</text>
+  <g id="legend">
+    <path d="M50,814 h48" fill="none" stroke="#788794" stroke-width="2.8" marker-end="url(#call)" />
+    <text x="112" y="820" font-size="17" font-weight="400" text-anchor="start" style="fill:#788794">Вызов</text>
+    <path d="M205,814 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="267" y="820" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <rect x="371" y="802" width="27" height="20" rx="3" fill="#e9eef3" stroke="#607487" />
+    <text x="408" y="820" font-size="17" font-weight="400" text-anchor="start" style="fill:#607487">L0</text>
+    <text x="50" y="868" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Справа показаны два состояния одной записи кэша.</text>
   </g>
-  <metadata id="provenance">{
-  "generator": "tools/docs/configuration_diagrams.py",
-  "sources": [
-    "src/shared/config/bvstk_device_profile.c",
-    "src/shared/config/bvstk_config_model.h",
-    "src/apps/freertos/config/config_store.c",
-    "src/apps/freertos/runtime/bvstk_runtime.c",
-    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
-    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
-    "src/apps/freertos/services/http/http_ui_bus.c",
-    "web/assets/js/register-map.js",
-    "web/assets/js/device-view.js",
-    "web/assets/js/indicators.js"
-  ],
-  "cross_sheet_links": [],
-  "article_notes": []
-}</metadata>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
 </svg>

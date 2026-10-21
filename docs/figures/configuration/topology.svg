@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1030" viewBox="0 0 1600 1030" role="img" aria-labelledby="title desc">
+  <title id="title">Подключение и вложенность пакетов</title>
+  <desc id="desc">Подключение и вложенность пакетов</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1030" fill="white" />
+  <g id="regions">
+    <g data-kind="group">
+      <rect x="40" y="40" width="740" height="800" rx="14" fill="white" stroke="#607487" stroke-width="1.8" />
+      <text x="62" y="78" font-size="25" font-weight="700" text-anchor="start" style="fill:#607487">Физическое подключение</text>
+    </g>
+    <g data-kind="group">
+      <rect x="840" y="40" width="720" height="800" rx="14" fill="white" stroke="#607487" stroke-width="1.8" />
+      <text x="862" y="78" font-size="25" font-weight="700" text-anchor="start" style="fill:#607487">Пакеты подсистемы</text>
+    </g>
+  </g>
+  <g id="blocks">
+    <g id="controller" data-kind="component" data-layer="PL">
+      <rect x="80" y="120" width="650" height="110" rx="10" fill="#e6dcf5" stroke="#8760ba" stroke-width="2" />
+      <text x="100" y="145" font-size="15" font-weight="700" text-anchor="start" style="fill:#8760ba">PL</text>
+      <text x="100" y="181" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Контроллер BVSTK</text>
+    </g>
+    <g id="switch" data-kind="component" data-layer="L0">
+      <rect x="190" y="350" width="420" height="150" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="210" y="375" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="210" y="411" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Коммутатор</text>
+      <text x="210" y="448" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Родитель устройства</text>
+    </g>
+    <g id="device" data-kind="component" data-layer="L0">
+      <rect x="190" y="650" width="420" height="140" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="210" y="675" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="210" y="711" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="210" y="748" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Выбранный канал</text>
+    </g>
+    <g id="parent" data-kind="directory">
+      <path d="M880 157 h24 l10 8 h27 v34 h-61 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+      <text x="960" y="188" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">&lt;parent&gt;</text>
+    </g>
+    <g id="pf" data-kind="file">
+      <path d="M1010 260 H1478 L1500 282 V360 H1010 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1478 260 V282 H1500" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="1030" y="303" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;parent&gt;.json</text>
+    </g>
+    <g id="child" data-kind="directory">
+      <path d="M1010 477 h24 l10 8 h27 v34 h-61 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+      <text x="1090" y="508" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">&lt;id&gt;</text>
+    </g>
+    <g id="cf" data-kind="file">
+      <path d="M1070 620 H1478 L1500 642 V760 H1070 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1478 620 V642 H1500" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="1090" y="663" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;id&gt;.json</text>
+      <text x="1090" y="700" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">parent, channel</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M400,230 L400,350" fill="none" stroke="#607487" stroke-width="4" />
+    <path d="M400,500 L400,650" fill="none" stroke="#607487" stroke-width="4" />
+    <path d="M910,216 L910,498 L1010,498" fill="none" stroke="#9baab6" stroke-width="2" />
+    <path d="M910,310 L1010,310" fill="none" stroke="#9baab6" stroke-width="2" />
+    <path d="M1040,536 L1040,690 L1070,690" fill="none" stroke="#9baab6" stroke-width="2" />
+  </g>
+  <g id="labels" />
+  <g id="legend">
+    <rect x="50" y="912" width="27" height="20" rx="3" fill="#e9eef3" stroke="#607487" />
+    <text x="87" y="930" font-size="17" font-weight="400" text-anchor="start" style="fill:#607487">L0</text>
+    <rect x="135" y="912" width="27" height="20" rx="3" fill="#e6dcf5" stroke="#8760ba" />
+    <text x="172" y="930" font-size="17" font-weight="400" text-anchor="start" style="fill:#8760ba">PL</text>
+    <text x="50" y="978" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Слева — соединения. Справа — каталоги и файлы; номер канала задаётся в JSON.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

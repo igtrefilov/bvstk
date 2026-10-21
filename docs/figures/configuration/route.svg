@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060" role="img" aria-labelledby="title desc">
+  <title id="title">Выбор и восстановление маршрута при обращении PS</title>
+  <desc id="desc">Выбор и восстановление маршрута при обращении PS</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="1060" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="service" data-kind="component" data-layer="L3">
+      <rect x="180" y="60" width="300" height="100" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="2" />
+      <text x="200" y="85" font-size="15" font-weight="700" text-anchor="start" style="fill:#287f73">L3</text>
+      <text x="200" y="121" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Сервис PS</text>
+    </g>
+    <g id="switch" data-kind="component" data-layer="L0">
+      <rect x="760" y="60" width="300" height="100" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="780" y="85" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="780" y="121" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Коммутатор</text>
+    </g>
+    <g id="device" data-kind="component" data-layer="L0">
+      <rect x="1230" y="60" width="320" height="100" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="1250" y="85" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="1250" y="121" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M330,220 L330,850" fill="none" stroke="#9baab6" stroke-width="2" stroke-dasharray="5 8" />
+    <path d="M910,220 L910,850" fill="none" stroke="#9baab6" stroke-width="2" stroke-dasharray="5 8" />
+    <path d="M1390,220 L1390,850" fill="none" stroke="#9baab6" stroke-width="2" stroke-dasharray="5 8" />
+    <path d="M105,220 L75,220 L75,850 L105,850" fill="none" stroke="#9baab6" stroke-width="3" />
+    <path d="M330,260 L910,260" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M910,370 L330,370" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M330,495 L910,495" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M330,625 L1390,625" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M330,770 L910,770" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels">
+    <text x="50" y="205" font-size="22" font-weight="700" text-anchor="start" style="fill:#233747">Блокировка контроллера</text>
+    <circle cx="145" cy="260" r="19" fill="white" stroke="#607487" stroke-width="2" />
+    <text x="145" y="267" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747">1</text>
+    <text x="620.0" y="240" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Прочитать управление</text>
+    <circle cx="145" cy="370" r="19" fill="white" stroke="#607487" stroke-width="2" />
+    <text x="145" y="377" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747">2</text>
+    <text x="620.0" y="350" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Прежнее значение</text>
+    <circle cx="145" cy="495" r="19" fill="white" stroke="#607487" stroke-width="2" />
+    <text x="145" y="502" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747">3</text>
+    <text x="620.0" y="475" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Выбор канала по политике</text>
+    <circle cx="145" cy="625" r="19" fill="white" stroke="#607487" stroke-width="2" />
+    <text x="145" y="632" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747">4</text>
+    <text x="860.0" y="605" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Обмен с устройством</text>
+    <circle cx="145" cy="770" r="19" fill="white" stroke="#607487" stroke-width="2" />
+    <text x="145" y="777" font-size="21" font-weight="700" text-anchor="middle" style="fill:#233747">5</text>
+    <text x="620.0" y="750" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Восстановить управление</text>
+    <text x="960" y="815" font-size="21" font-weight="400" text-anchor="start" style="fill:#233747">Также после ошибки</text>
+  </g>
+  <g id="legend">
+    <path d="M50,954 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="960" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <rect x="216" y="942" width="27" height="20" rx="3" fill="#e9eef3" stroke="#607487" />
+    <text x="253" y="960" font-size="17" font-weight="400" text-anchor="start" style="fill:#607487">L0</text>
+    <rect x="301" y="942" width="27" height="20" rx="3" fill="#d9f0ea" stroke="#287f73" />
+    <text x="338" y="960" font-size="17" font-weight="400" text-anchor="start" style="fill:#287f73">L3</text>
+    <text x="50" y="1008" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Время идёт сверху вниз. Пунктирные вертикали — участники обмена.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

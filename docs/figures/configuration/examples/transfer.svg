@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="710" viewBox="0 0 1600 710" role="img" aria-labelledby="title desc">
+  <title id="title">Однобайтовый префикс и repeated START</title>
+  <desc id="desc">Однобайтовый префикс и repeated START</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="710" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="wa" data-kind="data">
+      <rect x="50" y="105" width="360" height="120" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="148" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Адрес устройства</text>
+      <text x="70" y="185" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">0x20, запись</text>
+    </g>
+    <g id="wr" data-kind="data">
+      <rect x="570" y="105" width="340" height="120" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="590" y="148" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Адрес регистра</text>
+      <text x="590" y="185" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">0x03</text>
+    </g>
+    <g id="wv" data-kind="data">
+      <rect x="1070" y="105" width="480" height="120" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="1090" y="148" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Значение</text>
+      <text x="1090" y="185" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">0x10</text>
+    </g>
+    <g id="ra" data-kind="data">
+      <rect x="50" y="360" width="300" height="120" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="403" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="70" y="440" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">0x20, запись</text>
+    </g>
+    <g id="rr" data-kind="data">
+      <rect x="450" y="360" width="250" height="120" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="470" y="403" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Регистр</text>
+      <text x="470" y="440" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">0x01</text>
+    </g>
+    <g id="restart" data-kind="data">
+      <rect x="850" y="360" width="320" height="120" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="870" y="403" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="870" y="440" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">0x20, чтение</text>
+    </g>
+    <g id="value" data-kind="data">
+      <rect x="1270" y="360" width="280" height="120" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="1290" y="403" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Ответ</text>
+      <text x="1290" y="440" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">0x01</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M410,165 L570,165" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M910,165 L1070,165" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M350,420 L450,420" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M700,420 L850,420" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1170,420 L1270,420" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels">
+    <text x="50" y="70" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Запись reg_03 = 0x10</text>
+    <text x="50" y="320" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Чтение reg_01</text>
+    <text x="775" y="340" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">repeated START</text>
+  </g>
+  <g id="legend">
+    <path d="M50,604 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="610" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <text x="50" y="658" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Показаны поля обмена. START, STOP и подтверждения опущены, кроме repeated START.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

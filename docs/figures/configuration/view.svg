@@ -1,117 +1,76 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1920" viewBox="0 25 1920 1378" role="img" aria-labelledby="title desc" height="1378">
-  <title id="title">Создание формы и обновление снимков</title>
-  <desc id="desc">Создание формы и обновление снимков</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="790" viewBox="0 0 1600 790" role="img" aria-labelledby="title desc">
+  <title id="title">Снимок данных и обновление индивидуальной формы</title>
+  <desc id="desc">Снимок данных и обновление индивидуальной формы</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
-a { cursor: pointer; } a:hover text { text-decoration: underline; }
-g:target &gt; rect { stroke-width: 5; }
-.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
 </style>
-    <marker id="call-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
       <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
     </marker>
-    <marker id="call-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#788794" />
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
     </marker>
-    <marker id="data-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
       <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
     </marker>
-    <marker id="data-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#3f75ad" />
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
     </marker>
   </defs>
-  <rect width="1920" height="1403" fill="white" />
-  <g id="backgrounds">
-    <rect x="670" y="65" width="1190" height="1140" rx="16" fill="white" />
-    <path d="M255,265 V1160" fill="none" stroke="#9baab6" stroke-width="2" stroke-dasharray="4 7" />
-    <path d="M945,265 V1160" fill="none" stroke="#9baab6" stroke-width="2" stroke-dasharray="4 7" />
-    <path d="M1565,265 V1160" fill="none" stroke="#9baab6" stroke-width="2" stroke-dasharray="4 7" />
+  <rect width="1600" height="790" fill="white" />
+  <g id="regions">
+    <g data-kind="group">
+      <rect x="1140" y="195" width="450" height="315" rx="14" fill="white" stroke="#3f75ad" stroke-width="1.8" />
+      <text x="1162" y="233" font-size="25" font-weight="700" text-anchor="start" style="fill:#3f75ad">Изолированный iframe</text>
+    </g>
+  </g>
+  <g id="blocks">
+    <g id="cache" data-kind="data">
+      <rect x="50" y="80" width="410" height="155" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="123" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Снимок кэша</text>
+      <text x="70" y="160" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Числа и достоверность</text>
+    </g>
+    <g id="map" data-kind="file">
+      <path d="M50 420 H438 L460 442 V540 H50 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M438 420 V442 H460" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="70" y="463" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
+      <text x="70" y="500" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Описание полей</text>
+    </g>
+    <g id="decode" data-kind="component" data-layer="L4">
+      <rect x="650" y="260" width="360" height="180" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="2" />
+      <text x="670" y="285" font-size="15" font-weight="700" text-anchor="start" style="fill:#3f75ad">L4</text>
+      <text x="670" y="321" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Расшифровка</text>
+      <text x="670" y="358" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">fields, summary</text>
+    </g>
+    <g id="form" data-kind="component" data-layer="L4">
+      <rect x="1190" y="260" width="360" height="180" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="2" />
+      <text x="1210" y="285" font-size="15" font-weight="700" text-anchor="start" style="fill:#3f75ad">L4</text>
+      <text x="1210" y="321" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Форма</text>
+      <text x="1210" y="358" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">update(snapshot)</text>
+    </g>
   </g>
   <g id="interactions">
-    <g data-kind="interaction" data-from="bridge" data-to="form" data-interaction="call" data-direction="forward">
-      <path d="M945,350 L1565,350" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M945,350 L1565,350" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="ui" data-to="bridge" data-interaction="data" data-direction="forward">
-      <path d="M255,500 L945,500" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M255,500 L945,500" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="bridge" data-to="form" data-interaction="call" data-direction="forward">
-      <path d="M945,570 L1565,570" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M945,570 L1565,570" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="ui" data-to="bridge" data-interaction="data" data-direction="forward">
-      <path d="M255,855 L945,855" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M255,855 L945,855" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
-    </g>
-    <g data-kind="interaction" data-from="bridge" data-to="form" data-interaction="call" data-direction="forward">
-      <path d="M945,925 L1565,925" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M945,925 L1565,925" fill="none" stroke="#788794" stroke-width="2.7" stroke-linejoin="round" marker-start="url(#call-source)" marker-end="url(#call-arrow)" />
-    </g>
+    <path d="M460,157 L560,157 L560,315 L650,315" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M460,480 L560,480 L560,395 L650,395" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1010,350 L1190,350" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
   </g>
-  <g id="components">
-    <g id="ui" data-kind="component" data-layer="L4" data-label="Веб-интерфейс" data-ownership="common">
-      <rect x="60" y="145" width="390" height="120" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
-      <text x="80" y="169.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-      <text x="80" y="222.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Веб-интерфейс</text>
-    </g>
-    <g id="iframe" data-kind="functional-group" data-label="Изолированная область iframe" data-layer="L4" data-ownership="common">
-      <rect x="670" y="65" width="1190" height="1140" rx="16" fill="none" stroke="#3f75ad" stroke-width="2" />
-      <text x="696" y="102.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#3f75ad">Изолированная область iframe</text>
-      <g id="bridge" data-kind="component" data-layer="L4" data-label="Среда формы" data-ownership="common" data-parent="iframe">
-        <rect x="730" y="145" width="430" height="120" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
-        <text x="750" y="169.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-        <text x="750" y="222.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">Среда формы</text>
-      </g>
-      <g id="form" data-kind="component" data-layer="L4" data-label="view.js" data-ownership="common" data-parent="iframe">
-        <rect x="1350" y="145" width="430" height="120" rx="11" fill="#d9ebff" stroke="#3f75ad" stroke-width="1.8" />
-        <text x="1370" y="169.0" font-size="14" font-weight="700" text-anchor="start" style="fill:#3f75ad" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-        <text x="1370" y="222.0" font-size="24" font-weight="700" text-anchor="start" style="fill:#233747">view.js</text>
-      </g>
-      <g id="unknown" data-kind="data" data-parent="iframe">
-        <rect x="1380" y="620" width="370" height="115" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-        <text x="1402" y="663.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">ready</text>
-        <text x="1402" y="702" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Нет данных</text>
-      </g>
-      <g id="known" data-kind="data" data-parent="iframe">
-        <rect x="1380" y="975" width="370" height="115" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-        <text x="1402" y="1018.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">ready</text>
-        <text x="1402" y="1057" font-size="23" font-weight="400" text-anchor="start" style="fill:#233747">Готово</text>
-      </g>
-    </g>
+  <g id="labels">
+    <text x="1070" y="330" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Снимок</text>
   </g>
-  <g id="annotations">
-    <text x="1255" y="326.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">mount(root)</text>
-    <text x="1585" y="395.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#233747">Один раз</text>
-    <text x="560" y="478.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Снимок</text>
-    <text x="1255" y="545.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">update(snapshot)</text>
-    <text x="560" y="833.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Снимок</text>
-    <text x="1255" y="900.0" font-size="18" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">update(snapshot)</text>
-    <path d="M60,1257 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
-    <text x="142" y="1263.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>
-    <path d="M245,1257 h65" fill="none" stroke="#3f75ad" stroke-width="3" marker-end="url(#data-arrow)" />
-    <text x="327" y="1263.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Данные</text>
-    <rect x="60" y="1294" width="32" height="24" rx="4" fill="#d9ebff" stroke="#3f75ad" />
-    <text x="104" y="1313.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b" xml:space="preserve"><tspan style="fill:#3f75ad">L4</tspan></text>
-    <text x="60" y="1360.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Время идёт сверху вниз. Снимки передаются через postMessage; вызовы формы выполняются внутри iframe.</text>
+  <g id="legend">
+    <path d="M50,684 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="690" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <rect x="216" y="672" width="27" height="20" rx="3" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="253" y="690" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">L4</text>
   </g>
-  <metadata id="provenance">{
-  "generator": "tools/docs/configuration_diagrams.py",
-  "sources": [
-    "src/shared/config/bvstk_device_profile.c",
-    "src/shared/config/bvstk_config_model.h",
-    "src/apps/freertos/config/config_store.c",
-    "src/apps/freertos/runtime/bvstk_runtime.c",
-    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
-    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
-    "src/apps/freertos/services/http/http_ui_bus.c",
-    "web/assets/js/register-map.js",
-    "web/assets/js/device-view.js",
-    "web/assets/js/indicators.js"
-  ],
-  "cross_sheet_links": [],
-  "article_notes": []
-}</metadata>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
 </svg>

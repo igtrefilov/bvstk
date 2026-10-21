@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="770" viewBox="0 0 1600 770" role="img" aria-labelledby="title desc">
+  <title id="title">Запрос записи и его результат</title>
+  <desc id="desc">Запрос записи и его результат</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="770" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="request" data-kind="data">
+      <rect x="50" y="100" width="300" height="180" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="143" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Запрос</text>
+      <text x="70" y="180" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="70" y="212" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Ресурс и значение</text>
+    </g>
+    <g id="service" data-kind="component" data-layer="L3">
+      <rect x="470" y="75" width="470" height="230" rx="10" fill="#d9f0ea" stroke="#287f73" stroke-width="2" />
+      <text x="490" y="100" font-size="15" font-weight="700" text-anchor="start" style="fill:#287f73">L3</text>
+      <text x="490" y="136" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Проверка сервиса</text>
+      <text x="490" y="173" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Регистр и значение</text>
+      <text x="490" y="205" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Доступ ресурса</text>
+      <text x="490" y="237" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Политика</text>
+    </g>
+    <g id="device" data-kind="component" data-layer="L0">
+      <rect x="1120" y="100" width="430" height="180" rx="10" fill="#e9eef3" stroke="#607487" stroke-width="2" />
+      <text x="1140" y="125" font-size="15" font-weight="700" text-anchor="start" style="fill:#607487">L0</text>
+      <text x="1140" y="161" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Устройство</text>
+      <text x="1140" y="198" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Физическая запись</text>
+    </g>
+    <g id="deny" data-kind="data">
+      <rect x="470" y="450" width="470" height="135" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="490" y="493" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Отказ</text>
+      <text x="490" y="530" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Запись не передана устройству</text>
+    </g>
+    <g id="cache" data-kind="data">
+      <rect x="1120" y="450" width="430" height="135" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="1140" y="493" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Кэш</text>
+      <text x="1140" y="530" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Новое значение</text>
+      <text x="1140" y="562" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">или сброс достоверности</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M350,190 L470,190" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M940,190 L1120,190" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M705,305 L705,450" fill="none" stroke="#788794" stroke-width="2.8" marker-end="url(#call)" stroke-linejoin="round" data-kind="call" />
+    <path d="M1335,280 L1335,450" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels">
+    <text x="1030.0" y="172.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Допуск</text>
+    <text x="810" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#788794" class="edge-label">Запрет</text>
+    <text x="1450" y="390" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Результат</text>
+  </g>
+  <g id="legend">
+    <path d="M50,664 h48" fill="none" stroke="#788794" stroke-width="2.8" marker-end="url(#call)" />
+    <text x="112" y="670" font-size="17" font-weight="400" text-anchor="start" style="fill:#788794">Вызов</text>
+    <path d="M205,664 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="267" y="670" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <rect x="371" y="652" width="27" height="20" rx="3" fill="#e9eef3" stroke="#607487" />
+    <text x="408" y="670" font-size="17" font-weight="400" text-anchor="start" style="fill:#607487">L0</text>
+    <rect x="456" y="652" width="27" height="20" rx="3" fill="#d9f0ea" stroke="#287f73" />
+    <text x="493" y="670" font-size="17" font-weight="400" text-anchor="start" style="fill:#287f73">L3</text>
+    <text x="50" y="718" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Аппаратный обмен показан без детализации драйвера и ядра PL.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

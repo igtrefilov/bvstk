@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="860" viewBox="0 0 1600 860" role="img" aria-labelledby="title desc">
+  <title id="title">Разбор двух битов состояния</title>
+  <desc id="desc">Разбор двух битов состояния</desc>
+  <defs>
+    <style>
+text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
+</style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+  </defs>
+  <rect width="1600" height="860" fill="white" />
+  <g id="regions" />
+  <g id="blocks">
+    <g id="value" data-kind="data">
+      <rect x="50" y="65" width="410" height="150" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="70" y="108" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Регистр 0x01</text>
+      <text x="70" y="145" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Прочитан байт 0x05</text>
+    </g>
+    <g id="ready" data-kind="data">
+      <rect x="650" y="65" width="380" height="150" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="670" y="108" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Бит 0: ready</text>
+      <text x="670" y="145" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">1 — готово</text>
+    </g>
+    <g id="fault" data-kind="data">
+      <rect x="650" y="385" width="380" height="150" rx="10" fill="white" stroke="#9baab6" stroke-width="2" />
+      <text x="670" y="428" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Бит 2: fault</text>
+      <text x="670" y="465" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">1 — неисправность</text>
+    </g>
+    <g id="result" data-kind="component" data-layer="L4">
+      <rect x="1210" y="375" width="340" height="170" rx="10" fill="#d9ebff" stroke="#3f75ad" stroke-width="2" />
+      <text x="1230" y="400" font-size="15" font-weight="700" text-anchor="start" style="fill:#3f75ad">L4</text>
+      <text x="1230" y="436" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">Сводка</text>
+      <text x="1230" y="473" font-size="22" font-weight="400" text-anchor="start" style="fill:#233747">Неисправность</text>
+    </g>
+  </g>
+  <g id="interactions">
+    <path d="M460,140 L650,140" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M255,215 L255,460 L650,460" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1030,460 L1210,460" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+    <path d="M1030,140 L1380,140 L1380,375" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" stroke-linejoin="round" data-kind="data" />
+  </g>
+  <g id="labels">
+    <text x="1120.0" y="442.0" font-size="22" font-weight="400" text-anchor="middle" style="fill:#3f75ad" class="edge-label">Приоритет</text>
+  </g>
+  <g id="legend">
+    <path d="M50,754 h48" fill="none" stroke="#3f75ad" stroke-width="2.8" marker-end="url(#data)" />
+    <text x="112" y="760" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">Данные</text>
+    <rect x="216" y="742" width="27" height="20" rx="3" fill="#d9ebff" stroke="#3f75ad" />
+    <text x="253" y="760" font-size="17" font-weight="400" text-anchor="start" style="fill:#3f75ad">L4</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
+</svg>

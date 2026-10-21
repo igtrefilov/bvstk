@@ -1,140 +1,106 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1920" viewBox="0 20 1920 1235" role="img" aria-labelledby="title desc" height="1235">
-  <title id="title">Каталоги и файлы описания устройств</title>
-  <desc id="desc">Каталоги и файлы описания устройств</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1450" height="1190" viewBox="0 0 1450 1190" role="img" aria-labelledby="title desc">
+  <title id="title">Размещение файлов внутри пакетов</title>
+  <desc id="desc">Размещение файлов внутри пакетов</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
-a { cursor: pointer; } a:hover text { text-decoration: underline; }
-g:target &gt; rect { stroke-width: 5; }
-.edge-label { paint-order: stroke; stroke: white; stroke-width: 8; stroke-linejoin: round; }
+.edge-label { paint-order: stroke; stroke: white; stroke-width: 7px; stroke-linejoin: round; }
 </style>
+    <marker id="call" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="mmio" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b56b1d" />
+    </marker>
+    <marker id="data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3f75ad" />
+    </marker>
+    <marker id="irq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c65b4e" />
+    </marker>
+    <marker id="clock" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
+    <marker id="ref" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
+    </marker>
   </defs>
-  <rect width="1920" height="1255" fill="white" />
-  <g id="backgrounds" />
-  <g id="interactions">
-    <path d="M300,550 L355,550" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M355,360 L355,950" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M355,360 L420,360" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M355,950 L420,950" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M810,360 L870,360" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M870,232.5 L870,680" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M870,232.5 L930,232.5" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M870,460 L930,460" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M870,680 L930,680" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M810,950 L930,950" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1240,232.5 L1300,232.5" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,102.5 L1300,362.5" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,102.5 L1390,102.5" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,232.5 L1390,232.5" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,362.5 L1390,362.5" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1240,460 L1300,460" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,460 L1300,460" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,460 L1390,460" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1240,680 L1300,680" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,615 L1300,745" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,615 L1390,615" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,745 L1390,745" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1240,950 L1300,950" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,885 L1300,1015" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,885 L1390,885" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
-    <path d="M1300,1015 L1390,1015" fill="none" stroke="#9baab6" stroke-width="2.5" stroke-linejoin="round" data-kind="directory-membership" />
+  <rect width="1450" height="1190" fill="white" />
+  <g id="regions">
+    <g data-kind="group">
+      <rect x="910" y="60" width="500" height="395" rx="14" fill="white" stroke="#607487" stroke-width="1.8" />
+      <text x="932" y="98" font-size="25" font-weight="700" text-anchor="start" style="fill:#607487">Пакет прямого устройства</text>
+    </g>
+    <g data-kind="group">
+      <rect x="910" y="720" width="500" height="290" rx="14" fill="white" stroke="#607487" stroke-width="1.8" />
+      <text x="932" y="758" font-size="25" font-weight="700" text-anchor="start" style="fill:#607487">Пакет дочернего устройства</text>
+    </g>
   </g>
-  <g id="components">
+  <g id="blocks">
     <g id="root" data-kind="directory">
-      <rect x="60" y="500" width="240" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-      <path d="M78,530.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
-      <text x="152" y="559.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">config</text>
+      <path d="M50 57 h24 l10 8 h27 v34 h-61 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+      <text x="130" y="88" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">config</text>
     </g>
-    <g id="subsystem_a" data-kind="directory">
-      <rect x="420" y="310" width="390" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-      <path d="M438,340.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
-      <text x="512" y="369.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;подсистема_a&gt;</text>
+    <g id="bus" data-kind="directory">
+      <path d="M170 172 h24 l10 8 h27 v34 h-61 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+      <text x="250" y="203" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">&lt;подсистема&gt;</text>
     </g>
-    <g id="subsystem_b" data-kind="directory">
-      <rect x="420" y="900" width="390" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-      <path d="M438,930.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
-      <text x="512" y="959.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;подсистема_b&gt;</text>
+    <g id="direct" data-kind="directory">
+      <path d="M340 287 h24 l10 8 h27 v34 h-61 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+      <text x="420" y="318" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">&lt;id&gt;</text>
     </g>
-    <g id="dir_a" data-kind="directory">
-      <rect x="930" y="182.5" width="310" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-      <path d="M948,212.5 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
-      <text x="1022" y="241.5" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">device_a</text>
+    <g id="df" data-kind="file">
+      <path d="M950 130 H1278 L1300 152 V220 H950 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1278 130 V152 H1300" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="970" y="173" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;id&gt;.json</text>
     </g>
-    <g id="dir_b" data-kind="directory">
-      <rect x="930" y="410" width="310" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-      <path d="M948,440.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
-      <text x="1022" y="469.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">device_b</text>
+    <g id="dm" data-kind="file">
+      <path d="M950 235 H1278 L1300 257 V325 H950 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1278 235 V257 H1300" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="970" y="278" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
     </g>
-    <g id="dir_c" data-kind="directory">
-      <rect x="930" y="630" width="310" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-      <path d="M948,660.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
-      <text x="1022" y="689.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">device_c</text>
+    <g id="dv" data-kind="file">
+      <path d="M950 340 H1278 L1300 362 V430 H950 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1278 340 V362 H1300" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="970" y="383" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">view.js</text>
     </g>
-    <g id="dir_d" data-kind="directory">
-      <rect x="930" y="900" width="310" height="100" rx="8" fill="white" stroke="#9baab6" stroke-width="1.8" />
-      <path d="M948,930.0 h22 l8,7 h26 v34 h-56 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
-      <text x="1022" y="959.0" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">device_d</text>
+    <g id="sw" data-kind="directory">
+      <path d="M340 562 h24 l10 8 h27 v34 h-61 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+      <text x="420" y="593" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">&lt;parent&gt;</text>
     </g>
-    <g id="a_profile" data-kind="artifact">
-      <path d="M1390,60 H1834 L1860,86 V145 H1390 Z" fill="white" stroke="#607487" stroke-width="2" />
-      <path d="M1834,60 V86 H1860" fill="none" stroke="#607487" stroke-width="2" />
-      <text x="1412" y="103.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_a.json</text>
+    <g id="sf" data-kind="file">
+      <path d="M950 520 H1278 L1300 542 V610 H950 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1278 520 V542 H1300" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="970" y="563" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;parent&gt;.json</text>
     </g>
-    <g id="a_map" data-kind="artifact">
-      <path d="M1390,190 H1834 L1860,216 V275 H1390 Z" fill="white" stroke="#607487" stroke-width="2" />
-      <path d="M1834,190 V216 H1860" fill="none" stroke="#607487" stroke-width="2" />
-      <text x="1412" y="233.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
+    <g id="child" data-kind="directory">
+      <path d="M510 867 h24 l10 8 h27 v34 h-61 Z" fill="#f7f9fb" stroke="#607487" stroke-width="2" />
+      <text x="590" y="898" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">&lt;child&gt;</text>
     </g>
-    <g id="a_view" data-kind="artifact">
-      <path d="M1390,320 H1834 L1860,346 V405 H1390 Z" fill="white" stroke="#607487" stroke-width="2" />
-      <path d="M1834,320 V346 H1860" fill="none" stroke="#607487" stroke-width="2" />
-      <text x="1412" y="363.0" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">view.js</text>
+    <g id="cf" data-kind="file">
+      <path d="M950 795 H1278 L1300 817 V885 H950 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1278 795 V817 H1300" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="970" y="838" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">&lt;child&gt;.json</text>
     </g>
-    <g id="b_profile" data-kind="artifact">
-      <path d="M1390,417.5 H1834 L1860,443.5 V502.5 H1390 Z" fill="white" stroke="#607487" stroke-width="2" />
-      <path d="M1834,417.5 V443.5 H1860" fill="none" stroke="#607487" stroke-width="2" />
-      <text x="1412" y="460.5" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_b.json</text>
-    </g>
-    <g id="c_profile" data-kind="artifact">
-      <path d="M1390,572.5 H1834 L1860,598.5 V657.5 H1390 Z" fill="white" stroke="#607487" stroke-width="2" />
-      <path d="M1834,572.5 V598.5 H1860" fill="none" stroke="#607487" stroke-width="2" />
-      <text x="1412" y="615.5" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_c.json</text>
-    </g>
-    <g id="c_map" data-kind="artifact">
-      <path d="M1390,702.5 H1834 L1860,728.5 V787.5 H1390 Z" fill="white" stroke="#607487" stroke-width="2" />
-      <path d="M1834,702.5 V728.5 H1860" fill="none" stroke="#607487" stroke-width="2" />
-      <text x="1412" y="745.5" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
-    </g>
-    <g id="d_profile" data-kind="artifact">
-      <path d="M1390,842.5 H1834 L1860,868.5 V927.5 H1390 Z" fill="white" stroke="#607487" stroke-width="2" />
-      <path d="M1834,842.5 V868.5 H1860" fill="none" stroke="#607487" stroke-width="2" />
-      <text x="1412" y="885.5" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">device_d.json</text>
-    </g>
-    <g id="d_map" data-kind="artifact">
-      <path d="M1390,972.5 H1834 L1860,998.5 V1057.5 H1390 Z" fill="white" stroke="#607487" stroke-width="2" />
-      <path d="M1834,972.5 V998.5 H1860" fill="none" stroke="#607487" stroke-width="2" />
-      <text x="1412" y="1015.5" font-size="25" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
+    <g id="cm" data-kind="file">
+      <path d="M950 900 H1278 L1300 922 V990 H950 Z" fill="white" stroke="#607487" stroke-width="2" />
+      <path d="M1278 900 V922 H1300" fill="none" stroke="#607487" stroke-width="2" />
+      <text x="970" y="943" font-size="26" font-weight="700" text-anchor="start" style="fill:#233747">register_map.json</text>
     </g>
   </g>
-  <g id="annotations">
-    <text x="60" y="1212.5" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Значок папки — каталог, лист — файл. Линии показывают вложенность. Карта и форма необязательны.</text>
+  <g id="interactions">
+    <path d="M80,116 L80,193 L170,193" fill="none" stroke="#9baab6" stroke-width="2" />
+    <path d="M200,231 L200,583 L340,583" fill="none" stroke="#9baab6" stroke-width="2" />
+    <path d="M200,308 L340,308" fill="none" stroke="#9baab6" stroke-width="2" />
+    <path d="M510,308 L910,308" fill="none" stroke="#9baab6" stroke-width="2" />
+    <path d="M580,583 L950,583" fill="none" stroke="#9baab6" stroke-width="2" />
+    <path d="M370,621 L370,888 L510,888" fill="none" stroke="#9baab6" stroke-width="2" />
+    <path d="M725,888 L910,888" fill="none" stroke="#9baab6" stroke-width="2" />
   </g>
-  <metadata id="provenance">{
-  "generator": "tools/docs/configuration_diagrams.py",
-  "sources": [
-    "src/shared/config/bvstk_device_profile.c",
-    "src/shared/config/bvstk_config_model.h",
-    "src/apps/freertos/config/config_store.c",
-    "src/apps/freertos/runtime/bvstk_runtime.c",
-    "src/apps/neutrino/config/bvstk_i2c_config_store.c",
-    "src/apps/neutrino/runtime/bvstk_i2c_runtime.c",
-    "src/apps/freertos/services/http/http_ui_bus.c",
-    "web/assets/js/register-map.js",
-    "web/assets/js/device-view.js",
-    "web/assets/js/indicators.js"
-  ],
-  "cross_sheet_links": [],
-  "article_notes": []
-}</metadata>
+  <g id="labels" />
+  <g id="legend">
+    <text x="50" y="1138" font-size="18" font-weight="400" text-anchor="start" style="fill:#607487">Папки — каталоги. Листы — отдельные файлы. Карта и форма необязательны.</text>
+  </g>
+  <metadata>{"generator": "tools/docs/configuration_diagrams.py", "sources": ["src/shared/config/bvstk_device_profile.c", "src/shared/config/bvstk_config_model.h", "src/services/i2c/bvstk_i2c_master_service.c", "src/services/i2c/bvstk_i2c_slave_service.c", "src/apps/freertos/config/config_store.c", "src/apps/neutrino/config/bvstk_i2c_config_store.c", "web/assets/js/register-map.js", "web/assets/js/device-view.js"]}</metadata>
 </svg>
