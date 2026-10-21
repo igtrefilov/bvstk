@@ -15,7 +15,7 @@ const put = (reg, val) => {
   const i = cache.findIndex(e => e.reg === reg);
   if (i < 0) cache.push(next); else cache[i] = next;
 };
-let writes = 0;
+let writes = 0, clockMs = 1500, presence = null, cacheFail = false;
 const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, "http://localhost"), q = Object.fromEntries(u.searchParams);
@@ -23,7 +23,10 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== "GET") {writes++; throw new Error("Unexpected bus/file write");}
     if (u.pathname === "/api/ui/bus") {
       if (!q.name) return json({ready:true, devices:[{name:"sfp", presence:"unknown", address_spaces:spaces}]});
-      if (q.action === "cache") return json({cache});
+      if (q.action === "cache") {
+        if (cacheFail) {res.writeHead(503);return res.end("temporarily unavailable");}
+        return json({cache, uptime_ms:clockMs, presence:presence || (cache.length ? "responding" : "unknown")});
+      }
       assert.equal(q.name, "sfp"); assert(!q.action);
       return json({config:{name:"sfp", reg_count:256, addr_7b:80, max_value_code:255,
         policy:"whitelist", whitelist:[], blacklist:[], settings:[]},
@@ -57,7 +60,7 @@ const server = http.createServer(async (req, res) => {
 });
 await new Promise(r => server.listen(0, "127.0.0.1", r));
 const browser = await chromium.launch({headless:true,
-  executablePath:process.env.BVSTK_CHROME || "/usr/bin/google-chrome", args:["--no-sandbox"]});
+  executablePath:process.env.BVSTK_CHROME || "/usr/bin/google-chrome", args:["--no-sandbox","--window-size=1600,1200"]});
 try {
   const page = await browser.newPage({viewport:{width:1400, height:1000}}), errors = [];
   page.on("pageerror", e => errors.push(e.message));
@@ -74,10 +77,38 @@ try {
   for (let i = 0; i < 16; i++) put(20 + i, "<b>TEST</b>".padEnd(16).charCodeAt(i));
   await frame.locator('[data-metric="vendor"] .value').filter({hasText:"<b>TEST</b>"}).waitFor();
   assert.equal(await frame.locator('[data-metric="vendor"] b').count(), 0);
+  await page.waitForTimeout(200); // let the sandbox publish its final layout height
+  await page.locator("article.card > details > summary").focus();
+  await page.locator("article.card > details > summary").press("Enter");
   assert.equal(await page.locator('[data-decoded-register="a0_00"] [data-raw]').innerText(), "0x03");
   assert.equal(await page.locator('[data-decoded-register="a2_60"] [data-raw]').innerText(), "0x1A");
+  await frame.locator('[data-metric="temperature"]').click();
+  await frame.locator("#metric-inspector").waitFor();
+  assert.match(await frame.locator("#metric-inspector").innerText(), /diagnostics:0x60–0x61/);
+  await page.waitForTimeout(1800);
+  assert.equal(await frame.locator('[data-metric="temperature"]').getAttribute("aria-expanded"), "true");
+  await frame.locator("#metric-inspector .close").click();
+  // A new sample may have exactly the same value: the timestamp still advances.
+  for (const reg of [224,225,238]) cache.find(e => e.reg === reg).updated_ms = 2000;
+  clockMs = 2500;
+  await frame.locator('[data-metric="temperature"] .time').filter({hasText:"00:00:02.000"}).waitFor();
+  const history = frame.locator("summary").filter({hasText:"История измерений"});
+  await history.focus(); await history.press("Enter");
+  const sfpFrame = page.frames().find(f => f !== page.mainFrame());
+  await sfpFrame.waitForFunction(() => document.querySelector('path')?.getAttribute('d')?.includes('L'));
+  clockMs = 8000;
+  await frame.locator('[data-metric="temperature"] .level').filter({hasText:"устарели"}).waitFor();
+  assert.match(await frame.locator('[data-metric="temperature"] .value').getAttribute("class"), /unknown/);
+  cacheFail = true;
+  await frame.locator(".notice").filter({hasText:"Связь с bvstk потеряна"}).waitFor();
+  cacheFail = false; presence = "unavailable"; cache.forEach(e => e.valid = false);
+  await frame.locator('[data-metric="presence"] .value').filter({hasText:"Не готов"}).waitFor();
+  await frame.locator('[data-metric="temperature"] .value').filter({hasText:"Нет данных"}).waitFor();
+  await page.setViewportSize({width:420,height:900});
+  const iframe = page.frames().find(f => f !== page.mainFrame());
+  assert(await iframe.evaluate(() => document.body.scrollWidth <= document.documentElement.clientWidth), "mobile form must not overflow horizontally");
   assert.deepEqual(errors, []); assert.equal(writes, 0);
-  console.log("SFP UI: nested assets, empty cache, live DDM, two windows, safe text, no bus writes passed");
+  console.log("SFP UI: live DDM, stable controls, history, stale/offline/missing data, mobile, safe text and no bus writes passed");
 } finally {
   await browser.close(); await new Promise(r => server.close(r));
 }

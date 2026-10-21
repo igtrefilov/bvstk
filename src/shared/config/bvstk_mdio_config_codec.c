@@ -39,7 +39,13 @@ bvstk_status_t bvstk_mdio_config_validate(const mdio_phy_config_t *c)
         for (j = 0; j < i; ++j)
             if (c->settings[j].reg == c->settings[i].reg) return BVSTK_ERR_MALFORMED;
     }
-    return bvstk_device_profile_metadata_validate(&c->profile, c->reg_count);
+    bvstk_status_t meta_status = bvstk_device_profile_metadata_validate(&c->profile, c->reg_count);
+    if (meta_status != BVSTK_OK) return meta_status;
+    if (c->profile.acquisition.enabled && (c->autopoll_enabled || c->reg_count < 4U))
+        return BVSTK_ERR_UNSUPPORTED;
+    for (unsigned g = 0; g < c->profile.acquisition.group_count; ++g)
+        if (c->profile.acquisition.groups[g].chunk_size != 1U) return BVSTK_ERR_UNSUPPORTED;
+    return BVSTK_OK;
 }
 int bvstk_mdio_policy_allows(const mdio_phy_config_t *c, uint8_t reg, uint16_t value)
 {

@@ -7,6 +7,13 @@ TEST_TMP="$(mktemp -d)"
 trap 'rm -rf "$TEST_TMP"' EXIT
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_image.py"
+cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_acquisition.c" \
+  "$REPO_ROOT/src/services/acquisition/bvstk_acquisition.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" -o "$TEST_TMP/test_acquisition"
+"$TEST_TMP/test_acquisition" "$REPO_ROOT/configs/i2c/pca9545a/sfp/sfp.json"
 cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -I"$SCRIPT_DIR/qspi_stubs" -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_qspi_flash.c" \

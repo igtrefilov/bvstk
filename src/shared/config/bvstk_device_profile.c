@@ -458,11 +458,44 @@ static const char *resource_id(const bvstk_profile_metadata_t *p, unsigned reg, 
     (void)snprintf(fallback, 16, "reg_%02x", reg);
     return fallback;
 }
+static int acquisition_valid(const bvstk_acquisition_plan_t *p, size_t count)
+{
+    if (p->enabled > 1U || p->group_count > BVSTK_ACQUISITION_GROUPS_MAX ||
+        (p->enabled && !p->group_count)) return 0;
+    if (!p->group_count) return 1;
+    if (!p->read_delay_ms || p->read_delay_ms > 60000U ||
+        p->retry_delay_ms < 100U || p->retry_delay_ms > 60000U) return 0;
+    for (unsigned i = 0; i < p->group_count; ++i) {
+        const bvstk_acquisition_group_t *g = &p->groups[i];
+        if (!memchr(g->id, 0, sizeof(g->id)) || !id_valid(g->id) ||
+            g->interval_ms > 3600000U || (g->interval_ms && g->interval_ms < 100U) ||
+            !g->chunk_size || g->chunk_size > BVSTK_ACQUISITION_CHUNK_MAX ||
+            !g->range_count || g->range_count > BVSTK_ACQUISITION_RANGES_MAX ||
+            g->condition_count > BVSTK_ACQUISITION_CONDITIONS_MAX) return 0;
+        for (unsigned j = 0; j < i; ++j) if (!strcmp(g->id, p->groups[j].id)) return 0;
+        for (unsigned r = 0; r < g->range_count; ++r) {
+            const bvstk_acquisition_range_t *range = &g->ranges[r];
+            if (!range->count || range->first >= count || range->count > count - range->first) return 0;
+            /* Each resource has exactly one refresh owner in a plan. */
+            for (unsigned j = 0; j <= i; ++j)
+                for (unsigned k = 0; k < (j == i ? r : p->groups[j].range_count); ++k) {
+                    const bvstk_acquisition_range_t *other = &p->groups[j].ranges[k];
+                    if (range->first < other->first + other->count &&
+                        other->first < range->first + range->count) return 0;
+                }
+        }
+        for (unsigned c = 0; c < g->condition_count; ++c)
+            if (g->conditions[c].resource >= count || !g->conditions[c].mask ||
+                (g->conditions[c].value & ~g->conditions[c].mask)) return 0;
+    }
+    return 1;
+}
 bvstk_status_t bvstk_device_profile_metadata_validate(const bvstk_profile_metadata_t *p, size_t count)
 {
     size_t i, j;
     if (!p || count > I2C_CFG_MAX_REG_COUNT || !register_map_valid(p->register_map) ||
-        !asset_name_valid(p->view, ".js") || (p->view[0] && !p->register_map[0])) return BVSTK_ERR_MALFORMED;
+        !asset_name_valid(p->view, ".js") || (p->view[0] && !p->register_map[0]) ||
+        !acquisition_valid(&p->acquisition, count)) return BVSTK_ERR_MALFORMED;
     if (!p->version) return BVSTK_OK;
     if (p->version != 2U || !count || p->ids_size > sizeof(p->ids) || !p->ids_size || p->ids[0] ||
         !memchr(p->vendor, 0, sizeof(p->vendor)) || !memchr(p->model, 0, sizeof(p->model)) ||
@@ -485,6 +518,61 @@ static int lookup(view_t id, const bvstk_profile_metadata_t *p, unsigned count, 
     if (!text(id, name, sizeof(name))) return 0;
     for (i = 0; i < count; ++i) if (!strcmp(name, p->ids + p->id_offset[i])) { *reg = i; return 1; }
     return 0;
+}
+static int acquisition_options(view_t v, bvstk_profile_metadata_t *meta,
+    unsigned count, unsigned maximum, const bvstk_i2c_endpoint_t *endpoint)
+{
+    static const char *const keys[] = {"enabled", "read_delay_ms", "retry_delay_ms", "groups"};
+    static const char *const group_keys[] = {"id", "interval_ms", "chunk_size", "ranges", "when"};
+    static const char *const range_keys[] = {"first", "count"};
+    static const char *const condition_keys[] = {"resource", "mask", "equals"};
+    view_t f[4], part[5], entry, range, condition, fields_[3];
+    const char *cursor = NULL, *rcursor, *ccursor;
+    uint32_t n; unsigned reg; int flag, next, more;
+    bvstk_acquisition_plan_t *p = &meta->acquisition;
+    if (!v.p) return 1;
+    if (!fields(v, keys, 4, f) || !boolean(f[0], &flag)) return 0;
+    p->enabled = (uint8_t)flag;
+    p->read_delay_ms = 10; p->retry_delay_ms = 1000;
+    if (f[1].p) { if (!number(f[1], 60000, &n) || !n) return 0; p->read_delay_ms = (uint16_t)n; }
+    if (f[2].p) { if (!number(f[2], 60000, &n) || n < 100) return 0; p->retry_delay_ms = (uint16_t)n; }
+    while ((next = item(f[3], &cursor, &entry)) == 1) {
+        if (p->group_count == BVSTK_ACQUISITION_GROUPS_MAX || !fields(entry, group_keys, 5, part)) return 0;
+        bvstk_acquisition_group_t *g = &p->groups[p->group_count++];
+        if (!text(part[0], g->id, sizeof(g->id)) || !id_valid(g->id) ||
+            !number(part[1], 3600000, &g->interval_ms)) return 0;
+        g->chunk_size = 1;
+        if (part[2].p) {
+            if (!number(part[2], BVSTK_ACQUISITION_CHUNK_MAX, &n) || !n) return 0;
+            g->chunk_size = (uint8_t)n;
+        }
+        if (g->chunk_size > 1 && (!endpoint || !endpoint->transfer.configured ||
+            endpoint->transfer.read_sequence.mode != BVSTK_I2C_SEQUENCE_LINEAR)) return 0;
+        rcursor = NULL;
+        while ((more = item(part[3], &rcursor, &range)) == 1) {
+            if (g->range_count == BVSTK_ACQUISITION_RANGES_MAX || !fields(range, range_keys, 2, fields_) ||
+                !lookup(fields_[0], meta, count, &reg) || !number(fields_[1], count, &n) ||
+                !n || n > count - reg) return 0;
+            if (endpoint && endpoint->space_count &&
+                bvstk_i2c_register_space(endpoint, reg) != bvstk_i2c_register_space(endpoint, reg + n - 1U)) return 0;
+            g->ranges[g->range_count++] = (bvstk_acquisition_range_t){(uint16_t)reg, (uint16_t)n};
+        }
+        if (more < 0) return 0;
+        ccursor = NULL;
+        while ((more = item(part[4], &ccursor, &condition)) == 1) {
+            if (g->condition_count == BVSTK_ACQUISITION_CONDITIONS_MAX ||
+                !fields(condition, condition_keys, 3, fields_) ||
+                !lookup(fields_[0], meta, count, &reg)) return 0;
+            bvstk_acquisition_condition_t *c = &g->conditions[g->condition_count++];
+            c->resource = (uint16_t)reg;
+            if (!hex(fields_[1], maximum, &n)) return 0;
+            c->mask = (uint16_t)n;
+            if (!hex(fields_[2], maximum, &n)) return 0;
+            c->value = (uint16_t)n;
+        }
+        if (more < 0) return 0;
+    }
+    return next == 0 && acquisition_valid(p, count);
 }
 static int driver_mode(view_t v)
 {
@@ -618,7 +706,7 @@ static int address_spaces(view_t array, bvstk_i2c_endpoint_t *out)
 
 static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c, mdio_phy_config_t *m)
 {
-    static const char *const root_keys[] = {"schema_version", "id", "device", "transport", "protocol", "resources", "defaults", "policy", "settings", "observability", "register_map", "view"};
+    static const char *const root_keys[] = {"schema_version", "id", "device", "transport", "protocol", "resources", "defaults", "policy", "settings", "observability", "register_map", "view", "acquisition"};
     static const char *const device_keys[] = {"model", "vendor", "class", "label"};
     static const char *const transport_keys[] = {"bus", "controller", "address", "address_bits", "parent", "channel", "address_spaces"};
     static const char *const protocol_keys[] = {"driver", "options", "transfer", "switch"};
@@ -634,7 +722,7 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     static const char *const observe_keys[] = {"telemetry", "events"};
     bvstk_profile_metadata_t *meta = mdio ? &m->profile : &i2c->profile;
     char *name = mdio ? m->name : i2c->name;
-    view_t root, r[12], f[14], defaults[14] = {{0}}, options[8] = {{0}}, policies[2];
+    view_t root, r[13], f[14], defaults[14] = {{0}}, options[8] = {{0}}, policies[2];
     view_t entry, part[3], list[2], rule[2], match[2];
     view_t router = {0};
     const char *cursor;
@@ -644,7 +732,7 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     int next, flag, mode;
     char presence_resource[32] = {0};
     size_t k, which, nr;
-    if (!document(json, &root) || !fields(root, root_keys, 12, r) ||
+    if (!document(json, &root) || !fields(root, root_keys, 13, r) ||
         !number(r[0], 2, &n) || n != 2U || !text(r[1], name, 32) || !id_valid(name)) return BVSTK_ERR_MALFORMED;
     if (r[10].p && (!text(r[10], meta->register_map, sizeof(meta->register_map)) ||
         !meta->register_map[0] || !register_map_valid(meta->register_map))) return BVSTK_ERR_MALFORMED;
@@ -751,6 +839,9 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     }
     for (k = 0; k < count; ++k) if (!seen[k]) return BVSTK_ERR_UNSUPPORTED;
     if (mdio) m->reg_count = (uint8_t)count; else i2c->reg_count = (uint16_t)count;
+    if (!acquisition_options(r[12], meta, count, maximum, mdio ? NULL : &i2c->endpoint) ||
+        (meta->acquisition.enabled && (mdio ? m->autopoll_enabled : !i2c->presence_check_enabled)))
+        return BVSTK_ERR_UNSUPPORTED;
     if (!mdio && !switch_options(router, meta, count, &i2c->endpoint.router)) return BVSTK_ERR_MALFORMED;
     if (mdio) {
         memset(seen, 0, sizeof(seen)); cursor = NULL;
@@ -975,7 +1066,32 @@ static bvstk_status_t format(int mdio, const i2c_device_config_t *i2c, const mdi
             !mdio && (i2c->endpoint.read_only[i / 8U] & (1U << (i % 8U))) ? ", \"access\": \"ro\"" : "",
             i + 1U == count ? "" : ",");
     }
-    append(&w, "  ],\n  \"policy\": {\"read\": {\"mode\": \"blacklist\", \"rules\": []}, \"write\": {\"mode\": \"%s\"",
+    append(&w, "  ],\n");
+    const bvstk_acquisition_plan_t *plan = &meta->acquisition;
+    if (plan->group_count) {
+        append(&w, "  \"acquisition\": {\"enabled\": %s, \"read_delay_ms\": %u, \"retry_delay_ms\": %u, \"groups\": [",
+            plan->enabled ? "true" : "false", plan->read_delay_ms, plan->retry_delay_ms);
+        for (unsigned g = 0; g < plan->group_count; ++g) {
+            const bvstk_acquisition_group_t *group = &plan->groups[g];
+            append(&w, "%s{\"id\": ", g ? ", " : ""); quoted(&w, group->id);
+            append(&w, ", \"interval_ms\": %lu, \"chunk_size\": %u, \"ranges\": [",
+                (unsigned long)group->interval_ms, group->chunk_size);
+            for (unsigned r = 0; r < group->range_count; ++r) {
+                append(&w, "%s{\"first\": ", r ? ", " : ""); reference(&w, meta, group->ranges[r].first);
+                append(&w, ", \"count\": %u}", group->ranges[r].count);
+            }
+            append(&w, "], \"when\": [");
+            for (unsigned c = 0; c < group->condition_count; ++c) {
+                const bvstk_acquisition_condition_t *condition = &group->conditions[c];
+                append(&w, "%s{\"resource\": ", c ? ", " : ""); reference(&w, meta, condition->resource);
+                append(&w, ", \"mask\": \"0x%0*X\", \"equals\": \"0x%0*X\"}",
+                    (int)(width / 4U), condition->mask, (int)(width / 4U), condition->value);
+            }
+            append(&w, "]}");
+        }
+        append(&w, "]},\n");
+    }
+    append(&w, "  \"policy\": {\"read\": {\"mode\": \"blacklist\", \"rules\": []}, \"write\": {\"mode\": \"%s\"",
            black ? "blacklist" : "whitelist");
     for (which = 0; which < 2; ++which) {
         int deny = which ? !black : black;

@@ -16,6 +16,7 @@
 #include "ports/freertos-xilinx/os/i2c/bvstk_i2c_slave_freertos.h"
 #include "ports/freertos-xilinx/os/mdio/bvstk_mdio_freertos.h"
 #include "services/cache/bvstk_cache_bridges.h"
+#include "services/acquisition/bvstk_acquisition.h"
 #include "xil_printf.h"
 
 static bvstk_cache_registry_t s_cache_registry;
@@ -197,6 +198,95 @@ static void start_i2c_health_task(void)
 }
 #endif
 
+#if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_MDIO_CORE
+typedef struct {
+    bvstk_acquisition_plan_t plan;
+    bvstk_acquisition_state_t state;
+    size_t device_id;
+    uint8_t mdio;
+} acquisition_device_t;
+static acquisition_device_t s_acquisition[I2C_CFG_MAX_DEVICES + MDIO_CFG_MAX_DEVICES];
+static size_t s_acquisition_count;
+
+static int acquisition_ready(void *context)
+{
+    const acquisition_device_t *d = context;
+    if (d->mdio) return bvstk_mdio_service_ready(&s_mdio_service, d->device_id);
+    bvstk_i2c_presence_t presence;
+    if (bvstk_i2c_master_service_device_presence(&s_i2c_master_service, d->device_id, &presence) != BVSTK_OK)
+        return -1;
+    return presence == BVSTK_I2C_PRESENCE_RESPONDING;
+}
+static int acquisition_cached(void *context, unsigned resource, uint16_t *value)
+{
+    const acquisition_device_t *d = context;
+    if (d->mdio) {
+        bvstk_mdio_cache_entry_t e;
+        if (bvstk_mdio_service_cache_entry(&s_mdio_service, d->device_id, (uint8_t)resource, &e) != BVSTK_OK ||
+            !e.valid || e.seeded) return 0;
+        *value = e.value;
+    } else {
+        bvstk_i2c_cache_entry_t e;
+        if (bvstk_i2c_master_service_cache_entry(&s_i2c_master_service, d->device_id, (uint8_t)resource, &e) != BVSTK_OK ||
+            !e.valid || e.seeded) return 0;
+        *value = e.value;
+    }
+    return 1;
+}
+static bvstk_status_t acquisition_read(void *context, unsigned first, unsigned count)
+{
+    const acquisition_device_t *d = context;
+    if (d->mdio) return count == 1 ?
+        bvstk_mdio_service_sample(&s_mdio_service, d->device_id, (uint8_t)first, 100U) : BVSTK_ERR_RANGE;
+    return bvstk_i2c_master_service_sample(&s_i2c_master_service, d->device_id, first, count, 100U);
+}
+static void acquisition_invalidate(void *context, unsigned first, unsigned count)
+{
+    const acquisition_device_t *d = context;
+    if (d->mdio) {
+        (void)bvstk_mdio_service_invalidate_range(&s_mdio_service, d->device_id, first, count);
+        return;
+    }
+    bvstk_cache_sink_enter(&s_i2c_cache.sink);
+    for (unsigned r = first; r < first + count; ++r)
+        (void)bvstk_i2c_cache_invalidate(&s_i2c_cache, d->device_id, (uint8_t)r);
+    bvstk_cache_sink_leave(&s_i2c_cache.sink);
+}
+static void acquisition_task(void *argument)
+{
+    (void)argument;
+    size_t next = 0;
+    for (;;) {
+        for (size_t n = 0; n < s_acquisition_count; ++n) {
+            acquisition_device_t *d = &s_acquisition[next++ % s_acquisition_count];
+            bvstk_acquisition_io_t io = {d, acquisition_ready, acquisition_cached,
+                acquisition_read, acquisition_invalidate};
+            if (bvstk_acquisition_step(&d->plan, &d->state, &io, bvstk_platform_now_ms())) break;
+        }
+        /* One chunk globally per turn; the PL slave and shell retain priority. */
+        vTaskDelay(pdMS_TO_TICKS(10U));
+    }
+}
+static void start_acquisition_task(void)
+{
+    for (unsigned mdio = 0; mdio < 2; ++mdio) {
+        size_t count = mdio ? (s_mdio_ready ? config_store_get_mdio_device_count() : 0) :
+            (s_i2c_ready ? config_store_get_i2c_device_count() : 0);
+        for (size_t id = 0; id < count; ++id) {
+            const bvstk_acquisition_plan_t *plan = mdio ?
+                &config_store_get_mdio_devices()[id].profile.acquisition :
+                &config_store_get_i2c_devices()[id].profile.acquisition;
+            if (!plan->enabled) continue;
+            acquisition_device_t *d = &s_acquisition[s_acquisition_count++];
+            d->plan = *plan; d->device_id = id; d->mdio = (uint8_t)mdio;
+        }
+    }
+    if (s_acquisition_count && xTaskCreate(acquisition_task, "acquisition", 2048U,
+        NULL, tskIDLE_PRIORITY + 1U, NULL) != pdPASS)
+        xil_printf("[cache] acquisition task creation failed\r\n");
+}
+#endif
+
 static void runtime_task(void *argument)
 {
 #if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_MDIO_CORE
@@ -278,6 +368,7 @@ static void runtime_task(void *argument)
             bvstk_freertos_mutex_destroy(&s_mdio_service_mutex);
         }
 #endif
+        start_acquisition_task();
     }
 #endif
     s_runtime_task = NULL;

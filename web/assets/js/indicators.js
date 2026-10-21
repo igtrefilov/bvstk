@@ -24,6 +24,10 @@ export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}
   signal.addEventListener("abort",cancel,{once:true});
   if (signal.aborted) cancel();
   let compiled, custom, timer = 0, stopped = false, stale = false;
+  let clockValue = detail.uptime_ms, clockReceived = performance.now();
+  const syncClock = value => {
+    if (Number.isFinite(value)) { clockValue = value; clockReceived = performance.now(); }
+  };
   controller.signal.addEventListener("abort",() => { clearTimeout(timer); custom?.dispose(); },{once:true});
   const active = () => !stopped && !controller.signal.aborted;
   const message = value => {
@@ -58,12 +62,17 @@ export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}
       }
     }
     custom?.update({api_version:1,device:{id:detail.name || detail.config.name,bus,presence:detail.presence || "unknown",address_spaces:detail.address_spaces || []},stale,
+      uptime_ms:Number.isFinite(clockValue) ? Math.floor(clockValue + performance.now() - clockReceived) : null,
       identity:result.identity,map,cache:detail.cache || [],
       summary:result.summary.map((item,i) => ({...item,title:map.summary[i].label})),fields:Object.fromEntries(result.fields)});
   }
   function render() {
     const {map} = compiled;
     root.innerHTML = `<article class="card indicators-card"><h2>Показатели ${esc(map.device)}</h2><p data-map-fresh class="muted"></p><p data-map-identity></p><p data-map-message class="error-text"></p><div data-device-view></div><div class="indicator-grid" data-standard-summary>${map.summary.map(item => `<section data-indicator="${item.id}" class="indicator-tile"><span>${esc(item.label)}</span><strong class="indicator-value">Нет данных</strong><small>Метка времени <time>—</time></small>${item.note ? `<p class="muted">${esc(item.note)}</p>` : ""}</section>`).join("")}</div><p class="muted indicator-note">${esc(map.notes)}</p><p class="muted">Карта по <a href="${esc(map.source.url)}" target="_blank" rel="noopener noreferrer">${esc(map.source.document)} ${esc(map.source.revision)}</a>. Просмотр не выполняет физических чтений или записей.</p></article><article class="card"><h2>Расшифровка регистров</h2><div class="decoded-registers">${map.registers.map(reg => `<details data-decoded-register="${reg.id}"><summary><span class="mono">${reg.space ? esc(reg.space)+" " : ""}${hex(Number(reg.address))}</span> ${esc(reg.label)} <span class="mono" data-raw></span></summary><div class="decoded-body"><p class="muted">${esc(reg.name)}. Документация: ${esc(reg.section)}. Последнее обновление <time>—</time></p>${reg.note ? `<p>${esc(reg.note)}</p>` : ""}<div class="table-scroll"><table><thead><tr><th>Биты</th><th>Поле</th><th>Код</th><th>Расшифровка</th></tr></thead><tbody>${reg.fields.map(field => `<tr data-field="${field.id}"><td class="mono">${field.width > 1 ? field.lsb+field.width-1+":" : ""}${field.lsb}</td><td>${esc(field.label)}<small>${access[field.access]}. После сброса: ${esc(field.reset)}${field.attributes?.length ? ". "+field.attributes.map(a => attributes[a]).join(". ") : ""}${field.write_value !== undefined ? ". При записи: "+hex(Number(field.write_value)) : ""}</small></td><td class="mono" data-field-raw></td><td><span data-value></span>${field.note ? `<small>${esc(field.note)}</small>` : ""}</td></tr>`).join("")}</tbody></table></div></div></details>`).join("")}</div></article>`;
+    const rawCard = root.querySelector(".decoded-registers").parentNode;
+    const disclosure = document.createElement("details"), label = document.createElement("summary");
+    label.textContent = "Расшифровка регистров";
+    rawCard.querySelector("h2").remove(); disclosure.append(label,root.querySelector(".decoded-registers")); rawCard.append(disclosure);
     paint();
   }
   async function readAsset(name) {
@@ -76,7 +85,11 @@ export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}
     if (!document.hidden && !busy() && !api.pending && Date.now() >= api.downloadPauseUntil) {
       try {
         const next = await api.busCache(bus,detail.config.name,controller.signal);
-        if (active() && Array.isArray(next.cache)) { detail.cache = next.cache; stale = false; paint(); }
+        if (active() && Array.isArray(next.cache)) {
+          detail.cache = next.cache;
+          if (typeof next.presence === "string") detail.presence = next.presence;
+          syncClock(next.uptime_ms); stale = false; paint();
+        }
       } catch (error) { if (active()) { stale = true; paint(); } }
     }
     if (active()) timer = setTimeout(poll,500);
@@ -94,8 +107,15 @@ export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}
           const source = await readAsset(detail.view);
           if (!active()) return;
           custom = deviceView(root.querySelector("[data-device-view]"),source,{
-            onReady:() => { root.querySelector("[data-standard-summary]").hidden = true; },
-            onError:error => { root.querySelector("[data-standard-summary]").hidden = false; message(error); }
+            onReady:() => {
+              root.querySelector("[data-standard-summary]").hidden = true;
+              root.querySelectorAll(".indicators-card > h2,.indicators-card > .indicator-note,[data-map-fresh],[data-map-identity]").forEach(n => n.hidden = true);
+            },
+            onError:error => {
+              root.querySelector("[data-standard-summary]").hidden = false;
+              root.querySelectorAll(".indicators-card > h2,.indicators-card > .indicator-note,[data-map-fresh],[data-map-identity]").forEach(n => n.hidden = false);
+              message(error);
+            }
           });
           paint();
         } catch (error) { if (active()) message("Форма устройства недоступна. Показана стандартная расшифровка. " + error.message); }
@@ -104,7 +124,7 @@ export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}
   }
   void start();
   return {
-    update(next) { detail = next; stale = false; paint(); },
+    update(next) { detail = next; syncClock(next.uptime_ms); stale = false; paint(); },
     dispose() { stopped = true; clearTimeout(timer); custom?.dispose(); cancel(); signal.removeEventListener("abort",cancel); }
   };
 }

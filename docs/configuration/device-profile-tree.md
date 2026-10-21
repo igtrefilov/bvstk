@@ -4,6 +4,13 @@
 <details open><summary><a class="internal-link" data-href="device-profile.md#Структура профиля" href="device-profile.md#Структура%20профиля">Профиль {}</a></summary>
 <p><a class="internal-link" data-href="device-profile.md#Структура профиля" href="device-profile.md#Структура%20профиля">schema_version</a></p>
 <p><a class="internal-link" data-href="device-profile.md#Структура профиля" href="device-profile.md#Структура%20профиля">id</a></p>
+<details><summary><a href="device-profile.md#Фоновое%20получение%20данных">acquisition {}</a></summary>
+<p>enabled</p><p>read_delay_ms</p><p>retry_delay_ms</p>
+<details><summary>groups []</summary>
+<p>id</p><p>interval_ms</p><p>chunk_size</p>
+<details><summary>ranges []</summary><p>first</p><p>count</p></details>
+<details><summary>when []</summary><p>resource</p><p>mask</p><p>equals</p></details>
+</details></details>
 <details><summary><a class="internal-link" data-href="device-profile.md#Описание устройства" href="device-profile.md#Описание%20устройства">device {}</a></summary>
 <p><a class="internal-link" data-href="device-profile.md#Описание устройства" href="device-profile.md#Описание%20устройства">model</a></p>
 <p><a class="internal-link" data-href="device-profile.md#Описание устройства" href="device-profile.md#Описание%20устройства">vendor</a></p>

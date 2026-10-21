@@ -138,8 +138,8 @@ static void switch_state(bvstk_i2c_master_service_t *service, size_t id,
     bvstk_cache_sink_leave(&service->cache->sink);
 }
 
-static bvstk_status_t register_transfer(bvstk_i2c_master_service_t *service,
-    const bvstk_i2c_device_t *device, uint8_t reg, uint8_t *value, int write, uint32_t ms)
+static bvstk_status_t register_transfer_n(bvstk_i2c_master_service_t *service,
+    const bvstk_i2c_device_t *device, uint8_t reg, uint8_t *value, int write, uint32_t ms, size_t count)
 {
     bvstk_i2c_transfer_t t = bvstk_i2c_transfer_options(&device->endpoint);
     const bvstk_address_space_t *space = bvstk_i2c_register_space(&device->endpoint, reg);
@@ -153,20 +153,25 @@ static bvstk_status_t register_transfer(bvstk_i2c_master_service_t *service,
     if (!write && t.stop_before_read && t.address_bytes) {
         status = raw_transfer(service, target, tx, t.address_bytes, NULL, 0, ms);
         if (status != BVSTK_OK) return status;
-        return raw_transfer(service, target, NULL, 0, value, 1, ms);
+        return raw_transfer(service, target, NULL, 0, value, count, ms);
     }
     status = raw_transfer(service, target, tx, t.address_bytes + (write ? 1U : 0U),
-        write ? NULL : value, write ? 0U : 1U, ms);
+        write ? NULL : value, write ? 0U : count, ms);
     if (write && status == BVSTK_OK) {
         if (t.write_cycle_ms)
             bvstk_clock_sleep_ms(service->hardware ? &service->hardware->clock : NULL, t.write_cycle_ms);
         if (t.verify_readback) {
             uint8_t verified = 0;
-            status = register_transfer(service, device, reg, &verified, 0, ms);
+            status = register_transfer_n(service, device, reg, &verified, 0, ms, 1);
             if (status == BVSTK_OK && verified != *value) status = BVSTK_ERR_IO;
         }
     }
     return status;
+}
+static bvstk_status_t register_transfer(bvstk_i2c_master_service_t *service,
+    const bvstk_i2c_device_t *device, uint8_t reg, uint8_t *value, int write, uint32_t ms)
+{
+    return register_transfer_n(service, device, reg, value, write, ms, 1);
 }
 
 /* Internal selection/restoration is real I/O and belongs to the switch's
@@ -211,7 +216,7 @@ static bvstk_status_t route_control(bvstk_i2c_master_service_t *service, size_t 
 static bvstk_status_t routed_transfer(bvstk_i2c_master_service_t *service,
     const bvstk_i2c_device_t *device, uint8_t reg, uint8_t *value,
     int write, uint32_t ms, int *performed, bvstk_status_t *target_status,
-    int quiet)
+    int quiet, size_t count)
 {
     size_t id, route[BVSTK_I2C_ROUTE_MAX], depth, opened = 0;
     uint8_t channels[BVSTK_I2C_ROUTE_MAX], saved[BVSTK_I2C_ROUTE_MAX];
@@ -242,7 +247,7 @@ static bvstk_status_t routed_transfer(bvstk_i2c_master_service_t *service,
     }
     if (status == BVSTK_OK) {
         *performed = 1;
-        status = register_transfer(service, device, reg, value, write, ms);
+        status = register_transfer_n(service, device, reg, value, write, ms, count);
         *target_status = status;
         if (device->endpoint.router.channel_count && reg == device->endpoint.router.reg)
             switch_state(service, id, *value, status == BVSTK_OK);
@@ -272,7 +277,7 @@ static bvstk_status_t backend_read(bvstk_i2c_master_service_t *service,
     if (device->endpoint.parent[0] || device->endpoint.transfer.configured ||
         (service->io.transfer && !service->io.read_reg)) {
         *value = 0;
-        return routed_transfer(service, device, reg, value, 0, timeout_ms, performed, target_status, quiet);
+        return routed_transfer(service, device, reg, value, 0, timeout_ms, performed, target_status, quiet, 1);
     }
     if (service->io.read_reg != NULL) {
         *performed = 1;
@@ -338,7 +343,7 @@ static bvstk_status_t backend_write(bvstk_i2c_master_service_t *service,
     *target_status = BVSTK_ERR_NOT_READY;
     if (device->endpoint.parent[0] || device->endpoint.transfer.configured ||
         (service->io.transfer && !service->io.write_reg))
-        return routed_transfer(service, device, reg, &value, 1, timeout_ms, performed, target_status, 0);
+        return routed_transfer(service, device, reg, &value, 1, timeout_ms, performed, target_status, 0, 1);
     if (service->io.write_reg != NULL) {
         *performed = 1;
         status = service->io.write_reg(service->io.context,
@@ -553,6 +558,35 @@ bvstk_status_t bvstk_i2c_master_service_probe(
                         target_status, 1);
         cache_response(service, device_id, &device, reg,
                        target_status == BVSTK_OK ? value : 0U, target_status);
+    }
+    return status;
+}
+
+bvstk_status_t bvstk_i2c_master_service_sample(bvstk_i2c_master_service_t *service,
+    size_t device_id, unsigned first, unsigned count, uint32_t timeout_ms)
+{
+    bvstk_i2c_device_t device;
+    bvstk_status_t status = service_status(service, device_id), target_status = BVSTK_ERR_NOT_READY;
+    uint8_t values[BVSTK_ACQUISITION_CHUNK_MAX] = {0};
+    int performed = 0;
+    if (status != BVSTK_OK) return status;
+    if (bvstk_i2c_devices_get(service->devices, device_id, &device) != BVSTK_OK ||
+        !count || count > sizeof(values) || first >= device.reg_count ||
+        count > device.reg_count - first ||
+        bvstk_i2c_register_space(&device.endpoint, first) !=
+        bvstk_i2c_register_space(&device.endpoint, first + count - 1U)) return BVSTK_ERR_RANGE;
+    if (count == 1) return bvstk_i2c_master_service_probe(service, device_id, (uint8_t)first, timeout_ms);
+    if (!device.endpoint.transfer.configured ||
+        device.endpoint.transfer.read_sequence.mode != BVSTK_I2C_SEQUENCE_LINEAR)
+        return BVSTK_ERR_UNSUPPORTED;
+    status = routed_transfer(service, &device, (uint8_t)first, values, 0,
+        timeout_ms, &performed, &target_status, 1, count);
+    if (performed) {
+        record_response(service, device_id, wire_address(&device, first), target_status, 1);
+        bvstk_cache_sink_enter(&service->cache->sink);
+        for (unsigned r = 0; r < count; ++r)
+            cache_response(service, device_id, &device, (uint8_t)(first + r), values[r], target_status);
+        bvstk_cache_sink_leave(&service->cache->sink);
     }
     return status;
 }

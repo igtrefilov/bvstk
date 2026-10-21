@@ -398,7 +398,22 @@ bvstk_status_t bvstk_i2c_config_validate(
             return BVSTK_ERR_RANGE;
         }
     }
-    return bvstk_device_profile_metadata_validate(&config->profile, config->reg_count);
+    bvstk_status_t meta_status = bvstk_device_profile_metadata_validate(&config->profile, config->reg_count);
+    if (meta_status != BVSTK_OK) return meta_status;
+    const bvstk_acquisition_plan_t *plan = &config->profile.acquisition;
+    if (plan->enabled && !config->presence_check_enabled) return BVSTK_ERR_UNSUPPORTED;
+    for (unsigned i = 0; i < plan->group_count; ++i) {
+        const bvstk_acquisition_group_t *g = &plan->groups[i];
+        if (g->chunk_size > 1 && (!config->endpoint.transfer.configured ||
+            config->endpoint.transfer.read_sequence.mode != BVSTK_I2C_SEQUENCE_LINEAR)) return BVSTK_ERR_UNSUPPORTED;
+        for (unsigned c = 0; c < g->condition_count; ++c)
+            if (g->conditions[c].mask > 255 || g->conditions[c].value > 255) return BVSTK_ERR_RANGE;
+        for (unsigned r = 0; r < g->range_count; ++r)
+            if (bvstk_i2c_register_space(&config->endpoint, g->ranges[r].first) !=
+                bvstk_i2c_register_space(&config->endpoint, g->ranges[r].first + g->ranges[r].count - 1U))
+                return BVSTK_ERR_RANGE;
+    }
+    return BVSTK_OK;
 }
 
 bvstk_status_t bvstk_i2c_config_parse_json(const char *json,

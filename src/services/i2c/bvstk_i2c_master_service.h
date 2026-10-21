@@ -99,6 +99,11 @@ bvstk_status_t bvstk_i2c_master_service_read_from(
  * user-facing telemetry journal. */
 bvstk_status_t bvstk_i2c_master_service_probe(
     bvstk_i2c_master_service_t *, size_t, uint8_t, uint32_t);
+/* Profile-declared background acquisition, at most CHUNK_MAX consecutive bytes.
+ * A burst requires a linear transfer descriptor and cannot cross a window.
+ * The selected route is owned until restoration; the cache is published together. */
+bvstk_status_t bvstk_i2c_master_service_sample(
+    bvstk_i2c_master_service_t *, size_t, unsigned, unsigned, uint32_t);
 /* Host-facing PL observations; prepared replies are not confirmed wire reads. */
 void bvstk_i2c_master_service_observe(bvstk_i2c_master_service_t *, size_t,
     uint16_t type, bvstk_event_op_t, uint32_t reg, uint8_t value, bvstk_status_t);

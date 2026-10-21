@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "shared/config/bvstk_acquisition_model.h"
 
 typedef struct {
     uint8_t mac[6];
@@ -140,6 +141,7 @@ typedef struct {
     uint16_t id_offset[I2C_CFG_MAX_REG_COUNT];
     uint16_t ids_size;
     char ids[BVSTK_PROFILE_IDS_CAP];
+    bvstk_acquisition_plan_t acquisition;
 } bvstk_profile_metadata_t;
 
 typedef enum {

@@ -48,7 +48,8 @@ static bvstk_status_t transfer(void *c, uint8_t address, const uint8_t *tx,
         fprintf(stderr,"wire mismatch at %zu: address=%02x tx=%zu rx=%zu\n",consumed,address,nt,nr);
         assert(0);
     }
-    if (nr && op->status == BVSTK_OK) { assert(nr == 1); *rx = op->value; }
+    if (op->status == BVSTK_OK)
+        for (size_t i=0; i<nr; ++i) rx[i]=(uint8_t)(op->value+i);
     return op->status;
 }
 static void event(void *ctx, const bvstk_event_t *e)
@@ -446,6 +447,37 @@ static void multiple_spaces(const char *root)
     assert(bvstk_i2c_config_validate(&copy)!=BVSTK_OK);
 }
 
+static void block_sampling(void)
+{
+    /* Config from multiple_spaces: one endpoint, two 128-byte windows. */
+    configs[1]=configs[0]; configs[0]=profiles[0];
+    strcpy(configs[1].endpoint.parent,configs[0].name); configs[1].endpoint.channel=1;
+    configs[1].endpoint.transfer.read_sequence.mode=BVSTK_I2C_SEQUENCE_LINEAR;
+    configs[1].endpoint.transfer.read_sequence.span=0;
+    init(2);
+    now=1234;
+    unsigned before=endpoint_transactions;
+    rd_switch(0x70,4);wr_switch(0x70,2);
+    operation(0x51,1,96,0,0,16,0x10,BVSTK_OK);wr_switch(0x70,4);
+    assert(bvstk_i2c_master_service_sample(&master,1,224,16,20)==BVSTK_OK);
+    done(1);
+    for (unsigned i=0;i<16;++i) {
+        assert(bvstk_i2c_cache_is_valid(&cache,1,224+i));
+        assert(cache.values[1][224+i]==0x10+i && cache.updated_ms[1][224+i]==1234);
+    }
+    assert(commits==0 && endpoint_transactions==before);
+    assert(bvstk_i2c_master_service_sample(&master,1,120,16,20)!=BVSTK_OK);
+    assert(bvstk_i2c_master_service_sample(&master,1,224,17,20)!=BVSTK_OK);
+    assert(bvstk_i2c_master_service_sample(&master,1,256,1,20)!=BVSTK_OK);
+    done(0);
+    rd_switch(0x70,4);wr_switch(0x70,2);
+    operation(0x51,1,96,0,0,16,0,BVSTK_ERR_IO);wr_switch(0x70,4);
+    assert(bvstk_i2c_master_service_sample(&master,1,224,16,20)==BVSTK_ERR_IO);
+    for (unsigned i=0;i<16;++i) assert(!bvstk_i2c_cache_is_valid(&cache,1,224+i));
+    done(1);
+    assert(master.switch_known[0] && master.switch_value[0]==4);
+}
+
 int main(int argc, char **argv)
 {
     assert(argc==2);
@@ -455,6 +487,7 @@ int main(int argc, char **argv)
     sequences_and_verification();
     configurable_prefix();
     multiple_spaces(argv[1]);
+    block_sampling();
     puts("I2C topology: generic profiles, atomic routes/restoration, policies, duplicate addresses, sequences and write verification passed");
     return 0;
 }

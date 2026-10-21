@@ -252,6 +252,42 @@ bvstk_status_t bvstk_mdio_service_read_from(bvstk_mdio_service_t *s, size_t d, u
     bvstk_mutex_unlock(&s->mutex);
     return st;
 }
+int bvstk_mdio_service_ready(const bvstk_mdio_service_t *s, size_t d)
+{
+    if (lock(s) != BVSTK_OK) return -1;
+    int ready = d < s->device_count && s->online[d];
+    bvstk_mutex_unlock(&s->mutex);
+    return ready;
+}
+bvstk_status_t bvstk_mdio_service_invalidate_range(bvstk_mdio_service_t *s, size_t d,
+    unsigned first, unsigned count)
+{
+    bvstk_status_t st = lock(s);
+    if (st != BVSTK_OK) return st;
+    if (d >= s->device_count || first >= s->devices[d].reg_count ||
+        count > s->devices[d].reg_count - first) st = BVSTK_ERR_RANGE;
+    else for (unsigned r = first; r < first + count; ++r) {
+        s->cache[d][r].valid = 0;
+        cache_changed(s, d, r);
+        if (publish(s, s->devices[d].phy_addr, (uint8_t)r, 0xFFFFU) != BVSTK_OK) st = BVSTK_ERR_IO;
+    }
+    bvstk_mutex_unlock(&s->mutex);
+    return st;
+}
+bvstk_status_t bvstk_mdio_service_sample(bvstk_mdio_service_t *s, size_t d, uint8_t r, uint32_t timeout)
+{
+    bvstk_status_t st = lock(s);
+    if (st != BVSTK_OK) return st;
+    st = check(s, d, r);
+    if (st == BVSTK_OK && !s->online[d]) st = BVSTK_ERR_NOT_READY;
+    if (st == BVSTK_OK) {
+        uint16_t value;
+        st = read_phy(s, d, r, &value, BVSTK_EVENT_SOURCE_INTERNAL, timeout, 1);
+        cache_changed(s, d, r);
+    }
+    bvstk_mutex_unlock(&s->mutex);
+    return st;
+}
 bvstk_status_t bvstk_mdio_service_cache_entry(const bvstk_mdio_service_t *s, size_t d, uint8_t r, bvstk_mdio_cache_entry_t *e)
 {
     bvstk_status_t st = lock(s);

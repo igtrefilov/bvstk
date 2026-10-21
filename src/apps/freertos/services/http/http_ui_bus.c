@@ -142,6 +142,7 @@ static void write_cache_array(int fd, int mdio, size_t id,
             (unsigned long long)(valid ? updated_ms : 0U));
     }
 }
+static const char *presence_name(int presence);
 static void cache_detail(int fd, int mdio, size_t id)
 {
     unsigned reg_count = 0U;
@@ -163,7 +164,8 @@ static void cache_detail(int fd, int mdio, size_t id)
         return;
     }
     http_ui_header(fd, "application/json", -1);
-    http_ui_text(fd, "{\"cache\":[");
+    http_ui_printf(fd, "{\"uptime_ms\":%llu,\"presence\":\"%s\",\"cache\":[",
+        (unsigned long long)bvstk_platform_now_ms(), presence_name(device_presence(mdio, id)));
     write_cache_array(fd, mdio, id, reg_count);
     http_ui_text(fd, "]");
     if (mdio) {
@@ -245,6 +247,7 @@ static void detail(int fd, int mdio, size_t id, bus_workspace_t *w)
     http_ui_string(fd, mdio ? w->current.mdio.profile.register_map : w->current.i2c.profile.register_map);
     http_ui_text(fd, ",\"view\":");
     http_ui_string(fd, mdio ? w->current.mdio.profile.view : w->current.i2c.profile.view);
+    http_ui_printf(fd, ",\"uptime_ms\":%llu", (unsigned long long)bvstk_platform_now_ms());
     if (mdio) {
         bvstk_mdio_stats_t stats;
         http_ui_text(fd, ",\"cache\":[");

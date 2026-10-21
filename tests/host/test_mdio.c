@@ -291,6 +291,20 @@ static void service_tests(void)
     phy[1][2] = 7U; phy[1][3] = 0xC0F1U;
     assert(bvstk_mdio_service_step(&service, now, 5) == BVSTK_OK);
     assert(service.online[0] && host_read(1, 2) == 7U);
+    /* Background acquisition publishes actual values to the shared cache,
+     * without fabricating endpoint telemetry or increasing errors. */
+    assert(bvstk_mdio_service_ready(&service,0)==1);
+    count=observed_count;
+    uint32_t errors_before=service.stats.errors;
+    phy[1][4]=0x4321;
+    assert(bvstk_mdio_service_sample(&service,0,4,5)==BVSTK_OK);
+    assert(bvstk_mdio_service_read_cached(&service,0,4,&v)==BVSTK_OK && v==0x4321);
+    assert(observed_count==count+1 && service.stats.errors==errors_before);
+    assert(observed[count].flags & BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
+    assert(bvstk_mdio_service_invalidate_range(&service,0,4,2)==BVSTK_OK);
+    assert(bvstk_mdio_service_read_cached(&service,0,4,&v)==BVSTK_ERR_NOT_READY);
+    assert(host_read(1,4)==0xFFFF);
+    assert(bvstk_mdio_service_invalidate_range(&service,0,31,2)!=BVSTK_OK);
     assert(!depth && locks > 0);
     bvstk_mdio_service_shutdown(&service);
     {

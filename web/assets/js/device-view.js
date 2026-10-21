@@ -21,7 +21,7 @@ export function deviceView(root, source, {onReady, onError}) {
       ready = true; clearTimeout(timer); iframe.hidden = false; onReady();
       if (last) iframe.contentWindow.postMessage({channel,type:"snapshot",snapshot:last}, "*");
     } else if (event.data.type === "height" && Number.isFinite(event.data.height)) {
-      const height = Math.max(80,Math.min(3000,Math.ceil(event.data.height)));
+      const height = Math.max(80,Math.min(8000,Math.ceil(event.data.height)));
       if (iframe.style.height !== height + "px") iframe.style.height = height + "px";
     } else if (event.data.type === "error") fail("Ошибка формы устройства: " + String(event.data.message || "неизвестная ошибка").slice(0,200));
   };
@@ -44,7 +44,8 @@ export function deviceView(root, source, {onReady, onError}) {
         if(view?.apiVersion!==1||typeof view.mount!=='function'||typeof view.update!=='function')throw Error('Неверный API формы');
         view.mount(document.getElementById('device-root'));
         started=true;
-        new ResizeObserver(()=>send('height',{height:document.body.scrollHeight})).observe(document.body);
+        const root=document.getElementById('device-root');
+        new ResizeObserver(()=>send('height',{height:root.getBoundingClientRect().height})).observe(root);
         send('ready');
       } catch(error) { report(error); }
     });`;

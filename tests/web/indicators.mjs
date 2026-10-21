@@ -64,6 +64,7 @@ try {
   assert.equal(await page.locator('iframe').getAttribute('sandbox'),"allow-scripts");
   await page.waitForTimeout(200); // initial sandbox height handshake
   const raw = page.locator('[data-decoded-register="bsr"]');
+  await page.locator('article.card > details > summary').click();
   await raw.locator('summary').scrollIntoViewIfNeeded();
   await page.waitForTimeout(200);
   await raw.locator('summary').click();
@@ -76,9 +77,9 @@ try {
   assert.equal(await raw.getAttribute('open'),"");
   assert.equal(calls.filter(c=>c.path==="/api/ui/file").length,2,"assets must not be refetched per snapshot");
   cacheFail=true;
-  await page.locator('[data-map-fresh]').filter({hasText:"Связь потеряна"}).waitFor();
+  await page.waitForFunction(()=>document.querySelector('[data-map-fresh]').textContent.includes("Связь потеряна"));
   cacheFail=false;
-  await page.locator('[data-map-fresh]').filter({hasText:"Данные последнего"}).waitFor();
+  await page.waitForFunction(()=>document.querySelector('[data-map-fresh]').textContent.includes("Данные последнего"));
   cache.find(e=>e.reg===31).valid=false;
   await frame().locator('[data-metric="speed"] [data-value]').filter({hasText:"Нет данных"}).waitFor();
   // A long wait crosses many poll boundaries; rows/open sections stay intact.

@@ -137,6 +137,7 @@ static void multiple_spaces(void)
     http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&space=diagnostics&reg=0&val=18&confirm=true","",200);
     assert(writes==before+1);
     http_run("GET","/api/ui/bus?bus=i2c&name=dev&action=cache","",200);
+    assert(strstr(output,"\"uptime_ms\":") && strstr(output,"\"presence\":"));
     assert(strstr(output,"\"reg\":0,\"val\":51,\"valid\":true"));
     assert(strstr(output,"\"reg\":4,\"val\":18,\"valid\":true"));
     http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);revision(rev);

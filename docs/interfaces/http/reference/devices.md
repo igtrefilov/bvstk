@@ -11,7 +11,7 @@
 | Без `name` | `ready`, массив `devices` |
 | Запись `devices` | `name`, числовой `address`, логический `available`, строки `presence`, `policy` |
 | С `name` | Снимок устройства по таблице ниже |
-| С `name` и `action=cache` | `cache`; для MDIO также `stats`; без физического обмена |
+| С `name` и `action=cache` | `cache`, `presence`, `uptime_ms`; для MDIO также `stats`; без физического обмена |
 
 | Поле | Смысл |
 |---|---|
@@ -24,6 +24,7 @@
 | `available` | `true` только при `presence=responding`; не просто наличие профиля |
 | `presence` | `unknown`, `responding` или `unavailable`; то же поле есть в списке устройств |
 | `cache` | Кэш I²C или MDIO: массив `reg`, `val`, `valid`, `source`, `updated_ms` |
+| `uptime_ms` | Время с запуска PS, миллисекунды; позволяет оценить возраст записей кэша |
 | `address_spaces` | Для многопространственного I²C-профиля: массив `id`, числовых `address`, `first`, `register_count`; также возвращается в списке устройств |
 | `stats` | Только MDIO: общие счётчики `reads`, `writes`, `denied`, `errors`, `observed` |
 
@@ -64,7 +65,7 @@
 | I²C `unavailable` | Ошибка обмена, включая NACK и таймаут |
 | I²C: кэш, settings, отказ политики, успешная запись без чтения | Не подтверждают присутствие |
 | GET списка | Не сканирует шину |
-| I²C: фоновое обнаружение отключения | Не выполняется |
+| I²C: фоновое обнаружение отключения | Безопасный ресурс опрашивается при `presence_check_enabled`; план `acquisition` поддерживает актуальность выбранных диапазонов |
 | MDIO `responding` | Достоверные ID PHY в регистрах 2 и 3, прочитанные менее 3 секунд назад |
 | MDIO иначе | `unavailable` |
 | Старый ответ I²C без `presence` | `available` означал готовность сервиса; новым интерфейсом считается непроверенным |

@@ -6,6 +6,50 @@
     "class": "phy",
     "label": "SFP"
   },
+  "acquisition": {
+    "enabled": true,
+    "read_delay_ms": 10,
+    "retry_delay_ms": 2000,
+    "groups": [
+      {
+        "id": "identity",
+        "interval_ms": 60000,
+        "chunk_size": 2,
+        "ranges": [{"first": "a0_00", "count": 128}],
+        "when": [{"resource": "a0_00", "mask": "0xFF", "equals": "0x03"}]
+      },
+      {
+        "id": "diagnostic_configuration",
+        "interval_ms": 60000,
+        "chunk_size": 2,
+        "ranges": [{"first": "a2_00", "count": 96}],
+        "when": [
+          {"resource": "a0_00", "mask": "0xFF", "equals": "0x03"},
+          {"resource": "a0_5c", "mask": "0x44", "equals": "0x40"}
+        ]
+      },
+      {
+        "id": "measurements",
+        "interval_ms": 1000,
+        "chunk_size": 2,
+        "ranges": [{"first": "a2_60", "count": 24}],
+        "when": [
+          {"resource": "a0_00", "mask": "0xFF", "equals": "0x03"},
+          {"resource": "a0_5c", "mask": "0x44", "equals": "0x40"}
+        ]
+      },
+      {
+        "id": "vendor_data",
+        "interval_ms": 60000,
+        "chunk_size": 2,
+        "ranges": [{"first": "a2_78", "count": 8}],
+        "when": [
+          {"resource": "a0_00", "mask": "0xFF", "equals": "0x03"},
+          {"resource": "a0_5c", "mask": "0x44", "equals": "0x40"}
+        ]
+      }
+    ]
+  },
   "transport": {
     "bus": "i2c",
     "controller": "pl_i2c_0",

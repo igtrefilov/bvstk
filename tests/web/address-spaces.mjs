@@ -89,6 +89,7 @@ try {
   await page.evaluate(()=>window.controller.refresh(true)); // discard browser-only draft
   await page.locator('[data-tab="indicators"]').click();
   await page.waitForFunction(()=>document.querySelector('[data-indicator="identity"] strong')?.textContent==="17");
+  await page.locator('article.card > details > summary').click();
   assert.equal(await page.locator('[data-indicator="diagnostics"] strong').innerText(),"34");
   assert.equal(await page.locator('[data-decoded-register="diagnostics_00"] [data-raw]').innerText(),"0x22");
   await page.frameLocator("iframe").locator("#spaces").filter({hasText:"identity:80:0,diagnostics:81:4"}).waitFor();
