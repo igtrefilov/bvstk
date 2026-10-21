@@ -1,5 +1,5 @@
 import * as api from "./api.js";
-import {esc, hex, head, kv, badge, footer, ask, notice, number, clearNotice, deviceState, registerToken, registerNumber} from "./ui.js";
+import {esc, hex, head, kv, badge, footer, ask, notice, number, clearNotice, deviceIcon, deviceState, registerToken, registerNumber} from "./ui.js";
 
 import {registerWorkspace} from "./registers.js";
 import {policyWorkspace} from "./policy.js";
@@ -125,7 +125,7 @@ export async function busPage(root, params, ctx, bus) {
     stopObservation(); stopRegisters(); stopIndicators();
     ctx.setContext({name:selected,tab});
     const state = deviceState(bus,detail);
-    root.innerHTML = `<div class="page-head"><div class="device-heading"><h1>${label}</h1><span class="device-name">${esc(selected)}</span></div></div><div class="device-meta"><span>Адрес <strong class="mono">${esc(addresses())}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${!["registers","indicators"].includes(tab) || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
+    root.innerHTML = `<div class="page-head"><div class="device-heading">${deviceIcon(detail?.config?.device)}<div class="device-heading-copy"><h1>${label}</h1><span class="device-name">${esc(selected)}</span></div></div></div><div class="device-meta"><span>Адрес <strong class="mono">${esc(addresses())}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${!["registers","indicators"].includes(tab) || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
     if (tab === "indicators") indicators = indicatorsWorkspace(root.querySelector("#indicators-workspace"),{bus,detail,signal:ctx.signal,busy:() => !!busy});
     if (tab === "registers") {
       const view = registerWorkspace(root.querySelector("#register-workspace"), {bus,detail,state:regState,canOperate:!changed(),onRead:reg => registerOp(reg,false),onWrite:(reg,val) => registerOp(reg,true,val)});
