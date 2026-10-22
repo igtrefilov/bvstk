@@ -162,6 +162,76 @@ static void multiple_spaces(void)
     run("i2c dev save");
     assert(i2c_saved.endpoint.space_count==2 && i2c_saved.whitelist_len==2);
 }
+static bvstk_status_t router_read(void *ctx, uint8_t address, const uint8_t *tx,
+    size_t nt, uint8_t *rx, size_t nr, uint32_t timeout)
+{
+    (void)ctx;(void)timeout;
+    assert(address==0x36 && nt==1 && tx[0]==0 && nr==1);
+    *rx=(uint8_t)registers[0];
+    return io_status;
+}
+static void routing_context(void)
+{
+    reset_fixture();
+    /* A generic register-addressed router, independent of any chip model. */
+    devices.items[0].endpoint.transfer.configured=1;
+    devices.items[0].endpoint.transfer.address_bytes=1;
+    i2c.io.transfer=router_read;i2c.io.lock=space_lock;i2c.io.unlock=space_unlock;
+    devices.items[0].endpoint.router.channel_count=4;
+    devices.items[0].endpoint.router.select_mask=15;
+    for(unsigned i=0;i<4;i++) {
+        devices.items[0].endpoint.router.channels[i].select=(uint8_t)(1U<<i);
+        devices.items[0].endpoint.router.channels[i].match_mask=(uint8_t)(1U<<i);
+    }
+    devices.items[1]=devices.items[0];
+    strcpy(devices.items[1].name,"windowed");
+    strcpy(devices.items[1].endpoint.parent,"dev");
+    devices.items[1].endpoint.channel=1;
+    devices.items[1].endpoint.router.channel_count=0;
+    devices.items[1].endpoint.space_count=2;
+    devices.items[1].endpoint.spaces[0].address=0x50;
+    devices.items[1].endpoint.spaces[1].address=0x51;
+    devices.count=2;cache.device_count=2;policy.device_count=2;
+    i2c.presence[1]=BVSTK_I2C_PRESENCE_RESPONDING;
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev&action=cache","",200);
+    assert(strstr(output,"\"last_read\":null"));
+    assert(strstr(output,"\"channel\":1,\"presence\":\"responding\",\"addresses\":[80,81]"));
+    registers[0]=0x80;
+    assert(bvstk_i2c_master_service_probe(&i2c,0,0,100)==BVSTK_OK);
+    assert(bvstk_i2c_cache_invalidate(&cache,0,0)==BVSTK_OK);
+    io_status=BVSTK_ERR_IO; /* GET must not attempt an additional physical read. */
+    unsigned previous_writes=writes;
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev&action=cache","",200);
+    assert(strstr(output,"\"last_read\":{\"reg\":0,\"val\":128,\"updated_ms\":1000}"));
+    assert(strstr(output,"\"valid\":false"));
+    assert(strstr(output,"\"routing\":{\"control_reg\":0,\"select_mask\":15"));
+    assert(strstr(output,"\"index\":3,\"select\":8,\"match_mask\":8"));
+    assert(i2c.presence[0]==BVSTK_I2C_PRESENCE_RESPONDING && writes==previous_writes);
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);
+    assert(strstr(output,"\"last_read\":{\"reg\":0,\"val\":128,\"updated_ms\":1000}"));
+    i2c.presence[1]=BVSTK_I2C_PRESENCE_UNAVAILABLE;
+    http_run("GET","/api/ui/bus?bus=i2c&name=dev&action=cache","",200);
+    assert(strstr(output,"\"channel\":1,\"presence\":\"unavailable\",\"addresses\":[80,81]"));
+    http_run("GET","/api/ui/bus?bus=i2c&name=windowed&action=cache","",200);
+    assert(!strstr(output,"\"routing\""));
+    reset_fixture();
+}
+
+static void cache_read_groups(void)
+{
+    reset_fixture();
+    const uint8_t bytes[] = {0x12, 0x34, 0x56};
+    assert(bvstk_i2c_cache_read_block(&cache, 0, 2, bytes, 3, 1000, 7) == BVSTK_OK);
+    http_run("GET", "/api/ui/bus?bus=i2c&name=dev&action=cache", "", 200);
+    assert(strstr(output, "\"reg\":2,\"val\":18,\"valid\":true,\"source\":\"I2C\",\"updated_ms\":1000,\"read_id\":1,\"read_duration_ms\":7"));
+    assert(bvstk_i2c_cache_seed(&cache, 0, 2, 0x12) == BVSTK_OK);
+    assert(bvstk_i2c_cache_invalidate(&cache, 0, 3) == BVSTK_OK);
+    assert(bvstk_i2c_cache_write(&cache, 0, 4, 0x56) == BVSTK_OK);
+    http_run("GET", "/api/ui/bus?bus=i2c&name=dev&action=cache", "", 200);
+    assert(!strstr(output, "\"read_id\""));
+    reset_fixture();
+}
+
 int main(int argc,char **argv) {
     assert(argc==2);snprintf(storage,sizeof(storage),"%s",argv[1]);assert(!mkdir(storage,0700));
     for(int i=0;i<3;i++){char p[300];snprintf(p,sizeof(p),"%s/%d",storage,i);assert(!mkdir(p,0700));}
@@ -171,10 +241,12 @@ int main(int argc,char **argv) {
     assert(bvstk_i2c_config_parse_json(json,&i2c_config)==BVSTK_OK);
     strcpy(i2c_config.file_name,"dev.json"); strcpy(i2c_config.profile.label,"I2C metadata");
     strcpy(i2c_config.profile.register_map,"register_map.json"); strcpy(i2c_config.profile.view,"view.js");
+    strcpy(i2c_config.profile.icon,"icon.js");
     assert(bvstk_device_profile_format_mdio(&mdio_saved,json,sizeof(json),&n)==BVSTK_OK);
     assert(bvstk_mdio_config_parse(json,&mdio_saved)==BVSTK_OK);
     strcpy(mdio_saved.file_name,"dev.json"); strcpy(mdio_saved.profile.label,"MDIO metadata");
     strcpy(mdio_saved.profile.register_map,"register_map.json"); strcpy(mdio_saved.profile.view,"view.js");
+    strcpy(mdio_saved.profile.icon,"icon.js");
     init_services();
     i2c.events.publish = bvstk_observer_publish;
     mdio.events.publish = bvstk_observer_publish;
@@ -191,9 +263,10 @@ int main(int argc,char **argv) {
     assert(strstr(output,"\"available\":false,\"presence\":\"unavailable\""));
     mdio.cache[0][3].seeded=0;
     http_run("GET","/api/ui/bus?bus=mdio&name=dev","",200);revision(rev);assert(strstr(output,"\"saved\":false"));
-    assert(strstr(output,"\"register_map\":\"register_map.json\",\"view\":\"view.js\""));
+    assert(strstr(output,"\"register_map\":\"register_map.json\",\"view\":\"view.js\",\"icon\":\"icon.js\""));
     snprintf(path,sizeof(path),"/api/ui/bus?bus=mdio&name=dev&action=save&revision=%s",rev);
     http_run("PUT",path,"{}",200);assert(mdio_saves==1);
+    assert(!strcmp(mdio_saved.profile.icon,"icon.js"));
     save_ok=0;http_run("PUT",path,"{}",500);save_ok=1;
     http_run("PUT","/api/ui/bus?bus=mdio&name=dev&action=apply&revision=wrong","{}",409);
     snprintf(path,sizeof(path),"/api/ui/bus?bus=mdio&name=dev&action=apply&revision=%s",rev);
@@ -204,9 +277,10 @@ int main(int argc,char **argv) {
     assert(bvstk_mdio_service_get_config(&mdio,0,&mdio_after)==BVSTK_OK);
     assert(mdio_after.profile.version==2 && !strcmp(mdio_after.profile.label,"MDIO metadata"));
     assert(!strcmp(mdio_after.profile.register_map,"register_map.json") && !strcmp(mdio_after.profile.view,"view.js"));
+    assert(!strcmp(mdio_after.profile.icon,"icon.js"));
     http_run("PUT",path,json,409);
     http_run("GET","/api/ui/bus?bus=i2c&name=dev","",200);revision(rev);
-    assert(strstr(output,"\"register_map\":\"register_map.json\",\"view\":\"view.js\""));
+    assert(strstr(output,"\"register_map\":\"register_map.json\",\"view\":\"view.js\",\"icon\":\"icon.js\""));
     assert(strstr(output,"\"available\":false,\"presence\":\"unknown\""));
     assert(bvstk_i2c_cache_write(&cache,0,2,3)==BVSTK_OK);
     http_run("GET","/api/ui/bus?bus=i2c","",200);
@@ -222,6 +296,7 @@ int main(int argc,char **argv) {
     assert(bvstk_i2c_config_serialize_json(&i2c_config,json,sizeof(json),&n)==BVSTK_OK);
     http_run("PUT",path,json,200);
     assert(i2c_config.profile.version==2 && !strcmp(i2c_config.profile.label,"I2C metadata"));
+    assert(!strcmp(i2c_config.profile.icon,"icon.js"));
     http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&reg=2&val=4&confirm=true","{}",403);assert(!writes);
     http_run("PUT","/api/ui/bus?bus=i2c&name=dev&action=write&reg=2&val=3&confirm=true","{}",200);assert(writes==1);
     http_run("GET","/api/ui/bus?bus=i2c","",200);
@@ -313,5 +388,7 @@ int main(int argc,char **argv) {
     http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fclose-failure&confirm=true","x",500);
     mounted=0;http_run("GET","/api/ui/files?volume=sd-pl&path=%2F","",503);mounted=1;
     multiple_spaces();
+    routing_context();
+    cache_read_groups();
     puts("HTTP UI bus and filesystem tests passed");return 0;
 }

@@ -50,7 +50,8 @@ static void record_response(bvstk_i2c_master_service_t *service,
 }
 
 static void cache_response(bvstk_i2c_master_service_t *service, size_t device_id,
-    const bvstk_i2c_device_t *target, uint8_t reg, uint8_t value, bvstk_status_t status)
+    const bvstk_i2c_device_t *target, uint8_t reg, uint8_t value, bvstk_status_t status,
+    int physical_read)
 {
     bvstk_i2c_device_t current;
     bvstk_cache_sink_enter(&service->cache->sink);
@@ -59,7 +60,15 @@ static void cache_response(bvstk_i2c_master_service_t *service, size_t device_id
     if (bvstk_i2c_devices_get(service->devices, device_id, &current) == BVSTK_OK &&
         current.addr_7b == target->addr_7b && !strcmp(current.name, target->name) &&
         !memcmp(&current.endpoint, &target->endpoint, sizeof(current.endpoint)) && reg < current.reg_count) {
-        if (status == BVSTK_OK) (void)bvstk_i2c_cache_write(service->cache, device_id, reg, value);
+        if (status == BVSTK_OK) {
+            (void)bvstk_i2c_cache_write(service->cache, device_id, reg, value);
+            if (physical_read && current.endpoint.router.channel_count &&
+                reg == current.endpoint.router.reg) {
+                service->switch_observation[device_id] = (bvstk_i2c_switch_observation_t){
+                    .updated_ms = bvstk_platform_now_ms(), .value = value, .valid = 1U
+                };
+            }
+        }
         else (void)bvstk_i2c_cache_invalidate(service->cache, device_id, reg);
     }
     bvstk_cache_sink_leave(&service->cache->sink);
@@ -206,7 +215,7 @@ static bvstk_status_t route_control(bvstk_i2c_master_service_t *service, size_t 
             quiet ? BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED : BVSTK_EVENT_FLAG_NONE :
             BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
     cache_response(service, id, device, reg, *value,
-        write ? BVSTK_ERR_NOT_READY : status);
+        write ? BVSTK_ERR_NOT_READY : status, !write);
     if (write && !quiet)
         emit(service, status == BVSTK_OK ? BVSTK_EVENT_REG_COMMIT : BVSTK_EVENT_FAULT,
             (uint16_t)status, BVSTK_EVENT_SOURCE_INTERNAL, BVSTK_EVENT_OP_WRITE, device, reg, *value);
@@ -419,6 +428,21 @@ size_t bvstk_i2c_master_service_device_count(
                : 0U;
 }
 
+bvstk_status_t bvstk_i2c_master_service_switch_observation(
+    const bvstk_i2c_master_service_t *service, size_t device_id,
+    bvstk_i2c_switch_observation_t *out)
+{
+    bvstk_status_t status = service_status(service, device_id);
+    if (status != BVSTK_OK) return status;
+    if (!out) return BVSTK_ERR_MALFORMED;
+    bvstk_cache_sink_enter(&service->cache->sink);
+    if (!service->devices->items[device_id].endpoint.router.channel_count)
+        status = BVSTK_ERR_UNSUPPORTED;
+    else *out = service->switch_observation[device_id];
+    bvstk_cache_sink_leave(&service->cache->sink);
+    return status;
+}
+
 bvstk_status_t bvstk_i2c_master_service_device_info(
     const bvstk_i2c_master_service_t *service,
     size_t device_id,
@@ -529,7 +553,7 @@ bvstk_status_t bvstk_i2c_master_service_read_from(
             BVSTK_EVENT_OP_READ, &device, reg, target_status == BVSTK_OK ? *value : 0,
             (was_present || target_status == BVSTK_OK) ? BVSTK_EVENT_FLAG_NONE :
                 BVSTK_EVENT_FLAG_TELEMETRY_UNCONFIRMED);
-        cache_response(service, device_id, &device, reg, target_status == BVSTK_OK ? *value : 0, target_status);
+        cache_response(service, device_id, &device, reg, target_status == BVSTK_OK ? *value : 0, target_status, 1);
     }
     return status;
 }
@@ -557,7 +581,7 @@ bvstk_status_t bvstk_i2c_master_service_probe(
         record_response(service, device_id, wire_address(&device, reg),
                         target_status, 1);
         cache_response(service, device_id, &device, reg,
-                       target_status == BVSTK_OK ? value : 0U, target_status);
+                       target_status == BVSTK_OK ? value : 0U, target_status, 1);
     }
     return status;
 }
@@ -576,16 +600,34 @@ bvstk_status_t bvstk_i2c_master_service_sample(bvstk_i2c_master_service_t *servi
         bvstk_i2c_register_space(&device.endpoint, first) !=
         bvstk_i2c_register_space(&device.endpoint, first + count - 1U)) return BVSTK_ERR_RANGE;
     if (count == 1) return bvstk_i2c_master_service_probe(service, device_id, (uint8_t)first, timeout_ms);
-    if (!device.endpoint.transfer.configured ||
-        device.endpoint.transfer.read_sequence.mode != BVSTK_I2C_SEQUENCE_LINEAR)
+    if (!bvstk_i2c_read_block_contiguous(&device.endpoint, device.reg_count, first, count))
         return BVSTK_ERR_UNSUPPORTED;
+    uint64_t started_ms = bvstk_platform_now_ms();
     status = routed_transfer(service, &device, (uint8_t)first, values, 0,
         timeout_ms, &performed, &target_status, 1, count);
+    uint64_t finished_ms = bvstk_platform_now_ms();
     if (performed) {
         record_response(service, device_id, wire_address(&device, first), target_status, 1);
         bvstk_cache_sink_enter(&service->cache->sink);
-        for (unsigned r = 0; r < count; ++r)
-            cache_response(service, device_id, &device, (uint8_t)(first + r), values[r], target_status);
+        bvstk_i2c_device_t current;
+        if (bvstk_i2c_devices_get(service->devices, device_id, &current) == BVSTK_OK &&
+            current.addr_7b == device.addr_7b && !strcmp(current.name, device.name) &&
+            !memcmp(&current.endpoint, &device.endpoint, sizeof(current.endpoint)) &&
+            first + count <= current.reg_count) {
+            if (target_status == BVSTK_OK) {
+                uint64_t elapsed = finished_ms - started_ms;
+                (void)bvstk_i2c_cache_read_block(service->cache, device_id, first, values, count,
+                    finished_ms, elapsed > UINT32_MAX ? UINT32_MAX : (uint32_t)elapsed);
+                if (current.endpoint.router.channel_count && current.endpoint.router.reg >= first &&
+                    current.endpoint.router.reg < first + count)
+                    service->switch_observation[device_id] = (bvstk_i2c_switch_observation_t){
+                        .updated_ms = finished_ms, .value = values[current.endpoint.router.reg - first], .valid = 1U
+                    };
+            } else {
+                for (unsigned r = 0; r < count; ++r)
+                    (void)bvstk_i2c_cache_invalidate(service->cache, device_id, (uint8_t)(first + r));
+            }
+        }
         bvstk_cache_sink_leave(&service->cache->sink);
     }
     return status;
@@ -700,11 +742,11 @@ bvstk_status_t bvstk_i2c_master_service_write(
              &device,
              reg,
              value);
-        if (performed) cache_response(service, device_id, &device, reg, 0, status);
+        if (performed) cache_response(service, device_id, &device, reg, 0, status, 0);
         return status;
     }
     cache_response(service, device_id, &device, reg, value,
-        device.endpoint.transfer.invalidate_after_write ? BVSTK_ERR_NOT_READY : BVSTK_OK);
+        device.endpoint.transfer.invalidate_after_write ? BVSTK_ERR_NOT_READY : BVSTK_OK, 0);
     emit(service,
          BVSTK_EVENT_REG_COMMIT,
          0U,
@@ -792,6 +834,8 @@ bvstk_status_t bvstk_i2c_master_service_set_config(
         return status;
     }
     if (previous.addr_7b != device.addr_7b || previous.reg_count != device.reg_count) {
+        memset(&service->switch_observation[device_id], 0,
+               sizeof(service->switch_observation[device_id]));
         service->presence[device_id] = BVSTK_I2C_PRESENCE_UNKNOWN;
         memset(service->space_presence[device_id], BVSTK_I2C_PRESENCE_UNKNOWN,
                sizeof(service->space_presence[device_id]));

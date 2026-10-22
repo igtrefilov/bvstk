@@ -1,6 +1,7 @@
 {
   "schema_version": 2,
   "id": "pca9545a",
+  "icon": "icon.js",
   "device": {
     "model": "PCA9545APW",
     "vendor": "NXP",

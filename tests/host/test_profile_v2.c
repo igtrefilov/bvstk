@@ -63,6 +63,7 @@ static void same_metadata(const bvstk_profile_metadata_t *a,const bvstk_profile_
     assert(!strcmp(a->model,b->model) && !strcmp(a->vendor,b->vendor));
     assert(!strcmp(a->device_class,b->device_class) && !strcmp(a->label,b->label));
     assert(!strcmp(a->register_map,b->register_map) && !strcmp(a->view,b->view));
+    assert(!strcmp(a->icon,b->icon));
     for(unsigned r=0;r<count;++r) assert(!strcmp(a->ids+a->id_offset[r],b->ids+b->id_offset[r]));
 }
 static void policy_i2c(const i2c_device_config_t *a,const i2c_device_config_t *b)
@@ -128,6 +129,13 @@ static void malformed(const char *root)
         {"\"view\": \"view.js\"","\"view\": \"../view.js\""},
         {"\"view\": \"view.js\"","\"view\": \"https://example.com/view.js\""},
         {"\"view\": \"view.js\"","\"view\": \"\""},
+        {"\"icon\": \"icon.js\"","\"icon\": \"../icon.js\""},
+        {"\"icon\": \"icon.js\"","\"icon\": \"https://example.com/icon.js\""},
+        {"\"icon\": \"icon.js\"","\"icon\": \"icon.svg\""},
+        {"\"icon\": \"icon.js\"","\"icon\": \"\""},
+        {"\"icon\": \"icon.js\"","\"icon\": null"},
+        {"\"icon\": \"icon.js\"","\"icon\": 1"},
+        {"\"icon\": \"icon.js\"","\"icon\": \"icon.js\", \"icon\": \"icon.js\""},
         {"\"schema_version\": 2","\"schema_version\": 3"},
         {"\"schema_version\": 2","\"schema_version\": 2, \"schema_version\": 2"},
         {"\"schema_version\": 2,",""},

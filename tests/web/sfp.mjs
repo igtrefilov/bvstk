@@ -17,6 +17,13 @@ const compiled = validateRegisterMap(map, {bus:"i2c", regCount:256, addressSpace
 assert.equal(profile.transport.parent, "pca9545a");
 assert.equal(profile.transport.channel, 1);
 assert.equal(profile.defaults.register.access, "ro");
+assert.equal(profile.resources.find(r => r.id === "a2_6e").access, "rw");
+assert.equal(map.registers.find(r => r.id === "a2_6e").fields.find(f => f.id === "soft_disable").access, "rw");
+assert.equal(map.registers.find(r => r.id === "a2_6e").fields.find(f => f.id === "soft_rs0").access, "ro");
+assert.equal(map.registers.find(r => r.id === "a2_72").fields.every(f => f.access === "ro"), true);
+assert.equal(map.registers.find(r => r.id === "a2_73").fields.every(f => f.access === "ro"), true);
+assert.equal(map.registers.find(r => r.id === "a2_76").fields[0].access, "ro");
+assert.equal(map.registers.find(r => r.id === "a2_7f").fields[0].access, "ro");
 assert.deepEqual(profile.policy.write.rules, []);
 assert.deepEqual(profile.settings.cache_seed, []);
 assert.equal(profile.settings.apply_on_startup, false);

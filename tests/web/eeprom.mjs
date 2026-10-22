@@ -1,0 +1,64 @@
+import assert from "node:assert/strict";
+import {readFile} from "node:fs/promises";
+import vm from "node:vm";
+
+const source = await readFile(new URL("../../configs/i2c/pca9545a/p24c02a/view.js", import.meta.url), "utf8");
+assert(Buffer.byteLength(source) <= 65536);
+const sandbox = {window:{}};
+vm.runInNewContext(source, sandbox);
+const {createTracker} = sandbox.window.bvstkView;
+const entry = (reg, val, updated_ms = 1000, extra = {}) => ({reg,val,updated_ms,valid:true,source:"I2C",...extra});
+const snapshot = (cache, extra = {}) => ({device:{id:"memory",bus:"i2c",presence:"responding"},uptime_ms:2000,cache,...extra});
+const tracker = createTracker();
+let state = tracker.accept(snapshot([]));
+assert.equal(state.count, 0); assert.equal(state.bytes[0], null);
+state = tracker.accept(snapshot([entry(0, 0), entry(255, 255)]));
+assert.equal(state.count, 2); assert.equal(state.bytes[0].value, 0); assert.equal(state.bytes[255].value, 255);
+assert.equal(state.total, 0, "initial values are not changes");
+state = tracker.accept(snapshot([entry(0, 0, 1100), entry(255, 255)]));
+assert.equal(state.total, 0); assert.equal(state.bytes[0].time, 1100);
+state = tracker.accept(snapshot([entry(0, 10, 1200), entry(255, 255)]));
+assert.equal(state.total, 1); assert.equal(state.changed.length, 1); assert.equal(state.history[0].before, 0);
+state = tracker.accept(snapshot([entry(0, 10, 1200), entry(255, 255)]));
+assert.equal(state.total, 1, "duplicate HTTP snapshots must not duplicate history");
+state = tracker.accept(snapshot([entry(0, 11, 1150)]));
+assert.equal(state.total, 1); assert.equal(state.bytes[0].value, 10);
+assert.equal(state.bytes[0].current, false, "older observations are ignored");
+state = tracker.accept(snapshot([entry(0, 12, 1300)]));
+assert.equal(state.total, 1, "first observation after a gap re-establishes comparison");
+state = tracker.accept(snapshot([entry(0, 12, 1300)], {stale:true}));
+assert.equal(state.count, 0); assert.equal(state.bytes[0].value, 12);
+assert.equal(state.bytes[0].current, false);
+state = tracker.accept(snapshot([entry(0, 99, 1400)]));
+assert.equal(state.total, 1);
+state = tracker.accept(snapshot([entry(0, 100, 1500)]));
+assert.equal(state.total, 2); assert.equal(state.changed.length, 1);
+state = tracker.accept(snapshot([entry(0, 0, 1500)], {device:{id:"memory",bus:"i2c",presence:"unavailable"}}));
+assert.equal(state.count, 0); assert.equal(state.bytes[0].value, 100);
+const clean = createTracker();
+state = clean.accept(snapshot([
+  entry(0, 1, 1000, {source:"settings"}), entry(1, 2, 1000, {valid:false}),
+  entry(2, 256), entry(3, -1), entry(4, 1, -1), entry(5, 1, NaN),
+  entry(-1, 1), entry(256, 1), entry(6, 1, 1000, {source:"unknown"})
+]));
+assert.equal(state.count, 0); assert(state.bytes.every(e => e === null));
+state = clean.accept(snapshot([entry(7, 0, 1000, {source:"read"})]));
+assert.equal(state.count, 1);
+state = tracker.accept(snapshot([entry(0, 3, 10)], {uptime_ms:100}));
+assert.equal(state.total, 0); assert.equal(state.changed.length, 0);
+assert.equal(state.bytes[0].value, 3); assert.equal(state.bytes[255], null, "PS restart clears old memory");
+state = tracker.accept(snapshot([entry(0, 4, 20)], {uptime_ms:110}));
+assert.equal(state.total, 1);
+state = tracker.accept(snapshot([entry(0, 4, 20)], {uptime_ms:109}));
+assert.equal(state.total, 1, "small clock correction must not clear history");
+for (let i = 0; i < 300; i++) state = tracker.accept(snapshot([entry(0, i % 256, 1000 + i)], {uptime_ms:2000 + i}));
+assert.equal(state.history.length, 200); assert.equal(state.changed.length, 1); assert(state.total > 200);
+state = tracker.accept(snapshot([entry(0, 9)], {device:{id:"another-memory",bus:"i2c",presence:"responding"}}));
+assert.equal(state.total, 0); assert.equal(state.bytes[0].value, 9);
+const ordered = createTracker();
+ordered.accept(snapshot([entry(0, 1, 1000), entry(255, 1, 1000)]));
+state = ordered.accept(snapshot([entry(0, 2, 1900), entry(255, 2, 1500)]));
+assert.equal(state.history[0].address, 0, "history follows observation times, not address order");
+state = ordered.accept(snapshot([entry(0, 2, 1900), entry(255, 3, 1600)]));
+assert.equal(state.history[0].time, 1900); assert.equal(state.history[1].time, 1600);
+console.log("EEPROM: physical sources, zero/FF, sparse cache, change detection, gaps, stale state, reboot and bounded history passed");

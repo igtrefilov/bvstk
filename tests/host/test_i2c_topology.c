@@ -14,6 +14,7 @@ static bvstk_i2c_policy_t policy;
 static bvstk_i2c_master_service_t master;
 static bvstk_i2c_slave_service_t slave;
 static uint64_t now;
+static uint32_t wire_delay;
 static unsigned locks, unlocks, held, commits, denials, endpoint_transactions;
 typedef struct {
     uint8_t address, tx[3], value;
@@ -50,6 +51,7 @@ static bvstk_status_t transfer(void *c, uint8_t address, const uint8_t *tx,
     }
     if (op->status == BVSTK_OK)
         for (size_t i=0; i<nr; ++i) rx[i]=(uint8_t)(op->value+i);
+    now += wire_delay;
     return op->status;
 }
 static void event(void *ctx, const bvstk_event_t *e)
@@ -82,6 +84,7 @@ static void done(unsigned count)
 }
 static void init(size_t count)
 {
+    wire_delay = 0;
     assert(!held && expected == consumed);
     expected = consumed = locks = unlocks = commits = denials = 0;
     const bvstk_i2c_master_io_t io = {
@@ -464,6 +467,7 @@ static void block_sampling(void)
     for (unsigned i=0;i<16;++i) {
         assert(bvstk_i2c_cache_is_valid(&cache,1,224+i));
         assert(cache.values[1][224+i]==0x10+i && cache.updated_ms[1][224+i]==1234);
+        assert(cache.read_id[1][224+i] != 0 && cache.read_id[1][224+i] == cache.read_id[1][224]);
     }
     assert(commits==0 && endpoint_transactions==before);
     assert(bvstk_i2c_master_service_sample(&master,1,120,16,20)!=BVSTK_OK);
@@ -473,9 +477,97 @@ static void block_sampling(void)
     rd_switch(0x70,4);wr_switch(0x70,2);
     operation(0x51,1,96,0,0,16,0,BVSTK_ERR_IO);wr_switch(0x70,4);
     assert(bvstk_i2c_master_service_sample(&master,1,224,16,20)==BVSTK_ERR_IO);
-    for (unsigned i=0;i<16;++i) assert(!bvstk_i2c_cache_is_valid(&cache,1,224+i));
+    for (unsigned i=0;i<16;++i) {
+        assert(!bvstk_i2c_cache_is_valid(&cache,1,224+i));
+        assert(cache.read_id[1][224+i] == 0);
+    }
     done(1);
     assert(master.switch_known[0] && master.switch_value[0]==4);
+}
+
+static void rtc_sampling(void)
+{
+    topology(); now = 2000; wire_delay = 3;
+    rd_switch(0x70, 2); wr_switch(0x70, 1);
+    operation(0x51, 1, 0, 0, 0, 16, 0x10, BVSTK_OK); wr_switch(0x70, 2);
+    assert(bvstk_i2c_master_service_sample(&master, 1, 0, 16, 100) == BVSTK_OK);
+    done(1);
+    bvstk_i2c_cache_entry_t entry;
+    for (unsigned r = 0; r < 16; ++r) {
+        assert(bvstk_i2c_cache_entry(&cache, 1, r, &entry) == BVSTK_OK);
+        assert(entry.valid && !entry.seeded && entry.value == 0x10+r);
+        assert(entry.updated_ms == 2012 && entry.read_duration_ms == 12 && entry.read_id);
+        assert(entry.read_id == cache.read_id[1][0]);
+    }
+    uint32_t group = entry.read_id;
+    /* A scalar update at the same millisecond still breaks coherence. */
+    assert(bvstk_i2c_cache_write(&cache, 1, 2, 0x12) == BVSTK_OK);
+    assert(cache.updated_ms[1][2] == cache.updated_ms[1][3] && !cache.read_id[1][2]);
+    assert(bvstk_i2c_cache_seed(&cache, 1, 3, 0x13) == BVSTK_OK && !cache.read_id[1][3]);
+    const uint8_t bytes[] = {0, 1, 2};
+    assert(bvstk_i2c_cache_read_block(&cache, 1, 2, bytes, 3, now, 0) == BVSTK_OK);
+    assert(cache.read_id[1][2] != group && cache.read_id[1][2] == cache.read_id[1][4]);
+    assert(bvstk_i2c_cache_read_block(&cache, 1, 255, bytes, 3, now, 0) == BVSTK_ERR_RANGE);
+    cache.next_read_id = UINT32_MAX;
+    assert(bvstk_i2c_cache_read_block(&cache, 1, 0, bytes, 3, now, 0) == BVSTK_OK);
+    assert(cache.read_id[1][0] == 1 && cache.read_id[1][3] == 0 && cache.valid[1][3]);
+    assert(commits == 0); wire_delay = 0;
+}
+
+static void eeprom_sampling(void)
+{
+    topology();
+    for (unsigned i = 0; i < 256; ++i) {
+        now = 10000U + i * 10U;
+        rd_switch(0x70, 2); wr_switch(0x70, 1);
+        rd(0x57, (uint8_t)i, (uint8_t)(255U-i)); wr_switch(0x70, 2);
+        assert(bvstk_i2c_master_service_sample(&master, 2, i, 1, 20) == BVSTK_OK);
+        done(1);
+        assert(bvstk_i2c_cache_is_valid(&cache, 2, i));
+        assert(cache.values[2][i] == 255U-i && cache.updated_ms[2][i] == now);
+        assert(master.switch_known[0] && master.switch_value[0] == 2);
+    }
+    assert(commits == 0);
+    assert(bvstk_i2c_master_service_sample(&master, 2, 256, 1, 20) == BVSTK_ERR_RANGE);
+    done(0);
+}
+
+static void switch_observations(void)
+{
+    bvstk_i2c_switch_observation_t sample;
+    uint8_t value;
+    topology();
+    assert(bvstk_i2c_master_service_switch_observation(&master,0,&sample)==BVSTK_OK && !sample.valid);
+    assert(bvstk_i2c_master_service_switch_observation(&master,1,&sample)==BVSTK_ERR_UNSUPPORTED);
+    assert(bvstk_i2c_master_service_switch_observation(&master,0,NULL)==BVSTK_ERR_MALFORMED);
+    assert(bvstk_i2c_cache_seed(&cache,0,0,0xff)==BVSTK_OK);
+    assert(bvstk_i2c_master_service_switch_observation(&master,0,&sample)==BVSTK_OK && !sample.valid);
+    now=1234;
+    rd_switch(0x70,0x90);wr_switch(0x70,1);rd(0x51,2,0x42);wr_switch(0x70,0);
+    assert(bvstk_i2c_master_service_read(&master,1,2,&value,20)==BVSTK_OK);
+    done(1);
+    assert(!bvstk_i2c_cache_is_valid(&cache,0,0));
+    assert(bvstk_i2c_master_service_switch_observation(&master,0,&sample)==BVSTK_OK);
+    assert(sample.valid && sample.value==0x90 && sample.updated_ms==1234);
+    now=2345;
+    wr_switch(0x70,2);
+    assert(bvstk_i2c_master_service_write(&master,0,0,2,BVSTK_EVENT_SOURCE_CONSOLE,20)==BVSTK_OK);
+    done(1);
+    operation(0x70,0,0,0,0,1,0,BVSTK_ERR_IO);
+    assert(bvstk_i2c_master_service_probe(&master,0,0,20)==BVSTK_ERR_IO);
+    done(1);
+    assert(bvstk_i2c_master_service_switch_observation(&master,0,&sample)==BVSTK_OK);
+    assert(sample.valid && sample.value==0x90 && sample.updated_ms==1234);
+    rd_switch(0x70,0xff);
+    assert(bvstk_i2c_master_service_probe(&master,0,0,20)==BVSTK_OK);
+    done(1);
+    assert(bvstk_i2c_master_service_switch_observation(&master,0,&sample)==BVSTK_OK);
+    assert(sample.valid && sample.value==0xff && sample.updated_ms==2345);
+    assert(bvstk_i2c_master_service_set_policy(&master,0,I2C_POLICY_BLACKLIST)==BVSTK_OK);
+    assert(bvstk_i2c_master_service_switch_observation(&master,0,&sample)==BVSTK_OK && sample.valid);
+    topology();
+    assert(bvstk_i2c_master_service_switch_observation(&master,0,&sample)==BVSTK_OK && !sample.valid);
+    done(0); /* All observation getters are memory-only. */
 }
 
 int main(int argc, char **argv)
@@ -488,6 +580,9 @@ int main(int argc, char **argv)
     configurable_prefix();
     multiple_spaces(argv[1]);
     block_sampling();
+    rtc_sampling();
+    eeprom_sampling();
+    switch_observations();
     puts("I2C topology: generic profiles, atomic routes/restoration, policies, duplicate addresses, sequences and write verification passed");
     return 0;
 }

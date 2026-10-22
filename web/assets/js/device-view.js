@@ -6,7 +6,7 @@ export function deviceView(root, source, {onReady, onError}) {
   const iframe = document.createElement("iframe");
   iframe.className = "device-indicators-frame";
   iframe.title = "Показатели устройства";
-  iframe.setAttribute("sandbox", "allow-scripts");
+  iframe.setAttribute("sandbox", "allow-scripts allow-downloads");
   iframe.setAttribute("referrerpolicy", "no-referrer");
   iframe.hidden = true;
   let last, ready = false, stopped = false;
@@ -51,6 +51,7 @@ export function deviceView(root, source, {onReady, onError}) {
     });`;
   // A nonce allows these two scripts only. No allow-same-origin, network,
   // forms, popups, external images, nested frames or main-page DOM access.
+  // Views may export a local Blob snapshot with a user-facing download button.
   iframe.srcdoc = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${channel}'; style-src 'unsafe-inline'; connect-src 'none'; form-action 'none'; base-uri 'none'"><style>html,body{margin:0;padding:0;background:#fff;color:#24313a;font:14px Arial,sans-serif}*{box-sizing:border-box}#device-root{display:flow-root}</style></head><body><div id="device-root"></div><script nonce="${channel}" src="data:text/javascript;base64,${base64(bridge)}"></script><script nonce="${channel}" src="data:text/javascript;base64,${base64(source)}"></script></body></html>`;
   root.append(iframe);
   return {

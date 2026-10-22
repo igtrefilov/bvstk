@@ -33,8 +33,6 @@ const paths = {
   grid:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
   bus:'<path d="M2 8H22M2 16H22M6 8V3M18 16V21"/><circle cx="6" cy="3" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="21" r="1.5" fill="currentColor" stroke="none"/>',
   chip:'<rect x="6" y="6" width="12" height="12" rx=".5"/><path d="M9 2V6M15 2V6M9 18V22M15 18V22M2 9H6M2 15H6M18 9H22M18 15H22"/>',
-  memory:'<rect x="5" y="4" width="14" height="16" rx="1"/><path d="M2 7h3M2 12h3M2 17h3m14-10h3m-3 5h3m-3 5h3M9 8h6m-6 4h6m-6 4h3"/>',
-  sfp:'<rect x="3" y="6" width="18" height="11" rx="1.2"/><path d="M3 9h18M6 6V3h12v3M6 17v4h12v-4M9 17v4M12 17v4M15 17v4"/><rect x="6" y="11" width="5" height="3"/><rect x="13" y="11" width="5" height="3"/>',
   runtime:'<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2M12 2v2M12 20v2M2 12h2M20 12h2"/>',
   disk:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',
   storage:'<path d="M6 3h12l3 13v5H3v-5zM3 16h18M7 7h10M6 11h12M7 19h1"/>',
@@ -52,13 +50,6 @@ const paths = {
   trash:'<path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/>',
 };
 export const icon = (name, {ready, className = ""} = {}) => `<svg class="icon ${name === "folder" ? "folder" : ""} ${esc(className)}" data-icon-name="${esc(name)}" viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.file}${name === "chip" && typeof ready === "boolean" ? `<circle class="device-status${ready ? " ready" : ""}" cx="12" cy="12" r="2" stroke="none"/>` : ""}</svg>`;
-export function deviceIcon(profile) {
-  const requested = String(profile?.icon || "").toLowerCase();
-  const type = requested === "memory" || requested === "sfp" ? requested :
-    profile?.class === "memory" ? "memory" :
-    String(profile?.model || "").toUpperCase() === "SFP" ? "sfp" : "chip";
-  return icon(type, {className:"device-type-icon"});
-}
 export function deviceState(bus, device) {
   // Older I2C firmware reports service readiness as availability. Do not
   // misrepresent that flag as proof that a configured chip has responded.

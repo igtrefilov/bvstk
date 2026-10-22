@@ -2,24 +2,13 @@ import * as api from "./api.js";
 import {esc,hex,uptime} from "./ui.js";
 import {validRegisterMapName,validateRegisterMap,decodeRegisterMap} from "./register-map.js";
 import {deviceView} from "./device-view.js";
+import {readBundleAsset} from "./device-assets.js";
+export {bundlePath} from "./device-assets.js";
 
 const stamp = ms => Number.isFinite(ms) ? uptime(ms) + "." + String(ms % 1000).padStart(3,"0") : "—";
 const attributes = {latch_low:"Фиксация нуля до чтения",latch_high:"Фиксация единицы до чтения",read_clear:"Чтение очищает",self_clear:"Самосброс",nasr:"Не сбрасывается программным Reset",write_one_clear:"Запись единицы очищает",write_any_clear:"Любая запись очищает"};
 const access = {ro:"Только чтение",rw:"Чтение и запись",wo:"Только запись",none:"Доступ не предусмотрен"};
-export function bundlePath(bus, fileName, asset) {
-  const slash = typeof fileName === "string" ? fileName.lastIndexOf("/") : -1;
-  const directory = slash > 0 ? fileName.slice(0,slash) : "";
-  const leaf = slash > 0 ? fileName.slice(slash + 1) : fileName;
-  const components = directory.split("/");
-  const nested = slash > 0 && components.length <= 5 && components.every(part => /^[a-z0-9_-]{1,31}$/i.test(part)) &&
-    (leaf.toLowerCase() === "profile.json" || leaf.toLowerCase() === components.at(-1).toLowerCase() + ".json");
-  const flat = slash < 0 && typeof fileName === "string" && /^[a-z0-9_.-]+\.json$/i.test(fileName);
-  if (!["i2c","mdio"].includes(bus) || typeof fileName !== "string" || fileName.length >= 224 ||
-      (!nested && !flat) || fileName.includes("..") ||
-      typeof asset !== "string" || asset.length >= 64 || !/^[a-zA-Z0-9_-]+\.(json|js)$/.test(asset)) throw Error("Неверный путь пакета устройства");
-  return `/config/${bus}/${slash < 0 ? "" : fileName.slice(0,slash+1)}${asset}`;
-}
-export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}) {
+export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false,onSnapshot = () => {}}) {
   const controller = new AbortController(), cancel = () => controller.abort();
   signal.addEventListener("abort",cancel,{once:true});
   if (signal.aborted) cancel();
@@ -38,6 +27,7 @@ export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}
 
   function paint() {
     if (!compiled || !active()) return;
+    onSnapshot(detail,stale);
     const {map} = compiled, result = decodeRegisterMap(compiled,detail.cache || []);
     const identity = root.querySelector("[data-map-identity]");
     identity.textContent = !map.identity ? "Карта выбрана по профилю устройства; проверка идентификатора не задана." : result.identity === true ? "Идентификатор соответствует карте" : result.identity === false ? "Идентификатор не соответствует карте" : "Идентификатор не проверен по кэшу";
@@ -61,14 +51,15 @@ export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}
         target.querySelector("[data-field-raw]").textContent = decoded.raw ?? "—";
       }
     }
-    custom?.update({api_version:1,device:{id:detail.name || detail.config.name,bus,presence:detail.presence || "unknown",address_spaces:detail.address_spaces || []},stale,
+    custom?.update({api_version:1,device:{id:detail.name || detail.config.name,bus,presence:detail.presence || "unknown",address_spaces:detail.address_spaces || [],topology:detail.topology || null},stale,
+      routing:detail.routing || null,sample_uptime_ms:detail.uptime_ms ?? null,
       uptime_ms:Number.isFinite(clockValue) ? Math.floor(clockValue + performance.now() - clockReceived) : null,
       identity:result.identity,map,cache:detail.cache || [],
       summary:result.summary.map((item,i) => ({...item,title:map.summary[i].label})),fields:Object.fromEntries(result.fields)});
   }
   function render() {
     const {map} = compiled;
-    root.innerHTML = `<article class="card indicators-card"><h2>Показатели ${esc(map.device)}</h2><p data-map-fresh class="muted"></p><p data-map-identity></p><p data-map-message class="error-text"></p><div data-device-view></div><div class="indicator-grid" data-standard-summary>${map.summary.map(item => `<section data-indicator="${item.id}" class="indicator-tile"><span>${esc(item.label)}</span><strong class="indicator-value">Нет данных</strong><small>Метка времени <time>—</time></small>${item.note ? `<p class="muted">${esc(item.note)}</p>` : ""}</section>`).join("")}</div><p class="muted indicator-note">${esc(map.notes)}</p><p class="muted">Карта по <a href="${esc(map.source.url)}" target="_blank" rel="noopener noreferrer">${esc(map.source.document)} ${esc(map.source.revision)}</a>. Просмотр не выполняет физических чтений или записей.</p></article><article class="card"><h2>Расшифровка регистров</h2><div class="decoded-registers">${map.registers.map(reg => `<details data-decoded-register="${reg.id}"><summary><span class="mono">${reg.space ? esc(reg.space)+" " : ""}${hex(Number(reg.address))}</span> ${esc(reg.label)} <span class="mono" data-raw></span></summary><div class="decoded-body"><p class="muted">${esc(reg.name)}. Документация: ${esc(reg.section)}. Последнее обновление <time>—</time></p>${reg.note ? `<p>${esc(reg.note)}</p>` : ""}<div class="table-scroll"><table><thead><tr><th>Биты</th><th>Поле</th><th>Код</th><th>Расшифровка</th></tr></thead><tbody>${reg.fields.map(field => `<tr data-field="${field.id}"><td class="mono">${field.width > 1 ? field.lsb+field.width-1+":" : ""}${field.lsb}</td><td>${esc(field.label)}<small>${access[field.access]}. После сброса: ${esc(field.reset)}${field.attributes?.length ? ". "+field.attributes.map(a => attributes[a]).join(". ") : ""}${field.write_value !== undefined ? ". При записи: "+hex(Number(field.write_value)) : ""}</small></td><td class="mono" data-field-raw></td><td><span data-value></span>${field.note ? `<small>${esc(field.note)}</small>` : ""}</td></tr>`).join("")}</tbody></table></div></div></details>`).join("")}</div></article>`;
+    root.innerHTML = `<article class="card indicators-card"><h2>Показатели ${esc(map.device)}</h2><p data-map-fresh class="muted"></p><p data-map-identity></p><p data-map-message class="error-text"></p><div data-device-view></div><div class="indicator-grid" data-standard-summary>${map.summary.map(item => `<section data-indicator="${item.id}" class="indicator-tile"><span>${esc(item.label)}</span><strong class="indicator-value">Нет данных</strong><small>Метка времени <time>—</time></small>${item.note ? `<p class="muted">${esc(item.note)}</p>` : ""}</section>`).join("")}</div><p class="muted indicator-note">${esc(map.notes)}</p></article><article class="card"><h2>Расшифровка регистров</h2><div class="decoded-registers">${map.registers.map(reg => `<details data-decoded-register="${reg.id}"><summary><span class="mono">${reg.space ? esc(reg.space)+" " : ""}${hex(Number(reg.address))}</span> ${esc(reg.label)} <span class="mono" data-raw></span></summary><div class="decoded-body"><p class="muted">${esc(reg.name)}. Документация: ${esc(reg.section)}. Последнее обновление <time>—</time></p>${reg.note ? `<p>${esc(reg.note)}</p>` : ""}<div class="table-scroll"><table><thead><tr><th>Биты</th><th>Поле</th><th>Код</th><th>Расшифровка</th></tr></thead><tbody>${reg.fields.map(field => `<tr data-field="${field.id}"><td class="mono">${field.width > 1 ? field.lsb+field.width-1+":" : ""}${field.lsb}</td><td>${esc(field.label)}<small>${access[field.access]}. После сброса: ${esc(field.reset)}${field.attributes?.length ? ". "+field.attributes.map(a => attributes[a]).join(". ") : ""}${field.write_value !== undefined ? ". При записи: "+hex(Number(field.write_value)) : ""}</small></td><td class="mono" data-field-raw></td><td><span data-value></span>${field.note ? `<small>${esc(field.note)}</small>` : ""}</td></tr>`).join("")}</tbody></table></div></div></details>`).join("")}</div></article>`;
     const rawCard = root.querySelector(".decoded-registers").parentNode;
     const disclosure = document.createElement("details"), label = document.createElement("summary");
     label.textContent = "Расшифровка регистров";
@@ -76,9 +67,7 @@ export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}
     paint();
   }
   async function readAsset(name) {
-    const value = await api.request(api.fileUrl("flash",bundlePath(bus,detail.file_name,name),65536),{signal:controller.signal,raw:true});
-    if (new TextEncoder().encode(value).length > 65536) throw Error("Файл пакета больше 64 КиБ");
-    return value;
+    return readBundleAsset(bus,detail.file_name,name,controller.signal);
   }
   async function poll() {
     if (!active()) return;
@@ -88,6 +77,8 @@ export function indicatorsWorkspace(root, {bus,detail,signal,busy = () => false}
         if (active() && Array.isArray(next.cache)) {
           detail.cache = next.cache;
           if (typeof next.presence === "string") detail.presence = next.presence;
+          detail.uptime_ms = next.uptime_ms;
+          detail.routing = next.routing || null;
           syncClock(next.uptime_ms); stale = false; paint();
         }
       } catch (error) { if (active()) { stale = true; paint(); } }

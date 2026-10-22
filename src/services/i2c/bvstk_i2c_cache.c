@@ -66,6 +66,8 @@ bvstk_status_t bvstk_i2c_cache_write(bvstk_i2c_cache_t *cache,
     cache->values[device_id][reg] = value;
     cache->valid[device_id][reg] = 1U;
     cache->seeded[device_id][reg] = 0U;
+    cache->read_id[device_id][reg] = 0U;
+    cache->read_duration_ms[device_id][reg] = 0U;
     cache->updated_ms[device_id][reg] = bvstk_platform_now_ms();
     bvstk_cache_sink_entry(&cache->sink, device_id, reg, value, 1, 0, cache->updated_ms[device_id][reg]);
     bvstk_cache_sink_leave(&cache->sink);
@@ -85,8 +87,39 @@ bvstk_status_t bvstk_i2c_cache_seed(bvstk_i2c_cache_t *cache,
     cache->values[device_id][reg] = value;
     cache->valid[device_id][reg] = 1U;
     cache->seeded[device_id][reg] = 1U;
+    cache->read_id[device_id][reg] = 0U;
+    cache->read_duration_ms[device_id][reg] = 0U;
     cache->updated_ms[device_id][reg] = bvstk_platform_now_ms();
     bvstk_cache_sink_entry(&cache->sink, device_id, reg, value, 1, 1, cache->updated_ms[device_id][reg]);
+    bvstk_cache_sink_leave(&cache->sink);
+    return BVSTK_OK;
+}
+
+bvstk_status_t bvstk_i2c_cache_read_block(bvstk_i2c_cache_t *cache,
+    size_t device_id, unsigned first, const uint8_t *values, unsigned count,
+    uint64_t updated_ms, uint32_t duration_ms)
+{
+    bvstk_status_t status = cache_status(cache, device_id, 0);
+    if (status != BVSTK_OK) return status;
+    if (!values || !count || first >= I2C_CFG_MAX_REG_COUNT ||
+        count > I2C_CFG_MAX_REG_COUNT - first) return BVSTK_ERR_RANGE;
+    bvstk_cache_sink_enter(&cache->sink);
+    if (++cache->next_read_id == 0U) {
+        /* Reusing an ID must never join observations from different reads. */
+        memset(cache->read_id, 0, sizeof(cache->read_id));
+        memset(cache->read_duration_ms, 0, sizeof(cache->read_duration_ms));
+        cache->next_read_id = 1U;
+    }
+    for (unsigned i = 0; i < count; ++i) {
+        unsigned reg = first + i;
+        cache->values[device_id][reg] = values[i];
+        cache->valid[device_id][reg] = 1U;
+        cache->seeded[device_id][reg] = 0U;
+        cache->updated_ms[device_id][reg] = updated_ms;
+        cache->read_id[device_id][reg] = cache->next_read_id;
+        cache->read_duration_ms[device_id][reg] = duration_ms;
+        bvstk_cache_sink_entry(&cache->sink, device_id, reg, values[i], 1, 0, updated_ms);
+    }
     bvstk_cache_sink_leave(&cache->sink);
     return BVSTK_OK;
 }
@@ -103,6 +136,8 @@ bvstk_status_t bvstk_i2c_cache_invalidate(bvstk_i2c_cache_t *cache,
     cache->valid[device_id][reg] = 0U;
     cache->seeded[device_id][reg] = 0U;
     cache->updated_ms[device_id][reg] = 0U;
+    cache->read_id[device_id][reg] = 0U;
+    cache->read_duration_ms[device_id][reg] = 0U;
     bvstk_cache_sink_entry(&cache->sink, device_id, reg, 0, 0, 0, 0);
     bvstk_cache_sink_leave(&cache->sink);
     return BVSTK_OK;
@@ -125,6 +160,8 @@ bvstk_status_t bvstk_i2c_cache_entry(const bvstk_i2c_cache_t *cache,
     entry->valid = cache->valid[device_id][reg];
     entry->seeded = cache->seeded[device_id][reg];
     entry->updated_ms = cache->updated_ms[device_id][reg];
+    entry->read_id = cache->read_id[device_id][reg];
+    entry->read_duration_ms = cache->read_duration_ms[device_id][reg];
     bvstk_cache_sink_leave(&cache->sink);
     return BVSTK_OK;
 }

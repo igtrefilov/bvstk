@@ -185,6 +185,7 @@
 </details>
 <p><a class="internal-link" data-href="device-profile.md#Карта регистров" href="device-profile.md#Карта%20регистров">register_map</a></p>
 <p><a class="internal-link" data-href="device-profile.md#Индивидуальная форма" href="device-profile.md#Индивидуальная%20форма">view</a></p>
+<p><a class="internal-link" data-href="device-profile.md#Пиктограмма" href="device-profile.md#Пиктограмма">icon</a></p>
 </details>
 </div>
 

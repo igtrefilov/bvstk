@@ -1,6 +1,7 @@
 {
   "schema_version": 2,
   "id": "axp15060",
+  "icon": "icon.js",
   "register_map": "register_map.json",
   "view": "view.js",
   "device": {

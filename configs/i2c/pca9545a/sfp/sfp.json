@@ -1,6 +1,7 @@
 {
   "schema_version": 2,
   "id": "sfp",
+  "icon": "icon.js",
   "device": {
     "model": "SFP",
     "class": "phy",
@@ -346,7 +347,7 @@
     {"id":"a2_6b","kind":"register","space":"diagnostics","address":"0x6b"},
     {"id":"a2_6c","kind":"register","space":"diagnostics","address":"0x6c"},
     {"id":"a2_6d","kind":"register","space":"diagnostics","address":"0x6d"},
-    {"id":"a2_6e","kind":"register","space":"diagnostics","address":"0x6e"},
+    {"id":"a2_6e","kind":"register","space":"diagnostics","address":"0x6e","access":"rw"},
     {"id":"a2_6f","kind":"register","space":"diagnostics","address":"0x6f"},
     {"id":"a2_70","kind":"register","space":"diagnostics","address":"0x70"},
     {"id":"a2_71","kind":"register","space":"diagnostics","address":"0x71"},

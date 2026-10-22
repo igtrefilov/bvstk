@@ -61,7 +61,7 @@ try {
   const frame = () => page.frameLocator("iframe.device-indicators-frame");
   await frame().locator('[data-metric="speed"] [data-value]').filter({hasText:"100 Мбит/с"}).waitFor();
   assert.equal(await page.locator('[data-standard-summary]').isVisible(),false);
-  assert.equal(await page.locator('iframe').getAttribute('sandbox'),"allow-scripts");
+  assert.equal(await page.locator('iframe').getAttribute('sandbox'),"allow-scripts allow-downloads");
   await page.waitForTimeout(200); // initial sandbox height handshake
   const raw = page.locator('[data-decoded-register="bsr"]');
   await page.locator('article.card > details > summary').click();

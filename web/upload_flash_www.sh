@@ -5,8 +5,10 @@ set -euo pipefail
 DEVICE_IP="192.168.0.10"
 
 # Optional overrides (usually keep defaults):
-HTTP_PORT="80"
-CONSOLE_PORT="8888"
+HTTP_PORT="${HTTP_PORT:-80}"
+CONSOLE_PORT="${CONSOLE_PORT:-8888}"
+HTTP_TIMEOUT="${HTTP_TIMEOUT:-300}"
+RETRIES="${RETRIES:-2}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC_DIR="$SCRIPT_DIR/assets"
@@ -38,4 +40,5 @@ if [[ ! -d "$SRC_DIR" ]]; then
   exit 2
 fi
 
-exec python3 "$PY" "$DEVICE_IP" --http-port "$HTTP_PORT" --console-port "$CONSOLE_PORT" --src "$SRC_DIR"
+exec python3 "$PY" "$DEVICE_IP" --http-port "$HTTP_PORT" --console-port "$CONSOLE_PORT" \
+  --http-timeout "$HTTP_TIMEOUT" --retries "$RETRIES" --src "$SRC_DIR"

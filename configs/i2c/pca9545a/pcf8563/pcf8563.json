@@ -1,6 +1,7 @@
 {
   "schema_version": 2,
   "id": "pcf8563",
+  "icon": "icon.js",
   "device": {
     "model": "PCF8563-compatible RTC",
     "class": "generic",
@@ -41,6 +42,17 @@
       "host_read": "fresh",
       "host_current_read": true
     }
+  },
+  "acquisition": {
+    "enabled": true,
+    "read_delay_ms": 10,
+    "retry_delay_ms": 2000,
+    "groups": [{
+      "id": "rtc",
+      "interval_ms": 1000,
+      "chunk_size": 16,
+      "ranges": [{"first": "reg_00", "count": 16}]
+    }]
   },
   "defaults": {
     "register": {

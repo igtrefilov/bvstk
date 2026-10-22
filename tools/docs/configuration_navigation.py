@@ -72,7 +72,7 @@ PROFILE = {
     "settings": {"cache_seed": array({"resource": None, "value": None}),
                  "desired": array(), "apply_on_startup": None},
     "observability": {"telemetry": None, "events": None},
-    "register_map": None, "view": None,
+    "register_map": None, "view": None, "icon": None,
 }
 VALUES = {"код": {"label": None, "tone": None}}
 CONDITION = {"field": None, "equals": None}
@@ -145,7 +145,8 @@ NAVIGATION = {
             "settings.cache_seed": "Начальное заполнение кэша",
             "observability": "Наблюдение",
             "register_map": "Карта регистров",
-            "view": "Индивидуальная форма"
+            "view": "Индивидуальная форма",
+            "icon": "Пиктограмма"
         }
     },
     "map": {

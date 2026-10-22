@@ -65,7 +65,9 @@ try {
   page.on("pageerror",e=>errors.push(e.message));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);await page.waitForFunction(()=>window.ready);
   const frame=()=>page.frameLocator("iframe.device-indicators-frame");
-  await frame().locator('[data-state="0"]').filter({hasText:"Подключён"}).waitFor();
+  await frame().locator('[data-channel="0"] .channel-title').filter({hasText:"Канал 0"}).waitFor();
+  assert.equal(await frame().locator(".route-badge").count(),0);
+  assert.equal(await frame().locator(".irq-badge").count(),0);
   assert.equal(await page.locator('#tree a[data-device-name]').count(),4);
   assert.equal(await page.locator('[data-branch="pca9545a:0"] a').count(),2);
   assert.equal(await page.locator('[data-branch="pca9545a:3"] a').count(),1);

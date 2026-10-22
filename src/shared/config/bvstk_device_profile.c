@@ -495,6 +495,7 @@ bvstk_status_t bvstk_device_profile_metadata_validate(const bvstk_profile_metada
     size_t i, j;
     if (!p || count > I2C_CFG_MAX_REG_COUNT || !register_map_valid(p->register_map) ||
         !asset_name_valid(p->view, ".js") || (p->view[0] && !p->register_map[0]) ||
+        !asset_name_valid(p->icon, ".js") ||
         !acquisition_valid(&p->acquisition, count)) return BVSTK_ERR_MALFORMED;
     if (!p->version) return BVSTK_OK;
     if (p->version != 2U || !count || p->ids_size > sizeof(p->ids) || !p->ids_size || p->ids[0] ||
@@ -546,8 +547,7 @@ static int acquisition_options(view_t v, bvstk_profile_metadata_t *meta,
             if (!number(part[2], BVSTK_ACQUISITION_CHUNK_MAX, &n) || !n) return 0;
             g->chunk_size = (uint8_t)n;
         }
-        if (g->chunk_size > 1 && (!endpoint || !endpoint->transfer.configured ||
-            endpoint->transfer.read_sequence.mode != BVSTK_I2C_SEQUENCE_LINEAR)) return 0;
+        if (g->chunk_size > 1 && !endpoint) return 0;
         rcursor = NULL;
         while ((more = item(part[3], &rcursor, &range)) == 1) {
             if (g->range_count == BVSTK_ACQUISITION_RANGES_MAX || !fields(range, range_keys, 2, fields_) ||
@@ -555,6 +555,11 @@ static int acquisition_options(view_t v, bvstk_profile_metadata_t *meta,
                 !n || n > count - reg) return 0;
             if (endpoint && endpoint->space_count &&
                 bvstk_i2c_register_space(endpoint, reg) != bvstk_i2c_register_space(endpoint, reg + n - 1U)) return 0;
+            if (endpoint) for (unsigned offset = 0; offset < n; offset += g->chunk_size) {
+                unsigned chunk = n - offset;
+                if (chunk > g->chunk_size) chunk = g->chunk_size;
+                if (!bvstk_i2c_read_block_contiguous(endpoint, count, reg + offset, chunk)) return 0;
+            }
             g->ranges[g->range_count++] = (bvstk_acquisition_range_t){(uint16_t)reg, (uint16_t)n};
         }
         if (more < 0) return 0;
@@ -706,7 +711,7 @@ static int address_spaces(view_t array, bvstk_i2c_endpoint_t *out)
 
 static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c, mdio_phy_config_t *m)
 {
-    static const char *const root_keys[] = {"schema_version", "id", "device", "transport", "protocol", "resources", "defaults", "policy", "settings", "observability", "register_map", "view", "acquisition"};
+    static const char *const root_keys[] = {"schema_version", "id", "device", "transport", "protocol", "resources", "defaults", "policy", "settings", "observability", "register_map", "view", "acquisition", "icon"};
     static const char *const device_keys[] = {"model", "vendor", "class", "label"};
     static const char *const transport_keys[] = {"bus", "controller", "address", "address_bits", "parent", "channel", "address_spaces"};
     static const char *const protocol_keys[] = {"driver", "options", "transfer", "switch"};
@@ -722,7 +727,7 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     static const char *const observe_keys[] = {"telemetry", "events"};
     bvstk_profile_metadata_t *meta = mdio ? &m->profile : &i2c->profile;
     char *name = mdio ? m->name : i2c->name;
-    view_t root, r[13], f[14], defaults[14] = {{0}}, options[8] = {{0}}, policies[2];
+    view_t root, r[14], f[14], defaults[14] = {{0}}, options[8] = {{0}}, policies[2];
     view_t entry, part[3], list[2], rule[2], match[2];
     view_t router = {0};
     const char *cursor;
@@ -732,12 +737,14 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     int next, flag, mode;
     char presence_resource[32] = {0};
     size_t k, which, nr;
-    if (!document(json, &root) || !fields(root, root_keys, 13, r) ||
+    if (!document(json, &root) || !fields(root, root_keys, 14, r) ||
         !number(r[0], 2, &n) || n != 2U || !text(r[1], name, 32) || !id_valid(name)) return BVSTK_ERR_MALFORMED;
     if (r[10].p && (!text(r[10], meta->register_map, sizeof(meta->register_map)) ||
         !meta->register_map[0] || !register_map_valid(meta->register_map))) return BVSTK_ERR_MALFORMED;
     if (r[11].p && (!text(r[11], meta->view, sizeof(meta->view)) || !meta->view[0] ||
         !asset_name_valid(meta->view, ".js") || !meta->register_map[0])) return BVSTK_ERR_MALFORMED;
+    if (r[13].p && (!text(r[13], meta->icon, sizeof(meta->icon)) || !meta->icon[0] ||
+        !asset_name_valid(meta->icon, ".js"))) return BVSTK_ERR_MALFORMED;
     if (!fields(r[2], device_keys, 4, f) || !text(f[0], meta->model, sizeof(meta->model)) || !meta->model[0]) return BVSTK_ERR_MALFORMED;
     if (f[1].p && (!text(f[1], meta->vendor, sizeof(meta->vendor)) || !meta->vendor[0])) return BVSTK_ERR_MALFORMED;
     strcpy(meta->device_class, "generic");
@@ -1019,6 +1026,7 @@ static bvstk_status_t format(int mdio, const i2c_device_config_t *i2c, const mdi
     append(&w, "{\n  \"schema_version\": 2,\n  \"id\": "); quoted(&w, name);
     if (meta->register_map[0]) { append(&w, ",\n  \"register_map\": "); quoted(&w, meta->register_map); }
     if (meta->view[0]) { append(&w, ",\n  \"view\": "); quoted(&w, meta->view); }
+    if (meta->icon[0]) { append(&w, ",\n  \"icon\": "); quoted(&w, meta->icon); }
     append(&w, ",\n  \"device\": {\"model\": "); quoted(&w, meta->version ? meta->model : name);
     append(&w, ", \"class\": "); quoted(&w, meta->version ? meta->device_class : mdio ? "phy" : "generic");
     if (meta->version && meta->vendor[0]) { append(&w, ", \"vendor\": "); quoted(&w, meta->vendor); }

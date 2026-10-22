@@ -1,6 +1,7 @@
 {
   "schema_version": 2,
   "id": "ksz8081rna",
+  "icon": "icon.js",
   "device": {
     "model": "KSZ8081RNA",
     "vendor": "Microchip",

@@ -125,6 +125,25 @@ static inline bvstk_i2c_transfer_t bvstk_i2c_transfer_options(const bvstk_i2c_en
     return value;
 }
 
+/* A block can use auto-incrementing wrap mode as long as no byte crosses its
+ * wrap boundary. Preserve the external host's pointer semantics. */
+static inline int bvstk_i2c_read_block_contiguous(const bvstk_i2c_endpoint_t *e,
+    unsigned reg_count, unsigned first, unsigned count)
+{
+    if (!e || !count || first >= reg_count || count > reg_count - first) return 0;
+    const bvstk_address_space_t *space = bvstk_i2c_register_space(e, first);
+    if ((e->space_count && !space) ||
+        space != bvstk_i2c_register_space(e, first + count - 1U)) return 0;
+    if (count == 1) return 1;
+    if (!e->transfer.configured) return 0;
+    const bvstk_i2c_sequence_t *sequence = &e->transfer.read_sequence;
+    if (sequence->mode == BVSTK_I2C_SEQUENCE_LINEAR) return 1;
+    if (sequence->mode != BVSTK_I2C_SEQUENCE_WRAP) return 0;
+    unsigned span = sequence->span ? sequence->span : space ? space->count : reg_count;
+    unsigned local = first - (space ? space->first : 0U);
+    return span && count <= span - local % span;
+}
+
 /* File-format metadata is kept separate from the established bus-facing model.
  * The bridge adapters retain its policy/cache/polling semantics exactly. */
 #define BVSTK_PROFILE_JSON_MAX 65536u
@@ -138,6 +157,7 @@ typedef struct {
     char label[97];
     char register_map[BVSTK_REGISTER_MAP_NAME_MAX];
     char view[BVSTK_REGISTER_MAP_NAME_MAX];
+    char icon[BVSTK_REGISTER_MAP_NAME_MAX];
     uint16_t id_offset[I2C_CFG_MAX_REG_COUNT];
     uint16_t ids_size;
     char ids[BVSTK_PROFILE_IDS_CAP];

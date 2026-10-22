@@ -61,9 +61,68 @@ static void reject(const char *old, const char *replacement)
     strcpy(changed+n,replacement); strcat(changed,p+strlen(old));
     assert(bvstk_i2c_config_parse_json(changed,&saved) != BVSTK_OK);
 }
+static void eeprom_profile(const char *path)
+{
+    FILE *f = fopen(path, "rb"); assert(f);
+    size_t n = fread(input, 1, sizeof(input)-1, f); assert(feof(f)); input[n] = 0; fclose(f);
+    assert(bvstk_i2c_config_parse_json(input, &config) == BVSTK_OK);
+    const bvstk_acquisition_plan_t *p = &config.profile.acquisition;
+    assert(p->enabled && p->group_count == 1 && p->groups[0].condition_count == 0);
+    assert(p->groups[0].range_count == 1 && p->groups[0].ranges[0].first == 0 &&
+           p->groups[0].ranges[0].count == 256 && p->groups[0].chunk_size == 1);
+    assert(p->read_delay_ms == 10 && p->groups[0].interval_ms == 5000);
+    assert(config.endpoint.transfer.read_sequence.mode == BVSTK_I2C_SEQUENCE_WRAP);
+    assert(config.endpoint.transfer.write_sequence.span == 8 && config.whitelist_len == 0);
+    assert(bvstk_device_profile_format_i2c(&config, output, sizeof(output), &n) == BVSTK_OK);
+    assert(bvstk_i2c_config_parse_json(output, &saved) == BVSTK_OK);
+    assert(!memcmp(p, &saved.profile.acquisition, sizeof(*p)));
+    bvstk_acquisition_state_t state = {0};
+    const bvstk_acquisition_io_t io = {NULL, is_ready, cached, read_chunk, invalidate};
+    ready = 1; result = BVSTK_OK; reads = invalidations = 0;
+    for (unsigned i = 0; i < 256; ++i) {
+        assert(bvstk_acquisition_step(p, &state, &io, i * 10U));
+        assert(first_read == i && count_read == 1);
+    }
+    assert(reads == 256 && !bvstk_acquisition_step(p, &state, &io, 7549));
+    assert(bvstk_acquisition_step(p, &state, &io, 7550) && first_read == 0);
+    ready = 0;
+    assert(!bvstk_acquisition_step(p, &state, &io, 7560) && invalidations == 256);
+    ready = 1;
+    assert(bvstk_acquisition_step(p, &state, &io, 7570) && first_read == 0);
+}
+
+static void rtc_profile(const char *path)
+{
+    FILE *f = fopen(path, "rb"); assert(f);
+    size_t n = fread(input, 1, sizeof(input)-1, f); assert(feof(f)); input[n] = 0; fclose(f);
+    assert(bvstk_i2c_config_parse_json(input, &config) == BVSTK_OK);
+    const bvstk_acquisition_plan_t *p = &config.profile.acquisition;
+    assert(p->enabled && p->group_count == 1 && p->groups[0].chunk_size == 16);
+    assert(p->groups[0].range_count == 1 && p->groups[0].ranges[0].first == 0 &&
+           p->groups[0].ranges[0].count == 16 && p->groups[0].interval_ms == 1000);
+    assert(config.endpoint.transfer.read_sequence.mode == BVSTK_I2C_SEQUENCE_WRAP);
+    assert(config.endpoint.transfer.address_bytes == 1 && !config.endpoint.transfer.stop_before_read);
+    assert(config.whitelist_len == 0 && config.settings_len == 0);
+    assert(bvstk_device_profile_format_i2c(&config, output, sizeof(output), &n) == BVSTK_OK);
+    assert(bvstk_i2c_config_parse_json(output, &saved) == BVSTK_OK);
+    assert(!memcmp(p, &saved.profile.acquisition, sizeof(*p)));
+    reject("\"mode\": \"wrap\",\n        \"span\": 0", "\"mode\": \"wrap\",\n        \"span\": 8");
+    reject("\"mode\": \"wrap\",\n        \"span\": 0", "\"mode\": \"fixed\"");
+    bvstk_acquisition_state_t state = {0};
+    const bvstk_acquisition_io_t io = {NULL, is_ready, cached, read_chunk, invalidate};
+    ready = 1; result = BVSTK_OK; reads = invalidations = 0;
+    assert(bvstk_acquisition_step(p, &state, &io, 0) && first_read == 0 && count_read == 16);
+    assert(!bvstk_acquisition_step(p, &state, &io, 999));
+    assert(bvstk_acquisition_step(p, &state, &io, 1000) && reads == 2);
+    ready = 0;
+    assert(!bvstk_acquisition_step(p, &state, &io, 1001) && invalidations == 16);
+    ready = 1;
+    assert(bvstk_acquisition_step(p, &state, &io, 1002) && first_read == 0 && count_read == 16);
+}
+
 int main(int argc, char **argv)
 {
-    assert(argc == 2); FILE *f=fopen(argv[1],"rb"); assert(f);
+    assert(argc == 4); FILE *f=fopen(argv[1],"rb"); assert(f);
     size_t n=fread(input,1,sizeof(input)-1,f); assert(feof(f)); input[n]=0; fclose(f);
     assert(bvstk_i2c_config_parse_json(input,&config)==BVSTK_OK);
     assert(config.profile.acquisition.enabled && config.profile.acquisition.group_count==4);
@@ -81,6 +140,8 @@ int main(int argc, char **argv)
     reject("\"presence_check_enabled\": true", "\"presence_check_enabled\": false");
     reject("\"mode\": \"linear\"", "\"mode\": \"fixed\"");
     scheduler();
-    puts("Acquisition: profile round-trip, bounds, conditions, fair chunks, retries and reconnect passed");
+    eeprom_profile(argv[2]);
+    rtc_profile(argv[3]);
+    puts("Acquisition: SFP, EEPROM and RTC profiles, full scans, bounds, fair chunks, retries and reconnect passed");
     return 0;
 }

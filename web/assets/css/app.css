@@ -168,6 +168,9 @@ tr.changed td:first-child { border-left:3px solid #d89a24; }
 .device-heading { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 .device-heading-copy { display:flex; align-items:baseline; gap:18px; flex-wrap:wrap; min-width:0; }
 .device-heading .device-type-icon { width:48px; height:48px; color:#7d8d98; stroke-width:1.45; }
+.device-icon-slot { display:block; width:48px; height:48px; flex:none; pointer-events:none; }
+.device-icon-frame { display:block; width:48px; height:48px; border:0; background:transparent; }
+.device-icon-slot [hidden] { display:none; }
 .device-heading h1 { margin:0; font-size:25px; }
 .device-heading .device-name { font-size:21px; color:#506575; }
 .device-meta { display:flex; gap:24px; flex-wrap:wrap; align-items:center; margin:12px 0 16px; }

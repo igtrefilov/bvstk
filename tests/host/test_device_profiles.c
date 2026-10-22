@@ -31,9 +31,14 @@ int main(int argc,char **argv)
     assert(!strcmp(i2c.endpoint.spaces[1].id,"diagnostics"));
     assert(i2c.endpoint.spaces[1].address==0x51 && i2c.endpoint.spaces[1].first==128);
     assert(i2c.endpoint.spaces[1].count==128);
-    for (unsigned n=0;n<sizeof(i2c.endpoint.read_only);n++) assert(i2c.endpoint.read_only[n]==0xFF);
+    for (unsigned reg=0; reg<i2c.reg_count; ++reg) {
+        const int writable = reg == 128u + 110u; /* A2h byte 110, Soft TX Disable */
+        const int read_only = (i2c.endpoint.read_only[reg / 8u] >> (reg % 8u)) & 1u;
+        assert(read_only == !writable);
+    }
     assert(i2c.policy==I2C_POLICY_WHITELIST && !i2c.whitelist_len && !i2c.settings_len);
     assert(!strcmp(i2c.profile.register_map,"register_map.json") && !strcmp(i2c.profile.view,"view.js"));
+    assert(!strcmp(i2c.profile.icon,"icon.js"));
     assert(i2c.profile.ids_size<=BVSTK_PROFILE_IDS_CAP);
     size_t json_size=0;
     assert(bvstk_device_profile_format_i2c(&i2c,json,sizeof(json),&json_size)==BVSTK_OK && json_size>0);
@@ -51,6 +56,13 @@ int main(int argc,char **argv)
         assert(bvstk_mdio_config_parse(json,&mdio)==BVSTK_OK);
         assert(!strcmp(mdio.name,names[i]) && mdio.phy_addr==i+2 && mdio.reg_count==32);
         assert(mdio.policy==MDIO_POLICY_WHITELIST && !mdio.whitelist_len && !mdio.settings_len && !mdio.autopoll_enabled);
+        /* Icon-only bundles have no dependency on a map or a custom view. */
+        assert(!mdio.profile.register_map[0] && !mdio.profile.view[0]);
+        assert(!strcmp(mdio.profile.icon,"icon.js"));
+        mdio_phy_config_t saved;
+        assert(bvstk_device_profile_format_mdio(&mdio,json,sizeof(json),&json_size)==BVSTK_OK);
+        assert(bvstk_mdio_config_parse(json,&saved)==BVSTK_OK);
+        assert(!memcmp(&saved.profile,&mdio.profile,sizeof(mdio.profile)));
     }
     const char *good[]={"lan8720/lan8720.json","lan8720/profile.json","AxP15060.json","a-b_c/a-b_c.json","a-b_c/profile.json","a/b/profile.json","pca9545a/pcf8563/pcf8563.json"};
     const char *bad[]={"../profile.json","/profile.json","a/../profile.json","a//b/b.json","a/register_map.json","a./profile.json","a\\profile.json","a/","a.json.bak"};
@@ -77,6 +89,6 @@ int main(int argc,char **argv)
     strcpy(mdio.file_name,"lan8720/lan8720.json");
     assert(bvstk_mdio_config_validate(&mdio)==BVSTK_OK);
     assert(!strcmp(mdio.profile.register_map,"register_map.json") && !strcmp(mdio.profile.view,"view.js"));
-    puts("Device profile tests passed: PCA9555, SFP, DP83848C, KSZ8081RNA; writes denied, no seeded presence");
+    puts("Device profile tests passed: PCA9555, SFP, DP83848C, KSZ8081RNA; SFP Soft TX Disable writable, other SFP registers read-only");
     return 0;
 }

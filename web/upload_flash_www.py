@@ -220,8 +220,15 @@ def _sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def _http_get_small(*, host: str, port: int, url_path: str, max_bytes: int = 512 * 1024) -> tuple[int, bytes]:
-    conn = HTTPConnection(host, port, timeout=10)
+def _http_get_small(
+    *,
+    host: str,
+    port: int,
+    url_path: str,
+    max_bytes: int = 512 * 1024,
+    timeout_s: float = 60.0,
+) -> tuple[int, bytes]:
+    conn = HTTPConnection(host, port, timeout=timeout_s)
     try:
         conn.request("GET", url_path, headers={"Connection": "close"})
         resp = conn.getresponse()
@@ -249,42 +256,128 @@ def _http_put_file(
     overall_total: int,
     files_done: int,
     files_total: int,
+    timeout_s: float,
+    retries: int,
 ) -> None:
-    conn = HTTPConnection(host, port, timeout=15)
-    try:
-        conn.putrequest("PUT", url_path)
-        conn.putheader("Content-Length", str(file_size))
-        conn.putheader("Content-Type", "application/octet-stream")
-        conn.endheaders()
-
-        sent = 0
-        with local_path.open("rb") as f:
-            while True:
-                chunk = f.read(64 * 1024)
-                if not chunk:
-                    break
-                conn.send(chunk)
-                sent += len(chunk)
-                progress.render(
-                    overall_done=overall_before + sent,
-                    overall_total=overall_total,
-                    files_done=files_done,
-                    files_total=files_total,
-                    file_name=display_name,
-                    file_done=sent,
-                    file_total=file_size,
-                )
-
-        resp = conn.getresponse()
-        body = resp.read(256)  # keep it short
-        if resp.status != 200:
-            txt = body.decode("utf-8", errors="ignore").strip()
-            raise RuntimeError(f"HTTP {resp.status} {resp.reason}: {txt or '<no body>'} ({url_path})")
-    finally:
+    last_error: Exception | None = None
+    for attempt in range(retries + 1):
+        conn = HTTPConnection(host, port, timeout=timeout_s)
         try:
-            conn.close()
-        except Exception:
-            pass
+            conn.putrequest("PUT", url_path)
+            conn.putheader("Content-Length", str(file_size))
+            conn.putheader("Content-Type", "application/octet-stream")
+            conn.endheaders()
+
+            sent = 0
+            with local_path.open("rb") as f:
+                while True:
+                    chunk = f.read(64 * 1024)
+                    if not chunk:
+                        break
+                    conn.send(chunk)
+                    sent += len(chunk)
+                    progress.render(
+                        overall_done=overall_before + sent,
+                        overall_total=overall_total,
+                        files_done=files_done,
+                        files_total=files_total,
+                        file_name=display_name,
+                        file_done=sent,
+                        file_total=file_size,
+                    )
+
+            resp = conn.getresponse()
+            body = resp.read(1024)  # keep it short
+            if resp.status != 200:
+                txt = body.decode("utf-8", errors="ignore").strip()
+                raise RuntimeError(f"HTTP {resp.status} {resp.reason}: {txt or '<no body>'} ({url_path})")
+
+            # The documented /api/ui/file endpoint reports the number of bytes
+            # committed after the file is closed.  Treat a short response as a
+            # failed transfer even when the HTTP status is 200.
+            try:
+                reply = json.loads(body.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                reply = None
+            if isinstance(reply, dict) and isinstance(reply.get("bytes"), int):
+                if reply["bytes"] != file_size:
+                    raise RuntimeError(
+                        f"short upload: device committed {reply['bytes']} of {file_size} bytes ({url_path})"
+                    )
+            return
+        except (OSError, RuntimeError, TimeoutError) as exc:
+            last_error = exc
+            if attempt >= retries:
+                raise RuntimeError(f"upload failed after {attempt + 1} attempt(s): {exc}") from exc
+            delay_s = min(5.0, 1.0 + attempt)
+            print(
+                f"WARN: {display_name}: {exc}; retry {attempt + 1}/{retries} in {delay_s:.0f}s",
+                file=sys.stderr,
+            )
+            time.sleep(delay_s)
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    # The loop either returns or raises.  Keep the type checker aware of that
+    # invariant if the implementation is changed later.
+    raise RuntimeError(f"upload failed: {last_error or 'unknown error'} ({url_path})")
+
+
+def _http_put_bytes(
+    *,
+    host: str,
+    port: int,
+    url_path: str,
+    payload: bytes,
+    timeout_s: float,
+    retries: int,
+) -> None:
+    """PUT a small control file with the same retry semantics as an asset."""
+    last_error: Exception | None = None
+    for attempt in range(retries + 1):
+        conn = HTTPConnection(host, port, timeout=timeout_s)
+        try:
+            conn.putrequest("PUT", url_path)
+            conn.putheader("Content-Length", str(len(payload)))
+            conn.putheader("Content-Type", "application/json; charset=utf-8")
+            conn.endheaders()
+            conn.send(payload)
+            resp = conn.getresponse()
+            body = resp.read(1024)
+            if resp.status != 200:
+                txt = body.decode("utf-8", errors="ignore").strip()
+                raise RuntimeError(f"HTTP {resp.status} {resp.reason}: {txt or '<no body>'} ({url_path})")
+            return
+        except (OSError, RuntimeError, TimeoutError) as exc:
+            last_error = exc
+            if attempt >= retries:
+                raise RuntimeError(f"upload failed after {attempt + 1} attempt(s): {exc}") from exc
+            delay_s = min(5.0, 1.0 + attempt)
+            print(f"WARN: control file: {exc}; retry {attempt + 1}/{retries} in {delay_s:.0f}s", file=sys.stderr)
+            time.sleep(delay_s)
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+    raise RuntimeError(f"upload failed: {last_error or 'unknown error'} ({url_path})")
+
+
+def _file_url(prefix: str, rel_posix: str, *, put: bool) -> str:
+    """Build a URL for an asset relative to flash:/www.
+
+    The documented API uses a query-encoded FAT path.  Keep accepting the
+    legacy ``/flash/www`` prefix for callers that explicitly request it.
+    """
+    prefix = prefix.rstrip("/")
+    if prefix == "/api/ui/file":
+        path = quote("/www/" + rel_posix, safe="")
+        suffix = "&confirm=true&overwrite=true" if put else ""
+        return f"{prefix}?volume=flash&path={path}{suffix}"
+    return prefix + "/" + quote(rel_posix, safe="/")
 
 
 def _parse_manifest(data: bytes) -> dict:
@@ -329,8 +422,20 @@ def main() -> int:
     )
     ap.add_argument(
         "--http-prefix",
-        default="/flash/www",
-        help="HTTP PUT prefix (default: /flash/www)",
+        default="/api/ui/file",
+        help="HTTP file endpoint (default: /api/ui/file; legacy /flash/www is also accepted)",
+    )
+    ap.add_argument(
+        "--http-timeout",
+        type=float,
+        default=300.0,
+        help="Per-request timeout in seconds (default: 300; Flash writes can be slow)",
+    )
+    ap.add_argument(
+        "--retries",
+        type=int,
+        default=2,
+        help="Retries after a failed upload (default: 2)",
     )
     ap.add_argument(
         "--manifest",
@@ -345,6 +450,11 @@ def main() -> int:
     ap.add_argument("--no-mkdir", action="store_true", help="Do not create directories via TCP console")
     ap.add_argument("--dry-run", action="store_true", help="Print actions without uploading")
     args = ap.parse_args()
+
+    if args.http_timeout <= 0:
+        ap.error("--http-timeout must be positive")
+    if args.retries < 0:
+        ap.error("--retries must be non-negative")
 
     script_abs = Path(__file__).resolve()
     src_dir = (
@@ -368,13 +478,18 @@ def main() -> int:
     if not manifest_name:
         print("ERROR: --manifest must not be empty", file=sys.stderr)
         return 2
-    manifest_url_path = prefix + "/" + quote(manifest_name, safe="/")
+    manifest_url_path = _file_url(prefix, manifest_name, put=False)
 
     remote_manifest: dict | None = None
     remote_manifest_raw: bytes | None = None
     if not args.force and not args.dry_run:
         try:
-            st, data = _http_get_small(host=args.host, port=args.http_port, url_path=manifest_url_path)
+            st, data = _http_get_small(
+                host=args.host,
+                port=args.http_port,
+                url_path=manifest_url_path,
+                timeout_s=min(args.http_timeout, 60.0),
+            )
             if st == 200 and data:
                 remote_manifest = _parse_manifest(data)
                 remote_manifest_raw = data
@@ -454,8 +569,8 @@ def main() -> int:
     try:
         for i, lf in enumerate(to_upload, start=1):
             rel = lf.rel_posix
-            # Build /flash/www/<rel> with URL-encoding.
-            url_path = prefix + "/" + quote(rel, safe="/")
+            # Build the selected HTTP file URL for flash:/www/<rel>.
+            url_path = _file_url(prefix, rel, put=True)
 
             if args.dry_run:
                 if args.force:
@@ -487,6 +602,8 @@ def main() -> int:
                 overall_total=total_bytes,
                 files_done=i,
                 files_total=files_total,
+                timeout_s=args.http_timeout,
+                retries=args.retries,
             )
             done_bytes += lf.size
 
@@ -498,22 +615,14 @@ def main() -> int:
             if remote_manifest_raw is not None and remote_manifest_raw == local_manifest_bytes:
                 should_put_manifest = False
             if should_put_manifest:
-                conn = HTTPConnection(args.host, args.http_port, timeout=10)
-                try:
-                    conn.putrequest("PUT", manifest_url_path)
-                    conn.putheader("Content-Length", str(len(local_manifest_bytes)))
-                    conn.putheader("Content-Type", "application/json; charset=utf-8")
-                    conn.endheaders()
-                    conn.send(local_manifest_bytes)
-                    resp = conn.getresponse()
-                    _ = resp.read(256)
-                    if resp.status != 200:
-                        raise RuntimeError(f"PUT manifest: HTTP {resp.status} {resp.reason}")
-                finally:
-                    try:
-                        conn.close()
-                    except Exception:
-                        pass
+                _http_put_bytes(
+                    host=args.host,
+                    port=args.http_port,
+                    url_path=_file_url(prefix, manifest_name, put=True),
+                    payload=local_manifest_bytes,
+                    timeout_s=args.http_timeout,
+                    retries=args.retries,
+                )
 
         progress.render(
             overall_done=total_bytes,

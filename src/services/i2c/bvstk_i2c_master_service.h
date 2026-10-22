@@ -35,6 +35,14 @@ typedef enum {
     BVSTK_I2C_PRESENCE_UNAVAILABLE
 } bvstk_i2c_presence_t;
 
+/* Historical physical read of a profile-declared router control register.
+ * A sample survives route writes; it never makes the operational cache valid. */
+typedef struct {
+    uint64_t updated_ms;
+    uint8_t value;
+    uint8_t valid;
+} bvstk_i2c_switch_observation_t;
+
 typedef struct {
     bvstk_i2c_master_hw_t *hardware;
     bvstk_i2c_master_io_t io;
@@ -50,6 +58,7 @@ typedef struct {
     /* Last confirmed persistent switch masks; temporary PS routes are restored. */
     uint8_t switch_value[I2C_CFG_MAX_DEVICES];
     uint8_t switch_known[I2C_CFG_MAX_DEVICES];
+    bvstk_i2c_switch_observation_t switch_observation[I2C_CFG_MAX_DEVICES];
     uint8_t initialized;
 } bvstk_i2c_master_service_t;
 
@@ -73,6 +82,9 @@ bvstk_status_t bvstk_i2c_master_service_device_presence(
     const bvstk_i2c_master_service_t *service,
     size_t device_id,
     bvstk_i2c_presence_t *out);
+/* Memory-only snapshot. UNSUPPORTED for endpoints without a switch descriptor. */
+bvstk_status_t bvstk_i2c_master_service_switch_observation(
+    const bvstk_i2c_master_service_t *, size_t, bvstk_i2c_switch_observation_t *);
 bvstk_status_t bvstk_i2c_master_service_find_by_name(
     const bvstk_i2c_master_service_t *service,
     const char *name,

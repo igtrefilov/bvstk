@@ -71,6 +71,8 @@ static void policy_storage_roundtrip(void)
     assert(s_mdio_cfgs[0].settings_len == original_mdio.settings_len);
     assert(!strcmp((*config_store_find_i2c_device_by_name("axp15060")).profile.register_map, original_i2c.profile.register_map));
     assert(!strcmp(s_mdio_cfgs[0].profile.view, original_mdio.profile.view));
+    assert(!strcmp((*config_store_find_i2c_device_by_name("axp15060")).profile.icon, "icon.js"));
+    assert(!strcmp(s_mdio_cfgs[0].profile.icon, "icon.js"));
     /* A failed flush must report failure and leave the previous profile usable. */
     sync_failure = 1;
     assert(!save_i2c_device_locked(&original_i2c));
@@ -94,11 +96,13 @@ static void nested_storage_roundtrip(void)
     startup();
     stored=config_store_find_i2c_device_by_name("pcf8563");
     assert(stored && !strcmp(stored->profile.label,"RTC"));
+    assert(!strcmp(stored->profile.icon,"icon.js"));
     assert(!memcmp(&stored->endpoint,&changed.endpoint,sizeof(stored->endpoint)));
     assert(f_unlink(path)==FR_OK); /* interrupted replace: restore nested .bak */
     startup();
     stored=config_store_find_i2c_device_by_name("pcf8563");
     assert(stored && !strcmp(stored->endpoint.parent,"pca9545a"));
+    assert(!strcmp(stored->profile.icon,"icon.js"));
     assert(!strcmp(stored->file_name,"pca9545a/pcf8563/pcf8563.json"));
     assert(file_exists(path));
 }

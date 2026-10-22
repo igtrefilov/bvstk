@@ -14,6 +14,10 @@ typedef struct {
     uint8_t valid[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
     uint8_t seeded[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
     uint64_t updated_ms[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
+    /* Nonzero only for bytes from one completed physical block read. */
+    uint32_t read_id[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
+    uint32_t read_duration_ms[I2C_CFG_MAX_DEVICES][I2C_CFG_MAX_REG_COUNT];
+    uint32_t next_read_id;
     size_t device_count;
     uint8_t initialized;
 } bvstk_i2c_cache_t;
@@ -23,6 +27,8 @@ typedef struct {
     uint8_t valid;
     uint8_t seeded;
     uint64_t updated_ms;
+    uint32_t read_id;
+    uint32_t read_duration_ms;
 } bvstk_i2c_cache_entry_t;
 
 bvstk_status_t bvstk_i2c_cache_init(bvstk_i2c_cache_t *cache,
@@ -40,6 +46,11 @@ bvstk_status_t bvstk_i2c_cache_seed(bvstk_i2c_cache_t *cache,
                                     size_t device_id,
                                     uint8_t reg,
                                     uint8_t value);
+/* Publish one successful physical read atomically. Duration includes routing;
+ * it is an upper bound for the transaction on the endpoint bus. */
+bvstk_status_t bvstk_i2c_cache_read_block(bvstk_i2c_cache_t *cache,
+    size_t device_id, unsigned first, const uint8_t *values, unsigned count,
+    uint64_t updated_ms, uint32_t duration_ms);
 bvstk_status_t bvstk_i2c_cache_invalidate(bvstk_i2c_cache_t *cache,
                                           size_t device_id,
                                           uint8_t reg);

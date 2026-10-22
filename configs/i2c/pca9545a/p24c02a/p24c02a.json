@@ -1,6 +1,7 @@
 {
   "schema_version": 2,
   "id": "p24c02a",
+  "icon": "icon.js",
   "device": {
     "model": "P24C02A",
     "vendor": "Puya",
@@ -42,6 +43,19 @@
       "host_read": "fresh",
       "host_current_read": true
     }
+  },
+  "acquisition": {
+    "enabled": true,
+    "read_delay_ms": 10,
+    "retry_delay_ms": 2000,
+    "groups": [
+      {
+        "id": "memory",
+        "interval_ms": 5000,
+        "chunk_size": 1,
+        "ranges": [{"first": "reg_00", "count": 256}]
+      }
+    ]
   },
   "defaults": {
     "register": {

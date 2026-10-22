@@ -116,6 +116,7 @@ static void write_cache_array(int fd, int mdio, size_t id,
         uint8_t valid = 0U;
         uint8_t seeded = 0U;
         uint64_t updated_ms = 0U;
+        uint32_t read_id = 0U, read_duration_ms = 0U;
         if (mdio) {
             bvstk_mdio_cache_entry_t entry;
             memset(&entry, 0, sizeof(entry));
@@ -134,15 +135,72 @@ static void write_cache_array(int fd, int mdio, size_t id,
             valid = entry.valid;
             seeded = entry.seeded;
             updated_ms = entry.updated_ms;
+            read_id = entry.read_id;
+            read_duration_ms = entry.read_duration_ms;
         }
         http_ui_printf(fd,
-            "%s{\"reg\":%u,\"val\":%u,\"valid\":%s,\"source\":\"%s\",\"updated_ms\":%llu}",
+            "%s{\"reg\":%u,\"val\":%u,\"valid\":%s,\"source\":\"%s\",\"updated_ms\":%llu",
             reg ? "," : "", reg, (unsigned)value, valid ? "true" : "false",
             seeded ? "settings" : (mdio ? "PHY" : "I2C"),
             (unsigned long long)(valid ? updated_ms : 0U));
+        if (valid && !seeded && read_id)
+            http_ui_printf(fd, ",\"read_id\":%lu,\"read_duration_ms\":%lu",
+                (unsigned long)read_id, (unsigned long)read_duration_ms);
+        http_ui_text(fd, "}");
     }
 }
 static const char *presence_name(int presence);
+/* Profile-driven routing context for snapshot-only device views. No bus I/O
+ * and no Flash reads: metadata comes from the already loaded profiles. */
+static void write_routing(int fd, size_t id)
+{
+    bvstk_i2c_master_service_t *service = bvstk_runtime_i2c_master_service();
+    bvstk_i2c_device_t parent, child;
+    bvstk_i2c_switch_observation_t observation;
+    if (bvstk_i2c_master_service_device_info(service, id, &parent) != BVSTK_OK ||
+        !parent.endpoint.router.channel_count ||
+        bvstk_i2c_master_service_switch_observation(service, id, &observation) != BVSTK_OK)
+        return;
+    const bvstk_i2c_switch_t *router = &parent.endpoint.router;
+    http_ui_printf(fd, ",\"routing\":{\"control_reg\":%u,\"select_mask\":%u,\"channels\":[",
+        router->reg, router->select_mask);
+    for (unsigned i = 0; i < router->channel_count; ++i)
+        http_ui_printf(fd, "%s{\"index\":%u,\"select\":%u,\"match_mask\":%u}",
+            i ? "," : "", i, router->channels[i].select, router->channels[i].match_mask);
+    http_ui_text(fd, "],\"last_read\":");
+    if (observation.valid)
+        http_ui_printf(fd, "{\"reg\":%u,\"val\":%u,\"updated_ms\":%llu}",
+            router->reg, observation.value, (unsigned long long)observation.updated_ms);
+    else http_ui_text(fd, "null");
+    http_ui_text(fd, ",\"children\":[");
+    int comma = 0;
+    for (size_t i = 0; i < bvstk_i2c_master_service_device_count(service); ++i) {
+        if (bvstk_i2c_master_service_device_info(service, i, &child) != BVSTK_OK ||
+            strcmp(child.endpoint.parent, parent.name)) continue;
+        char label[97] = {0}, model[65] = {0}, device_class[16] = {0};
+        taskENTER_CRITICAL();
+        const i2c_device_config_t *stored = config_store_find_i2c_device_by_name(child.name);
+        if (stored) {
+            memcpy(label, stored->profile.label, sizeof(label) - 1U);
+            memcpy(model, stored->profile.model, sizeof(model) - 1U);
+            memcpy(device_class, stored->profile.device_class, sizeof(device_class) - 1U);
+        }
+        taskEXIT_CRITICAL();
+        http_ui_text(fd, comma++ ? ",{\"name\":" : "{\"name\":");
+        http_ui_string(fd, child.name);
+        http_ui_text(fd, ",\"label\":"); http_ui_string(fd, label);
+        http_ui_text(fd, ",\"model\":"); http_ui_string(fd, model);
+        http_ui_text(fd, ",\"class\":"); http_ui_string(fd, device_class);
+        http_ui_printf(fd, ",\"channel\":%u,\"presence\":\"%s\",\"addresses\":[",
+            child.endpoint.channel, presence_name(device_presence(0, i)));
+        if (!child.endpoint.space_count) http_ui_printf(fd, "%u", child.addr_7b);
+        for (unsigned j = 0; j < child.endpoint.space_count; ++j)
+            http_ui_printf(fd, "%s%u", j ? "," : "", child.endpoint.spaces[j].address);
+        http_ui_text(fd, "]}");
+    }
+    http_ui_text(fd, "]}");
+}
+
 static void cache_detail(int fd, int mdio, size_t id)
 {
     unsigned reg_count = 0U;
@@ -176,7 +234,7 @@ static void cache_detail(int fd, int mdio, size_t id)
                 (unsigned long)stats.reads, (unsigned long)stats.writes,
                 (unsigned long)stats.denied, (unsigned long)stats.errors,
                 (unsigned long)stats.observed);
-    }
+    } else write_routing(fd, id);
     http_ui_text(fd, "}\n");
 }
 static const char *presence_name(int presence)
@@ -247,6 +305,8 @@ static void detail(int fd, int mdio, size_t id, bus_workspace_t *w)
     http_ui_string(fd, mdio ? w->current.mdio.profile.register_map : w->current.i2c.profile.register_map);
     http_ui_text(fd, ",\"view\":");
     http_ui_string(fd, mdio ? w->current.mdio.profile.view : w->current.i2c.profile.view);
+    http_ui_text(fd, ",\"icon\":");
+    http_ui_string(fd, mdio ? w->current.mdio.profile.icon : w->current.i2c.profile.icon);
     http_ui_printf(fd, ",\"uptime_ms\":%llu", (unsigned long long)bvstk_platform_now_ms());
     if (mdio) {
         bvstk_mdio_stats_t stats;
@@ -262,6 +322,7 @@ static void detail(int fd, int mdio, size_t id, bus_workspace_t *w)
         http_ui_text(fd, ",\"cache\":[");
         write_cache_array(fd, mdio, id, w->current.i2c.reg_count);
         http_ui_text(fd, "]");
+        write_routing(fd, id);
     }
     http_ui_text(fd, "}\n");
 }

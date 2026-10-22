@@ -1,6 +1,7 @@
 {
   "schema_version": 2,
   "id": "pca9555",
+  "icon": "icon.js",
   "device": {
     "model": "PCA9555PW",
     "vendor": "NXP",

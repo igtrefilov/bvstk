@@ -1,10 +1,11 @@
 import * as api from "./api.js";
-import {esc, hex, head, kv, badge, footer, ask, notice, number, clearNotice, deviceIcon, deviceState, registerToken, registerNumber} from "./ui.js";
+import {esc, hex, head, kv, badge, footer, ask, notice, number, clearNotice, deviceState, registerToken, registerNumber} from "./ui.js";
 
 import {registerWorkspace} from "./registers.js";
 import {policyWorkspace} from "./policy.js";
 import {observationWorkspace} from "./observe.js";
 import {indicatorsWorkspace} from "./indicators.js";
+import {deviceIconWorkspace} from "./device-icon.js";
 
 const clone = value => JSON.parse(JSON.stringify(value));
 export async function busPage(root, params, ctx, bus) {
@@ -16,8 +17,22 @@ export async function busPage(root, params, ctx, bus) {
   let stopObservation = () => {};
   let stopRegisters = () => {};
   let indicators = null;
+  let pictogram = null, iconKey = "";
   const stopIndicators = () => { indicators?.dispose(); indicators = null; };
-  ctx.signal.addEventListener("abort",() => { stopObservation(); stopRegisters(); stopIndicators(); },{once:true});
+  const stopIcon = () => { pictogram?.dispose(); pictogram = null; iconKey = ""; };
+  ctx.signal.addEventListener("abort",() => { stopObservation(); stopRegisters(); stopIndicators(); stopIcon(); },{once:true});
+  function updateIcon(next = detail, stale = false) { pictogram?.update(next,stale); }
+  function ensureHeader() {
+    if (!root.querySelector("[data-device-body]")) {
+      root.innerHTML = `<div class="page-head"><div class="device-heading"><span class="device-icon-slot" role="img" data-device-icon></span><div class="device-heading-copy"><h1>${label}</h1><span class="device-name"></span></div></div></div><div data-device-body></div>`;
+    }
+    root.querySelector(".device-name").textContent = selected;
+    const key = JSON.stringify([bus,selected,detail.file_name,detail.icon]);
+    if (!pictogram || key !== iconKey) {
+      stopIcon(); iconKey = key;
+      pictogram = deviceIconWorkspace(root.querySelector("[data-device-icon]"),{bus,detail,signal:ctx.signal});
+    } else updateIcon();
+  }
   function resetDraft() {
     draft = clone(detail.config); invalid = false;
     ruleIds = Object.fromEntries(["whitelist","blacklist"].map(key => [key,draft[key].map((_,i) => i)]));
@@ -64,7 +79,7 @@ export async function busPage(root, params, ctx, bus) {
     await locked(async () => {
     devices = await api.busList(bus, ctx.signal);
     if (!devices.devices.length) {
-      stopObservation(); stopRegisters(); stopIndicators();
+      stopObservation(); stopRegisters(); stopIndicators(); stopIcon();
       root.innerHTML = `${head(label,"Подсистема") }<article class="card"><h2>${devices.ready ? "Нет настроенных устройств" : "Сервис недоступен"}</h2><p>Проверьте конфигурацию и диагностический вывод системы.</p></article>`;
       return;
     }
@@ -77,6 +92,7 @@ export async function busPage(root, params, ctx, bus) {
     if (currentDevice !== selected) { regState = {}; ruleState = {list:"whitelist",index:0}; currentDevice = selected; }
     detail = next; resetDraft(); fresh = footer(); root.classList.remove("is-stale");
     if (keepIndicators) {
+      ensureHeader();
       indicators.update(detail);
       const state = deviceState(bus,detail);
       root.querySelector(".device-meta .badge").outerHTML = badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline");
@@ -85,7 +101,7 @@ export async function busPage(root, params, ctx, bus) {
     }
     render();
     restoreRegisterViewport(viewport);
-    });
+    }).catch(error => { updateIcon(detail,true); throw error; });
   }
   function saveBar() {
     const dirty = changed();
@@ -125,8 +141,9 @@ export async function busPage(root, params, ctx, bus) {
     stopObservation(); stopRegisters(); stopIndicators();
     ctx.setContext({name:selected,tab});
     const state = deviceState(bus,detail);
-    root.innerHTML = `<div class="page-head"><div class="device-heading">${deviceIcon(detail?.config?.device)}<div class="device-heading-copy"><h1>${label}</h1><span class="device-name">${esc(selected)}</span></div></div></div><div class="device-meta"><span>Адрес <strong class="mono">${esc(addresses())}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${!["registers","indicators"].includes(tab) || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
-    if (tab === "indicators") indicators = indicatorsWorkspace(root.querySelector("#indicators-workspace"),{bus,detail,signal:ctx.signal,busy:() => !!busy});
+    ensureHeader();
+    root.querySelector("[data-device-body]").innerHTML = `<div class="device-meta"><span>Адрес <strong class="mono">${esc(addresses())}</strong></span><span>Регистров <strong>${draft.reg_count}</strong></span>${badge(state.ready ? "Готово" : "Не готово",state.ready ? "ok" : "offline")}</div><div class="tabs" aria-label="Разделы устройства">${Object.entries(tabs).map(([key,title]) => `<button data-tab="${key}" class="${key === tab ? "active" : ""}">${title}</button>`).join("")}</div><div class="stack">${content()}</div>${!["registers","indicators"].includes(tab) || changed() ? `<div class="save-bar">${saveBar()}</div>` : ""}${fresh}`;
+    if (tab === "indicators") indicators = indicatorsWorkspace(root.querySelector("#indicators-workspace"),{bus,detail,signal:ctx.signal,busy:() => !!busy,onSnapshot:updateIcon});
     if (tab === "registers") {
       const view = registerWorkspace(root.querySelector("#register-workspace"), {bus,detail,state:regState,canOperate:!changed(),onRead:reg => registerOp(reg,false),onWrite:(reg,val) => registerOp(reg,true,val)});
       let stopped = false, timer = 0;
@@ -138,11 +155,14 @@ export async function busPage(root, params, ctx, bus) {
             const next = await api.busCache(bus, selected, ctx.signal);
             if (!stopped && !ctx.signal.aborted && next.cache) {
               detail.cache = next.cache;
+              if (typeof next.presence === "string") detail.presence = next.presence;
+              detail.uptime_ms = next.uptime_ms;
               if (next.stats) detail.stats = next.stats;
+              updateIcon();
               view.refresh();
             }
           } catch (error) {
-            if (error.name !== "AbortError" && !stopped) { /* transient cache polls stay unobtrusive */ }
+            if (error.name !== "AbortError" && !stopped) updateIcon(detail,true);
           }
         }
         if (!stopped && !ctx.signal.aborted) timer = setTimeout(pollCache, 500);
