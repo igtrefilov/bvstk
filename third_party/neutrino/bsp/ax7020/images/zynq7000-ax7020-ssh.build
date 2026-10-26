@@ -212,7 +212,7 @@ libsocket.so
 devnp-zynq7000.so
 lsm-qnet.so
 
-libcrypto.so
+libcrypto.so = ${KPDA_TARGET}/armle-v7/usr/lib/libcrypto.so.1.1
 libcrypt.so
 librpc.so
 

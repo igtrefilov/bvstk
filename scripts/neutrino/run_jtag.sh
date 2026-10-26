@@ -8,9 +8,62 @@ BUILD_DIR="${NEUTRINO_BUILD_DIR:-$REPO_ROOT/build/neutrino}"
 IFS_FILE="${IFS_FILE:-$BUILD_DIR/ifs-zynq7000-ax7020-bvstk.raw}"
 BITSTREAM_FILE="${BITSTREAM_FILE:-$REPO_ROOT/artifacts/fpga/design.bit}"
 PS7_INIT_TCL="${PS7_INIT_TCL:-$REPO_ROOT/vitis_ws/plat_bvstk/export/plat_bvstk/hw/ps7_init.tcl}"
-UART_DEVICE="${UART_DEVICE:-/dev/ttyUSB1}"
 UART_BAUD="${UART_BAUD:-115200}"
 LOG_FILE="${LOG_FILE:-$BUILD_DIR/neutrino-uart.log}"
+
+select_uart_device() {
+  # UART_DEVICE is an explicit override and also accepts a stable
+  # /dev/serial/by-id path. This keeps the script usable on machines where
+  # Linux assigns a different ttyUSB number after reconnecting the board.
+  if [[ -n "${UART_DEVICE:-}" ]]; then
+    printf '%s\n' "$UART_DEVICE"
+    return
+  fi
+
+  shopt -s nullglob
+  local candidate
+  local -a stable=()
+  local -a preferred=()
+  local -a devices=()
+
+  for candidate in /dev/serial/by-id/*; do
+    [[ -e "$candidate" ]] || continue
+    stable+=("$candidate")
+    case "${candidate,,}" in
+      *cp210*|*silicon_labs*|*ax7020*) preferred+=("$candidate") ;;
+    esac
+  done
+
+  if (( ${#preferred[@]} == 1 )); then
+    printf '%s\n' "${preferred[0]}"
+    return
+  fi
+  if (( ${#stable[@]} == 1 )); then
+    printf '%s\n' "${stable[0]}"
+    return
+  fi
+
+  for candidate in /dev/ttyUSB* /dev/ttyACM*; do
+    [[ -e "$candidate" ]] && devices+=("$candidate")
+  done
+  if (( ${#devices[@]} == 1 )); then
+    printf '%s\n' "${devices[0]}"
+    return
+  fi
+
+  echo "UART device was not selected automatically." >&2
+  echo "Set UART_DEVICE=/dev/serial/by-id/<adapter> or UART_DEVICE=/dev/ttyUSB<N>." >&2
+  if (( ${#stable[@]} > 0 )); then
+    echo "Stable serial devices:" >&2
+    printf '  %s\n' "${stable[@]}" >&2
+  else
+    echo "Detected serial devices:" >&2
+    printf '  %s\n' "${devices[@]}" >&2
+  fi
+  exit 1
+}
+
+UART_DEVICE="$(select_uart_device)"
 
 if ! command -v xsct >/dev/null 2>&1; then
   if [[ -r /home/ilya/Xilinx/Vitis/2021.2/settings64.sh ]]; then
@@ -27,6 +80,7 @@ for input in "$IFS_FILE" "$BITSTREAM_FILE" "$PS7_INIT_TCL"; do
 done
 if [[ ! -e "$UART_DEVICE" ]]; then
   echo "UART device not found: $UART_DEVICE" >&2
+  echo "Use UART_DEVICE=/dev/ttyUSB<N> or a path from /dev/serial/by-id." >&2
   exit 1
 fi
 if ! command -v xsct >/dev/null 2>&1; then

@@ -1,0 +1,13 @@
+# Appended to the SDK configuration by build_gost.sh. The openssl_conf
+# directive is inserted before the first section in that configuration.
+[bvstk_openssl_init]
+engines = bvstk_engines
+
+[bvstk_engines]
+gost = bvstk_gost
+
+[bvstk_gost]
+engine_id = gost
+dynamic_path = /usr/lib/engines-1.1/gost.so
+default_algorithms = ALL
+init = 1

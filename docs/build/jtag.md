@@ -46,15 +46,24 @@ PS7_INIT_TCL=/data/run/ps7_init.tcl \
 
 Сценарий передаёт IFS в DDR по адресу `0x00100000`, устанавливает точку
 исполнения и запускает процессор. Перед этим открывает UART и сохраняет
-журнал. По умолчанию выбран `/dev/ttyUSB1`, но на другом компьютере имя
-может отличаться. Проверьте адаптер, права доступа и отсутствие другого
-читателя порта.
+журнал. Сценарий сначала ищет стабильное имя адаптера в `/dev/serial/by-id`
+и предпочитает Silicon Labs CP210x, который используется UART AX7020. Если
+такого имени нет, выбирается единственный обнаруженный `ttyUSB` или `ttyACM`.
+При нескольких адаптерах укажите порт явно. Проверьте права доступа и
+отсутствие другого читателя порта.
 
 ```sh
-UART_DEVICE=/dev/ttyUSB1 \
+UART_DEVICE=/dev/ttyUSB0 \
 IFS_FILE=/data/run/ifs-zynq7000-ax7020-bvstk.raw \
 BITSTREAM_FILE=/data/run/design.bit \
 PS7_INIT_TCL=/data/run/ps7_init.tcl \
+  ./run.sh neutrino jtag
+```
+
+Надёжнее использовать постоянное имя адаптера:
+
+```sh
+UART_DEVICE=/dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_<serial>-if00-port0 \
   ./run.sh neutrino jtag
 ```
 
