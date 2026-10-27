@@ -33,6 +33,7 @@ COMMON_SOURCES=(
   "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_sync_neutrino.c"
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c"
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c"
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_policy.c"
   "$REPO_ROOT/src/shared/base/bvstk_status.c"
   "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c"
   "$REPO_ROOT/src/shared/config/bvstk_device_profile.c"

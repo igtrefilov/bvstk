@@ -154,6 +154,7 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections 
   "$SCRIPT_DIR/dcp2_policy_server.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_policy.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \

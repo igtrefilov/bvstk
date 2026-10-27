@@ -49,6 +49,7 @@ enum {
     DCP2_SRV_NOTIFY = 0x06,
     DCP2_SRV_FS = 0x07,
     DCP2_SRV_CACHE = 0x08,
+    DCP2_SRV_POLICY = 0x09,
     DCP2_SRV_VENDOR = 0x7F,
 };
 
@@ -119,6 +120,7 @@ static uint8_t s_mem_read_buf[DCP2_MAX_PAYLOAD];
  * state out of its task stack and destroy it on every disconnect. */
 static bvstk_dcp2_fs_session_t s_fs_session;
 static bvstk_dcp2_cache_session_t s_cache_session;
+static bvstk_dcp2_policy_session_t s_policy_session;
 static bvstk_journal_batch_t s_observations;
 
 static uint32_t dcp2_now_ms(void)
@@ -955,6 +957,19 @@ static int dcp2_dispatch_request(int fd,
         return dcp2_handle_ping(fd, srv, opcode, seq, body, body_len);
     case DCP2_SRV_MEM:
         return dcp2_handle_mem(fd, srv, opcode, seq, body, body_len);
+    case DCP2_SRV_POLICY: {
+        const bvstk_dcp2_policy_adapter_t adapter = {
+            bvstk_runtime_i2c_master_service(), bvstk_runtime_mdio_service(), NULL,
+            bvstk_freertos_dcp2_policy_catalog, bvstk_freertos_dcp2_policy_changed,
+            bvstk_freertos_dcp2_policy_save
+        };
+        uint16_t response_size = 0;
+        uint16_t status = bvstk_dcp2_policy_request(&s_policy_session, &adapter,
+            opcode, body, body_len, bvstk_platform_now_ms(),
+            s_mem_read_buf, DCP2_MAX_PAYLOAD - 6U, &response_size);
+        return dcp2_send_response(fd, srv, opcode, seq, status,
+            status ? NULL : s_mem_read_buf, status ? 0 : response_size);
+    }
     case DCP2_SRV_CACHE: {
         uint16_t response_size = 0;
         uint16_t status = bvstk_dcp2_cache_request(&s_cache_session, opcode, body, body_len,
@@ -1042,6 +1057,7 @@ static void dcp2_handle_client(int fd)
     dcp2_conn_state_t state;
     memset(&state, 0, sizeof(state));
     bvstk_dcp2_cache_init(&s_cache_session, bvstk_runtime_cache_registry());
+    bvstk_dcp2_policy_init(&s_policy_session);
 
     for (;;) {
         uint8_t hdr[DCP2_HDR_LEN];

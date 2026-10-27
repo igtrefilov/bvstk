@@ -28,6 +28,8 @@ SRV_UART = 0x05
 SRV_NOTIFY = 0x06
 SRV_FS = 0x07
 SRV_CACHE = 0x08
+SRV_POLICY = 0x09
+POLICY_VERSION = 1
 OP_CACHE_GET, OP_CACHE_SUBSCRIBE, OP_CACHE_UNSUBSCRIBE = 0x20, 0x21, 0x22
 
 OP_FS_INFO, OP_FS_STAT, OP_FS_OPEN, OP_FS_READ, OP_FS_CLOSE = range(5)
@@ -98,6 +100,7 @@ STATUS_NAMES: Dict[int, str] = {
     0x0105: "ERR_FS_CHANGED",
     0x0200: "ERR_CACHE_NOT_FOUND",
     0x0201: "ERR_CACHE_STALE_SNAPSHOT",
+    0x0301: "ERR_POLICY_STALE_SNAPSHOT",
 }
 
 NOTIFY_FLAG_WITH_TIMESTAMP = 1 << 0
@@ -469,7 +472,7 @@ def _policy_request(sock: socket.socket, service: int, seq: int, opcode: int, bo
         action = {OP_POLICY_SET: "SET", OP_POLICY_GET: "GET", OP_POLICY_RULE_ADD: "ADD",
                   OP_POLICY_RULE_DELETE: "DELETE", OP_POLICY_CLEAR: "CLEAR",
                   OP_POLICY_SAVE: "SAVE"}[opcode]
-        bus = STREAM_SERVICE_NAMES[service]
+        bus = "PROFILE" if service == SRV_POLICY else STREAM_SERVICE_NAMES[service]
         raise RuntimeError(f"{bus} POLICY_{action} failed: {status_name(status)}")
     data = response.body[2:]
     if opcode != OP_POLICY_GET and data:
@@ -549,6 +552,150 @@ def policy_rule_add(sock: socket.socket, service: int, seq: int, address: int,
 def policy_rule_delete(sock: socket.socket, service: int, seq: int, address: int,
                        rule_list: int | str, reg: int, value: int, mask: Optional[int] = None) -> None:
     _policy_rule(sock, service, seq, OP_POLICY_RULE_DELETE, address, rule_list, reg, value, mask)
+
+
+def _policy_name(value: str) -> bytes:
+    if (not isinstance(value, str) or not 1 <= len(value) <= 31 or not value.isascii()
+            or any(not (c.isalnum() or c in "_.-") for c in value)):
+        raise ValueError("policy identifiers must be 1..31 ASCII letters, digits, _, - or .")
+    return bytes([len(value)]) + value.encode("ascii")
+
+
+def _policy_id_target(seq: int, subsystem: str, device: str) -> bytes:
+    if not isinstance(seq, int) or not 1 <= seq <= 65535:
+        raise ValueError("seq must be 1..65535")
+    return bytes([POLICY_VERSION]) + _policy_name(subsystem) + _policy_name(device)
+
+
+def decode_policy_page(data: bytes) -> dict:
+    if len(data) < 16:
+        raise ValueError("short profile POLICY_GET page")
+    version, mode, snapshot, white, black, first, count, following = struct.unpack_from(">BBIHHHHH", data)
+    if version != POLICY_VERSION or not snapshot or white > 256 or black > 256:
+        raise ValueError("invalid profile POLICY_GET header")
+    _policy_enum(mode, "mode")
+    total = white + black
+    if first > total or count > total - first or (not count and first < total):
+        raise ValueError("invalid profile POLICY_GET page range")
+    if following != (0xFFFF if first + count == total else first + count):
+        raise ValueError("invalid profile POLICY_GET next index")
+    rules, offset = [], 16
+    for _ in range(count):
+        if offset >= len(data):
+            raise ValueError("short profile policy rule")
+        length = data[offset]
+        offset += 1
+        if not length or offset + length + 16 > len(data):
+            raise ValueError("short profile policy resource/value")
+        try:
+            resource = data[offset:offset + length].decode("ascii")
+        except UnicodeDecodeError as exc:
+            raise ValueError("invalid policy resource ID") from exc
+        _policy_name(resource)
+        offset += length
+        value, mask = struct.unpack_from(">QQ", data, offset)
+        offset += 16
+        rules.append({"resource": resource, "val": value, "mask": mask})
+    if offset != len(data):
+        raise ValueError("trailing bytes in profile POLICY_GET page")
+    return {"snapshot_id": snapshot, "mode": ("whitelist", "blacklist")[mode],
+            "whitelist_count": white, "blacklist_count": black,
+            "first": first, "next": following, "rules": rules}
+
+
+def policy_get_by_id(sock: socket.socket, seq: int, subsystem: str, device: str) -> dict:
+    target = _policy_id_target(seq, subsystem, device)
+    snapshot, first, identity, rules = 0, 0, None, []
+    while True:
+        data = _policy_request(sock, SRV_POLICY, seq, OP_POLICY_GET,
+                               target + struct.pack(">IH", snapshot, first))
+        page = decode_policy_page(data)
+        key = (page["snapshot_id"], page["mode"], page["whitelist_count"], page["blacklist_count"])
+        if page["first"] != first or (identity is not None and key != identity):
+            raise ValueError("inconsistent profile policy snapshot")
+        if subsystem == "mdio" and max(page["whitelist_count"], page["blacklist_count"]) > 64:
+            raise ValueError("invalid MDIO policy counts")
+        identity = key
+        rules.extend(page["rules"])
+        if page["next"] == 0xFFFF:
+            break
+        snapshot, first = page["snapshot_id"], page["next"]
+        seq = seq % 65535 + 1
+    white = page["whitelist_count"]
+    return {"subsystem": subsystem, "device": device, "mode": page["mode"],
+            "whitelist": rules[:white], "blacklist": rules[white:]}
+
+
+def policy_set_by_id(sock: socket.socket, seq: int, subsystem: str, device: str, mode: int | str) -> None:
+    body = _policy_id_target(seq, subsystem, device) + bytes([_policy_enum(mode, "mode")])
+    _policy_request(sock, SRV_POLICY, seq, OP_POLICY_SET, body)
+
+
+def policy_clear_by_id(sock: socket.socket, seq: int, subsystem: str, device: str, rule_list: int | str) -> None:
+    body = _policy_id_target(seq, subsystem, device) + bytes([_policy_enum(rule_list, "list")])
+    _policy_request(sock, SRV_POLICY, seq, OP_POLICY_CLEAR, body)
+
+
+def policy_save_by_id(sock: socket.socket, seq: int, subsystem: str, device: str) -> None:
+    _policy_request(sock, SRV_POLICY, seq, OP_POLICY_SAVE, _policy_id_target(seq, subsystem, device))
+
+
+def _policy_rule_by_id(sock: socket.socket, seq: int, opcode: int, subsystem: str,
+                       device: str, rule_list: int | str, resource: str, value: int,
+                       mask: Optional[int]) -> None:
+    body = _policy_id_target(seq, subsystem, device) + bytes([_policy_enum(rule_list, "list")])
+    body += _policy_name(resource)
+    maximum = 255 if subsystem == "i2c" else 65535 if subsystem == "mdio" else (1 << 64) - 1
+    mask = maximum if mask is None else mask
+    if not isinstance(value, int) or not 0 <= value <= maximum:
+        raise ValueError("policy value is out of range")
+    if not isinstance(mask, int) or not 0 <= mask <= maximum or (subsystem == "i2c" and mask != 255):
+        raise ValueError("invalid policy mask (I2C requires 0xFF)")
+    _policy_request(sock, SRV_POLICY, seq, opcode, body + struct.pack(">QQ", value, mask))
+
+
+def policy_rule_add_by_id(sock: socket.socket, seq: int, subsystem: str, device: str,
+                          rule_list: int | str, resource: str, value: int, mask: Optional[int] = None) -> None:
+    _policy_rule_by_id(sock, seq, OP_POLICY_RULE_ADD, subsystem, device, rule_list, resource, value, mask)
+
+
+def policy_rule_delete_by_id(sock: socket.socket, seq: int, subsystem: str, device: str,
+                             rule_list: int | str, resource: str, value: int, mask: Optional[int] = None) -> None:
+    _policy_rule_by_id(sock, seq, OP_POLICY_RULE_DELETE, subsystem, device, rule_list, resource, value, mask)
+
+
+def run_profile_policy_operation(args: argparse.Namespace) -> int:
+    try:
+        for action in ("get", "set", "add", "delete", "clear", "save"):
+            fields = getattr(args, f"policy_{action}")
+            if fields is None:
+                continue
+            if action in ("add", "delete") and len(fields) not in (5, 6):
+                raise ValueError(f"--policy-{action} requires SUBSYSTEM DEVICE LIST RESOURCE VALUE [MASK]")
+            subsystem, device = fields[:2]
+            _policy_id_target(1, subsystem, device)
+            parameters = [subsystem, device]
+            if action not in ("get", "save"):
+                parameters.append(_policy_enum(fields[2], "mode" if action == "set" else "list"))
+            if action in ("add", "delete"):
+                _policy_name(fields[3])
+                maximum = 255 if subsystem == "i2c" else 65535 if subsystem == "mdio" else (1 << 64) - 1
+                value = parse_uint(fields[4], "value", maximum)
+                mask = parse_uint(fields[5], "mask", maximum) if len(fields) == 6 else maximum
+                if subsystem == "i2c" and mask != 255:
+                    raise ValueError("I2C policy mask must be 0xFF")
+                parameters.extend((fields[3], value, mask))
+            operation = {"get": policy_get_by_id, "set": policy_set_by_id, "clear": policy_clear_by_id,
+                         "add": policy_rule_add_by_id, "delete": policy_rule_delete_by_id,
+                         "save": policy_save_by_id}[action]
+            with socket.create_connection((args.host, args.port), timeout=args.timeout) as sock:
+                result = operation(sock, 1, *parameters)
+            print(json.dumps(result) if action == "get" else f"POLICY_{action.upper()} {subsystem} {device} -> OK")
+            return 0
+        raise ValueError("no profile policy operation selected")
+    except (ConnectionError, OSError, RuntimeError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
 
 
 def i2c_policy_get(sock: socket.socket, seq: int, addr7: int) -> dict:
@@ -1196,6 +1343,14 @@ def build_parser() -> argparse.ArgumentParser:
     operation.add_argument("--cache-get", nargs=2, metavar=("SUBSYSTEM", "DEVICE"), help="read a coherent cache snapshot as JSON, without bus I/O")
     operation.add_argument("--cache-watch", nargs=2, metavar=("SUBSYSTEM", "DEVICE"), help="watch cache snapshots and updates as JSON lines, without bus I/O")
     parser.add_argument("--cache-duration", type=float, default=0, help="stop --cache-watch after N seconds (default: until Ctrl+C)")
+    for action, fields in (("get", ("SUBSYSTEM", "DEVICE")), ("save", ("SUBSYSTEM", "DEVICE")),
+                           ("set", ("SUBSYSTEM", "DEVICE", "MODE")),
+                           ("clear", ("SUBSYSTEM", "DEVICE", "LIST"))):
+        operation.add_argument(f"--policy-{action}", nargs=len(fields), metavar=fields,
+                               help=f"{action} policy by subsystem and profile device ID")
+    for action in ("add", "delete"):
+        operation.add_argument(f"--policy-{action}", nargs="+", metavar="FIELD",
+            help=f"{action} a policy rule: SUBSYSTEM DEVICE LIST RESOURCE VALUE [MASK]; IDs come from the profile")
     for bus in ("i2c", "mdio"):
         address = "ADDR7" if bus == "i2c" else "PHY"
         for action, fields in (("get", (address,)), ("save", (address,)), ("set", (address, "MODE")),
@@ -1339,6 +1494,12 @@ def main() -> int:
         if args.count is not None or args.autoinc or args.width != 32:
             parser.error("--ping cannot be combined with MEM options")
         return run_ping(args)
+
+    if any(getattr(args, f"policy_{action}") is not None
+           for action in ("get", "set", "add", "delete", "clear", "save")):
+        if args.count is not None or args.autoinc or args.width != 32:
+            parser.error("policy operations cannot be combined with MEM options")
+        return run_profile_policy_operation(args)
 
     if any(getattr(args, f"{bus}_policy_{action}") is not None
            for bus in ("i2c", "mdio") for action in ("get", "set", "add", "delete", "clear", "save")):

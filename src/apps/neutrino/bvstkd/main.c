@@ -11,6 +11,8 @@
 #include "apps/neutrino/runtime/bvstk_i2c_runtime.h"
 #include "protocols/dcp2/bvstk_dcp2_codec.h"
 #include "protocols/dcp2/bvstk_dcp2_control.h"
+#include "protocols/dcp2/bvstk_dcp2_policy.h"
+#include "shared/interfaces/bvstk_clock.h"
 #include "services/control/bvstk_control_api.h"
 #include "shared/interfaces/bvstk_platform.h"
 #include "shared/pl/access/bvstk_pl_service.h"
@@ -19,6 +21,7 @@ enum { BVSTKD_PORT = 8889 };
 
 static bvstk_neutrino_i2c_runtime_t s_i2c_runtime;
 static bvstk_i2c_resmgr_t s_i2c_resmgr;
+static bvstk_dcp2_policy_session_t s_policy_session;
 
 static int read_exact(int fd, void *buffer, size_t size)
 {
@@ -113,6 +116,24 @@ static bvstk_status_t save_dcp_policy(void *context, uint8_t service, size_t dev
         BVSTK_OK : BVSTK_ERR_IO;
 }
 
+static bvstk_status_t policy_catalog(void *context, uint8_t service, size_t device_id,
+                                     bvstk_dcp2_policy_catalog_t *catalog)
+{
+    bvstk_neutrino_i2c_runtime_t *runtime = context;
+    const i2c_device_config_t *config;
+    if (service != BVSTK_DCP2_SERVICE_I2C) return BVSTK_ERR_UNSUPPORTED;
+    config = bvstk_neutrino_i2c_config_store_get(&runtime->config_store, device_id);
+    return config ? bvstk_dcp2_policy_catalog_from_profile(catalog, &config->profile, config->reg_count) :
+                    BVSTK_ERR_NOT_FOUND;
+}
+
+static bvstk_status_t policy_changed(void *context, uint8_t service, size_t device_id)
+{
+    if (service != BVSTK_DCP2_SERVICE_I2C) return BVSTK_ERR_UNSUPPORTED;
+    return bvstk_neutrino_i2c_runtime_sync_policy_locked(context, device_id) ?
+        BVSTK_OK : BVSTK_ERR_INTERNAL;
+}
+
 static int serve_client(int fd,
                         bvstk_control_api_t *control,
                         bvstk_neutrino_i2c_runtime_t *runtime)
@@ -120,6 +141,10 @@ static int serve_client(int fd,
     uint8_t header[BVSTK_DCP2_HEADER_SIZE];
     uint8_t request_frame[BVSTK_DCP2_HEADER_SIZE + BVSTK_DCP2_MAX_PAYLOAD];
     uint8_t response_frame[BVSTK_DCP2_HEADER_SIZE + BVSTK_DCP2_MAX_PAYLOAD];
+    const bvstk_dcp2_policy_adapter_t policy_adapter = {
+        control->i2c, control->mdio, runtime, policy_catalog, policy_changed, save_dcp_policy
+    };
+    bvstk_dcp2_policy_init(&s_policy_session);
 
     for (;;) {
         uint16_t payload_size;
@@ -154,7 +179,16 @@ static int serve_client(int fd,
         }
 
         bvstk_neutrino_i2c_runtime_lock(runtime);
-        if ((request.service == BVSTK_DCP2_SERVICE_I2C ||
+        if (request.service == BVSTK_DCP2_SERVICE_POLICY) {
+            uint8_t body[BVSTK_DCP2_MAX_PAYLOAD - 6U];
+            uint16_t body_size;
+            uint16_t status = bvstk_dcp2_policy_request(&s_policy_session, &policy_adapter,
+                request.opcode, request.body, request.body_size, bvstk_platform_now_ms(),
+                body, sizeof(body), &body_size);
+            process_result = bvstk_dcp2_encode_response(
+                response_frame, sizeof(response_frame), &request, status,
+                status ? NULL : body, status ? 0U : body_size, &response_size);
+        } else if ((request.service == BVSTK_DCP2_SERVICE_I2C ||
              request.service == BVSTK_DCP2_SERVICE_MDIO) &&
             request.opcode == BVSTK_DCP2_OP_I2C_POLICY_SAVE) {
             bvstk_status_t status = bvstk_dcp2_process_policy_save(

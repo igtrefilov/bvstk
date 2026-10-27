@@ -5,6 +5,54 @@
 текущую политику через GET. Общие форматы команд описаны
 в [справочнике политик](../reference/policies.md).
 
+## Одинаковые адреса за свитчом
+
+У RTC `pcf8563` адрес `0x51` находится на канале 0 PCA9545A. Диагностическое
+пространство SFP с ID `sfp` использует тот же адрес на канале 1. Сервис POLICY
+выбирает эти профили независимо:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c pcf8563
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c sfp
+```
+
+Добавление правила в BLACKLIST RTC и чтение обеих политик:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-add i2c pcf8563 blacklist reg_01 0xAA
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c pcf8563
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c sfp
+```
+
+У RTC появляется правило `resource=reg_01`, `val=170`, `mask=255`. Политика
+SFP сохраняет прежнее состояние. Правило применяется, когда выбран BLACKLIST.
+Команды политики не записывают значение `0xAA` в физический регистр RTC.
+
+Отдельное правило диагностического пространства SFP использует ID `a2_6e`:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-add i2c sfp blacklist a2_6e 0x40
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c sfp
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c pcf8563
+```
+
+Для сохранения текущего профиля с политикой:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --timeout 15 --policy-save i2c sfp
+```
+
+Удаление добавленных правил:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-delete i2c pcf8563 blacklist reg_01 0xAA
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-delete i2c sfp blacklist a2_6e 0x40
+```
+
+Если профиль был сохранён, повторите SAVE после удаления правила, чтобы
+обновить его файл. SET, CLEAR и SAVE работают со всем логическим устройством;
+у SFP это оба пространства `identity` и `diagnostics`.
+
 ## Правило I²C
 
 Пусть устройство с адресом `0x36` уже зарегистрировано, его режим — WHITELIST,

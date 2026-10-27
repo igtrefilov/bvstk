@@ -30,6 +30,36 @@ class Socket:
         return result
 
 class ClientTests(unittest.TestCase):
+    def test_profile_mutation_wire_and_no_retry(self):
+        target = b"\x01\x03i2c\x03rtc"
+        response = dcp.build_frame(9, 0x84, 7, b"\0\0")
+        sock = Socket(response)
+        dcp.policy_rule_add_by_id(sock, 7, "i2c", "rtc", "blacklist", "reg_01", 42)
+        self.assertEqual(sock.sent, [dcp.build_frame(9, 4, 7,
+            target + b"\x01\x06reg_01" + struct.pack(">QQ", 42, 255))])
+        for response in (b"", dcp.build_frame(9, 0x87, 7, b"\0\7")):
+            sock = Socket(response)
+            with self.assertRaises((ConnectionError, RuntimeError)):
+                dcp.policy_save_by_id(sock, 7, "i2c", "rtc")
+            self.assertEqual(len(sock.sent), 1)
+
+    def test_profile_invalid_page_and_cli(self):
+        page = struct.pack(">BBIHHHHH", 1, 0, 1, 0, 0, 0, 0, 65535)
+        self.assertEqual(dcp.decode_policy_page(page)["rules"], [])
+        for data in (page[:-1], page + b"\0", b"\x02" + page[1:],
+                     struct.pack(">BBIHHHHH", 1, 0, 1, 1, 0, 0, 0, 0)):
+            with self.assertRaises(ValueError): dcp.decode_policy_page(data)
+        for arguments in (["--policy-get", "i2c", "bad/id"],
+                          ["--policy-add", "i2c", "rtc", "whitelist", "reg_01", "256"],
+                          ["--policy-add", "i2c", "rtc", "whitelist", "reg_01", "1", "0"],
+                          ["--policy-delete", "i2c", "rtc", "whitelist"],
+                          ["--policy-set", "i2c", "rtc", "invalid"]):
+            args = dcp.build_parser().parse_args(["host"] + arguments)
+            with mock.patch.object(dcp.socket, "create_connection") as connect:
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(dcp.run_profile_policy_operation(args), 1)
+                connect.assert_not_called()
+
     def test_wire_and_interleaved_event(self):
         for bus, address, rule in [(2, 54, b"\x01\x63"), (3, 1, b"\x03\xab\xcd\xff\xff")]:
             for opcode in (2, 4, 5, 6):
@@ -160,6 +190,63 @@ class ProductionTests(unittest.TestCase):
         packet=dcp.build_frame(bus,opcode,1,body)
         for byte in packet: self.sock.sendall(bytes([byte]))
         return dcp.wait_for_response(self.sock,bus,opcode,1)
+    def test_profile_same_address_independent_policies(self):
+        with self.assertRaisesRegex(RuntimeError, "ERR_UNSUPPORTED"):
+            dcp.i2c_policy_get(self.sock, 1, 0x51)
+        initial = dcp.policy_get_by_id(self.sock, 1, "i2c", "sfp")
+        dcp.policy_rule_add_by_id(self.sock, 2, "i2c", "rtc", "blacklist", "reg_01", 42)
+        dcp.policy_set_by_id(self.sock, 3, "i2c", "rtc", "blacklist")
+        self.assertEqual(dcp.policy_get_by_id(self.sock, 4, "i2c", "sfp"), initial)
+        rtc = dcp.policy_get_by_id(self.sock, 5, "i2c", "rtc")
+        self.assertEqual(rtc["blacklist"], [{"resource":"reg_01", "val":42, "mask":255}])
+        for resource in ("a0_00", "a0_01", "a2_00", "a2_01"):
+            dcp.policy_rule_add_by_id(self.sock, 6, "i2c", "sfp", "whitelist", resource, 64)
+        state = dcp.policy_get_by_id(self.sock, 65535, "i2c", "sfp")  # Multiple pages and sequence wrap.
+        self.assertEqual([r["resource"] for r in state["whitelist"]], ["a0_00", "a0_01", "a2_00", "a2_01"])
+        self.assertEqual(dcp.policy_get_by_id(self.sock, 7, "i2c", "rtc"), rtc)
+        dcp.policy_save_by_id(self.sock, 8, "i2c", "rtc")
+        dcp.policy_save_by_id(self.sock, 9, "i2c", "sfp")
+        dcp.policy_rule_delete_by_id(self.sock, 10, "i2c", "sfp", "whitelist", "a2_00", 64)
+        self.assertEqual(len(dcp.policy_get_by_id(self.sock, 11, "i2c", "sfp")["whitelist"]), 3)
+        dcp.policy_clear_by_id(self.sock, 12, "i2c", "sfp", "whitelist")
+        self.assertEqual(dcp.policy_get_by_id(self.sock, 13, "i2c", "sfp"), initial)
+        self.assertEqual(dcp.policy_get_by_id(self.sock, 14, "i2c", "rtc"), rtc)
+
+    def test_profile_mdio_and_errors(self):
+        dcp.policy_rule_add_by_id(self.sock, 1, "mdio", "phy", 0, "reg_03", 0xabcd, 0xff00)
+        self.assertEqual(dcp.policy_get_by_id(self.sock, 2, "mdio", "phy")["whitelist"],
+            [{"resource":"reg_03", "val":0xab00, "mask":0xff00}])
+        dcp.policy_rule_delete_by_id(self.sock, 3, "mdio", "phy", 0, "reg_03", 0xab11, 0xff00)
+        dcp.policy_save_by_id(self.sock, 4, "mdio", "phy")
+        for device in ("unknown", "RTC", "0x51"):
+            with self.assertRaisesRegex(RuntimeError, "ERR_RANGE"):
+                dcp.policy_get_by_id(self.sock, 5, "i2c", device)
+        with self.assertRaisesRegex(RuntimeError, "ERR_RANGE"):
+            dcp.policy_rule_add_by_id(self.sock, 6, "i2c", "rtc", 0, "a2_01", 1)
+        target = dcp._policy_id_target(1, "i2c", "rtc")
+        for opcode, rest in ((2,b"\0"),(3,b"\0"*6),(4,b"\0\x06reg_01"+struct.pack(">QQ",1,255)),
+                             (5,b"\0\x06reg_01"+struct.pack(">QQ",1,255)),(6,b"\0"),(7,b"")):
+            body = target + rest
+            for bad in (body[:-1], body+b"\0"):
+                self.assertEqual(self.raw(9, opcode, bad).body, b"\0\1")
+
+    def test_profile_snapshot_replaced_and_target_bound(self):
+        target = dcp._policy_id_target(1, "i2c", "rtc")
+        page = self.raw(9, 3, target + struct.pack(">IH", 0, 0))
+        sid = dcp.decode_policy_page(page.body[2:])["snapshot_id"]
+        other = dcp._policy_id_target(1, "i2c", "sfp")
+        self.assertEqual(self.raw(9, 3, other + struct.pack(">IH",sid,0)).body, b"\x03\x01")
+        dcp.policy_get_by_id(self.sock, 2, "i2c", "sfp")
+        self.assertEqual(self.raw(9, 3, target + struct.pack(">IH",sid,0)).body, b"\x03\x01")
+
+    def test_profile_cli(self):
+        for flags in (["--policy-get", "i2c", "rtc"], ["--policy-save", "i2c", "sfp"],
+                      ["--policy-set", "i2c", "rtc", "whitelist"],
+                      ["--policy-add", "i2c", "sfp", "blacklist", "a2_00", "0x40"]):
+            self.sock.close()
+            result = subprocess.run([sys.executable, str(ROOT/"scripts/dcp2/dcp2_client.py"),
+                "127.0.0.1", "--port", str(self.port)] + flags, text=True, capture_output=True, timeout=5)
+            self.assertEqual(result.returncode, 0, result.stderr)
     def test_i2c_full_policy_lifecycle(self):
         self.assertEqual(dcp.i2c_policy_get(self.sock,1,54),{"mode":"whitelist","whitelist":[],"blacklist":[]})
         for rule_list in (0,1):

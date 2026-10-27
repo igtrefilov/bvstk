@@ -142,6 +142,52 @@ with socket.create_connection(("192.168.0.10", 8889), timeout=5) as sock:
 
 ## Политики I²C и MDIO
 
+### Выбор по ID профиля
+
+Для устройств за свитчом используйте команды `--policy-*`. Они выбирают
+устройство по паре `SUBSYSTEM DEVICE`, как команды CACHE. `DEVICE` — поле
+`id` профиля, `RESOURCE` — `id` записи в `resources`. Канал свитча и адрес
+на проводе клиенту передавать не требуется.
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c pcf8563
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c sfp
+```
+
+| Действие | Аргументы |
+|---|---|
+| Прочитать всю политику | `--policy-get SUBSYSTEM DEVICE` |
+| Выбрать режим | `--policy-set SUBSYSTEM DEVICE MODE` |
+| Добавить правило | `--policy-add SUBSYSTEM DEVICE LIST RESOURCE VALUE [MASK]` |
+| Удалить правило | `--policy-delete SUBSYSTEM DEVICE LIST RESOURCE VALUE [MASK]` |
+| Очистить список всего устройства | `--policy-clear SUBSYSTEM DEVICE LIST` |
+| Сохранить профиль | `--policy-save SUBSYSTEM DEVICE` |
+
+Подсистемы: `i2c` и `mdio`. В текущем образе Neutrino подключён адаптер I²C.
+`MODE` и `LIST` принимают `whitelist`, `blacklist`, `0`, `1`. Числа принимаются
+в десятичной записи или с `0x`. Если маска опущена, используется `0xFF` для
+I²C и `0xFFFF` для MDIO. I²C поддерживает точное значение с маской `0xFF`.
+
+GET автоматически получает все страницы согласованного снимка в одном
+соединении и печатает JSON с полями `subsystem`, `device`, `mode`, `whitelist`,
+`blacklist`. Правило содержит `resource`, `val`, `mask`. Все пространства
+одного устройства входят в один снимок. CLEAR очищает выбранный список
+для всех его ресурсов. SET общий для всего устройства. Новые команды
+редактирования меняют RAM; сохранение выполняется отдельным SAVE.
+
+Программный API: `policy_get_by_id`, `policy_set_by_id`,
+`policy_rule_add_by_id`, `policy_rule_delete_by_id`, `policy_clear_by_id`,
+`policy_save_by_id`. Первые аргументы — `(sock, seq, subsystem, device)`;
+дальнейшие соответствуют таблице. Мутации отправляются один раз.
+После таймаута фактическое состояние проверяют через GET; результат SAVE
+проверяют по сохранённому профилю. Ошибка `ERR_POLICY_STALE_SNAPSHOT`
+требует нового GET. Автоматический переход к адресным командам отсутствует.
+
+Формат сервиса POLICY описан в [спецификации](reference/policies.md#адресация-по-id-профиля),
+обмен для совпадающих адресов — в [примерах](examples/policies.md#одинаковые-адреса-за-свитчом).
+
+### Выбор по физическому адресу
+
 Штатный клиент читает действующую политику и редактирует режим и списки.
 Сначала получите её текущее состояние. Адрес `0x36` ниже — пример;
 используйте адрес и диапазоны из профиля своего устройства.
