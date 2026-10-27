@@ -1,12 +1,15 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <stdint.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <unistd.h>
 
 #include "apps/neutrino/i2c/bvstk_i2c_ipc.h"
+#include "apps/neutrino/bvstkd/bvstk_dcp2_runtime.h"
 #include "apps/neutrino/i2c/bvstk_i2c_resmgr.h"
 #include "apps/neutrino/runtime/bvstk_i2c_runtime.h"
 #include "protocols/dcp2/bvstk_dcp2_codec.h"
@@ -16,20 +19,39 @@
 #include "services/control/bvstk_control_api.h"
 #include "shared/interfaces/bvstk_platform.h"
 #include "shared/pl/access/bvstk_pl_service.h"
+#include "ports/neutrino-zynq7000/os/bvstk_observation_neutrino.h"
+#include "apps/neutrino/observe/bvstk_observe_resmgr.h"
+#include "protocols/dcp2/bvstk_dcp2_cache.h"
 
 enum { BVSTKD_PORT = 8889 };
 
 static bvstk_neutrino_i2c_runtime_t s_i2c_runtime;
 static bvstk_i2c_resmgr_t s_i2c_resmgr;
+static bvstk_neutrino_mdio_runtime_t s_mdio_runtime;
+static bvstk_neutrino_dcp2_runtime_t s_runtime = {&s_i2c_runtime, &s_mdio_runtime};
 static bvstk_dcp2_policy_session_t s_policy_session;
+static bvstk_observation_neutrino_t s_observation;
+static bvstk_observe_resmgr_t s_observe_resmgr;
+static bvstk_dcp2_cache_session_t s_cache_session;
+
+static int wait_socket(int fd, int writing, unsigned timeout_ms)
+{
+    fd_set set;
+    struct timeval timeout = {(long)(timeout_ms / 1000U), (long)(timeout_ms % 1000U) * 1000L};
+    FD_ZERO(&set); FD_SET(fd, &set);
+    return select(fd + 1, writing ? NULL : &set, writing ? &set : NULL, NULL, &timeout);
+}
 
 static int read_exact(int fd, void *buffer, size_t size)
 {
     size_t received = 0U;
     uint8_t *bytes = (uint8_t *)buffer;
+    uint64_t progress = bvstk_platform_now_ms();
 
     while (received < size) {
-        ssize_t result = recv(fd, bytes + received, size - received, 0);
+        uint64_t elapsed = bvstk_platform_now_ms() - progress;
+        if (elapsed >= 5000U || wait_socket(fd, 0, (unsigned)(5000U - elapsed)) <= 0) return -1;
+        ssize_t result = recv(fd, bytes + received, size - received, MSG_DONTWAIT);
         if (result < 0 && errno == EINTR) {
             continue;
         }
@@ -37,6 +59,7 @@ static int read_exact(int fd, void *buffer, size_t size)
             return -1;
         }
         received += (size_t)result;
+        progress = bvstk_platform_now_ms();
     }
     return 0;
 }
@@ -45,9 +68,12 @@ static int write_all(int fd, const void *buffer, size_t size)
 {
     size_t sent = 0U;
     const uint8_t *bytes = (const uint8_t *)buffer;
+    uint64_t progress = bvstk_platform_now_ms();
 
     while (sent < size) {
-        ssize_t result = send(fd, bytes + sent, size - sent, 0);
+        uint64_t elapsed = bvstk_platform_now_ms() - progress;
+        if (elapsed >= 15000U || wait_socket(fd, 1, (unsigned)(15000U - elapsed)) <= 0) return -1;
+        ssize_t result = send(fd, bytes + sent, size - sent, MSG_DONTWAIT);
         if (result < 0 && errno == EINTR) {
             continue;
         }
@@ -55,96 +81,20 @@ static int write_all(int fd, const void *buffer, size_t size)
             return -1;
         }
         sent += (size_t)result;
+        progress = bvstk_platform_now_ms();
     }
     return 0;
 }
 
-static int request_mutates_i2c(const bvstk_dcp2_request_t *request)
-{
-    return request != NULL &&
-           request->service == BVSTK_DCP2_SERVICE_I2C &&
-           (request->opcode == BVSTK_DCP2_OP_I2C_WRITE_REG ||
-            request->opcode == BVSTK_DCP2_OP_I2C_POLICY_SET ||
-            request->opcode == BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD ||
-            request->opcode == BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE ||
-            request->opcode == BVSTK_DCP2_OP_I2C_POLICY_CLEAR);
-}
-
-static void sync_dcp_i2c_mutation(
-    bvstk_neutrino_i2c_runtime_t *runtime,
-    const bvstk_dcp2_request_t *request,
-    uint8_t *response,
-    size_t response_size)
-{
-    size_t device_id;
-
-    if (!request_mutates_i2c(request) || request->body_size == 0U ||
-        response == NULL || response_size < 14U ||
-        bvstk_dcp2_read_be16(response + 12U) != 0U ||
-        bvstk_i2c_master_service_find_by_addr(
-            bvstk_neutrino_i2c_runtime_service(runtime),
-            request->body[0],
-            &device_id) != BVSTK_OK) {
-        return;
-    }
-    if (request->opcode == BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD ||
-        request->opcode == BVSTK_DCP2_OP_I2C_POLICY_RULE_DELETE ||
-        request->opcode == BVSTK_DCP2_OP_I2C_POLICY_CLEAR) {
-        if (!bvstk_neutrino_i2c_runtime_sync_policy_locked(runtime, device_id)) {
-            fprintf(stderr,
-                    "bvstkd: failed to mirror DCP2 I2C policy for address 0x%02x\n",
-                    (unsigned)request->body[0]);
-            bvstk_dcp2_write_be16(response + 12U,
-                bvstk_dcp2_status_from_bvstk(BVSTK_ERR_INTERNAL));
-        }
-        return;
-    }
-    /* Keep legacy writes and mode changes on their existing persistence path. */
-    if (!bvstk_neutrino_i2c_runtime_sync_locked(runtime, device_id, 1)) {
-        fprintf(stderr,
-                "bvstkd: failed to persist DCP2 I2C mutation for address "
-                "0x%02x\n",
-                (unsigned)request->body[0]);
-    }
-}
-
-static bvstk_status_t save_dcp_policy(void *context, uint8_t service, size_t device_id)
-{
-    if (service != BVSTK_DCP2_SERVICE_I2C) return BVSTK_ERR_UNSUPPORTED;
-    /* serve_client already holds the runtime state mutex. */
-    return bvstk_neutrino_i2c_runtime_save_policy_locked(context, device_id) ?
-        BVSTK_OK : BVSTK_ERR_IO;
-}
-
-static bvstk_status_t policy_catalog(void *context, uint8_t service, size_t device_id,
-                                     bvstk_dcp2_policy_catalog_t *catalog)
-{
-    bvstk_neutrino_i2c_runtime_t *runtime = context;
-    const i2c_device_config_t *config;
-    if (service != BVSTK_DCP2_SERVICE_I2C) return BVSTK_ERR_UNSUPPORTED;
-    config = bvstk_neutrino_i2c_config_store_get(&runtime->config_store, device_id);
-    return config ? bvstk_dcp2_policy_catalog_from_profile(catalog, &config->profile, config->reg_count) :
-                    BVSTK_ERR_NOT_FOUND;
-}
-
-static bvstk_status_t policy_changed(void *context, uint8_t service, size_t device_id)
-{
-    if (service != BVSTK_DCP2_SERVICE_I2C) return BVSTK_ERR_UNSUPPORTED;
-    return bvstk_neutrino_i2c_runtime_sync_policy_locked(context, device_id) ?
-        BVSTK_OK : BVSTK_ERR_INTERNAL;
-}
-
 static int serve_client(int fd,
                         bvstk_control_api_t *control,
-                        bvstk_neutrino_i2c_runtime_t *runtime)
+                        bvstk_neutrino_dcp2_runtime_t *runtime)
 {
     uint8_t header[BVSTK_DCP2_HEADER_SIZE];
     uint8_t request_frame[BVSTK_DCP2_HEADER_SIZE + BVSTK_DCP2_MAX_PAYLOAD];
     uint8_t response_frame[BVSTK_DCP2_HEADER_SIZE + BVSTK_DCP2_MAX_PAYLOAD];
-    const bvstk_dcp2_policy_adapter_t policy_adapter = {
-        control->i2c, control->mdio, runtime, policy_catalog, policy_changed, save_dcp_policy
-    };
     bvstk_dcp2_policy_init(&s_policy_session);
+    bvstk_dcp2_cache_init(&s_cache_session, s_observation.initialized ? &s_observation.cache : NULL);
 
     for (;;) {
         uint16_t payload_size;
@@ -152,6 +102,24 @@ static int serve_client(int fd,
         size_t response_size = 0U;
         bvstk_dcp2_request_t request;
         int process_result;
+
+        /* Cache subscribers receive changes even when they send no requests.
+         * Encoding and socket I/O occur after the catalog guard is released. */
+        for (unsigned n = 0; s_cache_session.registry && n < 32U; ++n) {
+            uint16_t size = bvstk_dcp2_cache_event(&s_cache_session, bvstk_platform_now_ms(),
+                response_frame + 12U, sizeof(response_frame) - 12U);
+            if (!size) break;
+            memcpy(response_frame, "DCP2", 4U);
+            bvstk_dcp2_write_be16(response_frame + 4U, BVSTK_DCP2_VERSION);
+            bvstk_dcp2_write_be16(response_frame + 6U, (uint16_t)(size + 4U));
+            response_frame[8] = BVSTK_DCP2_SERVICE_CACHE;
+            response_frame[9] = BVSTK_DCP2_CACHE_SUBSCRIBE | BVSTK_DCP2_OP_EVENT;
+            bvstk_dcp2_write_be16(response_frame + 10U, 0U);
+            if (write_all(fd, response_frame, size + 12U)) return -1;
+        }
+        int readable = wait_socket(fd, 0, 100U);
+        if (readable < 0) { if (errno == EINTR) continue; return -1; }
+        if (!readable) continue;
 
         if (read_exact(fd, header, sizeof(header)) != 0) {
             return 0;
@@ -178,38 +146,19 @@ static int serve_client(int fd,
             return -1;
         }
 
-        bvstk_neutrino_i2c_runtime_lock(runtime);
-        if (request.service == BVSTK_DCP2_SERVICE_POLICY) {
+        if (request.service == BVSTK_DCP2_SERVICE_CACHE) {
             uint8_t body[BVSTK_DCP2_MAX_PAYLOAD - 6U];
-            uint16_t body_size;
-            uint16_t status = bvstk_dcp2_policy_request(&s_policy_session, &policy_adapter,
-                request.opcode, request.body, request.body_size, bvstk_platform_now_ms(),
-                body, sizeof(body), &body_size);
-            process_result = bvstk_dcp2_encode_response(
-                response_frame, sizeof(response_frame), &request, status,
-                status ? NULL : body, status ? 0U : body_size, &response_size);
-        } else if ((request.service == BVSTK_DCP2_SERVICE_I2C ||
-             request.service == BVSTK_DCP2_SERVICE_MDIO) &&
-            request.opcode == BVSTK_DCP2_OP_I2C_POLICY_SAVE) {
-            bvstk_status_t status = bvstk_dcp2_process_policy_save(
-                control->i2c, control->mdio, &request, save_dcp_policy, runtime);
-            process_result = bvstk_dcp2_encode_response(
-                response_frame, sizeof(response_frame), &request,
-                bvstk_dcp2_status_from_bvstk(status), NULL, 0U, &response_size);
+            uint16_t size = 0;
+            uint16_t status = s_cache_session.registry ?
+                bvstk_dcp2_cache_request(&s_cache_session, request.opcode, request.body,
+                    request.body_size, bvstk_platform_now_ms(), body, sizeof(body), &size) :
+                bvstk_dcp2_status_from_bvstk(BVSTK_ERR_NOT_READY);
+            process_result = bvstk_dcp2_encode_response(response_frame, sizeof(response_frame),
+                &request, status, status ? NULL : body, status ? 0U : size, &response_size);
         } else {
-            process_result = bvstk_dcp2_process_request(control,
-                                                     &request,
-                                                     response_frame,
-                                                     sizeof(response_frame),
-                                                     &response_size);
+            process_result = bvstk_neutrino_dcp2_dispatch(runtime, &s_policy_session, control,
+                &request, response_frame, sizeof(response_frame), &response_size);
         }
-        if (process_result == 0) {
-            sync_dcp_i2c_mutation(runtime,
-                                     &request,
-                                     response_frame,
-                                     response_size);
-        }
-        bvstk_neutrino_i2c_runtime_unlock(runtime);
         if (process_result != 0 ||
             write_all(fd, response_frame, response_size) != 0) {
             return -1;
@@ -255,33 +204,46 @@ int main(void)
     static bvstk_pl_service_t pl;
     bvstk_control_api_t control;
     int server_fd;
+    /* A disconnected cache subscriber must not terminate the daemon. */
+    (void)signal(SIGPIPE, SIG_IGN);
 
     if (bvstk_platform_init() != 0) {
         fprintf(stderr, "bvstkd: platform initialization failed\n");
-        return 1;
     }
     bvstk_pl_service_init(&pl);
-    if (!bvstk_neutrino_i2c_runtime_init(&s_i2c_runtime)) {
-        fprintf(stderr, "bvstkd: I2C runtime initialization failed\n");
-        return 1;
+    if (!bvstk_observation_neutrino_init(&s_observation))
+        fprintf(stderr, "bvstkd: observation guards unavailable\n");
+    bvstk_cache_registry_t *catalog = s_observation.initialized ? &s_observation.cache : NULL;
+    bvstk_event_sink_t events = {&s_observation.events, bvstk_observation_publish};
+    if (!bvstk_neutrino_i2c_runtime_init_observed(&s_i2c_runtime, catalog,
+            s_observation.initialized ? &events : NULL)) {
+        fprintf(stderr, "bvstkd: I2C unavailable; other services remain enabled\n");
     }
     if (!bvstk_i2c_resmgr_start(&s_i2c_resmgr, &s_i2c_runtime)) {
         fprintf(stderr,
                 "bvstkd: failed to attach %s\n",
                 BVSTK_I2C_DEVICE_PATH);
-        return 1;
     }
+    if (!bvstk_neutrino_mdio_runtime_init_observed(&s_mdio_runtime, catalog,
+            s_observation.initialized ? &events : NULL))
+        fprintf(stderr, "bvstkd: MDIO unavailable; other services remain enabled\n");
+    if (s_observation.initialized &&
+        !bvstk_observe_resmgr_start(&s_observe_resmgr, &s_observation.events, &s_runtime))
+        fprintf(stderr, "bvstkd: observation resource unavailable\n");
 
     memset(&control, 0, sizeof(control));
     control.pl = &pl;
     control.i2c = bvstk_neutrino_i2c_runtime_service(&s_i2c_runtime);
+    control.memory = bvstk_platform_memory();
+    control.mdio = bvstk_neutrino_mdio_runtime_service(&s_mdio_runtime);
 
     server_fd = create_server_socket();
 
-    printf("bvstkd: I2C runtime ready (%u device%s), DCP2 port %u\n",
-           (unsigned)s_i2c_runtime.config_store.device_count,
-           s_i2c_runtime.config_store.device_count == 1U ? "" : "s",
-           BVSTKD_PORT);
+    printf("bvstkd: I2C=%s (%u devices), MDIO=%s (%u devices), DCP2 port %u\n",
+        control.i2c ? "ready" : "unavailable", (unsigned)s_i2c_runtime.config_store.device_count,
+        control.mdio ? "ready" : "unavailable", (unsigned)s_mdio_runtime.config_store.device_count,
+        BVSTKD_PORT);
+    fflush(stdout);
     for (;;) {
         int client_fd = accept(server_fd, NULL, NULL);
         if (client_fd < 0) {
@@ -291,7 +253,7 @@ int main(void)
             fprintf(stderr, "bvstkd: accept failed: %s\n", strerror(errno));
             continue;
         }
-        (void)serve_client(client_fd, &control, &s_i2c_runtime);
+        (void)serve_client(client_fd, &control, &s_runtime);
         close(client_fd);
     }
 }

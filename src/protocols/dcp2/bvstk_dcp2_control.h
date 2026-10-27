@@ -7,6 +7,12 @@
 #include "protocols/dcp2/bvstk_dcp2_codec.h"
 #include "services/control/bvstk_control_api.h"
 
+/* Common MEM semantics; the port supplies permitted regions and access widths.
+ * All request/output sizes and the full physical span are checked before I/O. */
+bvstk_status_t bvstk_dcp2_process_mem(const bvstk_control_api_t *control,
+    const bvstk_dcp2_request_t *request, uint8_t *body,
+    size_t body_capacity, uint16_t *body_size);
+
 /* Shared RAM-only policy handler; output excludes the common status field.
  * NOT_FOUND and NOT_READY are normalized to RANGE and BUSY for DCP2. */
 bvstk_status_t bvstk_dcp2_process_policy(

@@ -32,7 +32,7 @@
 
 | Файл | Назначение |
 |---|---|
-| [bvstk_platform_freertos.c](../../../src/ports/freertos-xilinx/os/bvstk_platform_freertos.c) | Выполняет MMIO через BSP, получает время по тикам FreeRTOS, реализует ожидание и начальную подготовку платформы. |
+| [bvstk_platform_freertos.c](../../../src/ports/freertos-xilinx/os/bvstk_platform_freertos.c) | Выполняет MMIO и диагностический доступ к памяти через BSP, получает время по тикам FreeRTOS, реализует ожидание и начальную подготовку платформы. |
 | [bvstk_sync_freertos.h](../../../src/ports/freertos-xilinx/os/bvstk_sync_freertos.h) | Описывает объект mutex FreeRTOS вместе с его общим интерфейсом `bvstk_mutex_t`. |
 | [bvstk_sync_freertos.c](../../../src/ports/freertos-xilinx/os/bvstk_sync_freertos.c) | Создаёт и уничтожает mutex, переводит время ожидания в тики и связывает системные операции с общим интерфейсом. |
 
@@ -119,9 +119,16 @@ FreeRTOS. Второй предоставляет блочный доступ к
 
 | Файл | Назначение |
 |---|---|
-| [bvstk_platform_neutrino.c](../../../src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c) | Получает права аппаратного доступа, отображает MMIO в процесс, реализует чтение и запись, часы и ожидание средствами ОС. |
+| [bvstk_platform_neutrino.c](../../../src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c) | Получает права аппаратного доступа, отображает MMIO в процесс, предоставляет порт памяти с разрядностями BRAM и ограничением регионов, часы и ожидание средствами ОС. |
 | [bvstk_sync_neutrino.h](../../../src/ports/neutrino-zynq7000/os/bvstk_sync_neutrino.h) | Описывает mutex pthread вместе с общим интерфейсом блокировки. |
 | [bvstk_sync_neutrino.c](../../../src/ports/neutrino-zynq7000/os/bvstk_sync_neutrino.c) | Создаёт и освобождает mutex, реализует операции захвата и отпускания для общего кода. |
+| [bvstk_observation_neutrino.h](../../../src/ports/neutrino-zynq7000/os/bvstk_observation_neutrino.h), [bvstk_observation_neutrino.c](../../../src/ports/neutrino-zynq7000/os/bvstk_observation_neutrino.c) | Владеют каталогом и журналами, создают рекурсивный mutex каталога и отдельный mutex журнала с наследованием приоритета; освобождаются после остановки провайдеров и читателей. |
+
+[bvstk_worker.h](../../../src/ports/neutrino-zynq7000/os/bvstk_worker.h) и
+[bvstk_worker.c](../../../src/ports/neutrino-zynq7000/os/bvstk_worker.c)
+предоставляют периодический pthread с ограниченным шагом, паузой 10 мс
+и явной остановкой/join. Потоки I²C и MDIO независимы; этот адаптер
+не хранит политики и не выполняет аппаратные операции самостоятельно.
 
 #### ports/neutrino-zynq7000/os/i2c
 

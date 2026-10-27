@@ -20,8 +20,7 @@ mkdir -p "$BUILD_DIR"
 
 python3 "$REPO_ROOT/tools/codegen/gen_default_configs.py" \
   --repo-root "$REPO_ROOT" \
-  --out "$BUILD_DIR/default_configs.h" \
-  --i2c-only
+  --out "$BUILD_DIR/default_configs.h"
 
 COMMON_SOURCES=(
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c"
@@ -46,9 +45,23 @@ COMMON_SOURCES=(
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c"
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_slave_service.c"
   "$REPO_ROOT/src/services/mdio/bvstk_mdio_service.c"
+  "$REPO_ROOT/src/services/cache/bvstk_cache.c"
+  "$REPO_ROOT/src/services/cache/bvstk_cache_bridges.c"
+  "$REPO_ROOT/src/services/observation/bvstk_observation.c"
+  "$REPO_ROOT/src/shared/events/bvstk_journal.c"
 )
 
 NEUTRINO_I2C_RUNTIME_SOURCES=(
+  "$REPO_ROOT/src/apps/neutrino/observe/bvstk_observe.c"
+  "$REPO_ROOT/src/apps/neutrino/observe/bvstk_observe_resmgr.c"
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_observation_neutrino.c"
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_cache.c"
+  "$REPO_ROOT/src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c"
+  "$REPO_ROOT/src/apps/neutrino/config/bvstk_profile_store.c"
+  "$REPO_ROOT/src/apps/neutrino/config/bvstk_mdio_config_store.c"
+  "$REPO_ROOT/src/apps/neutrino/runtime/bvstk_mdio_runtime.c"
+  "$REPO_ROOT/src/services/acquisition/bvstk_acquisition.c"
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_worker.c"
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_i2c_config_store.c"
   "$REPO_ROOT/src/apps/neutrino/i2c/bvstk_i2c_resmgr.c"
   "$REPO_ROOT/src/apps/neutrino/runtime/bvstk_i2c_runtime.c"
@@ -59,57 +72,59 @@ I2C_CLIENT_SOURCE="$REPO_ROOT/src/apps/neutrino/i2c/bvstk_i2c_client.c"
 I2C_COMPLETION_SOURCE="$REPO_ROOT/src/shared/cli/bvstk_i2c_completion.c"
 LINE_EDITOR_SOURCE="$REPO_ROOT/src/shared/cli/bvstk_line_editor.c"
 
-qcc -V"$QCC_VARIANT" \
-  -Wall -Wextra -Werror -O2 \
-  -I"$REPO_ROOT/src" \
-  -I"$BUILD_DIR" \
-  -DBVSTK_PLATFORM_NEUTRINO=1 \
-  "$REPO_ROOT/src/apps/neutrino/bvstkctl/main.c" \
-  "$I2C_CLIENT_SOURCE" \
-  "${COMMON_SOURCES[@]}" \
-  -o "$BUILD_DIR/bvstkctl"
+declare -A compiled_sources=()
+build_program() {
+  local program="$1" source relative object first_object=""
+  shift
+  local object_dir="$BUILD_DIR/objects"
+  local response="$BUILD_DIR/$program.objects"
+  local -a libraries=()
+  mkdir -p "$object_dir"
+  : > "$response"
+  for source in "$@"; do
+    if [[ "$source" == -l* ]]; then libraries+=("$source"); continue; fi
+    relative="${source#"$REPO_ROOT/"}"
+    object="$object_dir/${relative//\//_}.o"
+    if [[ -z "${compiled_sources[$source]:-}" ]]; then
+      qcc -V"$QCC_VARIANT" -Wall -Wextra -Werror -O2 \
+        -I"$REPO_ROOT/src" -I"$BUILD_DIR" -DBVSTK_PLATFORM_NEUTRINO=1 \
+        -c "$source" -o "$object"
+      compiled_sources[$source]=1
+    fi
+    if [[ -z "$first_object" ]]; then first_object="$object"
+    else printf '"%s"\n' "$object" >> "$response"; fi
+  done
+  # qcc has a small argument limit. Let the GNU linker read the object list;
+  # every source is still compiled with the same explicit target/diagnostics.
+  qcc -V"$QCC_VARIANT" "$first_object" "-Wl,@$response" "${libraries[@]}" -o "$BUILD_DIR/$program"
+}
 
-qcc -V"$QCC_VARIANT" \
-  -Wall -Wextra -Werror -O2 \
-  -I"$REPO_ROOT/src" \
-  -I"$BUILD_DIR" \
-  -DBVSTK_PLATFORM_NEUTRINO=1 \
+build_program bvstkctl \
+  "$REPO_ROOT/src/apps/neutrino/bvstkctl/main.c" \
+  "$REPO_ROOT/src/apps/neutrino/observe/bvstk_observe_client.c" \
+  "$I2C_CLIENT_SOURCE" \
+  "${COMMON_SOURCES[@]}"
+
+build_program bvstkd \
   "$REPO_ROOT/src/apps/neutrino/bvstkd/main.c" \
   "${NEUTRINO_I2C_RUNTIME_SOURCES[@]}" \
   "${COMMON_SOURCES[@]}" \
-  -lsocket \
-  -o "$BUILD_DIR/bvstkd"
+  -lsocket
 
-qcc -V"$QCC_VARIANT" \
-  -Wall -Wextra -Werror -O2 \
-  -I"$REPO_ROOT/src" \
-  -DBVSTK_PLATFORM_NEUTRINO=1 \
+build_program i2c \
   "$REPO_ROOT/src/apps/neutrino/i2c/main.c" \
-  "$I2C_CLIENT_SOURCE" \
-  -o "$BUILD_DIR/i2c"
+  "$I2C_CLIENT_SOURCE"
 
-qcc -V"$QCC_VARIANT" \
-  -Wall -Wextra -Werror -O2 \
-  -I"$REPO_ROOT/src" \
-  -DBVSTK_PLATFORM_NEUTRINO=1 \
+build_program bvstk-shell \
   "$REPO_ROOT/src/apps/neutrino/shell/main.c" \
   "$I2C_CLIENT_SOURCE" \
   "$I2C_COMPLETION_SOURCE" \
-  "$LINE_EDITOR_SOURCE" \
-  -o "$BUILD_DIR/bvstk-shell"
+  "$LINE_EDITOR_SOURCE"
 
-qcc -V"$QCC_VARIANT" \
-  -Wall -Wextra -Werror -O2 \
-  -I"$REPO_ROOT/src" \
-  -DBVSTK_PLATFORM_NEUTRINO=1 \
-  "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_qspi_raw.c" \
-  -o "$BUILD_DIR/bvstk-qspi-fat"
+build_program bvstk-qspi-fat \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_qspi_raw.c"
 
-qcc -V"$QCC_VARIANT" \
-  -Wall -Wextra -Werror -O2 \
-  -I"$REPO_ROOT/src" \
-  -DBVSTK_PLATFORM_NEUTRINO=1 \
-  "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c" \
-  -o "$BUILD_DIR/bvstk-sd-raw"
+build_program bvstk-sd-raw \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c"
 
 echo "Neutrino applications: $BUILD_DIR/i2c, $BUILD_DIR/bvstkctl, $BUILD_DIR/bvstkd, $BUILD_DIR/bvstk-shell, $BUILD_DIR/bvstk-qspi-fat and $BUILD_DIR/bvstk-sd-raw"

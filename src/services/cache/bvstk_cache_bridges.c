@@ -62,13 +62,29 @@ bvstk_status_t bvstk_cache_attach_i2c(bvstk_cache_i2c_bridge_t *b, bvstk_cache_r
     memset(b, 0, sizeof(*b)); b->registry = registry; b->service = service;
     for (d = 0; d < service->cache->device_count; ++d) {
         configure_i2c(b, d, &configs[d]);
-        if (b->status != BVSTK_OK) return b->status;
+        if (b->status != BVSTK_OK) {
+            bvstk_status_t status = b->status;
+            bvstk_cache_detach_i2c(b);
+            return status;
+        }
     }
     service->cache->sink.context = b;
     service->cache->sink.enter = i2c_enter; service->cache->sink.leave = i2c_leave;
     service->cache->sink.entry = i2c_entry; service->cache->sink.presence = i2c_presence;
     service->cache_config_changed = configure_i2c;
     return BVSTK_OK;
+}
+
+void bvstk_cache_detach_i2c(bvstk_cache_i2c_bridge_t *b)
+{
+    if (!b || !b->registry) return;
+    if (b->service->cache->sink.context == b) {
+        memset(&b->service->cache->sink, 0, sizeof(b->service->cache->sink));
+        b->service->cache_config_changed = NULL;
+    }
+    for (size_t d = 0; d < I2C_CFG_MAX_DEVICES; ++d)
+        if (b->handles[d]) (void)bvstk_cache_remove(b->registry, b->handles[d]);
+    memset(b, 0, sizeof(*b));
 }
 
 typedef struct {
@@ -103,6 +119,16 @@ static void mdio_presence(void *context, size_t d, unsigned presence)
     bvstk_cache_mdio_bridge_t *b = context;
     (void)bvstk_cache_presence(b->registry, b->handles[d], presence, bvstk_platform_now_ms());
 }
+static void mdio_enter(void *context)
+{
+    bvstk_cache_registry_t *r = ((bvstk_cache_mdio_bridge_t *)context)->registry;
+    if (r->guard.enter) r->guard.enter(r->guard.context);
+}
+static void mdio_leave(void *context)
+{
+    bvstk_cache_registry_t *r = ((bvstk_cache_mdio_bridge_t *)context)->registry;
+    if (r->guard.leave) r->guard.leave(r->guard.context);
+}
 bvstk_status_t bvstk_cache_attach_mdio(bvstk_cache_mdio_bridge_t *b, bvstk_cache_registry_t *registry,
     bvstk_mdio_service_t *service)
 {
@@ -110,9 +136,26 @@ bvstk_status_t bvstk_cache_attach_mdio(bvstk_cache_mdio_bridge_t *b, bvstk_cache
     memset(b, 0, sizeof(*b)); b->registry = registry; b->service = service;
     for (d = 0; d < service->device_count; ++d) {
         configure_mdio(b, d, &service->devices[d]);
-        if (b->status != BVSTK_OK) return b->status;
+        if (b->status != BVSTK_OK) {
+            bvstk_status_t status = b->status;
+            bvstk_cache_detach_mdio(b);
+            return status;
+        }
     }
     service->cache_sink.context = b; service->cache_sink.entry = mdio_entry;
+    service->cache_sink.enter = mdio_enter; service->cache_sink.leave = mdio_leave;
     service->cache_sink.presence = mdio_presence; service->cache_config_changed = configure_mdio;
     return BVSTK_OK;
+}
+
+void bvstk_cache_detach_mdio(bvstk_cache_mdio_bridge_t *b)
+{
+    if (!b || !b->registry) return;
+    if (b->service->cache_sink.context == b) {
+        memset(&b->service->cache_sink, 0, sizeof(b->service->cache_sink));
+        b->service->cache_config_changed = NULL;
+    }
+    for (size_t d = 0; d < MDIO_CFG_MAX_DEVICES; ++d)
+        if (b->handles[d]) (void)bvstk_cache_remove(b->registry, b->handles[d]);
+    memset(b, 0, sizeof(*b));
 }

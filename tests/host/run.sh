@@ -7,6 +7,27 @@ TEST_TMP="$(mktemp -d)"
 trap 'rm -rf "$TEST_TMP"' EXIT
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_image.py"
+for memory_port in recording freertos neutrino; do
+  memory_sources=()
+  memory_flags=()
+  if [[ "$memory_port" == freertos ]]; then
+    memory_sources+=("$REPO_ROOT/src/ports/freertos-xilinx/os/bvstk_platform_freertos.c")
+    memory_flags+=(-DTEST_MEMORY_FREERTOS=1 -DportTICK_PERIOD_MS=1)
+  elif [[ "$memory_port" == neutrino ]]; then
+    memory_sources+=("$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c"
+      "$REPO_ROOT/src/shared/pl/access/bvstk_pl_service.c"
+      "$REPO_ROOT/src/hardware/boards/ax7020/bvstk_pl_regions.c")
+    memory_flags+=(-DTEST_MEMORY_NEUTRINO=1 -include "$SCRIPT_DIR/memory_stubs/neutrino_host.h")
+  fi
+  cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections \
+    -I"$SCRIPT_DIR/memory_stubs" -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
+    "${memory_flags[@]}" "$SCRIPT_DIR/test_dcp2_mem.c" \
+    "$REPO_ROOT/src/services/control/bvstk_control_api.c" \
+    "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
+    "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
+    "${memory_sources[@]}" -Wl,--gc-sections -o "$TEST_TMP/test_mem_$memory_port"
+  "$TEST_TMP/test_mem_$memory_port"
+done
 cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_acquisition.c" \
   "$REPO_ROOT/src/services/acquisition/bvstk_acquisition.c" \
@@ -29,6 +50,15 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_journal.c" "$REPO_ROOT/src/shared/events/bvstk_journal.c" \
   -o "$TEST_TMP/test_journal"
 "$TEST_TMP/test_journal"
+
+cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_observation.c" \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_observation_neutrino.c" \
+  "$REPO_ROOT/src/services/observation/bvstk_observation.c" \
+  "$REPO_ROOT/src/shared/events/bvstk_journal.c" \
+  "$REPO_ROOT/src/services/cache/bvstk_cache.c" \
+  -pthread -o "$TEST_TMP/test_observation"
+"$TEST_TMP/test_observation"
 
 cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_i2c_master.c" \
@@ -59,6 +89,7 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
 cc -std=c11 -Wall -Wextra -Werror -pedantic -Wno-overlength-strings -ffunction-sections -fdata-sections \
   -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" -I"$REPO_ROOT/src/apps/freertos/config" \
   "$SCRIPT_DIR/test_config_bundles.c" \
+  "$REPO_ROOT/src/apps/neutrino/config/bvstk_profile_store.c" \
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_i2c_config_store.c" \
   "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
   "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
@@ -138,6 +169,14 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
 cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections \
   -I"$SCRIPT_DIR/policy_stubs" -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_dcp2_policy_sync.c" \
+  "$REPO_ROOT/src/services/control/bvstk_control_api.c" \
+  "$REPO_ROOT/src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
+  "$REPO_ROOT/src/drivers/pl/spi/bvstk_spi_core.c" \
+  "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c" \
+  "$REPO_ROOT/src/drivers/pl/mdio/bvstk_mdio_core.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_status.c" \
   "$REPO_ROOT/src/services/mdio/bvstk_mdio_service.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \
@@ -148,6 +187,70 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections 
   "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
   -Wl,--gc-sections -pthread -o "$TEST_TMP/test_dcp2_policy_sync"
 "$TEST_TMP/test_dcp2_policy_sync"
+
+cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic -Wno-overlength-strings \
+  -ffunction-sections -fdata-sections -I"$REPO_ROOT/src" \
+  -I"$REPO_ROOT/src/apps/freertos/config" \
+  "$SCRIPT_DIR/test_neutrino_config.c" \
+  "$REPO_ROOT/src/apps/neutrino/runtime/bvstk_i2c_runtime.c" \
+  "$REPO_ROOT/src/apps/neutrino/config/bvstk_profile_store.c" \
+  "$REPO_ROOT/src/apps/neutrino/config/bvstk_i2c_config_store.c" \
+  "$REPO_ROOT/src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c" \
+  "$REPO_ROOT/src/services/control/bvstk_control_api.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_status.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_cache.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c" \
+  "$REPO_ROOT/src/services/mdio/bvstk_mdio_service.c" \
+  "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c" \
+  "$REPO_ROOT/src/drivers/pl/mdio/bvstk_mdio_core.c" \
+  "$REPO_ROOT/src/drivers/pl/spi/bvstk_spi_core.c" \
+  -Wl,--gc-sections -pthread -o "$TEST_TMP/test_neutrino_config"
+"$TEST_TMP/test_neutrino_config" "$TEST_TMP/neutrino-config"
+
+cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic -Wno-overlength-strings \
+  -ffunction-sections -fdata-sections -I"$REPO_ROOT/src" \
+  -I"$REPO_ROOT/src/apps/freertos/config" \
+  "$SCRIPT_DIR/test_neutrino_runtime.c" \
+  "$REPO_ROOT/src/apps/neutrino/observe/bvstk_observe.c" \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_observation_neutrino.c" \
+  "$REPO_ROOT/src/services/observation/bvstk_observation.c" \
+  "$REPO_ROOT/src/shared/events/bvstk_journal.c" \
+  "$REPO_ROOT/src/services/cache/bvstk_cache.c" \
+  "$REPO_ROOT/src/services/cache/bvstk_cache_bridges.c" \
+  "$REPO_ROOT/src/apps/neutrino/runtime/bvstk_mdio_runtime.c" \
+  "$REPO_ROOT/src/apps/neutrino/config/bvstk_mdio_config_store.c" \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_sync_neutrino.c" \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_worker.c" \
+  "$REPO_ROOT/src/services/acquisition/bvstk_acquisition.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_policy.c" \
+  "$REPO_ROOT/src/apps/neutrino/runtime/bvstk_i2c_runtime.c" \
+  "$REPO_ROOT/src/apps/neutrino/config/bvstk_profile_store.c" \
+  "$REPO_ROOT/src/apps/neutrino/config/bvstk_i2c_config_store.c" \
+  "$REPO_ROOT/src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c" \
+  "$REPO_ROOT/src/services/control/bvstk_control_api.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_status.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" \
+  "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_cache.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \
+  "$REPO_ROOT/src/services/i2c/bvstk_i2c_master_service.c" \
+  "$REPO_ROOT/src/services/mdio/bvstk_mdio_service.c" \
+  "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c" \
+  "$REPO_ROOT/src/drivers/pl/mdio/bvstk_mdio_core.c" \
+  "$REPO_ROOT/src/drivers/pl/spi/bvstk_spi_core.c" \
+  -Wl,--gc-sections -pthread -o "$TEST_TMP/test_neutrino_runtime"
+"$TEST_TMP/test_neutrino_runtime" "$TEST_TMP/neutrino-runtime" "$REPO_ROOT"
 
 cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections \
   -I"$REPO_ROOT/src" \

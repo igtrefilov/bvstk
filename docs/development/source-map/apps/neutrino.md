@@ -4,22 +4,26 @@
 
 В [src/apps/neutrino](../../../../src/apps/neutrino) находятся исходники
 сервера `bvstkd`, клиентов управления и интерактивной оболочки.
-Рабочие экземпляры I²C сосредоточены в сервере. Командные программы
+Рабочие экземпляры I²C и MDIO сосредоточены в сервере. Командные программы
 передают ему запросы через менеджер ресурса.
 
 ## apps/neutrino/bvstkd
 
 Процесс соединяет сетевой вход DCP2 и локальный вход I²C с одной рабочей
-средой. В текущем `bvstkd` к объекту управления подключены PL и I²C.
+средой. В текущем `bvstkd` к объекту управления подключены PL, I²C и MDIO. Ошибка одной шины не останавливает сервер.
+Общий каталог и журналы создаются до запуска производителей событий.
+DCP2 CACHE получает тот же каталог; сетевое ожидание выполняется после
+копирования данных. Новый сеанс сбрасывает снимок и подписки прежнего клиента.
 
 | Файл | Назначение |
 |---|---|
 | [main.c](../../../../src/apps/neutrino/bvstkd/main.c) | Создаёт рабочую среду и менеджер ресурса I²C, запускает TCP-сервер DCP2, передаёт команды общему обработчику и синхронизирует изменения конфигурации. |
+| [bvstk_dcp2_runtime.h](../../../../src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.h), [bvstk_dcp2_runtime.c](../../../../src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c) | Диспетчер блокирует нужную шину, выполняет общие регистровые команды и POLICY, синхронизирует RAM-модели I²C/MDIO; сохраняет профили только по SAVE. |
 
 ## apps/neutrino/runtime
 
 Здесь создаются связанные экземпляры драйверов, устройств, политики,
-кэша и сервисов I²C. Этот же модуль выполняет команды, поступающие
+кэша и сервисов I²C/MDIO. Этот же модуль выполняет команды, поступающие
 через локальный интерфейс, и защищает общее состояние сервера.
 
 | Файл | Назначение |
@@ -27,9 +31,18 @@
 | [bvstk_i2c_runtime.h](../../../../src/apps/neutrino/runtime/bvstk_i2c_runtime.h) | Определяет рабочую среду I²C, операции её запуска, блокировки, синхронизации конфигурации и выполнения команд. |
 | [bvstk_i2c_runtime.c](../../../../src/apps/neutrino/runtime/bvstk_i2c_runtime.c) | Создаёт и связывает модули I²C, запускает адаптер IRQ, выполняет команды устройств и политик, применяет и сохраняет конфигурацию. |
 
+Поток I²C запускает проверку присутствия и общий движок acquisition.
+Поток MDIO обслуживает общий сервис и acquisition независимо от I²C.
+Планы и состояние обхода принадлежат рабочей среде; worker останавливается
+и присоединяется перед освобождением состояния.
+
+| Файл | Назначение |
+|---|---|
+| [bvstk_mdio_runtime.h](../../../../src/apps/neutrino/runtime/bvstk_mdio_runtime.h), [bvstk_mdio_runtime.c](../../../../src/apps/neutrino/runtime/bvstk_mdio_runtime.c) | Владеют сервисом MDIO, драйвером, профилями, блокировками и фоновым потоком; обновляют RAM-модель и выполняют явный SAVE без захвата телеметрии. |
+
 ## apps/neutrino/config
 
-Хранение профилей I²C средствами файловой системы Нейтрино.
+Хранение профилей I²C и MDIO средствами файловой системы Нейтрино.
 Проверка содержимого профиля использует общий код `shared/config`.
 
 | Файл | Назначение |
@@ -37,7 +50,13 @@
 | [bvstk_i2c_config_store.h](../../../../src/apps/neutrino/config/bvstk_i2c_config_store.h) | Определяет хранилище загруженных конфигураций и операции поиска, обновления и сохранения профиля. |
 | [bvstk_i2c_config_store.c](../../../../src/apps/neutrino/config/bvstk_i2c_config_store.c) | Ищет профили на файловой системе, загружает встроенные значения при необходимости, переносит прежнее размещение и сохраняет профиль через временный файл. |
 
-Встроенный набор создаётся сборкой в `build/neutrino/default_configs.h`
+Общие POSIX-операции каталогов, проверки путей и записи через временный
+файл вынесены в [bvstk_profile_store.c](../../../../src/apps/neutrino/config/bvstk_profile_store.c).
+[bvstk_mdio_config_store.c](../../../../src/apps/neutrino/config/bvstk_mdio_config_store.c)
+загружает MDIO из `/flash/config/mdio/` с теми же правилами приоритета
+пакетов и отказом при ошибочном профиле.
+
+Встроенный набор I²C и MDIO создаётся сборкой в `build/neutrino/default_configs.h`
 из общих файлов `configs`. Его генератор —
 [gen_default_configs.py](../../../../tools/codegen/gen_default_configs.py).
 
@@ -65,10 +84,20 @@
 
 Утилита управления предоставляет прямые операции с регионами PL
 и совместимый вход к клиенту I²C.
+Команда `observe` получает пассивный снимок журнала через менеджер ресурса.
 
 | Файл | Назначение |
 |---|---|
-| [main.c](../../../../src/apps/neutrino/bvstkctl/main.c) | Разбирает команды версии, перечисления и доступа к регионам PL; команды I²C направляет IPC-клиенту. |
+| [main.c](../../../../src/apps/neutrino/bvstkctl/main.c) | Разбирает команды версии и доступа к PL; команды I²C и наблюдений направляет IPC-клиентам. |
+
+## apps/neutrino/observe
+
+| Файл | Назначение |
+|---|---|
+| [bvstk_observe.h](../../../../src/apps/neutrino/observe/bvstk_observe.h), [bvstk_observe.c](../../../../src/apps/neutrino/observe/bvstk_observe.c) | Проверяют запрос, разрешают имя устройства в фильтр и копируют порцию общего журнала без обращения к шине. |
+| [bvstk_observe_ipc.h](../../../../src/apps/neutrino/observe/bvstk_observe_ipc.h) | Задаёт путь `/dev/bvstk-observe` и ограниченное сообщение `devctl`. |
+| [bvstk_observe_resmgr.c](../../../../src/apps/neutrino/observe/bvstk_observe_resmgr.c), [bvstk_observe_resmgr.h](../../../../src/apps/neutrino/observe/bvstk_observe_resmgr.h) | Предоставляют журнал `bvstkd` локальным клиентам. |
+| [bvstk_observe_client.c](../../../../src/apps/neutrino/observe/bvstk_observe_client.c), [bvstk_observe_client.h](../../../../src/apps/neutrino/observe/bvstk_observe_client.h) | Реализуют `bvstkctl observe` и вывод JSON вне защиты журнала. |
 
 ## apps/neutrino/shell
 

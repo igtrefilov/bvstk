@@ -829,7 +829,10 @@ bvstk_status_t bvstk_i2c_master_service_set_config(
     device.endpoint = config->endpoint;
     bvstk_cache_sink_enter(&service->cache->sink);
     status = bvstk_i2c_devices_set(service->devices, device_id, &device);
+    if (status == BVSTK_OK)
+        status = bvstk_i2c_devices_validate_topology(service->devices);
     if (status != BVSTK_OK) {
+        (void)bvstk_i2c_devices_set(service->devices, device_id, &previous);
         bvstk_cache_sink_leave(&service->cache->sink);
         return status;
     }

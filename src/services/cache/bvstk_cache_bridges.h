@@ -23,4 +23,7 @@ bvstk_status_t bvstk_cache_attach_i2c(bvstk_cache_i2c_bridge_t *, bvstk_cache_re
     bvstk_i2c_master_service_t *, const i2c_device_config_t *);
 bvstk_status_t bvstk_cache_attach_mdio(bvstk_cache_mdio_bridge_t *, bvstk_cache_registry_t *,
     bvstk_mdio_service_t *);
+/* Caller has stopped producers and serialized access to the service. */
+void bvstk_cache_detach_i2c(bvstk_cache_i2c_bridge_t *);
+void bvstk_cache_detach_mdio(bvstk_cache_mdio_bridge_t *);
 #endif

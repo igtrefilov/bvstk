@@ -15,6 +15,10 @@ typedef struct {
 
 void bvstk_pl_service_init(bvstk_pl_service_t *service);
 void bvstk_pl_service_shutdown(bvstk_pl_service_t *service);
+/* Used by the OS memory adapter after validating its allowed physical span.
+ * Mapping lifetime and synchronization belong to the service owner. */
+bvstk_status_t bvstk_pl_service_mapping(bvstk_pl_service_t *service,
+    bvstk_pl_region_id_t region, const bvstk_mmio_region_t **mapping);
 bvstk_status_t bvstk_pl_service_read32(bvstk_pl_service_t *service,
                                        bvstk_pl_region_id_t region,
                                        size_t offset,

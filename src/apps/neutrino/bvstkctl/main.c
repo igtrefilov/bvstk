@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "apps/neutrino/i2c/bvstk_i2c_client.h"
+#include "apps/neutrino/observe/bvstk_observe_client.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 #include "hardware/boards/ax7020/bvstk_pl_regions.h"
 #include "hardware/pl/spi/bvstk_spi_regs.h"
@@ -25,6 +26,7 @@ static void usage(FILE *stream)
             "  bvstkctl pl read <region> <offset> [word-count]\n"
             "  bvstkctl pl write <region> <offset> <value>\n"
             "  bvstkctl i2c <FreeRTOS-compatible i2c arguments...>\n"
+            "  bvstkctl observe <i2c|mdio> <events|telemetry> [after|history] [device]\n"
             "\n"
             "Numbers accept decimal or 0x-prefixed hexadecimal notation.\n");
 }
@@ -243,6 +245,8 @@ static int command_i2c_compat(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+    if (argc >= 2 && !strcmp(argv[1], "observe"))
+        return bvstk_observe_client_execute(argc - 2, argv + 2);
     if (argc == 2 && strcmp(argv[1], "version") == 0) {
         return command_version();
     }

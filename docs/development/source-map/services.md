@@ -77,8 +77,8 @@ FreeRTOS для этого существует `ports/freertos-xilinx/os/mdio`.
 
 | Файл | Назначение |
 |---|---|
-| [bvstk_control_api.h](../../../src/services/control/bvstk_control_api.h) | Определяет набор подключённых PL, I²C, MDIO и SPI и объявления операций управления ими. |
-| [bvstk_control_api.c](../../../src/services/control/bvstk_control_api.c) | Проверяет наличие нужного экземпляра и передаёт ему запрос чтения, записи или обмена. |
+| [bvstk_control_api.h](../../../src/services/control/bvstk_control_api.h) | Определяет подключённые сервисы и порт памяти, RAM-only применение и снимок конфигурации I²C с метаданными и выбранным способом захвата кэша. |
+| [bvstk_control_api.c](../../../src/services/control/bvstk_control_api.c) | Проверяет полный диапазон диагностического доступа до I/O, вызывает сервисы и формирует общий снимок I²C; не сохраняет файлы. |
 
 ## services/cache
 
@@ -94,9 +94,23 @@ FreeRTOS для этого существует `ports/freertos-xilinx/os/mdio`.
 | [bvstk_cache_bridges.h](../../../src/services/cache/bvstk_cache_bridges.h) | Описывает связи реестра с сервисами I²C и MDIO и операции их подключения. |
 | [bvstk_cache_bridges.c](../../../src/services/cache/bvstk_cache_bridges.c) | Переводит регистры и изменения состояния I²C и MDIO в записи общего реестра, назначает им имена из профилей. |
 
-Доступ по DCP2 реализует `protocols/dcp2/bvstk_dcp2_cache.c`.
+При отсоединении остановленного провайдера его записи удаляются;
+прежние подписки получают требование нового снимка. Неудачное подключение
+не оставляет частично зарегистрированного набора.
+
+Доступ по DCP2 в обеих ОС реализует `protocols/dcp2/bvstk_dcp2_cache.c`.
 Протокольные снимки и подписки объяснены в
 [описании CACHE](../../interfaces/dcp2/07-cache.md).
+
+## services/observation
+
+Общий сервис принимает события, фильтрует неподтверждённую телеметрию
+и копирует ограниченные порции истории. Порт задаёт короткую защиту;
+сервис не выполняет аппаратный или файловый ввод-вывод.
+
+| Файл | Назначение |
+|---|---|
+| [bvstk_observation.h](../../../src/services/observation/bvstk_observation.h), [bvstk_observation.c](../../../src/services/observation/bvstk_observation.c) | Экземпляр журналов, приём событий, фильтры адреса/слота, головы и снимки истории с учётом потерь и сброса курсора. |
 
 ## services/fs
 

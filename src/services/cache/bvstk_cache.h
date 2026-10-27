@@ -2,6 +2,7 @@
 #define BVSTK_CACHE_H
 
 #include "shared/base/bvstk_status.h"
+#include "shared/interfaces/bvstk_guard.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -39,11 +40,7 @@ typedef struct {
     bvstk_cache_entry_t entry;
 } bvstk_cache_change_t;
 
-typedef struct {
-    void *context;
-    void (*enter)(void *);
-    void (*leave)(void *);
-} bvstk_cache_guard_t;
+typedef bvstk_guard_t bvstk_cache_guard_t;
 
 typedef struct {
     bvstk_cache_guard_t guard;
@@ -69,6 +66,8 @@ bvstk_status_t bvstk_cache_put(bvstk_cache_registry_t *, uint16_t handle, unsign
     uint64_t value, int valid, unsigned source, uint64_t updated_ms, uint64_t now_ms);
 bvstk_status_t bvstk_cache_presence(bvstk_cache_registry_t *, uint16_t handle,
     unsigned presence, uint64_t now_ms);
+/* Remove a stopped provider. Its subscribers must obtain a new snapshot. */
+bvstk_status_t bvstk_cache_remove(bvstk_cache_registry_t *, uint16_t handle);
 bvstk_status_t bvstk_cache_snapshot(bvstk_cache_registry_t *, const char *subsystem,
     const char *device, bvstk_cache_snapshot_t *, uint16_t *handle, uint64_t *cursor,
     uint64_t now_ms);

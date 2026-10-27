@@ -35,6 +35,15 @@ void bvstk_pl_service_init(bvstk_pl_service_t *service)
     }
 }
 
+bvstk_status_t bvstk_pl_service_mapping(bvstk_pl_service_t *service,
+    bvstk_pl_region_id_t region, const bvstk_mmio_region_t **mapping)
+{
+    if (mapping == NULL) return BVSTK_ERR_MALFORMED;
+    bvstk_status_t status = ensure_mapped(service, region);
+    if (status == BVSTK_OK) *mapping = &service->mappings[region];
+    return status;
+}
+
 void bvstk_pl_service_shutdown(bvstk_pl_service_t *service)
 {
     size_t i;

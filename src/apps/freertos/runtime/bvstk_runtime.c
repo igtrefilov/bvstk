@@ -17,6 +17,7 @@
 #include "ports/freertos-xilinx/os/mdio/bvstk_mdio_freertos.h"
 #include "services/cache/bvstk_cache_bridges.h"
 #include "services/acquisition/bvstk_acquisition.h"
+#include "services/control/bvstk_control_api.h"
 #include "xil_printf.h"
 
 static bvstk_cache_registry_t s_cache_registry;
@@ -56,25 +57,6 @@ static TaskHandle_t s_runtime_task;
 static TaskHandle_t s_i2c_health_task;
 #endif
 #endif
-
-static void update_setting(i2c_device_config_t *config,
-                           uint8_t reg,
-                           uint8_t value)
-{
-    size_t i;
-
-    for (i = 0U; i < config->settings_len; ++i) {
-        if (config->settings[i].reg == reg) {
-            config->settings[i].val = value;
-            return;
-        }
-    }
-    if (config->settings_len < I2C_CFG_SETTINGS_MAX) {
-        config->settings[config->settings_len].reg = reg;
-        config->settings[config->settings_len].val = value;
-        config->settings_len++;
-    }
-}
 
 #if BVSTK_PL_RUNTIME_ENABLED
 #if BVSTK_PL_HAS_I2C_CORE
@@ -415,50 +397,14 @@ static int snapshot_i2c_device_config(size_t device_id, int include_cache_values
                                        i2c_device_config_t *config)
 {
     bvstk_i2c_device_t device;
-    bvstk_i2c_policy_entry_t policy;
     const i2c_device_config_t *stored;
-
-    if (config == NULL || s_i2c_ready == 0 ||
-        bvstk_i2c_master_service_device_info(&s_i2c_master_service,
-                                             device_id,
-                                             &device) != BVSTK_OK ||
-        bvstk_i2c_master_service_get_policy(&s_i2c_master_service,
-                                            device_id,
-                                            &policy) != BVSTK_OK) {
+    const bvstk_control_api_t control = {.i2c = &s_i2c_master_service};
+    if (config == NULL || !s_i2c_ready ||
+        bvstk_i2c_master_service_device_info(control.i2c, device_id, &device) != BVSTK_OK)
         return 0;
-    }
     stored = config_store_find_i2c_device_by_name(device.name);
-    if (stored == NULL) {
-        return 0;
-    }
-    *config = *stored;
-    config->addr_7b = device.addr_7b;
-    config->reg_count = device.reg_count;
-    config->max_value_code = device.max_value_code;
-    config->presence_check_enabled = device.presence_check_enabled;
-    config->presence_check_reg = device.presence_check_reg;
-    config->endpoint = device.endpoint;
-    config->policy = policy.mode;
-    memcpy(config->whitelist,
-           policy.whitelist,
-           policy.whitelist_len * sizeof(policy.whitelist[0]));
-    config->whitelist_len = policy.whitelist_len;
-    memcpy(config->blacklist,
-           policy.blacklist,
-           policy.blacklist_len * sizeof(policy.blacklist[0]));
-    config->blacklist_len = policy.blacklist_len;
-    for (size_t reg = 0U; include_cache_values && reg < config->reg_count; ++reg) {
-        if (bvstk_i2c_cache_is_valid(&s_i2c_cache, device_id, (uint8_t)reg)) {
-            uint8_t value = 0U;
-            if (bvstk_i2c_cache_read(&s_i2c_cache,
-                                     device_id,
-                                     (uint8_t)reg,
-                                     &value) == BVSTK_OK) {
-                update_setting(config, (uint8_t)reg, value);
-            }
-        }
-    }
-    return 1;
+    return bvstk_control_i2c_snapshot(&control, device_id, stored,
+                                     include_cache_values, config) == BVSTK_OK;
 }
 
 static int sync_i2c_device_config(size_t device_id, int include_cache_values)
@@ -513,9 +459,8 @@ int bvstk_runtime_i2c_apply_config(const i2c_device_config_t *config)
                                               &device_id) != BVSTK_OK) {
         return 0;
     }
-    return bvstk_i2c_master_service_set_config(&s_i2c_master_service,
-                                               device_id,
-                                               config) == BVSTK_OK;
+    bvstk_control_api_t control = {.i2c = &s_i2c_master_service};
+    return bvstk_control_i2c_apply(&control, device_id, config) == BVSTK_OK;
 }
 
 bvstk_mdio_service_t *bvstk_runtime_mdio_service(void)

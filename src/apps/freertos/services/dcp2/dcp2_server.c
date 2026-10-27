@@ -101,11 +101,6 @@ typedef struct {
     uint64_t stream_cursor[BVSTK_JOURNAL_BUSES];
 } dcp2_conn_state_t;
 
-typedef struct {
-    uint32_t base;
-    uint32_t size;
-} mmio_range_t;
-
 static uint16_t s_port = DCP2_PORT_DEFAULT;
 static volatile int s_startup_done;
 
@@ -139,11 +134,6 @@ static uint32_t be32_read(const uint8_t *p)
            ((uint32_t)p[1] << 16) |
            ((uint32_t)p[2] << 8) |
            (uint32_t)p[3];
-}
-
-static uint64_t be64_read(const uint8_t *p)
-{
-    return ((uint64_t)be32_read(p) << 32) | (uint64_t)be32_read(p + 4);
 }
 
 static void be16_write(uint8_t *p, uint16_t v)
@@ -448,62 +438,6 @@ static int dcp2_stream_index(uint8_t srv)
     return (int)(srv - DCP2_SRV_I2C);
 }
 
-static bool dcp2_mem_width_valid(uint8_t width_bits)
-{
-    return width_bits == 8u || width_bits == 16u || width_bits == 32u || width_bits == 64u;
-}
-
-static bool dcp2_mem_access_allowed(uint64_t address, uint32_t size_bytes)
-{
-    uint64_t end = address + (uint64_t)size_bytes;
-
-    /* The wire address is 32-bit and size is an exclusive-end span. */
-    if (size_bytes == 0u || end < address ||
-        address > (uint64_t)UINT32_MAX ||
-        end > (UINT64_C(1) << 32)) {
-        return false;
-    }
-
-#if BVSTK_DCP2_ALLOW_ANY_MEM_ACCESS
-    /*
-     * This is deliberately a raw diagnostic access mode.  It does not make
-     * an unmapped address valid on the hardware; it only removes the
-     * software whitelist.  Xil_In/Out on an unmapped or unsafe register can
-     * still fault, hang the bus, or have device-specific side effects.
-     */
-    (void)address;
-    return true;
-#else
-    static const mmio_range_t ranges[] = {
-#if BVSTK_PL_HAS_I2C_CORE
-        { (uint32_t)BVSTK_I2C_MASTER_BASE, 0x1000u },
-        { (uint32_t)BVSTK_I2C_SLAVE_BASE,  0x1000u },
-        { (uint32_t)BVSTK_I2C_BRAM_BASE,   0x3000u },
-#endif
-#if BVSTK_PL_HAS_MDIO_CORE
-        { (uint32_t)MASTER_BASEADDR, 0x1000u },
-        { (uint32_t)SLAVE_BASEADDR,  0x1000u },
-        { (uint32_t)BRAM_BASEADDR,   (uint32_t)(BRAM_HIGHADDR - BRAM_BASEADDR + 1u) },
-#endif
-#if BVSTK_PL_HAS_SPI_CORE
-        { (uint32_t)SPI_BASEADDR,    0x1000u },
-        { (uint32_t)SPI_BRAM_BASEADDR, 0x2000u },
-#endif
-#if BVSTK_PL_HAS_SD_CONTROLLER
-        { (uint32_t)BVSTK_SD_CONTROLLER_BASE, (uint32_t)BVSTK_SD_CONTROLLER_SIZE },
-#endif
-    };
-    size_t i;
-
-    for (i = 0; i < (sizeof(ranges) / sizeof(ranges[0])); ++i) {
-        uint64_t r_start = (uint64_t)ranges[i].base;
-        uint64_t r_end = r_start + (uint64_t)ranges[i].size;
-        if (address >= r_start && end <= r_end) return true;
-    }
-    return false;
-#endif
-}
-
 static int dcp2_handle_ping(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
 {
     (void)body;
@@ -516,135 +450,18 @@ static int dcp2_handle_ping(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, c
     return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
 }
 
-static int dcp2_handle_mem_read(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
+static int dcp2_handle_mem(int fd, uint8_t srv, uint8_t opcode, uint16_t seq,
+                            const uint8_t *body, uint16_t body_len)
 {
-    uint8_t flags;
-    uint8_t width_bits;
-    uint32_t addr;
-    uint16_t count;
-    uint32_t width_bytes;
-    uint32_t total_bytes;
-    uint32_t i;
-
-    if (body_len != 8u) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-    }
-
-    flags = body[0];
-    width_bits = body[1];
-    addr = be32_read(body + 2);
-    count = be16_read(body + 6);
-
-    if ((flags & (uint8_t)~DCP2_MEM_FLAG_AUTOINC) != 0u) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-    }
-    if (!dcp2_mem_width_valid(width_bits)) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-    }
-
-    width_bytes = (uint32_t)width_bits / 8u;
-    total_bytes = (uint32_t)count * width_bytes;
-    if (total_bytes > (DCP2_MAX_PAYLOAD - 6u)) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-    }
-
-    for (i = 0; i < count; ++i) {
-        uint64_t cur_addr64 = (uint64_t)addr +
-            (((flags & DCP2_MEM_FLAG_AUTOINC) != 0u) ?
-             ((uint64_t)i * width_bytes) : 0u);
-        uint32_t cur_addr;
-        uint8_t *dst = s_mem_read_buf + (i * width_bytes);
-        if (!dcp2_mem_access_allowed(cur_addr64, width_bytes) ||
-            ((cur_addr64 & (uint64_t)(width_bytes - 1u)) != 0u)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        cur_addr = (uint32_t)cur_addr64;
-
-        if (width_bits == 8u) {
-            dst[0] = Xil_In8((UINTPTR)cur_addr);
-        } else if (width_bits == 16u) {
-            be16_write(dst, Xil_In16((UINTPTR)cur_addr));
-        } else if (width_bits == 32u) {
-            be32_write(dst, Xil_In32((UINTPTR)cur_addr));
-        } else {
-            uint64_t hi = (uint64_t)Xil_In32((UINTPTR)cur_addr);
-            uint64_t lo = (uint64_t)Xil_In32((UINTPTR)(cur_addr + 4u));
-            be64_write(dst, (hi << 32) | lo);
-        }
-    }
-
-    return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, s_mem_read_buf, (uint16_t)total_bytes);
-}
-
-static int dcp2_handle_mem_write(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
-{
-    uint8_t flags;
-    uint8_t width_bits;
-    uint32_t addr;
-    uint16_t count;
-    uint32_t width_bytes;
-    uint32_t data_len;
-    uint32_t i;
-
-    if (body_len < 8u) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-    }
-
-    flags = body[0];
-    width_bits = body[1];
-    addr = be32_read(body + 2);
-    count = be16_read(body + 6);
-
-    if ((flags & (uint8_t)~DCP2_MEM_FLAG_AUTOINC) != 0u) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-    }
-    if (!dcp2_mem_width_valid(width_bits)) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-    }
-
-    width_bytes = (uint32_t)width_bits / 8u;
-    data_len = (uint32_t)count * width_bytes;
-    if (body_len != (uint16_t)(8u + data_len)) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-    }
-
-    for (i = 0; i < count; ++i) {
-        uint64_t cur_addr64 = (uint64_t)addr +
-            (((flags & DCP2_MEM_FLAG_AUTOINC) != 0u) ?
-             ((uint64_t)i * width_bytes) : 0u);
-        uint32_t cur_addr;
-        const uint8_t *src = body + 8u + (i * width_bytes);
-        if (!dcp2_mem_access_allowed(cur_addr64, width_bytes) ||
-            ((cur_addr64 & (uint64_t)(width_bytes - 1u)) != 0u)) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        cur_addr = (uint32_t)cur_addr64;
-
-        if (width_bits == 8u) {
-            Xil_Out8((UINTPTR)cur_addr, src[0]);
-        } else if (width_bits == 16u) {
-            Xil_Out16((UINTPTR)cur_addr, be16_read(src));
-        } else if (width_bits == 32u) {
-            Xil_Out32((UINTPTR)cur_addr, be32_read(src));
-        } else {
-            uint64_t v = be64_read(src);
-            Xil_Out32((UINTPTR)cur_addr, (uint32_t)(v >> 32));
-            Xil_Out32((UINTPTR)(cur_addr + 4u), (uint32_t)(v & 0xFFFFFFFFu));
-        }
-    }
-
-    return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
-}
-
-static int dcp2_handle_mem(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
-{
-    if (opcode == DCP2_OP_MEM_READ) {
-        return dcp2_handle_mem_read(fd, srv, opcode, seq, body, body_len);
-    }
-    if (opcode == DCP2_OP_MEM_WRITE) {
-        return dcp2_handle_mem_write(fd, srv, opcode, seq, body, body_len);
-    }
-    return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
+    const bvstk_control_api_t control = {.memory = bvstk_platform_memory()};
+    const bvstk_dcp2_request_t request = {srv, opcode, seq, body, body_len};
+    uint16_t response_size = 0U;
+    bvstk_status_t status = bvstk_dcp2_process_mem(&control, &request,
+        s_mem_read_buf, DCP2_MAX_PAYLOAD - 6U, &response_size);
+    return dcp2_send_response(fd, srv, opcode, seq,
+        bvstk_dcp2_status_from_bvstk(status),
+        status == BVSTK_OK && response_size ? s_mem_read_buf : NULL,
+        status == BVSTK_OK ? response_size : 0U);
 }
 
 #if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_MDIO_CORE

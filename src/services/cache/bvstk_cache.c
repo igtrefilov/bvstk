@@ -118,6 +118,16 @@ bvstk_status_t bvstk_cache_presence(bvstk_cache_registry_t *r, uint16_t handle,
     }
     leave(r); return result;
 }
+bvstk_status_t bvstk_cache_remove(bvstk_cache_registry_t *r, uint16_t handle)
+{
+    bvstk_cache_snapshot_t *d;
+    if (!r) return BVSTK_ERR_MALFORMED;
+    enter(r);
+    d = device(r, handle);
+    if (d) memset(d, 0, sizeof(*d));
+    leave(r);
+    return d ? BVSTK_OK : BVSTK_ERR_NOT_FOUND;
+}
 bvstk_status_t bvstk_cache_snapshot(bvstk_cache_registry_t *r, const char *subsystem,
     const char *name, bvstk_cache_snapshot_t *out, uint16_t *handle, uint64_t *cursor, uint64_t now_ms)
 {

@@ -64,11 +64,13 @@ static bvstk_status_t invalidate(bvstk_mdio_service_t *s, size_t d)
 {
     uint8_t r;
     bvstk_status_t result = BVSTK_OK;
+    bvstk_cache_sink_enter(&s->cache_sink);
     memset(s->cache[d], 0, sizeof(s->cache[d]));
     s->online[d] = 0;
     s->probe_due[d] = 0;
     for (r = 0; r < s->devices[d].reg_count; ++r) cache_changed(s, d, r);
     bvstk_cache_sink_presence(&s->cache_sink, d, 2U);
+    bvstk_cache_sink_leave(&s->cache_sink);
     for (r = 0; r < 32U; ++r)
         if (publish(s, s->devices[d].phy_addr, r, 0xFFFFU) != BVSTK_OK) result = BVSTK_ERR_IO;
     return result;
@@ -88,13 +90,8 @@ static bvstk_status_t read_phy(bvstk_mdio_service_t *s, size_t d, uint8_t r,
     ++s->stats.reads;
     if (st == BVSTK_OK) {
         st = publish(s, phy, r, *v);
-        if (st == BVSTK_OK) {
-            e->value = *v; e->valid = 1; e->seeded = 0;
-            e->updated_ms = bvstk_platform_now_ms();
-        }
     }
     if (st != BVSTK_OK) {
-        e->valid = 0;
         (void)publish(s, phy, r, 0xFFFFU);
         /* Identity probes are presence checks, not device transactions.
          * A missing or temporarily unreachable PHY must not turn the
@@ -103,7 +100,13 @@ static bvstk_status_t read_phy(bvstk_mdio_service_t *s, size_t d, uint8_t r,
     }
     /* Publish identity probes only after the complete ID pair is accepted.
      * An undriven MDIO line (FFFF) must never look like a cached PHY sample. */
+    bvstk_cache_sink_enter(&s->cache_sink);
+    if (st == BVSTK_OK) {
+        e->value = *v; e->valid = 1; e->seeded = 0;
+        e->updated_ms = bvstk_platform_now_ms();
+    } else e->valid = 0;
     if (!probe) cache_changed(s, d, r);
+    bvstk_cache_sink_leave(&s->cache_sink);
     return st;
 }
 static bvstk_status_t write_phy(bvstk_mdio_service_t *s, size_t d, uint8_t r,
@@ -124,8 +127,10 @@ static bvstk_status_t write_phy(bvstk_mdio_service_t *s, size_t d, uint8_t r,
          * Invalidate before dispatch, then refresh from actual hardware. */
         if (r == 0U && (v & 0x8000U)) (void)invalidate(s, d);
         else {
+            bvstk_cache_sink_enter(&s->cache_sink);
             s->cache[d][r].valid = 0;
             cache_changed(s, d, r);
+            bvstk_cache_sink_leave(&s->cache_sink);
             (void)publish(s, phy, r, 0xFFFFU);
         }
         if (s->bus.write) st = s->bus.write(s->bus.context, phy, r, v, source, timeout);
@@ -154,9 +159,11 @@ static bvstk_status_t seed(bvstk_mdio_service_t *s, size_t d)
         mdio_setting_entry_t v = s->devices[d].settings[i];
         bvstk_mdio_cache_entry_t *e = &s->cache[d][v.reg];
         if (publish(s, s->devices[d].phy_addr, v.reg, v.val) != BVSTK_OK) return BVSTK_ERR_IO;
+        bvstk_cache_sink_enter(&s->cache_sink);
         e->value = v.val; e->valid = 1; e->seeded = 1;
         e->updated_ms = bvstk_platform_now_ms();
         cache_changed(s, d, v.reg);
+        bvstk_cache_sink_leave(&s->cache_sink);
     }
     return BVSTK_OK;
 }
@@ -266,10 +273,15 @@ bvstk_status_t bvstk_mdio_service_invalidate_range(bvstk_mdio_service_t *s, size
     if (st != BVSTK_OK) return st;
     if (d >= s->device_count || first >= s->devices[d].reg_count ||
         count > s->devices[d].reg_count - first) st = BVSTK_ERR_RANGE;
-    else for (unsigned r = first; r < first + count; ++r) {
-        s->cache[d][r].valid = 0;
-        cache_changed(s, d, r);
-        if (publish(s, s->devices[d].phy_addr, (uint8_t)r, 0xFFFFU) != BVSTK_OK) st = BVSTK_ERR_IO;
+    else {
+        bvstk_cache_sink_enter(&s->cache_sink);
+        for (unsigned r = first; r < first + count; ++r) {
+            s->cache[d][r].valid = 0;
+            cache_changed(s, d, r);
+        }
+        bvstk_cache_sink_leave(&s->cache_sink);
+        for (unsigned r = first; r < first + count; ++r)
+            if (publish(s, s->devices[d].phy_addr, (uint8_t)r, 0xFFFFU) != BVSTK_OK) st = BVSTK_ERR_IO;
     }
     bvstk_mutex_unlock(&s->mutex);
     return st;
@@ -283,7 +295,9 @@ bvstk_status_t bvstk_mdio_service_sample(bvstk_mdio_service_t *s, size_t d, uint
     if (st == BVSTK_OK) {
         uint16_t value;
         st = read_phy(s, d, r, &value, BVSTK_EVENT_SOURCE_INTERNAL, timeout, 1);
+        bvstk_cache_sink_enter(&s->cache_sink);
         cache_changed(s, d, r);
+        bvstk_cache_sink_leave(&s->cache_sink);
     }
     bvstk_mutex_unlock(&s->mutex);
     return st;
@@ -530,10 +544,12 @@ bvstk_status_t bvstk_mdio_service_step(bvstk_mdio_service_t *s, uint64_t now, ui
             st = read_phy(s, d, 2, &id1, BVSTK_EVENT_SOURCE_INTERNAL, timeout, 1);
             if (st == BVSTK_OK) st = read_phy(s, d, 3, &id2, BVSTK_EVENT_SOURCE_INTERNAL, timeout, 1);
             if (st == BVSTK_OK && id1 != 0xFFFFU && id2 != 0xFFFFU && (id1 || id2)) {
+                bvstk_cache_sink_enter(&s->cache_sink);
                 cache_changed(s, d, 2); cache_changed(s, d, 3);
                 if (!s->online[d]) s->poll_due[d] = 0;
                 s->online[d] = 1;
                 bvstk_cache_sink_presence(&s->cache_sink, d, 1U);
+                bvstk_cache_sink_leave(&s->cache_sink);
             } else {
                 (void)invalidate(s, d);
                 result = st == BVSTK_OK ? BVSTK_ERR_NOT_READY : st;

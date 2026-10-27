@@ -43,7 +43,7 @@ typedef enum {
 } bvstk_event_type_t;
 
 /* Flags carried with software observations. They do not change the public
- * event type or the DCP2 wire record. The FreeRTOS observer uses the first
+ * event type or the DCP2 wire record. The common observer uses the first
  * flag to keep unconfirmed/probe traffic out of per-device telemetry while
  * retaining the event for local service diagnostics and tests. */
 enum {

@@ -2,103 +2,54 @@
 
 #include <string.h>
 
-static bvstk_status_t find_region(uint32_t address,
-                                  size_t width,
-                                  bvstk_pl_region_id_t *region,
-                                  size_t *offset)
+bvstk_status_t bvstk_dcp2_process_mem(const bvstk_control_api_t *control,
+    const bvstk_dcp2_request_t *request, uint8_t *body,
+    size_t body_capacity, uint16_t *body_size)
 {
-    size_t i;
-    if (region == NULL || offset == NULL || width == 0U) {
-        return BVSTK_ERR_MALFORMED;
-    }
-    for (i = 0U; i < bvstk_pl_region_count(); ++i) {
-        const bvstk_pl_region_desc_t *desc =
-            bvstk_pl_region_get((bvstk_pl_region_id_t)i);
-        uint64_t start;
-        uint64_t end;
-        if (desc == NULL) {
-            continue;
-        }
-        start = (uint64_t)desc->physical_base;
-        end = start + desc->size;
-        if ((uint64_t)address >= start &&
-            (uint64_t)address + width <= end &&
-            ((address - (uint32_t)start) & 3U) == 0U) {
-            *region = desc->id;
-            *offset = (size_t)((uint64_t)address - start);
-            return BVSTK_OK;
-        }
-    }
-    return BVSTK_ERR_RANGE;
-}
-
-static bvstk_status_t process_mem(bvstk_control_api_t *control,
-                                  const bvstk_dcp2_request_t *request,
-                                  uint8_t *body,
-                                  uint16_t *body_size)
-{
-    uint8_t flags;
-    uint8_t width;
+    unsigned flags, width, bytes;
     uint32_t address;
     uint16_t count;
-    uint16_t i;
-
-    if (request->body_size < 8U) {
+    int writing;
+    bvstk_status_t status;
+    if (body_size == NULL) return BVSTK_ERR_MALFORMED;
+    *body_size = 0U;
+    if (request == NULL || request->body == NULL || request->body_size < 8U)
         return BVSTK_ERR_MALFORMED;
-    }
+    if (request->opcode != BVSTK_DCP2_OP_MEM_READ &&
+        request->opcode != BVSTK_DCP2_OP_MEM_WRITE) return BVSTK_ERR_UNSUPPORTED;
     flags = request->body[0];
     width = request->body[1];
     address = bvstk_dcp2_read_be32(request->body + 2);
     count = bvstk_dcp2_read_be16(request->body + 6);
-    if (flags != 0U || width != 32U || count == 0U || count > 256U) {
+    if (flags & ~1U) return BVSTK_ERR_MALFORMED;
+    if (width != 8U && width != 16U && width != 32U && width != 64U)
         return BVSTK_ERR_UNSUPPORTED;
+    bytes = width / 8U;
+    writing = request->opcode == BVSTK_DCP2_OP_MEM_WRITE;
+    if (request->body_size != (writing ? 8U + (size_t)count * bytes : 8U))
+        return BVSTK_ERR_MALFORMED;
+    if ((size_t)count * bytes > BVSTK_DCP2_MAX_PAYLOAD - (writing ? 12U : 6U) ||
+        (!writing && ((size_t)count * bytes > body_capacity || body == NULL)))
+        return BVSTK_ERR_RANGE;
+    status = bvstk_control_mem_check(control, address, width, count, flags & 1U, writing);
+    if (status != BVSTK_OK) return status;
+    for (size_t i = 0U; i < count; ++i) {
+        uint32_t current = address + (flags & 1U ? (uint32_t)(i * bytes) : 0U);
+        uint64_t value = 0U;
+        if (writing) {
+            for (unsigned j = 0U; j < bytes; ++j)
+                value = (value << 8U) | request->body[8U + i * bytes + j];
+            status = bvstk_control_mem_write(control, current, width, value);
+        } else {
+            status = bvstk_control_mem_read(control, current, width, &value);
+            if (status == BVSTK_OK)
+                for (unsigned j = 0U; j < bytes; ++j)
+                    body[i * bytes + j] = (uint8_t)(value >> ((bytes - 1U - j) * 8U));
+        }
+        if (status != BVSTK_OK) return status;
     }
-    if (request->opcode == BVSTK_DCP2_OP_MEM_READ) {
-        if (request->body_size != 8U || (size_t)count * 4U > BVSTK_DCP2_MAX_PAYLOAD - 6U) {
-            return BVSTK_ERR_RANGE;
-        }
-        for (i = 0U; i < count; ++i) {
-            bvstk_pl_region_id_t region;
-            size_t offset;
-            uint32_t value;
-            bvstk_status_t status = find_region(address + (uint32_t)i * 4U,
-                                                sizeof(value), &region, &offset);
-            if (status != BVSTK_OK) {
-                return status;
-            }
-            status = bvstk_control_pl_read32(control, region, offset, &value);
-            if (status != BVSTK_OK) {
-                return status;
-            }
-            bvstk_dcp2_write_be32(body + (size_t)i * 4U, value);
-        }
-        *body_size = (uint16_t)((size_t)count * 4U);
-        return BVSTK_OK;
-    }
-    if (request->opcode == BVSTK_DCP2_OP_MEM_WRITE) {
-        if (request->body_size != (uint16_t)(8U + (size_t)count * 4U)) {
-            return BVSTK_ERR_MALFORMED;
-        }
-        for (i = 0U; i < count; ++i) {
-            bvstk_pl_region_id_t region;
-            size_t offset;
-            bvstk_status_t status = find_region(address + (uint32_t)i * 4U,
-                                                sizeof(uint32_t), &region, &offset);
-            if (status != BVSTK_OK) {
-                return status;
-            }
-            status = bvstk_control_pl_write32(control,
-                                              region,
-                                              offset,
-                                              bvstk_dcp2_read_be32(request->body + 8U + (size_t)i * 4U));
-            if (status != BVSTK_OK) {
-                return status;
-            }
-        }
-        *body_size = 0U;
-        return BVSTK_OK;
-    }
-    return BVSTK_ERR_UNSUPPORTED;
+    if (!writing) *body_size = (uint16_t)((size_t)count * bytes);
+    return BVSTK_OK;
 }
 
 static bvstk_status_t policy_status(bvstk_status_t status)
@@ -287,10 +238,11 @@ static bvstk_status_t process_i2c(bvstk_control_api_t *control,
         if (request->body_size != 2U) {
             return BVSTK_ERR_MALFORMED;
         }
-        status = bvstk_control_i2c_read(control,
+        status = bvstk_control_i2c_read_from(control,
                                         device_id,
                                         reg,
                                         body,
+                                        BVSTK_EVENT_SOURCE_DCP,
                                         100U);
         *body_size = status == BVSTK_OK ? 1U : 0U;
         return status;
@@ -345,10 +297,11 @@ static bvstk_status_t process_mdio(bvstk_control_api_t *control,
         if (request->body_size != 2U) {
             return BVSTK_ERR_MALFORMED;
         }
-        status = bvstk_control_mdio_read(control,
+        status = bvstk_control_mdio_read_from(control,
                                         device_id,
                                         request->body[1],
                                         &value,
+                                         BVSTK_EVENT_SOURCE_DCP,
                                         100U);
         if (status == BVSTK_OK) {
             bvstk_dcp2_write_be16(body, value);
@@ -434,7 +387,7 @@ int bvstk_dcp2_process_request(bvstk_control_api_t *control,
         request->body_size == 0U) {
         status = BVSTK_OK;
     } else if (request->service == BVSTK_DCP2_SERVICE_MEM) {
-        status = process_mem(control, request, body, &body_size);
+        status = bvstk_dcp2_process_mem(control, request, body, body_capacity, &body_size);
     } else if (request->service == BVSTK_DCP2_SERVICE_I2C) {
         status = process_i2c(control, request, body, body_capacity, &body_size);
     } else if (request->service == BVSTK_DCP2_SERVICE_MDIO) {

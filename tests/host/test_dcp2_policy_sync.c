@@ -32,15 +32,29 @@ static void exit_critical(void)
 
 #include "apps/freertos/runtime/bvstk_runtime.c"
 #include "apps/freertos/services/dcp2/dcp2_policy_store.c"
-#define update_setting neutrino_update_setting
 #include "apps/neutrino/runtime/bvstk_i2c_runtime.c"
-#undef update_setting
+#include "apps/neutrino/bvstkd/bvstk_dcp2_runtime.h"
 
 static i2c_device_config_t freertos_stored, saved;
 static mdio_phy_config_t mdio_saved;
 static unsigned saves;
 static int store_ok = 1, save_ok = 1, store_present = 1, store_ready = 1;
 static bvstk_neutrino_i2c_runtime_t nto;
+static int allow_bus;
+static unsigned bus_reads, bus_writes;
+static uint8_t bus_value;
+static uint8_t last_address, last_register;
+static int bus_locked;
+
+/* No hardware register access is permitted by these configuration scenarios. */
+int bvstk_mmio_region_open(bvstk_mmio_region_t *r, uintptr_t base, size_t size)
+{ (void)r; (void)base; (void)size; assert(!"unexpected MMIO mapping"); return -1; }
+void bvstk_mmio_region_close(bvstk_mmio_region_t *r) { (void)r; }
+int bvstk_mmio_read32(const bvstk_mmio_region_t *r, size_t offset, uint32_t *value)
+{ (void)r; (void)offset; (void)value; assert(!"unexpected MMIO read"); return -1; }
+int bvstk_mmio_write32(const bvstk_mmio_region_t *r, size_t offset, uint32_t value)
+{ (void)r; (void)offset; (void)value; assert(!"unexpected MMIO write"); return -1; }
+void bvstk_platform_sleep_ms(uint32_t milliseconds) { (void)milliseconds; }
 
 int config_store_is_ready(void) { return store_ready; }
 int config_store_save_i2c_device(const i2c_device_config_t *config)
@@ -88,6 +102,25 @@ size_t bvstk_neutrino_i2c_config_store_count(const bvstk_neutrino_i2c_config_sto
 {
     return store->device_count;
 }
+const i2c_device_config_t *bvstk_neutrino_i2c_config_store_find_name(
+    const bvstk_neutrino_i2c_config_store_t *store, const char *name, size_t *id)
+{
+    for (size_t i = 0; i < store->device_count; ++i)
+        if (!strcasecmp(store->devices[i].name, name)) { *id = i; return &store->devices[i]; }
+    return NULL;
+}
+const i2c_device_config_t *bvstk_neutrino_i2c_config_store_find_addr(
+    const bvstk_neutrino_i2c_config_store_t *store, uint8_t address, size_t *id)
+{
+    const i2c_device_config_t *found = NULL;
+    for (size_t i = 0; i < store->device_count; ++i)
+        if (bvstk_i2c_address_space(&store->devices[i].endpoint,
+                                  store->devices[i].addr_7b, address) >= 0) {
+            if (found) return NULL;
+            *id = i; found = &store->devices[i];
+        }
+    return found;
+}
 int bvstk_neutrino_i2c_config_store_update(bvstk_neutrino_i2c_config_store_t *store,
     size_t id, const i2c_device_config_t *config)
 {
@@ -119,15 +152,31 @@ bvstk_status_t bvstk_i2c_slave_hw_set_address(bvstk_i2c_slave_hw_t *hw, uint8_t 
 static bvstk_status_t no_read(void *ctx, uint8_t addr, uint8_t reg, uint8_t *value, uint32_t timeout)
 {
     (void)ctx; (void)addr; (void)reg; (void)value; (void)timeout;
-    assert(!"unexpected bus read");
-    return BVSTK_ERR_IO;
+    assert(allow_bus);
+    ++bus_reads; *value = bus_value;
+    return BVSTK_OK;
 }
 static bvstk_status_t no_write(void *ctx, uint8_t addr, uint8_t reg, uint8_t value, uint32_t timeout)
 {
     (void)ctx; (void)addr; (void)reg; (void)value; (void)timeout;
-    assert(!"unexpected bus write");
-    return BVSTK_ERR_IO;
+    assert(allow_bus);
+    ++bus_writes; bus_value = value;
+    return BVSTK_OK;
 }
+static bvstk_status_t transfer(void *ctx, uint8_t addr, const uint8_t *tx, size_t tx_size,
+                               uint8_t *rx, size_t rx_size, uint32_t timeout)
+{
+    (void)ctx; (void)timeout;
+    assert(allow_bus && bus_locked && tx_size >= 1);
+    last_address = addr; last_register = tx[0];
+    if (rx_size) { assert(tx_size == 1 && rx_size == 1); ++bus_reads; *rx = bus_value; }
+    else { assert(tx_size == 2); ++bus_writes; bus_value = tx[1]; }
+    return BVSTK_OK;
+}
+static bvstk_status_t lock_bus(void *ctx, uint32_t ms)
+{ (void)ctx; (void)ms; assert(!bus_locked); bus_locked = 1; return BVSTK_OK; }
+static void unlock_bus(void *ctx)
+{ (void)ctx; assert(bus_locked); bus_locked = 0; }
 static void setup(bvstk_i2c_master_service_t *service, bvstk_i2c_devices_t *devices,
     bvstk_i2c_cache_t *cache, bvstk_i2c_policy_t *policy, i2c_device_config_t *config)
 {
@@ -264,6 +313,108 @@ static void check_explicit_save(void)
     assert(bvstk_freertos_dcp2_policy_save(NULL, 1, 0) == BVSTK_ERR_UNSUPPORTED);
 }
 
+static void check_neutrino_commands(void)
+{
+    char output[512];
+    static i2c_device_config_t before, last_saved;
+    memset(&nto, 0, sizeof(nto));
+    setup(&nto.master_service, &nto.devices, &nto.cache, &nto.policy, &nto.config_store.devices[0]);
+    nto.ready = nto.config_store.initialized = 1;
+    nto.config_store.device_count = 1;
+    assert(pthread_mutex_init(&nto.state_mutex, NULL) == 0);
+    nto.state_mutex_initialized = 1;
+    assert(bvstk_i2c_cache_write(&nto.cache, 0, 1, 0x22) == BVSTK_OK);
+    assert(bvstk_i2c_cache_write(&nto.cache, 0, 2, 0x33) == BVSTK_OK);
+    strcpy(nto.config_store.devices[0].profile.register_map, "register_map.json");
+    strcpy(nto.config_store.devices[0].profile.view, "view.js");
+    strcpy(nto.config_store.devices[0].profile.icon, "icon.js");
+    assert(bvstk_neutrino_i2c_runtime_sync_policy_locked(&nto, 0));
+    before = saved = nto.config_store.devices[0];
+    store_ok = save_ok = 1; saves = bus_reads = bus_writes = 0; allow_bus = 1;
+
+    assert(!bvstk_neutrino_i2c_runtime_command(&nto,
+        "i2c test policy set blacklist", output, sizeof(output)));
+    assert(strstr(output, "RAM") && !saves && !bus_reads && !bus_writes);
+    assert(!memcmp(&saved, &before, sizeof(saved)));
+    assert(!bvstk_neutrino_i2c_runtime_command(&nto,
+        "i2c test addr 0x37", output, sizeof(output)));
+    assert(nto.config_store.devices[0].addr_7b == 0x37 && !saves && !bus_writes);
+    assert(!bvstk_neutrino_i2c_runtime_command(&nto,
+        "i2c test w 2 7", output, sizeof(output)));
+    assert(bus_writes == 1 && !bus_reads && !saves && bus_value == 7);
+
+    bvstk_control_api_t control = {.i2c = &nto.master_service};
+    i2c_device_config_t invalid = nto.config_store.devices[0];
+    invalid.addr_7b = 0x38;
+    invalid.whitelist_len = I2C_CFG_RULES_MAX + 1U;
+    assert(bvstk_control_i2c_apply(&control, 0, &invalid) == BVSTK_ERR_MALFORMED);
+    bvstk_i2c_device_t unchanged_device;
+    assert(bvstk_i2c_master_service_device_info(control.i2c, 0, &unchanged_device) == BVSTK_OK);
+    assert(unchanged_device.addr_7b == 0x37);
+    uint8_t body[] = {0x37, 2, 9};
+    uint8_t response[64];
+    size_t size;
+    bvstk_dcp2_request_t request = {BVSTK_DCP2_SERVICE_I2C,
+        BVSTK_DCP2_OP_I2C_WRITE_REG, 1, body, sizeof(body)};
+    bvstk_neutrino_i2c_runtime_lock(&nto);
+    assert(!bvstk_neutrino_dcp2_request_locked(&nto, &control, &request,
+        response, sizeof(response), &size));
+    assert(!bvstk_dcp2_read_be16(response + 12) && bus_writes == 2 && !saves);
+    request.opcode = BVSTK_DCP2_OP_I2C_POLICY_SET;
+    request.body_size = 2; body[1] = I2C_POLICY_WHITELIST;
+    assert(!bvstk_neutrino_dcp2_request_locked(&nto, &control, &request,
+        response, sizeof(response), &size));
+    assert(!bvstk_dcp2_read_be16(response + 12) && !saves);
+    assert(nto.config_store.devices[0].policy == I2C_POLICY_WHITELIST);
+    bvstk_neutrino_i2c_runtime_unlock(&nto);
+    assert(!memcmp(&saved, &before, sizeof(saved)));
+
+    assert(!bvstk_neutrino_i2c_runtime_command(&nto, "i2c test save", output, sizeof(output)));
+    assert(saves == 1 && strstr(output, "OK saved") && !bus_reads && bus_writes == 2);
+    assert(saved.addr_7b == 0x37 && saved.policy == I2C_POLICY_WHITELIST);
+    /* Address changes invalidate the previous physical samples. */
+    assert(saved.settings_len == 2 && saved.settings[0].val == 0x11 && saved.settings[1].val == 9);
+    assert(!strcmp(saved.profile.view, "view.js") && !strcmp(saved.profile.icon, "icon.js"));
+    last_saved = saved;
+    assert(!bvstk_neutrino_i2c_runtime_command(&nto,
+        "i2c test policy whitelist add 2 9", output, sizeof(output)));
+    assert(saves == 1 && nto.config_store.devices[0].whitelist_len == 2);
+    save_ok = 0;
+    assert(bvstk_neutrino_i2c_runtime_command(&nto,
+        "i2c test save", output, sizeof(output)) == 1);
+    assert(strstr(output, "ERR IO") && saves == 2);
+    assert(nto.config_store.devices[0].whitelist_len == 2);
+    assert(!memcmp(&saved, &last_saved, sizeof(saved)));
+    assert(!bus_reads && bus_writes == 2); /* Saving never performs a bus read. */
+    /* The same multi-space device accepts a name or an unambiguous wire address. */
+    i2c_device_config_t multi = {0};
+    strcpy(multi.name, "test"); strcpy(multi.file_name, "test.json");
+    multi.addr_7b = 0x50; multi.reg_count = 8; multi.max_value_code = 255;
+    multi.policy = I2C_POLICY_BLACKLIST;
+    multi.endpoint.transfer.configured = 1; multi.endpoint.transfer.address_bytes = 1;
+    multi.endpoint.space_count = 2;
+    multi.endpoint.spaces[0] = (bvstk_address_space_t){"id", 0, 4, 0x50};
+    multi.endpoint.spaces[1] = (bvstk_address_space_t){"diag", 4, 4, 0x51};
+    nto.config_store.devices[0] = multi;
+    const bvstk_i2c_master_io_t io = {.transfer = transfer, .lock = lock_bus, .unlock = unlock_bus};
+    assert(bvstk_i2c_devices_init_from_config(&nto.devices, &multi, 1) == BVSTK_OK);
+    assert(bvstk_i2c_cache_init(&nto.cache, 1) == BVSTK_OK);
+    assert(bvstk_i2c_policy_init(&nto.policy, &multi, 1) == BVSTK_OK);
+    assert(bvstk_i2c_master_service_init(&nto.master_service, NULL, &io, &nto.devices,
+        &nto.cache, &nto.policy, NULL) == BVSTK_OK);
+    bus_value = 0x2a;
+    assert(!bvstk_neutrino_i2c_runtime_command(&nto, "i2c @0x51 r 1", output, sizeof(output)));
+    assert(last_address == 0x51 && last_register == 1 && strstr(output, "0x2A"));
+    assert(!bvstk_neutrino_i2c_runtime_command(&nto, "i2c @0x51 w 1 7", output, sizeof(output)));
+    assert(last_address == 0x51 && last_register == 1 && bus_value == 7);
+    assert(!bus_locked);
+    assert(bvstk_neutrino_i2c_runtime_command(&nto, "i2c @0x51 r diag:1", output, sizeof(output)) == 2);
+    assert(bvstk_neutrino_i2c_runtime_command(&nto, "i2c @0x52 r 1", output, sizeof(output)) == 1);
+    assert(saves == 2);
+    allow_bus = 0; save_ok = 1;
+    assert(pthread_mutex_destroy(&nto.state_mutex) == 0);
+}
+
 int main(void)
 {
     (void)s_spi_mutex; /* SPI is disabled in this board configuration. */
@@ -288,31 +439,34 @@ int main(void)
     assert(bvstk_neutrino_i2c_runtime_sync_policy_locked(&nto, 0));
     check_policy(&nto.config_store.devices[0]); check_settings(&nto.config_store.devices[0], 0);
     assert(saves == 0);
-    /* Actual console edit starts from the mirror and persists all DCP2 rules. */
+    /* Actual console edit starts from the mirror and keeps every rule in RAM. */
     assert(policy_edit(&nto, 0, &nto.config_store.devices[0], args, 6, &writer) == 0);
-    assert(strstr(output, "OK") && saves == 1);
-    assert(saved.whitelist_len == 1 && saved.whitelist[0].val == 0x33);
-    assert(saved.blacklist_len == 2 && saved.blacklist[0].val == 0x24 && saved.blacklist[1].val == 37);
-    check_settings(&saved, 0);
-    assert(bvstk_neutrino_i2c_runtime_sync_locked(&nto, 0, 1));
-    assert(saves == 2); check_settings(&saved, 1);
+    assert(strstr(output, "RAM") && saves == 0);
+    assert(nto.config_store.devices[0].whitelist_len == 1 && nto.config_store.devices[0].whitelist[0].val == 0x33);
+    assert(nto.config_store.devices[0].blacklist_len == 2 &&
+           nto.config_store.devices[0].blacklist[0].val == 0x24 &&
+           nto.config_store.devices[0].blacklist[1].val == 37);
+    check_settings(&nto.config_store.devices[0], 0);
+    assert(bvstk_neutrino_i2c_runtime_save_device_locked(&nto, 0));
+    assert(saves == 1); check_settings(&saved, 1);
     save_ok = 0;
     assert(bvstk_neutrino_i2c_runtime_sync_policy_locked(&nto, 0));
+    assert(saves == 1);
+    assert(!bvstk_neutrino_i2c_runtime_save_device_locked(&nto, 0));
     assert(saves == 2);
-    assert(!bvstk_neutrino_i2c_runtime_sync_locked(&nto, 0, 1));
-    assert(saves == 3);
     store_ok = 0;
     assert(!bvstk_neutrino_i2c_runtime_sync_policy_locked(&nto, 0));
     store_ok = save_ok = 1;
     setup(&nto.master_service, &nto.devices, &nto.cache, &nto.policy, &nto.config_store.devices[0]);
     assert(bvstk_neutrino_i2c_runtime_save_policy_locked(&nto, 0));
-    assert(saves == 4); check_policy(&saved); check_settings(&saved, 0);
+    assert(saves == 3); check_policy(&saved); check_settings(&saved, 0);
     save_ok = 0;
     assert(!bvstk_neutrino_i2c_runtime_save_policy_locked(&nto, 0));
-    assert(saves == 5);
+    assert(saves == 4);
     bvstk_neutrino_i2c_runtime_unlock(&nto);
     assert(pthread_mutex_destroy(&nto.state_mutex) == 0);
     check_explicit_save();
+    check_neutrino_commands();
     i2c_device_config_t multi = {0};
     multi.endpoint.space_count=2;
     multi.endpoint.spaces[0]=(bvstk_address_space_t){"id",0,4,0x50};

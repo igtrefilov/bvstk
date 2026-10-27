@@ -8,15 +8,12 @@
 #include <strings.h>
 
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
-#include "shared/config/bvstk_i2c_config_codec.h"
+#include "services/control/bvstk_control_api.h"
 
 enum {
     BVSTK_I2C_COMMAND_MAX = 512,
     BVSTK_I2C_COMMAND_ARGS_MAX = 12,
-    BVSTK_I2C_OPERATION_TIMEOUT_MS = 100,
-    BVSTK_CONFIG_APPLY_FAILED = 0,
-    BVSTK_CONFIG_APPLY_SAVED = 1,
-    BVSTK_CONFIG_APPLY_NOT_SAVED = 2
+    BVSTK_I2C_OPERATION_TIMEOUT_MS = 100
 };
 
 typedef struct {
@@ -74,25 +71,6 @@ static void publish_event(void *context, const bvstk_event_t *event)
     }
 }
 
-static void update_setting(i2c_device_config_t *config,
-                           uint8_t reg,
-                           uint8_t value)
-{
-    size_t index;
-
-    for (index = 0U; index < config->settings_len; ++index) {
-        if (config->settings[index].reg == reg) {
-            config->settings[index].val = value;
-            return;
-        }
-    }
-    if (config->settings_len < I2C_CFG_SETTINGS_MAX) {
-        config->settings[config->settings_len].reg = reg;
-        config->settings[config->settings_len].val = value;
-        ++config->settings_len;
-    }
-}
-
 void bvstk_neutrino_i2c_runtime_lock(
     bvstk_neutrino_i2c_runtime_t *runtime)
 {
@@ -109,131 +87,58 @@ void bvstk_neutrino_i2c_runtime_unlock(
     }
 }
 
-static int sync_i2c_config_locked(
-    bvstk_neutrino_i2c_runtime_t *runtime,
-    size_t device_id,
-    int save_to_storage,
-    int include_cache_values)
+static int snapshot_i2c_config_locked(
+    bvstk_neutrino_i2c_runtime_t *runtime, size_t device_id,
+    int include_cache_values, i2c_device_config_t *config)
 {
-    const i2c_device_config_t *stored;
-    i2c_device_config_t config;
-    bvstk_i2c_device_t device;
-    bvstk_i2c_policy_entry_t policy;
-    size_t reg;
-
-    if (runtime == NULL || runtime->ready == 0U ||
-        bvstk_i2c_master_service_device_info(&runtime->master_service,
-                                             device_id,
-                                             &device) != BVSTK_OK ||
-        bvstk_i2c_master_service_get_policy(&runtime->master_service,
-                                            device_id,
-                                            &policy) != BVSTK_OK) {
-        return 0;
-    }
-    stored = bvstk_neutrino_i2c_config_store_get(&runtime->config_store,
-                                                  device_id);
-    if (stored == NULL) {
-        return 0;
-    }
-    config = *stored;
-    strncpy(config.name, device.name, sizeof(config.name) - 1U);
-    config.name[sizeof(config.name) - 1U] = '\0';
-    config.addr_7b = device.addr_7b;
-    config.reg_count = device.reg_count;
-    config.max_value_code = device.max_value_code;
-    config.endpoint = device.endpoint;
-    config.policy = policy.mode;
-    memcpy(config.whitelist,
-           policy.whitelist,
-           policy.whitelist_len * sizeof(policy.whitelist[0]));
-    config.whitelist_len = policy.whitelist_len;
-    memcpy(config.blacklist,
-           policy.blacklist,
-           policy.blacklist_len * sizeof(policy.blacklist[0]));
-    config.blacklist_len = policy.blacklist_len;
-    for (reg = 0U; include_cache_values && reg < config.reg_count; ++reg) {
-        uint8_t value = 0U;
-
-        if (bvstk_i2c_cache_is_valid(&runtime->cache,
-                                     device_id,
-                                     (uint8_t)reg) &&
-            bvstk_i2c_cache_read(&runtime->cache,
-                                 device_id,
-                                 (uint8_t)reg,
-                                 &value) == BVSTK_OK) {
-            update_setting(&config, (uint8_t)reg, value);
-        }
-    }
-    if (!bvstk_neutrino_i2c_config_store_update(&runtime->config_store,
-                                                 device_id,
-                                                 &config)) {
-        return 0;
-    }
-    return save_to_storage == 0 ||
-           bvstk_neutrino_i2c_config_store_save(&runtime->config_store,
-                                                 &config);
+    if (runtime == NULL || !runtime->ready) return 0;
+    const bvstk_control_api_t control = {.i2c = &runtime->master_service};
+    const i2c_device_config_t *stored =
+        bvstk_neutrino_i2c_config_store_get(&runtime->config_store, device_id);
+    return bvstk_control_i2c_snapshot(&control, device_id, stored,
+               include_cache_values, config) == BVSTK_OK &&
+        bvstk_neutrino_i2c_config_store_update(&runtime->config_store, device_id, config);
 }
 
 int bvstk_neutrino_i2c_runtime_sync_locked(
-    bvstk_neutrino_i2c_runtime_t *runtime,
-    size_t device_id,
-    int save_to_storage)
+    bvstk_neutrino_i2c_runtime_t *runtime, size_t device_id)
 {
-    return sync_i2c_config_locked(runtime, device_id, save_to_storage, 1);
+    i2c_device_config_t config;
+    return snapshot_i2c_config_locked(runtime, device_id, 1, &config);
 }
 
 int bvstk_neutrino_i2c_runtime_sync_policy_locked(
-    bvstk_neutrino_i2c_runtime_t *runtime,
-    size_t device_id)
+    bvstk_neutrino_i2c_runtime_t *runtime, size_t device_id)
 {
-    /* Keep later console edits based on the live policy, not an older copy. */
-    return sync_i2c_config_locked(runtime, device_id, 0, 0);
+    i2c_device_config_t config;
+    return snapshot_i2c_config_locked(runtime, device_id, 0, &config);
+}
+
+int bvstk_neutrino_i2c_runtime_save_device_locked(
+    bvstk_neutrino_i2c_runtime_t *runtime, size_t device_id)
+{
+    i2c_device_config_t config;
+    return snapshot_i2c_config_locked(runtime, device_id, 1, &config) &&
+        bvstk_neutrino_i2c_config_store_save(&runtime->config_store, &config);
 }
 
 int bvstk_neutrino_i2c_runtime_save_policy_locked(
-    bvstk_neutrino_i2c_runtime_t *runtime,
-    size_t device_id)
+    bvstk_neutrino_i2c_runtime_t *runtime, size_t device_id)
 {
-    return sync_i2c_config_locked(runtime, device_id, 1, 0);
-}
-
-static int duplicate_identity(const bvstk_neutrino_i2c_runtime_t *runtime,
-                              size_t device_id,
-                              const i2c_device_config_t *config)
-{
-    size_t index;
-
-    for (index = 0U;
-         index < bvstk_neutrino_i2c_config_store_count(&runtime->config_store);
-         ++index) {
-        const i2c_device_config_t *current;
-
-        if (index == device_id) {
-            continue;
-        }
-        current = bvstk_neutrino_i2c_config_store_get(&runtime->config_store,
-                                                       index);
-        if (current != NULL &&
-            (strcasecmp(current->name, config->name) == 0 ||
-             current->addr_7b == config->addr_7b)) {
-            return 1;
-        }
-    }
-    return 0;
+    i2c_device_config_t config;
+    return snapshot_i2c_config_locked(runtime, device_id, 0, &config) &&
+        bvstk_neutrino_i2c_config_store_save(&runtime->config_store, &config);
 }
 
 static int apply_config_locked(bvstk_neutrino_i2c_runtime_t *runtime,
                                size_t device_id,
-                               const i2c_device_config_t *config,
-                               int save_to_storage)
+                               const i2c_device_config_t *config)
 {
     const i2c_device_config_t *stored;
     i2c_device_config_t previous;
     int target_changed;
 
-    if (runtime == NULL || runtime->ready == 0U || config == NULL ||
-        bvstk_i2c_config_validate(config) != BVSTK_OK ||
-        duplicate_identity(runtime, device_id, config)) {
+    if (runtime == NULL || runtime->ready == 0U || config == NULL) {
         return 0;
     }
     stored = bvstk_neutrino_i2c_config_store_get(&runtime->config_store,
@@ -246,9 +151,8 @@ static int apply_config_locked(bvstk_neutrino_i2c_runtime_t *runtime,
                      bvstk_i2c_slave_service_target(&runtime->slave_service) ==
                          device_id &&
                      previous.addr_7b != config->addr_7b;
-    if (bvstk_i2c_master_service_set_config(&runtime->master_service,
-                                            device_id,
-                                            config) != BVSTK_OK) {
+    bvstk_control_api_t control = {.i2c = &runtime->master_service};
+    if (bvstk_control_i2c_apply(&control, device_id, config) != BVSTK_OK) {
         return 0;
     }
     if (target_changed &&
@@ -271,19 +175,103 @@ static int apply_config_locked(bvstk_neutrino_i2c_runtime_t *runtime,
         }
         return 0;
     }
-    if (save_to_storage != 0 &&
-        !bvstk_neutrino_i2c_config_store_save(&runtime->config_store,
-                                               config)) {
-        return BVSTK_CONFIG_APPLY_NOT_SAVED;
+    return 1;
+}
+
+typedef struct {
+    bvstk_neutrino_i2c_runtime_t *runtime;
+    size_t id;
+} acquisition_context_t;
+
+static int neutrino_i2c_neutrino_i2c_acquisition_ready(void *context)
+{
+    acquisition_context_t *c = context;
+    bvstk_i2c_presence_t presence;
+    if (bvstk_i2c_master_service_device_presence(&c->runtime->master_service,
+            c->id, &presence) != BVSTK_OK) return -1;
+    return presence == BVSTK_I2C_PRESENCE_RESPONDING;
+}
+static int neutrino_i2c_acquisition_cached(void *context, unsigned reg, uint16_t *value)
+{
+    acquisition_context_t *c = context;
+    bvstk_i2c_cache_entry_t entry;
+    if (bvstk_i2c_master_service_cache_entry(&c->runtime->master_service,
+            c->id, (uint8_t)reg, &entry) != BVSTK_OK || !entry.valid || entry.seeded) return 0;
+    *value = entry.value;
+    return 1;
+}
+static bvstk_status_t neutrino_i2c_acquisition_read(void *context, unsigned first, unsigned count)
+{
+    acquisition_context_t *c = context;
+    ++c->runtime->acquisition_count[c->id];
+    return bvstk_i2c_master_service_sample(&c->runtime->master_service,
+        c->id, first, count, BVSTK_I2C_OPERATION_TIMEOUT_MS);
+}
+static void neutrino_i2c_acquisition_invalidate(void *context, unsigned first, unsigned count)
+{
+    acquisition_context_t *c = context;
+    bvstk_cache_sink_enter(&c->runtime->cache.sink);
+    for (unsigned r = first; r < first + count; ++r)
+        (void)bvstk_i2c_cache_invalidate(&c->runtime->cache, c->id, (uint8_t)r);
+    bvstk_cache_sink_leave(&c->runtime->cache.sink);
+}
+
+void bvstk_neutrino_i2c_runtime_poll_locked(bvstk_neutrino_i2c_runtime_t *runtime, uint64_t now)
+{
+    if (!runtime || !runtime->ready) return;
+    size_t count = bvstk_i2c_master_service_device_count(&runtime->master_service);
+    if (!count) return;
+    if (now >= runtime->next_probe_ms) {
+        size_t id = runtime->probe_device++ % count;
+        bvstk_i2c_device_t device;
+        runtime->next_probe_ms = now + 250U;
+        if (bvstk_i2c_master_service_device_info(&runtime->master_service, id, &device) == BVSTK_OK &&
+            device.presence_check_enabled) {
+            ++runtime->probe_count[id];
+            (void)bvstk_i2c_master_service_probe(&runtime->master_service, id,
+                device.presence_check_reg, BVSTK_I2C_OPERATION_TIMEOUT_MS);
+            return; /* At most one probe or acquisition chunk in this turn. */
+        }
     }
-    return BVSTK_CONFIG_APPLY_SAVED;
+    for (size_t n = 0; n < count; ++n) {
+        size_t id = runtime->acquisition_device++ % count;
+        const i2c_device_config_t *config =
+            bvstk_neutrino_i2c_config_store_get(&runtime->config_store, id);
+        if (!config || !config->profile.acquisition.enabled) continue;
+        acquisition_context_t context = {runtime, id};
+        bvstk_acquisition_io_t io = {&context, neutrino_i2c_neutrino_i2c_acquisition_ready, neutrino_i2c_acquisition_cached,
+            neutrino_i2c_acquisition_read, neutrino_i2c_acquisition_invalidate};
+        if (bvstk_acquisition_step(&config->profile.acquisition, &runtime->acquisition[id],
+                &io, now)) break;
+    }
+}
+static void background_step(void *context)
+{
+    bvstk_neutrino_i2c_runtime_t *runtime = context;
+    /* Give local commands and the IRQ owner priority over periodic work. */
+    if (pthread_mutex_trylock(&runtime->state_mutex)) return;
+    bvstk_neutrino_i2c_runtime_poll_locked(runtime, bvstk_platform_now_ms());
+    pthread_mutex_unlock(&runtime->state_mutex);
+}
+int bvstk_neutrino_i2c_runtime_start_background(bvstk_neutrino_i2c_runtime_t *runtime)
+{
+    return runtime && runtime->ready &&
+        bvstk_neutrino_worker_start(&runtime->worker, background_step, runtime) == BVSTK_OK;
 }
 
 int bvstk_neutrino_i2c_runtime_init(
     bvstk_neutrino_i2c_runtime_t *runtime)
 {
+    return bvstk_neutrino_i2c_runtime_init_observed(runtime, NULL, NULL);
+}
+
+int bvstk_neutrino_i2c_runtime_init_observed(bvstk_neutrino_i2c_runtime_t *runtime,
+    bvstk_cache_registry_t *registry, const bvstk_event_sink_t *sink)
+{
 #if !BVSTK_PL_HAS_I2C_CORE
     (void)runtime;
+    (void)registry;
+    (void)sink;
     return 0;
 #else
     const i2c_device_config_t *configs;
@@ -343,6 +331,7 @@ int bvstk_neutrino_i2c_runtime_init(
     runtime->master_hardware_initialized = 1U;
     memset(&events, 0, sizeof(events));
     events.publish = publish_event;
+    if (sink) events = *sink;
     status = bvstk_i2c_master_service_init(&runtime->master_service,
                                            &runtime->master_hardware,
                                            NULL,
@@ -352,6 +341,8 @@ int bvstk_neutrino_i2c_runtime_init(
                                            &events);
     if (status != BVSTK_OK) goto fail;
     runtime->master_service_initialized = 1U;
+    if (registry && bvstk_cache_attach_i2c(&runtime->cache_bridge, registry,
+            &runtime->master_service, configs) != BVSTK_OK) goto fail;
 
     first_config = bvstk_neutrino_i2c_config_store_get(&runtime->config_store,
                                                         0U);
@@ -391,6 +382,8 @@ int bvstk_neutrino_i2c_runtime_init(
         goto fail;
     }
     runtime->ready = 1U;
+    if (!bvstk_neutrino_i2c_runtime_start_background(runtime))
+        fprintf(stderr, "bvstkd: I2C background worker failed to start\n");
     return 1;
 
 fail:
@@ -405,6 +398,7 @@ void bvstk_neutrino_i2c_runtime_shutdown(
     if (runtime == NULL) {
         return;
     }
+    bvstk_neutrino_worker_stop(&runtime->worker);
     runtime->ready = 0U;
     if (runtime->slave_adapter.initialized != 0U) {
         /* The IRQ adapter is intentionally process-lifetime. */
@@ -414,6 +408,7 @@ void bvstk_neutrino_i2c_runtime_shutdown(
     if (runtime->slave_service_initialized != 0U) {
         bvstk_i2c_slave_service_shutdown(&runtime->slave_service);
     }
+    bvstk_cache_detach_i2c(&runtime->cache_bridge);
     if (runtime->slave_hardware_initialized != 0U) {
         bvstk_i2c_slave_hw_shutdown(&runtime->slave_hardware);
     }
@@ -536,6 +531,8 @@ static void command_help(response_writer_t *writer)
                     "  i2c <name> policy whitelist clear\n"
                     "  i2c <name> policy blacklist add|del <reg> <val>\n"
                     "  i2c <name> policy blacklist clear\n"
+                    "  i2c <name> save\n"
+                    "  Changes apply in RAM; save persists the profile.\n"
                     "  (address selector: @0xNN or numeric address)\n"
                     "  Multiple address spaces: use <name> and <space>:<reg>.\n");
 }
@@ -654,17 +651,12 @@ static int policy_edit(bvstk_neutrino_i2c_runtime_t *runtime,
             response_append(writer, "ERR\n");
             return 2;
         }
-        apply_result = apply_config_locked(runtime, device_id, &next, 1);
-        if (apply_result == BVSTK_CONFIG_APPLY_FAILED) {
+        apply_result = apply_config_locked(runtime, device_id, &next);
+        if (!apply_result) {
             response_append(writer, "ERR\n");
             return 1;
         }
-        if (apply_result == BVSTK_CONFIG_APPLY_NOT_SAVED) {
-            response_append(writer,
-                            "WARN: applied but failed to save "
-                            "/flash/config/i2c/<device>.json\n");
-        }
-        response_append(writer, "OK\n");
+        response_append(writer, "OK (RAM; use save to persist)\n");
         return 0;
     }
     if (strcasecmp(subcommand, "whitelist") == 0 ||
@@ -731,21 +723,13 @@ static int policy_edit(bvstk_neutrino_i2c_runtime_t *runtime,
             }
         }
         {
-            int apply_result = apply_config_locked(runtime,
-                                                    device_id,
-                                                    &next,
-                                                    1);
-            if (apply_result == BVSTK_CONFIG_APPLY_FAILED) {
+            int apply_result = apply_config_locked(runtime, device_id, &next);
+            if (!apply_result) {
                 response_append(writer, "ERR\n");
                 return 1;
             }
-            if (apply_result == BVSTK_CONFIG_APPLY_NOT_SAVED) {
-                response_append(writer,
-                                "WARN: applied but failed to save "
-                                "/flash/config/i2c/<device>.json\n");
-            }
         }
-        response_append(writer, "OK\n");
+        response_append(writer, "OK (RAM; use save to persist)\n");
         return 0;
     }
     response_append(writer, "ERR\n");
@@ -802,9 +786,25 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
         return 1;
     }
     operation = argument_count > 1U ? arguments[1] : "info";
+    char qualified[48];
     if (config->endpoint.space_count && strcasecmp(arguments[0], config->name)) {
-        response_append(writer, "ERR use the device name and <space>:<reg>\n");
-        return 2;
+        if (strcasecmp(operation, "policy") == 0) {
+            response_append(writer, "Use the device name and <space>:<reg> for multi-space policies.\n");
+            return 2;
+        }
+        if (argument_count >= 3U &&
+            (!strcasecmp(operation, "r") || !strcasecmp(operation, "read") ||
+             !strcasecmp(operation, "w") || !strcasecmp(operation, "write"))) {
+            uint32_t address;
+            const char *selector = arguments[0] + (arguments[0][0] == '@');
+            if (!parse_number(selector, 0x7fU, &address) || strchr(arguments[2], ':') ||
+                strlen(arguments[2]) > 12U) { response_append(writer, "ERR\n"); return 2; }
+            int space = bvstk_i2c_address_space(&config->endpoint, config->addr_7b, (uint8_t)address);
+            if (space < 0) { response_append(writer, "ERR\n"); return 2; }
+            snprintf(qualified, sizeof(qualified), "%s:%s", config->endpoint.spaces[space].id,
+                     arguments[2]);
+            arguments[2] = qualified;
+        }
     }
     if (strcasecmp(operation, "info") == 0) {
         bvstk_i2c_device_t device;
@@ -836,6 +836,22 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
                         (unsigned)policy.whitelist_len,
                         (unsigned)policy.blacklist_len,
                         (unsigned)config->settings_len);
+        bvstk_i2c_presence_t presence = BVSTK_I2C_PRESENCE_UNKNOWN;
+        unsigned valid = 0, physical = 0;
+        (void)bvstk_i2c_master_service_device_presence(&runtime->master_service, device_id, &presence);
+        for (unsigned reg = 0; reg < config->reg_count; ++reg) {
+            bvstk_i2c_cache_entry_t entry;
+            if (bvstk_i2c_master_service_cache_entry(&runtime->master_service,
+                    device_id, (uint8_t)reg, &entry) == BVSTK_OK && entry.valid) {
+                ++valid;
+                if (!entry.seeded) ++physical;
+            }
+        }
+        response_append(writer, "presence=%s cache_valid=%u cache_physical=%u probes=%llu acquisition=%llu\n",
+            presence == BVSTK_I2C_PRESENCE_RESPONDING ? "responding" :
+            presence == BVSTK_I2C_PRESENCE_UNAVAILABLE ? "unavailable" : "unknown",
+            valid, physical, (unsigned long long)runtime->probe_count[device_id],
+            (unsigned long long)runtime->acquisition_count[device_id]);
         for (unsigned i = 0; i < config->endpoint.space_count; ++i)
             response_append(writer, "space=%s addr=0x%02X regs=%u\n",
                             config->endpoint.spaces[i].id,
@@ -854,10 +870,11 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
             response_append(writer, "ERR\n");
             return 2;
         }
-        status = bvstk_i2c_master_service_read(&runtime->master_service,
+        status = bvstk_i2c_master_service_read_from(&runtime->master_service,
                                                 device_id,
                                                 (uint8_t)reg,
                                                 &value,
+                                                BVSTK_EVENT_SOURCE_CONSOLE,
                                                 BVSTK_I2C_OPERATION_TIMEOUT_MS);
         if (status != BVSTK_OK) {
             response_append(writer,
@@ -902,7 +919,7 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
             return 1;
         }
         if (status != BVSTK_OK ||
-            !bvstk_neutrino_i2c_runtime_sync_locked(runtime, device_id, 1)) {
+            !bvstk_neutrino_i2c_runtime_sync_locked(runtime, device_id)) {
             response_append(writer,
                             "ERR WRITE_FAILED%s%s\n",
                             status != BVSTK_OK ? " " : "",
@@ -925,17 +942,21 @@ static int execute_locked(bvstk_neutrino_i2c_runtime_t *runtime,
             return 2;
         }
         next.addr_7b = (uint8_t)address;
-        apply_result = apply_config_locked(runtime, device_id, &next, 1);
-        if (apply_result == BVSTK_CONFIG_APPLY_FAILED) {
+        apply_result = apply_config_locked(runtime, device_id, &next);
+        if (!apply_result) {
             response_append(writer, "ERR (failed to apply configuration)\n");
             return 1;
         }
-        if (apply_result == BVSTK_CONFIG_APPLY_NOT_SAVED) {
-            response_append(writer,
-                            "WARN: applied but failed to save "
-                            "/flash/config/i2c/<device>.json\n");
+        response_append(writer, "OK (RAM; use save to persist)\n");
+        return 0;
+    }
+    if (strcasecmp(operation, "save") == 0) {
+        if (argument_count != 2U) { response_append(writer, "ERR\n"); return 2; }
+        if (!bvstk_neutrino_i2c_runtime_save_device_locked(runtime, device_id)) {
+            response_append(writer, "ERR IO save failed; RAM configuration remains active\n");
+            return 1;
         }
-        response_append(writer, "OK\n");
+        response_append(writer, "OK saved /flash/config/i2c/%s\n", config->file_name);
         return 0;
     }
     if (strcasecmp(operation, "policy") == 0) {

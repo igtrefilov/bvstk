@@ -1,6 +1,8 @@
 #include "shared/interfaces/bvstk_clock.h"
 #include "shared/interfaces/bvstk_mmio.h"
 #include "shared/interfaces/bvstk_platform.h"
+#include "shared/interfaces/bvstk_memory.h"
+#include "shared/pl/access/bvstk_pl_service.h"
 
 #include <errno.h>
 #include <sys/mman.h>
@@ -8,6 +10,91 @@
 #include <time.h>
 
 static int platform_ready;
+static bvstk_pl_service_t memory_regions;
+
+static bvstk_status_t memory_region(uint32_t address, size_t span, unsigned width,
+    bvstk_pl_region_id_t *id, size_t *offset)
+{
+    for (size_t i = 0U; i < bvstk_pl_region_count(); ++i) {
+        const bvstk_pl_region_desc_t *d = bvstk_pl_region_get((bvstk_pl_region_id_t)i);
+        if (d && address >= d->physical_base &&
+            (uint64_t)address + span <= (uint64_t)d->physical_base + d->size) {
+            /* Control registers retain word accesses. BRAM supports all
+             * widths with real byte/halfword stores, without read-modify-write. */
+            if (d->kind != BVSTK_PL_REGION_BRAM && width != 32U)
+                return BVSTK_ERR_UNSUPPORTED;
+            if (id) *id = d->id;
+            if (offset) *offset = (size_t)(address - d->physical_base);
+            return BVSTK_OK;
+        }
+    }
+    return BVSTK_ERR_RANGE;
+}
+
+static bvstk_status_t memory_check(void *context, uint32_t address, size_t span,
+                                  unsigned width, int writing)
+{
+    (void)context; (void)writing;
+    return memory_region(address, span, width, NULL, NULL);
+}
+
+static bvstk_status_t memory_mapping(void *context, uint32_t address, unsigned width,
+    const bvstk_mmio_region_t **mapping, size_t *offset)
+{
+    bvstk_pl_region_id_t id;
+    bvstk_status_t status = memory_region(address, width / 8U, width, &id, offset);
+    return status == BVSTK_OK ? bvstk_pl_service_mapping(context, id, mapping) : status;
+}
+
+static bvstk_status_t memory_read(void *context, uint32_t address, unsigned width, uint64_t *value)
+{
+    const bvstk_mmio_region_t *mapping;
+    size_t offset;
+    bvstk_status_t status = memory_mapping(context, address, width, &mapping, &offset);
+    if (status != BVSTK_OK) return status;
+    const volatile uint8_t *p = mapping->mapped_base + offset;
+    switch (width) {
+    case 8: *value = *p; break;
+    case 16: *value = *(const volatile uint16_t *)p; break;
+    case 32: *value = *(const volatile uint32_t *)p; break;
+    case 64:
+        *value = (uint64_t)*(const volatile uint32_t *)p << 32U;
+        *value |= *(const volatile uint32_t *)(p + 4U);
+        break;
+    default: return BVSTK_ERR_UNSUPPORTED;
+    }
+    __sync_synchronize();
+    return BVSTK_OK;
+}
+
+static bvstk_status_t memory_write(void *context, uint32_t address, unsigned width, uint64_t value)
+{
+    const bvstk_mmio_region_t *mapping;
+    size_t offset;
+    bvstk_status_t status = memory_mapping(context, address, width, &mapping, &offset);
+    if (status != BVSTK_OK) return status;
+    volatile uint8_t *p = mapping->mapped_base + offset;
+    switch (width) {
+    case 8: *p = (uint8_t)value; break;
+    case 16: *(volatile uint16_t *)p = (uint16_t)value; break;
+    case 32: *(volatile uint32_t *)p = (uint32_t)value; break;
+    case 64:
+        *(volatile uint32_t *)p = (uint32_t)(value >> 32U);
+        *(volatile uint32_t *)(p + 4U) = (uint32_t)value;
+        break;
+    default: return BVSTK_ERR_UNSUPPORTED;
+    }
+    __sync_synchronize();
+    return BVSTK_OK;
+}
+
+const bvstk_memory_t *bvstk_platform_memory(void)
+{
+    static const bvstk_memory_t memory = {
+        &memory_regions, BVSTK_MEMORY_ALL_WIDTHS, memory_check, memory_read, memory_write
+    };
+    return &memory;
+}
 
 const char *bvstk_platform_name(void)
 {
@@ -39,6 +126,7 @@ int bvstk_platform_init(void)
 
 void bvstk_platform_shutdown(void)
 {
+    bvstk_pl_service_shutdown(&memory_regions);
     platform_ready = 0;
 }
 
