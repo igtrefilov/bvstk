@@ -6,6 +6,9 @@
 #include <strings.h>
 
 #include "xstatus.h"
+#include "apps/freertos/console/bvstk_cli_freertos.h"
+#include "apps/freertos/console/bvstk_storage_freertos.h"
+#include "apps/freertos/storage/fs/fs_dcp2_backend.h"
 #include "apps/freertos/storage/fs/fs_devices.h"
 
 #define CONSOLE_PATH_MAX 128
@@ -201,6 +204,8 @@ static bool shell_join_path(const char *parent, const char *child, char *out, si
 static void cmd_help_fs(int fd)
 {
     write_str(fd, "fs usage:\r\n");
+    write_str(fd, "  fs volumes | ls [path] | stat <path> | cat <path>\r\n");
+    write_str(fd, "  fs mkdir|touch <path> | cp [-r] <src> <dst> | mv <src> <dst> | rm [-r] <path>\r\n");
     write_str(fd, "  pwd\r\n");
     write_str(fd, "  ls [path]\r\n");
     write_str(fd, "  cd <dir>\r\n");
@@ -348,21 +353,11 @@ static void cmd_fs_format(int fd, const char *device_arg, const char *confirm_ar
 static void cmd_fs_write(int fd, console_session_t *session, const char *path,
     const char *text, bool append)
 {
-    char full[CONSOLE_PATH_MAX], reply[64];
-    const fs_shared_ctx_t *ctx;
-    FRESULT res;
-    if (!path || !text || !*text || !build_path(session, path, full, sizeof(full))) {
-        write_str(fd, "ERR: use fs write|append <file> <text>\r\n");
-        return;
-    }
-    ctx = resolve_fs_ctx_for_path(session, full);
-    if (!ctx) { write_str(fd, "ERR: filesystem not ready\r\n"); return; }
-    res = fs_shared_fs_write_text(ctx, full, text, append);
-    if (res == FR_OK) write_str(fd, "OK\r\n");
-    else {
-        snprintf(reply, sizeof(reply), "ERR: write/close failed (FR=%d)\r\n", (int)res);
-        write_str(fd, reply);
-    }
+    if (!path || !text) { write_str(fd, "ERR: use fs write|append <file> <text>\r\n"); return; }
+    bvstk_cli_t cli; bvstk_cli_freertos_init(&cli, fd);
+    char cwd[BVSTK_FS_PATH_CAPACITY]; bvstk_storage_freertos_cwd(session, cwd);
+    char *arguments[] = {(char *)(append ? "append" : "write"), (char *)path, (char *)text};
+    (void)bvstk_storage_cli(&cli, fs_storage_backend(), cwd, 3, arguments);
 }
 
 static void cmd_fs_cat(int fd, console_session_t *session, const char *path)
@@ -496,16 +491,33 @@ bool fs_handle(char *tok, char **save, int fd, console_session_t *session)
         if (!sub || strcasecmp(sub, "-h") == 0 || strcasecmp(sub, "--help") == 0 || strcasecmp(sub, "-help") == 0) {
             cmd_help_fs(fd);
         } else if (strcasecmp(sub, "write") == 0 || strcasecmp(sub, "append") == 0) {
-            char *path = strtok_r(NULL, " \t", save);
-            char *text = *save;
-            while (text && (*text == ' ' || *text == '\t')) ++text;
-            cmd_fs_write(fd, session, path, text, strcasecmp(sub, "append") == 0);
+            if (*save && strpbrk(*save, "\"'")) {
+                bvstk_cli_t cli; bvstk_cli_freertos_init(&cli, fd);
+                char *args[40], cwd[BVSTK_FS_PATH_CAPACITY];
+                args[0] = sub;
+                int count = bvstk_cli_tokens(*save, args + 1, 39);
+                bvstk_storage_freertos_cwd(session, cwd);
+                if (count < 0) bvstk_cli_result(&cli, "fs", BVSTK_ERR_RANGE);
+                else (void)bvstk_storage_cli(&cli, fs_storage_backend(), cwd, count + 1, args);
+            } else {
+                /* Preserve the literal text remainder of existing unquoted commands. */
+                char *path = strtok_r(NULL, " \t", save);
+                char *text = *save;
+                while (text && (*text == ' ' || *text == '\t')) ++text;
+                cmd_fs_write(fd, session, path, text, strcasecmp(sub, "append") == 0);
+            }
         } else if (strcasecmp(sub, "format") == 0) {
             char *device = strtok_r(NULL, " \t", save);
             char *confirm = strtok_r(NULL, " \t", save);
             cmd_fs_format(fd, device, confirm);
         } else {
-            write_str(fd, "ERR\r\n");
+            bvstk_cli_t cli; bvstk_cli_freertos_init(&cli, fd);
+            char *args[40], cwd[BVSTK_FS_PATH_CAPACITY];
+            args[0] = sub;
+            int count = bvstk_cli_tokens(*save ? *save : (char *)"", args + 1, 39);
+            bvstk_storage_freertos_cwd(session, cwd);
+            if (count < 0) bvstk_cli_result(&cli, "fs", BVSTK_ERR_RANGE);
+            else (void)bvstk_storage_cli(&cli, fs_storage_backend(), cwd, count + 1, args);
         }
         return true;
     }

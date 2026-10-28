@@ -27,140 +27,52 @@
 #include "protocols/dcp2/bvstk_dcp2_fs.h"
 #include "protocols/dcp2/bvstk_dcp2_cache.h"
 #include "protocols/dcp2/bvstk_dcp2_control.h"
+#include "protocols/dcp2/bvstk_dcp2_session.h"
 #include "shared/interfaces/bvstk_clock.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 
-enum {
-    DCP2_PORT_DEFAULT = 8889,
-    DCP2_THREAD_STACK = 3072,
-    DCP2_VER = 0x0002,
-    DCP2_HDR_LEN = 8,
-    DCP2_MAX_PAYLOAD = 4096,
-    DCP2_MIN_PAYLOAD = 4,
-};
-
-enum {
-    DCP2_SRV_PING = 0x00,
-    DCP2_SRV_MEM = 0x01,
-    DCP2_SRV_I2C = 0x02,
-    DCP2_SRV_MDIO = 0x03,
-    DCP2_SRV_SPI = 0x04,
-    DCP2_SRV_UART = 0x05,
-    DCP2_SRV_NOTIFY = 0x06,
-    DCP2_SRV_FS = 0x07,
-    DCP2_SRV_CACHE = 0x08,
-    DCP2_SRV_POLICY = 0x09,
-    DCP2_SRV_VENDOR = 0x7F,
-};
-
-enum {
-    DCP2_OP_PING = 0x00,
-    DCP2_OP_MEM_READ = 0x00,
-    DCP2_OP_MEM_WRITE = 0x01,
-    DCP2_OP_I2C_READ_REG = 0x00,
-    DCP2_OP_I2C_WRITE_REG = 0x01,
-    DCP2_OP_I2C_POLICY_SET = 0x02,
-    DCP2_OP_MDIO_READ = 0x00,
-    DCP2_OP_MDIO_WRITE = 0x01,
-    DCP2_OP_NOTIFY_SUBSCRIBE = 0x10,
-    DCP2_OP_NOTIFY_UNSUBSCRIBE = 0x11,
-    DCP2_OP_PL_SUBSCRIBE_STREAM = 0x10,
-    DCP2_OP_PL_UNSUBSCRIBE_STREAM = 0x11,
-};
-
-enum {
-    DCP2_STATUS_OK = 0x0000,
-    DCP2_STATUS_ERR_MALFORMED = 0x0001,
-    DCP2_STATUS_ERR_UNSUPPORTED = 0x0002,
-    DCP2_STATUS_ERR_DENIED = 0x0003,
-    DCP2_STATUS_ERR_BUSY = 0x0004,
-    DCP2_STATUS_ERR_TIMEOUT = 0x0005,
-    DCP2_STATUS_ERR_RANGE = 0x0006,
-    DCP2_STATUS_ERR_INTERNAL = 0x0007,
-};
-
-enum {
-    DCP2_OP_RESP_BIT = 0x80,
-    DCP2_OP_EVENT_BIT = 0x40,
-    DCP2_OP_CODE_MASK = 0x3F,
-};
-
-enum {
-    DCP2_MEM_FLAG_AUTOINC = 0x01,
-    DCP2_SUB_RAW_WORDS = 0x01,
-    DCP2_SUB_WITH_TIMESTAMP = 0x02,
-    DCP2_SUB_RESET_LOST_COUNTERS = 0x04,
-};
-
-typedef struct {
-    bool stream_enabled[4];
-    uint8_t stream_flags[4];
-    bool notify_enabled;
-    dcp2_notify_filter_t notify_filter;
-    uint64_t notify_cursor[BVSTK_JOURNAL_BUSES];
-    uint64_t stream_cursor[BVSTK_JOURNAL_BUSES];
-} dcp2_conn_state_t;
-
+enum { DCP2_PORT_DEFAULT = 8889, DCP2_THREAD_STACK = 4096,
+    DCP2_HDR_LEN = 8, DCP2_MAX_PAYLOAD = BVSTK_DCP2_MAX_PAYLOAD, DCP2_MIN_PAYLOAD = 4 };
 static uint16_t s_port = DCP2_PORT_DEFAULT;
 static volatile int s_startup_done;
-
-int dcp2_server_startup_done(void)
+static uint8_t s_rx_buf[DCP2_HDR_LEN + DCP2_MAX_PAYLOAD];
+static bvstk_dcp2_session_t session;
+static bvstk_dcp2_adapter_t adapter;
+int dcp2_server_startup_done(void) { return s_startup_done != 0; }
+static bvstk_status_t sync_device(void *context, uint8_t service, size_t id, int cache)
 {
-    return s_startup_done != 0;
+    (void)context;
+    return service != BVSTK_DCP2_SERVICE_I2C ||
+        (cache ? bvstk_runtime_i2c_sync_device(id) : bvstk_runtime_i2c_sync_policy(id)) ?
+        BVSTK_OK : BVSTK_ERR_INTERNAL;
 }
-static uint8_t s_rx_buf[DCP2_MAX_PAYLOAD];
-static uint8_t s_tx_buf[DCP2_HDR_LEN + DCP2_MAX_PAYLOAD];
-static uint8_t s_mem_read_buf[DCP2_MAX_PAYLOAD];
-/* The current server serves one TCP connection at a time. Keep bounded stream
- * state out of its task stack and destroy it on every disconnect. */
-static bvstk_dcp2_fs_session_t s_fs_session;
-static bvstk_dcp2_cache_session_t s_cache_session;
-static bvstk_dcp2_policy_session_t s_policy_session;
-static bvstk_journal_batch_t s_observations;
-
-static uint32_t dcp2_now_ms(void)
+static uint64_t observation_head(void *context, unsigned bus, unsigned channel)
+{ (void)context; return bvstk_observer_head(bus, channel); }
+static void observation_read(void *context, unsigned bus, unsigned channel,
+    uint64_t after, bvstk_journal_batch_t *out)
+{ (void)context; bvstk_observer_read(bus, channel, -1, after, out); }
+static void refresh_adapter(void)
 {
-    return (uint32_t)((uint64_t)xTaskGetTickCount() * portTICK_PERIOD_MS);
-}
-
-static uint16_t be16_read(const uint8_t *p)
-{
-    return (uint16_t)(((uint16_t)p[0] << 8) | (uint16_t)p[1]);
-}
-
-static uint32_t be32_read(const uint8_t *p)
-{
-    return ((uint32_t)p[0] << 24) |
-           ((uint32_t)p[1] << 16) |
-           ((uint32_t)p[2] << 8) |
-           (uint32_t)p[3];
-}
-
-static void be16_write(uint8_t *p, uint16_t v)
-{
-    p[0] = (uint8_t)(v >> 8);
-    p[1] = (uint8_t)(v & 0xFFu);
-}
-
-static void be32_write(uint8_t *p, uint32_t v)
-{
-    p[0] = (uint8_t)(v >> 24);
-    p[1] = (uint8_t)((v >> 16) & 0xFFu);
-    p[2] = (uint8_t)((v >> 8) & 0xFFu);
-    p[3] = (uint8_t)(v & 0xFFu);
-}
-
-static void be64_write(uint8_t *p, uint64_t v)
-{
-    be32_write(p, (uint32_t)(v >> 32));
-    be32_write(p + 4, (uint32_t)(v & 0xFFFFFFFFu));
+    adapter.control.i2c = bvstk_runtime_i2c_master_service();
+    adapter.control.mdio = bvstk_runtime_mdio_service();
+    adapter.control.memory = bvstk_platform_memory();
+    adapter.policy = (bvstk_dcp2_policy_adapter_t){adapter.control.i2c, adapter.control.mdio,
+        NULL, bvstk_freertos_dcp2_policy_catalog, bvstk_freertos_dcp2_policy_changed,
+        bvstk_freertos_dcp2_policy_save};
+    adapter.i2c_supported = BVSTK_PL_HAS_I2C_CORE;
+    adapter.mdio_supported = BVSTK_PL_HAS_MDIO_CORE;
+    adapter.sync = sync_device;
+    adapter.files = fs_dcp2_backend();
+    adapter.cache = bvstk_runtime_cache_registry();
+    adapter.head = observation_head; adapter.read = observation_read;
+    adapter.streams = dcp2_stream_sim_instance();
 }
 
 static int dcp2_wait_io(int fd, bool writing, uint32_t started)
 {
     fd_set fds;
     struct timeval timeout;
-    uint32_t elapsed = dcp2_now_ms() - started;
+    uint32_t elapsed = (uint32_t)bvstk_platform_now_ms() - started;
     uint32_t remaining;
     if (elapsed >= 5000U) return -1;
     remaining = 5000U - elapsed;
@@ -176,7 +88,7 @@ static int sock_read_exact(int fd, void *buf, size_t len)
 {
     uint8_t *p = (uint8_t *)buf;
     size_t got = 0;
-    uint32_t started = dcp2_now_ms();
+    uint32_t started = (uint32_t)bvstk_platform_now_ms();
     while (got < len) {
         if (dcp2_wait_io(fd, false, started) < 0) return -1;
         int r = lwip_read(fd, p + got, (int)(len - got));
@@ -190,7 +102,7 @@ static int sock_write_all(int fd, const void *buf, size_t len)
 {
     const uint8_t *p = (const uint8_t *)buf;
     size_t sent = 0;
-    uint32_t started = dcp2_now_ms();
+    uint32_t started = (uint32_t)bvstk_platform_now_ms();
     while (sent < len) {
         int w = lwip_send(fd, p + sent, (int)(len - sent), MSG_DONTWAIT);
         if (w < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
@@ -218,694 +130,26 @@ static int dcp2_wait_readable(int fd, long timeout_ms)
     return FD_ISSET(fd, &rfds) ? 1 : 0;
 }
 
-static int dcp2_send_response(int fd,
-                              uint8_t srv,
-                              uint8_t opcode,
-                              uint16_t seq,
-                              uint16_t status,
-                              const uint8_t *body,
-                              uint16_t body_len)
-{
-    uint16_t payload_len = (uint16_t)(1u + 1u + 2u + 2u + body_len);
-    size_t frame_len = (size_t)DCP2_HDR_LEN + (size_t)payload_len;
 
-    if ((size_t)payload_len > DCP2_MAX_PAYLOAD) return -1;
-
-    s_tx_buf[0] = 'D';
-    s_tx_buf[1] = 'C';
-    s_tx_buf[2] = 'P';
-    s_tx_buf[3] = '2';
-    be16_write(s_tx_buf + 4, DCP2_VER);
-    be16_write(s_tx_buf + 6, payload_len);
-    s_tx_buf[8] = srv;
-    s_tx_buf[9] = (uint8_t)(DCP2_OP_RESP_BIT | (opcode & DCP2_OP_CODE_MASK));
-    be16_write(s_tx_buf + 10, seq);
-    be16_write(s_tx_buf + 12, status);
-    if (body_len && body) {
-        memcpy(s_tx_buf + 14, body, body_len);
-    }
-    return sock_write_all(fd, s_tx_buf, frame_len);
-}
-
-static int dcp2_send_event(int fd, uint8_t srv, uint8_t opcode, const uint8_t *body, uint16_t body_len)
-{
-    uint16_t payload_len = (uint16_t)(1u + 1u + 2u + body_len);
-    size_t frame_len = (size_t)DCP2_HDR_LEN + (size_t)payload_len;
-
-    if ((size_t)payload_len > DCP2_MAX_PAYLOAD) return -1;
-
-    s_tx_buf[0] = 'D';
-    s_tx_buf[1] = 'C';
-    s_tx_buf[2] = 'P';
-    s_tx_buf[3] = '2';
-    be16_write(s_tx_buf + 4, DCP2_VER);
-    be16_write(s_tx_buf + 6, payload_len);
-    s_tx_buf[8] = srv;
-    s_tx_buf[9] = (uint8_t)(DCP2_OP_EVENT_BIT | (opcode & DCP2_OP_CODE_MASK));
-    be16_write(s_tx_buf + 10, 0u);
-    if (body_len && body) {
-        memcpy(s_tx_buf + 12, body, body_len);
-    }
-    return sock_write_all(fd, s_tx_buf, frame_len);
-}
-
-static bool dcp2_notify_filter_match(const dcp2_conn_state_t *state, const dcp2_notify_event_t *event)
-{
-    uint32_t class_mask;
-    uint32_t source_mask;
-    uint32_t bus_mask;
-
-    if (!state || !state->notify_enabled || !event) return false;
-    class_mask = dcp2_notify_event_class_mask(event->ev_type);
-    source_mask = (event->source < 32u) ? (1u << event->source) : 0u;
-    bus_mask = (event->bus < 32u) ? (1u << event->bus) : 0u;
-
-    if ((state->notify_filter.class_mask & class_mask) == 0u) return false;
-    if ((state->notify_filter.source_mask & source_mask) == 0u) return false;
-    if ((state->notify_filter.bus_mask & bus_mask) == 0u) return false;
-    return true;
-}
-
-static int dcp2_send_notify_event(int fd, const dcp2_conn_state_t *state, const dcp2_notify_event_t *event)
-{
-    uint8_t body[28];
-    uint16_t body_len = 0u;
-
-    if ((state->notify_filter.flags & DCP2_NOTIFY_FLAG_WITH_TIMESTAMP) != 0u) {
-        be64_write(body + body_len, event->time_us);
-        body_len = (uint16_t)(body_len + 8u);
-    }
-    be16_write(body + body_len, event->ev_type);
-    body_len = (uint16_t)(body_len + 2u);
-    be16_write(body + body_len, event->status);
-    body_len = (uint16_t)(body_len + 2u);
-    body[body_len++] = event->source;
-    body[body_len++] = event->bus;
-    body[body_len++] = event->op_kind;
-    body[body_len++] = 0u;
-    be32_write(body + body_len, event->arg0);
-    body_len = (uint16_t)(body_len + 4u);
-    be32_write(body + body_len, event->arg1);
-    body_len = (uint16_t)(body_len + 4u);
-    be32_write(body + body_len, event->arg2);
-    body_len = (uint16_t)(body_len + 4u);
-
-    return dcp2_send_event(fd, DCP2_SRV_NOTIFY, DCP2_OP_NOTIFY_SUBSCRIBE, body, body_len);
-}
-
-static int dcp2_drain_notify_events(int fd, dcp2_conn_state_t *state)
-{
-    unsigned bus;
-    if (!state->notify_enabled) return 0;
-    for (bus = 0; bus < BVSTK_JOURNAL_BUSES; ++bus) {
-        size_t i;
-        if (!(state->notify_filter.bus_mask & (1U << bus))) continue;
-        bvstk_observer_read(bus, BVSTK_JOURNAL_EVENTS, -1,
-            state->notify_cursor[bus], &s_observations);
-        state->notify_cursor[bus] = s_observations.next;
-        if (s_observations.lost) {
-            /* Delivery metadata is visible even with a narrow event filter. */
-            dcp2_notify_event_t lost = {0};
-            lost.ev_type = DCP2_NOTIFY_EV_LOST;
-            lost.time_us = (uint64_t)dcp2_now_ms() * 1000U;
-            lost.bus = (uint8_t)bus; lost.source = DCP2_NOTIFY_SOURCE_INTERNAL;
-            lost.op_kind = DCP2_NOTIFY_OP_STATE_TOGGLE;
-            lost.arg0 = s_observations.lost > UINT32_MAX ? UINT32_MAX : (uint32_t)s_observations.lost;
-            if (dcp2_send_notify_event(fd, state, &lost) < 0) return -1;
-        }
-        for (i = 0; i < s_observations.count; ++i) {
-            const bvstk_event_t *e = &s_observations.records[i].event;
-            dcp2_notify_event_t event = {0};
-            event.time_us = e->time_us; event.ev_type = e->type;
-            event.status = e->status; event.source = e->source;
-            event.bus = e->bus; event.op_kind = e->operation;
-            event.arg0 = e->arg0; event.arg1 = e->arg1; event.arg2 = e->arg2;
-            if (!dcp2_notify_filter_match(state, &event)) continue;
-            if (dcp2_send_notify_event(fd, state, &event) < 0) return -1;
-        }
-    }
-    return 0;
-}
-
-static int dcp2_stream_index(uint8_t srv);
-
-static int dcp2_send_stream_event(int fd,
-                                  const dcp2_conn_state_t *state,
-                                  const dcp2_stream_sim_event_t *event)
-{
-    uint8_t body[8u + 1u + 4u + 2u +
-                 (DCP2_STREAM_SIM_MAX_WORDS * sizeof(uint32_t))];
-    uint16_t body_len = 0u;
-    int idx;
-
-    if (state == NULL || event == NULL) return -1;
-    idx = dcp2_stream_index(event->service);
-    if (idx < 0 || !state->stream_enabled[idx]) return 0;
-    if (event->data_len > sizeof(event->data) ||
-        event->data_len > (uint16_t)(sizeof(body) - 15u)) {
-        return -1;
-    }
-
-    if ((state->stream_flags[idx] & DCP2_SUB_WITH_TIMESTAMP) != 0u) {
-        be64_write(body + body_len, event->time_us);
-        body_len = (uint16_t)(body_len + 8u);
-    }
-    body[body_len++] = event->ev_flags;
-    be32_write(body + body_len, event->lost_delta);
-    body_len = (uint16_t)(body_len + 4u);
-    be16_write(body + body_len, event->data_len);
-    body_len = (uint16_t)(body_len + 2u);
-    if (event->data_len != 0u) {
-        memcpy(body + body_len, event->data, event->data_len);
-        body_len = (uint16_t)(body_len + event->data_len);
-    }
-
-    return dcp2_send_event(fd,
-                           event->service,
-                           DCP2_OP_PL_SUBSCRIBE_STREAM,
-                           body,
-                           body_len);
-}
-
-static int dcp2_drain_stream_events(int fd, dcp2_conn_state_t *state)
-{
-    uint8_t srv;
-
-    for (srv = DCP2_SRV_I2C; srv <= DCP2_SRV_UART; ++srv) {
-        int idx = dcp2_stream_index(srv);
-        dcp2_stream_sim_event_t event;
-
-        if (idx < 0 || !state->stream_enabled[idx]) continue;
-        if (dcp2_stream_sim_next(srv, &event)) {
-            event.ev_flags |= 0x04U; /* explicitly synthetic */
-            if (dcp2_send_stream_event(fd, state, &event) < 0) return -1;
-        }
-        if ((unsigned)idx < BVSTK_JOURNAL_BUSES) {
-            size_t i;
-            bvstk_observer_read((unsigned)idx, BVSTK_JOURNAL_TELEMETRY, -1,
-                state->stream_cursor[idx], &s_observations);
-            state->stream_cursor[idx] = s_observations.next;
-            for (i = 0; i < s_observations.count; ++i) {
-                const bvstk_journal_record_t *record = &s_observations.records[i];
-                const bvstk_event_t *e = &record->event;
-                memset(&event, 0, sizeof(event));
-                event.service = srv; event.time_us = e->time_us;
-                event.ev_flags = 0x02U; /* versioned software observation */
-                if (i == 0 && s_observations.lost) {
-                    event.ev_flags |= 0x01U;
-                    event.lost_delta = s_observations.lost > UINT32_MAX ? UINT32_MAX : (uint32_t)s_observations.lost;
-                }
-                event.data_len = 32U;
-                memcpy(event.data, "BVT1", 4);
-                be64_write(event.data + 4, record->sequence);
-                be16_write(event.data + 12, e->type);
-                be16_write(event.data + 14, e->status);
-                event.data[16] = e->source; event.data[17] = e->bus;
-                event.data[18] = e->operation; event.data[19] = e->bus == 0 ? 8 : 16;
-                be32_write(event.data + 20, e->arg0);
-                be32_write(event.data + 24, e->arg1);
-                be32_write(event.data + 28, e->arg2);
-                if (dcp2_send_stream_event(fd, state, &event) < 0) return -1;
-            }
-        }
-    }
-    return 0;
-}
-
-static int dcp2_stream_index(uint8_t srv)
-{
-    if (srv < DCP2_SRV_I2C || srv > DCP2_SRV_UART) return -1;
-    return (int)(srv - DCP2_SRV_I2C);
-}
-
-static int dcp2_handle_ping(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
-{
-    (void)body;
-    if (opcode != DCP2_OP_PING) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-    }
-    if (body_len != 0u) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-    }
-    return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
-}
-
-static int dcp2_handle_mem(int fd, uint8_t srv, uint8_t opcode, uint16_t seq,
-                            const uint8_t *body, uint16_t body_len)
-{
-    const bvstk_control_api_t control = {.memory = bvstk_platform_memory()};
-    const bvstk_dcp2_request_t request = {srv, opcode, seq, body, body_len};
-    uint16_t response_size = 0U;
-    bvstk_status_t status = bvstk_dcp2_process_mem(&control, &request,
-        s_mem_read_buf, DCP2_MAX_PAYLOAD - 6U, &response_size);
-    return dcp2_send_response(fd, srv, opcode, seq,
-        bvstk_dcp2_status_from_bvstk(status),
-        status == BVSTK_OK && response_size ? s_mem_read_buf : NULL,
-        status == BVSTK_OK ? response_size : 0U);
-}
-
-#if BVSTK_PL_HAS_I2C_CORE || BVSTK_PL_HAS_MDIO_CORE
-static int dcp2_handle_policy(int fd, uint8_t srv, uint8_t opcode,
-                              uint16_t seq, const uint8_t *body, uint16_t body_len)
-{
-    bvstk_dcp2_request_t request = {srv, opcode, seq, body, body_len};
-    uint16_t response_size = 0U;
-    bvstk_status_t status;
-    if (opcode == BVSTK_DCP2_OP_I2C_POLICY_SAVE) {
-        status = bvstk_dcp2_process_policy_save(
-            bvstk_runtime_i2c_master_service(), bvstk_runtime_mdio_service(),
-            &request, bvstk_freertos_dcp2_policy_save, NULL);
-    } else {
-        status = bvstk_dcp2_process_policy(
-            bvstk_runtime_i2c_master_service(), bvstk_runtime_mdio_service(),
-            &request, s_mem_read_buf, DCP2_MAX_PAYLOAD - 6U, &response_size);
-    }
-    /* Legacy I2C mode SET keeps its established best-effort RAM configuration sync. */
-    if (srv == DCP2_SRV_I2C && opcode == DCP2_OP_I2C_POLICY_SET) {
-        if (status == BVSTK_OK) {
-            size_t device_id;
-            if (bvstk_i2c_master_service_find_by_addr(
-                    bvstk_runtime_i2c_master_service(), body[0], &device_id) == BVSTK_OK)
-                (void)bvstk_runtime_i2c_sync_device(device_id);
-        } else if (status == BVSTK_ERR_MALFORMED && body_len == 2U && body[1] > 1U) {
-            status = BVSTK_ERR_UNSUPPORTED;
-        }
-    }
-    if (srv == DCP2_SRV_I2C && status == BVSTK_OK &&
-        opcode >= BVSTK_DCP2_OP_I2C_POLICY_RULE_ADD &&
-        opcode <= BVSTK_DCP2_OP_I2C_POLICY_CLEAR) {
-        size_t device_id;
-        if (bvstk_i2c_master_service_find_by_addr(
-                bvstk_runtime_i2c_master_service(), body[0], &device_id) != BVSTK_OK ||
-            !bvstk_runtime_i2c_sync_policy(device_id))
-            status = BVSTK_ERR_INTERNAL;
-    }
-    return dcp2_send_response(fd, srv, opcode, seq,
-                              bvstk_dcp2_status_from_bvstk(status),
-                              response_size == 0U ? NULL : s_mem_read_buf,
-                              response_size);
-}
-#endif
-
-static int dcp2_handle_i2c(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
-{
-#if !BVSTK_PL_HAS_I2C_CORE
-    return dcp2_send_response(fd, srv, opcode, seq,
-                              DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-#else
-    size_t dev_idx = 0;
-    bvstk_i2c_master_service_t *service =
-        bvstk_runtime_i2c_master_service();
-    bvstk_status_t status;
-
-    if (opcode >= BVSTK_DCP2_OP_I2C_POLICY_SET &&
-        opcode <= BVSTK_DCP2_OP_I2C_POLICY_SAVE)
-        return dcp2_handle_policy(fd, srv, opcode, seq, body, body_len);
-    if (service == NULL) {
-        return dcp2_send_response(fd, srv, opcode, seq,
-                                  DCP2_STATUS_ERR_BUSY, NULL, 0);
-    }
-    if ((opcode == DCP2_OP_I2C_READ_REG && body_len != 2U) ||
-        (opcode == DCP2_OP_I2C_WRITE_REG && body_len != 3U)) {
-        return dcp2_send_response(fd, srv, opcode, seq,
-                                  DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-    }
-    if (opcode != DCP2_OP_I2C_READ_REG &&
-        opcode != DCP2_OP_I2C_WRITE_REG) {
-        return dcp2_send_response(fd, srv, opcode, seq,
-                                  DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-    }
-    if (bvstk_i2c_master_service_find_by_addr(service,
-                                              body[0],
-                                              &dev_idx) != BVSTK_OK) {
-        return dcp2_send_response(fd, srv, opcode, seq,
-                                  DCP2_STATUS_ERR_RANGE, NULL, 0);
-    }
-    bvstk_i2c_device_t device;
-    uint8_t reg;
-    if (bvstk_i2c_master_service_device_info(service, dev_idx, &device) != BVSTK_OK ||
-        !bvstk_i2c_address_register(&device.endpoint, device.addr_7b, device.reg_count,
-                                    body[0], body[1], &reg))
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-    if (opcode == DCP2_OP_I2C_READ_REG) {
-        uint8_t value = 0U;
-        status = bvstk_i2c_master_service_read_from(service,
-                                               dev_idx,
-                                               reg,
-                                               &value,
-                                               BVSTK_EVENT_SOURCE_DCP,
-                                               100U);
-        return dcp2_send_response(fd,
-                                  srv,
-                                  opcode,
-                                  seq,
-                                  status == BVSTK_OK ? DCP2_STATUS_OK :
-                                  status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
-                                  DCP2_STATUS_ERR_TIMEOUT,
-                                  status == BVSTK_OK ? &value : NULL,
-                                  status == BVSTK_OK ? 1U : 0U);
-    }
-    if (opcode == DCP2_OP_I2C_WRITE_REG) {
-        status = bvstk_i2c_master_service_write(service,
-                                                dev_idx,
-                                                reg,
-                                                body[2],
-                                                BVSTK_EVENT_SOURCE_DCP,
-                                                100U);
-        if (status == BVSTK_OK) {
-            (void)bvstk_runtime_i2c_sync_device(dev_idx);
-        }
-        return dcp2_send_response(fd,
-                                  srv,
-                                  opcode,
-                                  seq,
-                                  status == BVSTK_OK ? DCP2_STATUS_OK :
-                                  status == BVSTK_ERR_DENIED ? DCP2_STATUS_ERR_DENIED :
-                                  status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
-                                  DCP2_STATUS_ERR_INTERNAL,
-                                  NULL,
-                                  0U);
-    }
-    return dcp2_send_response(fd, srv, opcode, seq,
-                              DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-#endif
-}
-
-static int dcp2_handle_mdio(int fd, uint8_t srv, uint8_t opcode, uint16_t seq, const uint8_t *body, uint16_t body_len)
-{
-#if !BVSTK_PL_HAS_MDIO_CORE
-    return dcp2_send_response(fd, srv, opcode, seq,
-                              DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-#else
-    bvstk_mdio_service_t *common_service = bvstk_runtime_mdio_service();
-    size_t device_id;
-    bvstk_status_t status;
-
-    if (opcode >= BVSTK_DCP2_OP_MDIO_POLICY_SET &&
-        opcode <= BVSTK_DCP2_OP_MDIO_POLICY_SAVE)
-        return dcp2_handle_policy(fd, srv, opcode, seq, body, body_len);
-    if (opcode != DCP2_OP_MDIO_READ && opcode != DCP2_OP_MDIO_WRITE) {
-        return dcp2_send_response(fd, srv, opcode, seq,
-                                  DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-    }
-    if ((opcode == DCP2_OP_MDIO_READ && body_len != 2U) ||
-        (opcode == DCP2_OP_MDIO_WRITE && body_len != 4U)) {
-        return dcp2_send_response(fd, srv, opcode, seq,
-                                  DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-    }
-    if (common_service == NULL) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_BUSY, NULL, 0);
-    }
-    if (bvstk_mdio_service_find_by_phy(common_service,
-                                      body[0],
-                                      &device_id) != BVSTK_OK) {
-        return dcp2_send_response(fd, srv, opcode, seq,
-                                  DCP2_STATUS_ERR_RANGE, NULL, 0);
-    }
-
-    if (opcode == DCP2_OP_MDIO_READ) {
-        uint16_t value = 0U;
-        uint8_t response[2];
-        status = bvstk_mdio_service_read_from(common_service,
-                                        device_id,
-                                        body[1],
-                                        &value,
-                                        BVSTK_EVENT_SOURCE_DCP,
-                                        100U);
-        if (status == BVSTK_OK) {
-            be16_write(response, value);
-        }
-        return dcp2_send_response(fd, srv, opcode, seq,
-                                  status == BVSTK_OK ? DCP2_STATUS_OK :
-                                  status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
-                                  DCP2_STATUS_ERR_TIMEOUT,
-                                  status == BVSTK_OK ? response : NULL,
-                                  status == BVSTK_OK ? 2U : 0U);
-    }
-
-    status = bvstk_mdio_service_write(common_service,
-                                     device_id,
-                                     body[1],
-                                     be16_read(body + 2U),
-                                     BVSTK_EVENT_SOURCE_DCP,
-                                     100U);
-    return dcp2_send_response(fd, srv, opcode, seq,
-                              status == BVSTK_OK ? DCP2_STATUS_OK :
-                              status == BVSTK_ERR_DENIED ? DCP2_STATUS_ERR_DENIED :
-                              status == BVSTK_ERR_RANGE ? DCP2_STATUS_ERR_RANGE :
-                              DCP2_STATUS_ERR_TIMEOUT,
-                              NULL, 0);
-#endif
-}
-
-static int dcp2_handle_notify(int fd,
-                              dcp2_conn_state_t *state,
-                              uint8_t srv,
-                              uint8_t opcode,
-                              uint16_t seq,
-                              const uint8_t *body,
-                              uint16_t body_len)
-{
-    if (opcode == DCP2_OP_NOTIFY_SUBSCRIBE) {
-        uint32_t class_mask;
-        uint32_t source_mask;
-        uint32_t bus_mask;
-        uint8_t flags;
-
-        if (body_len != 13u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        class_mask = be32_read(body + 0);
-        source_mask = be32_read(body + 4);
-        bus_mask = be32_read(body + 8);
-        flags = body[12];
-
-        if (class_mask == 0u || source_mask == 0u || bus_mask == 0u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        if ((class_mask & ~((uint32_t)DCP2_NOTIFY_CLASS_REG_ATTEMPT |
-                            (uint32_t)DCP2_NOTIFY_CLASS_REG_COMMIT |
-                            (uint32_t)DCP2_NOTIFY_CLASS_REG_DENIED |
-                            (uint32_t)DCP2_NOTIFY_CLASS_STATE_CHANGED |
-                            (uint32_t)DCP2_NOTIFY_CLASS_FAULT)) != 0u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        if ((source_mask & ~0x1Fu) != 0u || (bus_mask & ~0x1Fu) != 0u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_RANGE, NULL, 0);
-        }
-        if ((flags & (uint8_t)~(DCP2_NOTIFY_FLAG_WITH_TIMESTAMP | DCP2_NOTIFY_FLAG_SNAPSHOT_ON_SUBSCRIBE)) != 0u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-
-        state->notify_enabled = true;
-        state->notify_filter.class_mask = class_mask;
-        state->notify_filter.source_mask = source_mask;
-        state->notify_filter.bus_mask = bus_mask;
-        state->notify_filter.flags = flags;
-        for (unsigned b = 0; b < BVSTK_JOURNAL_BUSES; ++b)
-            state->notify_cursor[b] = bvstk_observer_head(b, BVSTK_JOURNAL_EVENTS);
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
-    }
-
-    if (opcode == DCP2_OP_NOTIFY_UNSUBSCRIBE) {
-        if (body_len != 0u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        memset(&state->notify_filter, 0, sizeof(state->notify_filter));
-        state->notify_enabled = false;
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
-    }
-
-    return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-}
-
-static int dcp2_handle_stream_ctl(int fd,
-                                  dcp2_conn_state_t *state,
-                                  uint8_t srv,
-                                  uint8_t opcode,
-                                  uint16_t seq,
-                                  const uint8_t *body,
-                                  uint16_t body_len)
-{
-    int idx = dcp2_stream_index(srv);
-    if (idx < 0) {
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-    }
-
-    if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM) {
-        if (body_len != 1u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        if ((body[0] & (uint8_t)~(DCP2_SUB_RAW_WORDS | DCP2_SUB_WITH_TIMESTAMP | DCP2_SUB_RESET_LOST_COUNTERS)) != 0u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        state->stream_enabled[idx] = true;
-        state->stream_flags[idx] = body[0];
-        if ((unsigned)idx < BVSTK_JOURNAL_BUSES)
-            state->stream_cursor[idx] = bvstk_observer_head((unsigned)idx, BVSTK_JOURNAL_TELEMETRY);
-        if ((body[0] & DCP2_SUB_RESET_LOST_COUNTERS) != 0u) {
-            dcp2_stream_sim_reset_lost(srv);
-        }
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
-    }
-
-    if (opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
-        if (body_len != 0u) {
-            return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        }
-        state->stream_enabled[idx] = false;
-        state->stream_flags[idx] = 0u;
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_OK, NULL, 0);
-    }
-
-    return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-}
-
-static int dcp2_dispatch_request(int fd,
-                                 dcp2_conn_state_t *state,
-                                 uint8_t srv,
-                                 uint8_t opcode,
-                                 uint16_t seq,
-                                 const uint8_t *body,
-                                 uint16_t body_len)
-{
-    switch (srv) {
-    case DCP2_SRV_PING:
-        return dcp2_handle_ping(fd, srv, opcode, seq, body, body_len);
-    case DCP2_SRV_MEM:
-        return dcp2_handle_mem(fd, srv, opcode, seq, body, body_len);
-    case DCP2_SRV_POLICY: {
-        const bvstk_dcp2_policy_adapter_t adapter = {
-            bvstk_runtime_i2c_master_service(), bvstk_runtime_mdio_service(), NULL,
-            bvstk_freertos_dcp2_policy_catalog, bvstk_freertos_dcp2_policy_changed,
-            bvstk_freertos_dcp2_policy_save
-        };
-        uint16_t response_size = 0;
-        uint16_t status = bvstk_dcp2_policy_request(&s_policy_session, &adapter,
-            opcode, body, body_len, bvstk_platform_now_ms(),
-            s_mem_read_buf, DCP2_MAX_PAYLOAD - 6U, &response_size);
-        return dcp2_send_response(fd, srv, opcode, seq, status,
-            status ? NULL : s_mem_read_buf, status ? 0 : response_size);
-    }
-    case DCP2_SRV_CACHE: {
-        uint16_t response_size = 0;
-        uint16_t status = bvstk_dcp2_cache_request(&s_cache_session, opcode, body, body_len,
-            bvstk_platform_now_ms(), s_mem_read_buf, DCP2_MAX_PAYLOAD - 6U, &response_size);
-        return dcp2_send_response(fd, srv, opcode, seq, status,
-            status == 0 ? s_mem_read_buf : NULL, status == 0 ? response_size : 0);
-    }
-    case DCP2_SRV_FS: {
-        uint16_t response_size = 0;
-        uint16_t status = bvstk_dcp2_fs_request(&s_fs_session, opcode, body, body_len,
-                                               dcp2_now_ms(), s_mem_read_buf,
-                                               DCP2_MAX_PAYLOAD - 6U, &response_size);
-        return dcp2_send_response(fd, srv, opcode, seq, status,
-                                  status == 0 ? s_mem_read_buf : NULL,
-                                  status == 0 ? response_size : 0);
-    }
-    case DCP2_SRV_NOTIFY:
-        return dcp2_handle_notify(fd, state, srv, opcode, seq, body, body_len);
-    case DCP2_SRV_I2C:
-        if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
-            return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
-        }
-#if BVSTK_PL_HAS_I2C_CORE
-        return dcp2_handle_i2c(fd, srv, opcode, seq, body, body_len);
-#else
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-#endif
-    case DCP2_SRV_MDIO:
-        if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
-            return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
-        }
-#if BVSTK_PL_HAS_MDIO_CORE
-        return dcp2_handle_mdio(fd, srv, opcode, seq, body, body_len);
-#else
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-#endif
-    case DCP2_SRV_SPI:
-        if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
-            return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
-        }
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-    case DCP2_SRV_UART:
-        if (opcode == DCP2_OP_PL_SUBSCRIBE_STREAM || opcode == DCP2_OP_PL_UNSUBSCRIBE_STREAM) {
-            return dcp2_handle_stream_ctl(fd, state, srv, opcode, seq, body, body_len);
-        }
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-    case DCP2_SRV_VENDOR:
-    default:
-        return dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_UNSUPPORTED, NULL, 0);
-    }
-}
-
-static int dcp2_handle_frame(int fd, dcp2_conn_state_t *state, const uint8_t *payload, uint16_t payload_len)
-{
-    uint8_t srv;
-    uint8_t op;
-    uint8_t opcode;
-    uint16_t seq;
-    const uint8_t *body;
-    uint16_t body_len;
-
-    if (payload_len < DCP2_MIN_PAYLOAD) return -1;
-
-    srv = payload[0];
-    op = payload[1];
-    opcode = (uint8_t)(op & DCP2_OP_CODE_MASK);
-    seq = be16_read(payload + 2);
-    body = payload + 4;
-    body_len = (uint16_t)(payload_len - 4u);
-
-    if ((op & DCP2_OP_EVENT_BIT) != 0u || (op & DCP2_OP_RESP_BIT) != 0u) {
-        (void)dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        return 0;
-    }
-    if (seq == 0u) {
-        (void)dcp2_send_response(fd, srv, opcode, seq, DCP2_STATUS_ERR_MALFORMED, NULL, 0);
-        return 0;
-    }
-
-    return dcp2_dispatch_request(fd, state, srv, opcode, seq, body, body_len);
-}
-
+static int send_frame(void *context, const void *data, size_t size)
+{ return sock_write_all(*(int *)context, data, size); }
 static void dcp2_handle_client(int fd)
 {
-    dcp2_conn_state_t state;
-    memset(&state, 0, sizeof(state));
-    bvstk_dcp2_cache_init(&s_cache_session, bvstk_runtime_cache_registry());
-    bvstk_dcp2_policy_init(&s_policy_session);
-
+    refresh_adapter();
+    bvstk_dcp2_session_init(&session, &adapter, send_frame, &fd);
     for (;;) {
-        uint8_t hdr[DCP2_HDR_LEN];
-        uint16_t ver;
-        uint16_t payload_len;
-        int ready;
-
-        bvstk_dcp2_fs_expire(&s_fs_session, dcp2_now_ms());
-        if (dcp2_drain_notify_events(fd, &state) < 0) return;
-        if (dcp2_drain_stream_events(fd, &state) < 0) return;
-        for (unsigned n = 0; n < 32U; ++n) {
-            uint16_t size = bvstk_dcp2_cache_event(&s_cache_session, bvstk_platform_now_ms(),
-                s_mem_read_buf, DCP2_MAX_PAYLOAD - 4U);
-            if (!size) break;
-            if (dcp2_send_event(fd, DCP2_SRV_CACHE, BVSTK_DCP2_CACHE_SUBSCRIBE, s_mem_read_buf, size) < 0) return;
-        }
-        ready = dcp2_wait_readable(fd, 100);
-        if (ready < 0) return;
-        if (ready == 0) continue;
-
-        if (sock_read_exact(fd, hdr, sizeof(hdr)) < 0) return;
-        if (hdr[0] != 'D' || hdr[1] != 'C' || hdr[2] != 'P' || hdr[3] != '2') return;
-
-        ver = be16_read(hdr + 4);
-        payload_len = be16_read(hdr + 6);
-
-        if (ver != DCP2_VER) return;
-        if (payload_len < DCP2_MIN_PAYLOAD || payload_len > DCP2_MAX_PAYLOAD) return;
-        if (sock_read_exact(fd, s_rx_buf, payload_len) < 0) return;
-        if (dcp2_handle_frame(fd, &state, s_rx_buf, payload_len) < 0) return;
+        refresh_adapter();
+        if (bvstk_dcp2_session_poll(&session, bvstk_platform_now_ms())) break;
+        int ready = dcp2_wait_readable(fd, 100);
+        if (ready < 0) break;
+        if (!ready) continue;
+        if (sock_read_exact(fd, s_rx_buf, DCP2_HDR_LEN)) break;
+        size_t size = bvstk_dcp2_read_be16(s_rx_buf + 6U);
+        if (memcmp(s_rx_buf, "DCP2", 4U) || size < DCP2_MIN_PAYLOAD || size > DCP2_MAX_PAYLOAD) break;
+        if (sock_read_exact(fd, s_rx_buf + 8U, size) ||
+            bvstk_dcp2_session_frame(&session, s_rx_buf, size + 8U, bvstk_platform_now_ms())) break;
     }
+    bvstk_dcp2_session_destroy(&session);
 }
 
 static void dcp2_server_thread(void *arg)
@@ -953,9 +197,7 @@ static void dcp2_server_thread(void *arg)
         socklen_t rlen = sizeof(remote);
         int c = lwip_accept(s, (struct sockaddr *)&remote, &rlen);
         if (c < 0) continue;
-        bvstk_dcp2_fs_init(&s_fs_session, fs_dcp2_backend());
         dcp2_handle_client(c);
-        bvstk_dcp2_fs_destroy(&s_fs_session);
         lwip_close(c);
     }
 }

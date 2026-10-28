@@ -1,3 +1,6 @@
+#include "apps/neutrino/commands/bvstk_command_resmgr.h"
+#include "apps/neutrino/runtime/bvstk_system_neutrino.h"
+#include "apps/neutrino/http/bvstk_http_neutrino.h"
 #include <errno.h>
 #include <netinet/in.h>
 #include <stdint.h>
@@ -21,7 +24,8 @@
 #include "shared/pl/access/bvstk_pl_service.h"
 #include "ports/neutrino-zynq7000/os/bvstk_observation_neutrino.h"
 #include "apps/neutrino/observe/bvstk_observe_resmgr.h"
-#include "protocols/dcp2/bvstk_dcp2_cache.h"
+#include "protocols/dcp2/bvstk_dcp2_session.h"
+#include "ports/neutrino-zynq7000/storage/bvstk_fs_posix.h"
 
 enum { BVSTKD_PORT = 8889 };
 
@@ -29,10 +33,22 @@ static bvstk_neutrino_i2c_runtime_t s_i2c_runtime;
 static bvstk_i2c_resmgr_t s_i2c_resmgr;
 static bvstk_neutrino_mdio_runtime_t s_mdio_runtime;
 static bvstk_neutrino_dcp2_runtime_t s_runtime = {&s_i2c_runtime, &s_mdio_runtime};
-static bvstk_dcp2_policy_session_t s_policy_session;
+static bvstk_dcp2_session_t s_session;
+static bvstk_dcp2_adapter_t s_adapter;
+static bvstk_neutrino_command_t s_commands;
+static bvstk_command_resmgr_t s_command_resmgr;
+static bvstk_stream_sim_t s_streams;
+static pthread_mutex_t s_stream_mutex = PTHREAD_MUTEX_INITIALIZER;
 static bvstk_observation_neutrino_t s_observation;
 static bvstk_observe_resmgr_t s_observe_resmgr;
-static bvstk_dcp2_cache_session_t s_cache_session;
+static void stream_enter(void *context) { (void)pthread_mutex_lock(context); }
+static void stream_leave(void *context) { (void)pthread_mutex_unlock(context); }
+static uint64_t observation_head(void *context, unsigned bus, unsigned channel)
+{ (void)context; return bvstk_observation_head(&s_observation.events, bus, channel); }
+static void observation_read(void *context, unsigned bus, unsigned channel,
+    uint64_t after, bvstk_journal_batch_t *out)
+{ (void)context; bvstk_observation_read(&s_observation.events, bus, channel, -1, -1, after, out); }
+
 
 static int wait_socket(int fd, int writing, unsigned timeout_ms)
 {
@@ -86,84 +102,37 @@ static int write_all(int fd, const void *buffer, size_t size)
     return 0;
 }
 
-static int serve_client(int fd,
-                        bvstk_control_api_t *control,
+static int send_frame(void *context, const void *data, size_t size)
+{ return write_all(*(int *)context, data, size); }
+static int serve_client(int fd, bvstk_control_api_t *control,
                         bvstk_neutrino_dcp2_runtime_t *runtime)
 {
-    uint8_t header[BVSTK_DCP2_HEADER_SIZE];
-    uint8_t request_frame[BVSTK_DCP2_HEADER_SIZE + BVSTK_DCP2_MAX_PAYLOAD];
-    uint8_t response_frame[BVSTK_DCP2_HEADER_SIZE + BVSTK_DCP2_MAX_PAYLOAD];
-    bvstk_dcp2_policy_init(&s_policy_session);
-    bvstk_dcp2_cache_init(&s_cache_session, s_observation.initialized ? &s_observation.cache : NULL);
-
+    static uint8_t frame[BVSTK_DCP2_HEADER_SIZE + BVSTK_DCP2_MAX_PAYLOAD];
+    bvstk_neutrino_dcp2_adapter(&s_adapter, runtime, control);
+    const bvstk_fs_storage_t *storage = bvstk_fs_posix_default();
+    s_adapter.files = storage ? storage->reader : NULL;
+    s_adapter.cache = s_observation.initialized ? &s_observation.cache : NULL;
+    s_adapter.head = s_observation.initialized ? observation_head : NULL;
+    s_adapter.read = s_observation.initialized ? observation_read : NULL;
+    s_adapter.streams = &s_streams;
+    bvstk_dcp2_session_init(&s_session, &s_adapter, send_frame, &fd);
+    int result = 0;
     for (;;) {
-        uint16_t payload_size;
-        size_t request_size;
-        size_t response_size = 0U;
-        bvstk_dcp2_request_t request;
-        int process_result;
-
-        /* Cache subscribers receive changes even when they send no requests.
-         * Encoding and socket I/O occur after the catalog guard is released. */
-        for (unsigned n = 0; s_cache_session.registry && n < 32U; ++n) {
-            uint16_t size = bvstk_dcp2_cache_event(&s_cache_session, bvstk_platform_now_ms(),
-                response_frame + 12U, sizeof(response_frame) - 12U);
-            if (!size) break;
-            memcpy(response_frame, "DCP2", 4U);
-            bvstk_dcp2_write_be16(response_frame + 4U, BVSTK_DCP2_VERSION);
-            bvstk_dcp2_write_be16(response_frame + 6U, (uint16_t)(size + 4U));
-            response_frame[8] = BVSTK_DCP2_SERVICE_CACHE;
-            response_frame[9] = BVSTK_DCP2_CACHE_SUBSCRIBE | BVSTK_DCP2_OP_EVENT;
-            bvstk_dcp2_write_be16(response_frame + 10U, 0U);
-            if (write_all(fd, response_frame, size + 12U)) return -1;
-        }
+        if (bvstk_dcp2_session_poll(&s_session, bvstk_platform_now_ms())) { result = -1; break; }
         int readable = wait_socket(fd, 0, 100U);
-        if (readable < 0) { if (errno == EINTR) continue; return -1; }
+        if (readable < 0) { if (errno == EINTR) continue; result = -1; break; }
         if (!readable) continue;
-
-        if (read_exact(fd, header, sizeof(header)) != 0) {
-            return 0;
-        }
-        if (header[0] != 'D' || header[1] != 'C' ||
-            header[2] != 'P' || header[3] != '2') {
-            return -1;
-        }
-        payload_size = bvstk_dcp2_read_be16(header + 6U);
-        if (payload_size < BVSTK_DCP2_MIN_PAYLOAD ||
-            payload_size > BVSTK_DCP2_MAX_PAYLOAD) {
-            return -1;
-        }
-        request_size = BVSTK_DCP2_HEADER_SIZE + payload_size;
-        memcpy(request_frame, header, sizeof(header));
-        if (read_exact(fd,
-                       request_frame + BVSTK_DCP2_HEADER_SIZE,
-                       payload_size) != 0) {
-            return 0;
-        }
-        if (bvstk_dcp2_decode_request(request_frame,
-                                      request_size,
-                                      &request) != 0) {
-            return -1;
-        }
-
-        if (request.service == BVSTK_DCP2_SERVICE_CACHE) {
-            uint8_t body[BVSTK_DCP2_MAX_PAYLOAD - 6U];
-            uint16_t size = 0;
-            uint16_t status = s_cache_session.registry ?
-                bvstk_dcp2_cache_request(&s_cache_session, request.opcode, request.body,
-                    request.body_size, bvstk_platform_now_ms(), body, sizeof(body), &size) :
-                bvstk_dcp2_status_from_bvstk(BVSTK_ERR_NOT_READY);
-            process_result = bvstk_dcp2_encode_response(response_frame, sizeof(response_frame),
-                &request, status, status ? NULL : body, status ? 0U : size, &response_size);
-        } else {
-            process_result = bvstk_neutrino_dcp2_dispatch(runtime, &s_policy_session, control,
-                &request, response_frame, sizeof(response_frame), &response_size);
-        }
-        if (process_result != 0 ||
-            write_all(fd, response_frame, response_size) != 0) {
-            return -1;
+        if (read_exact(fd, frame, BVSTK_DCP2_HEADER_SIZE)) break;
+        size_t payload = bvstk_dcp2_read_be16(frame + 6U);
+        if (memcmp(frame, "DCP2", 4U) || payload < BVSTK_DCP2_MIN_PAYLOAD ||
+            payload > BVSTK_DCP2_MAX_PAYLOAD) { result = -1; break; }
+        if (read_exact(fd, frame + 8U, payload) ||
+            bvstk_dcp2_session_frame(&s_session, frame, payload + 8U, bvstk_platform_now_ms())) {
+            result = -1; break;
         }
     }
+    bvstk_dcp2_session_destroy(&s_session);
+    return result;
 }
 
 static int create_server_socket(void)
@@ -211,6 +180,8 @@ int main(void)
         fprintf(stderr, "bvstkd: platform initialization failed\n");
     }
     bvstk_pl_service_init(&pl);
+    const bvstk_guard_t stream_guard = {&s_stream_mutex, stream_enter, stream_leave};
+    bvstk_stream_sim_init(&s_streams, &stream_guard);
     if (!bvstk_observation_neutrino_init(&s_observation))
         fprintf(stderr, "bvstkd: observation guards unavailable\n");
     bvstk_cache_registry_t *catalog = s_observation.initialized ? &s_observation.cache : NULL;
@@ -237,6 +208,12 @@ int main(void)
     control.memory = bvstk_platform_memory();
     control.mdio = bvstk_neutrino_mdio_runtime_service(&s_mdio_runtime);
 
+    s_commands = (bvstk_neutrino_command_t){&s_runtime, &control, &s_streams, bvstk_fs_posix_default(), bvstk_system_neutrino_command};
+    (void)bvstk_system_neutrino_start(&s_commands);
+    if (!bvstk_command_resmgr_start(&s_command_resmgr, &s_commands))
+        fprintf(stderr, "bvstkd: control resource unavailable\n");
+
+    (void)bvstk_http_neutrino_start(&s_commands,&s_observation.events);
     server_fd = create_server_socket();
 
     printf("bvstkd: I2C=%s (%u devices), MDIO=%s (%u devices), DCP2 port %u\n",

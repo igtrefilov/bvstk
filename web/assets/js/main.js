@@ -74,13 +74,20 @@ async function loadNavigation(maxAge = Infinity) {
   for (const bus of ["i2c","mdio"]) if (!knownBuses.has(bus) || Date.now() - knownBuses.get(bus) >= maxAge) { try { await api.busList(bus); } catch {} }
   if (!knownVolumes) { try { await api.volumes(); } catch {} }
 }
+function wireRefresh() {
+  const host=document.querySelector("#content .page-head, #content .card-head");
+  if (!host || !view?.refresh) return;
+  let button=host.querySelector("[data-refresh]");
+  if (!button) { button=document.createElement("button");button.dataset.refresh="";button.type="button";button.innerHTML=icon("refresh");button.setAttribute("aria-label","Обновить");host.append(button); }
+  button.onclick=()=>runRefresh(()=>view.refresh());
+}
 async function runRefresh(refresh) {
   if (refreshBusy) return;
   refreshBusy = true;
   const root = document.getElementById("content").firstElementChild;
   clearNotice();
   try { await refresh(); } catch (e) { if (e.name !== "AbortError" && root?.isConnected) { stale(root, e); notice(e.message,true); } }
-  finally { refreshBusy = false; }
+  finally { refreshBusy = false; wireRefresh(); }
 }
 async function route() {
   if (navigating) return;
@@ -113,7 +120,7 @@ async function route() {
     }};
     const factory = {overview,"sd-pl":sdPage,files:filesPage,system:systemPage,i2c:(...args)=>busPage(...args,"i2c"),mdio:(...args)=>busPage(...args,"mdio")}[section];
     if (!factory) throw new Error("Неизвестный раздел");
-    view = await factory(root,params,ctx);
+    view = await factory(root,params,ctx); wireRefresh();
   } catch(e) {
     if (e.name !== "AbortError") {
       document.getElementById("content").innerHTML = '<article class="card"><h1>Не удалось загрузить данные</h1><p class="error-text">'+esc(e.message)+'</p><p>Проверьте связь и версию PS-прошивки. Новый интерфейс требует API /api/ui/.</p><button id="retry">Повторить</button></article>';

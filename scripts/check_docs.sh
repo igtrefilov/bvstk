@@ -59,7 +59,7 @@ check_forbidden_docs() {
 
 check_forbidden_docs \
     "shell filesystem syntax" \
-    'fs[[:space:]]+(pwd|ls)' \
+    'fs[[:space:]]+pwd' \
     README.md docs scripts third_party
 
 check_forbidden_docs \

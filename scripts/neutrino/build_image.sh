@@ -91,6 +91,9 @@ cp "$BASE_BUILD" "$GENERATED_BUILD"
 printf '\n# Burevestnik multi-OS applications\n[perms=0755] /usr/bin/i2c = %s\n[perms=0755] /usr/bin/bvstkctl = %s\n[perms=0755] /usr/bin/bvstkd = %s\n[perms=0755] /usr/bin/bvstk-shell = %s\n[perms=0755] /usr/sbin/bvstk-qspi-fat = %s\n' \
   "$I2C_CLIENT" "$BVSTKCTL" "$BVSTKD" "$BVSTK_SHELL" "$BVSTK_QSPI_FAT" >> "$GENERATED_BUILD"
 printf '[perms=0755] /usr/sbin/bvstk-sd-raw = %s\n' "$BVSTK_SD_RAW" >> "$GENERATED_BUILD"
+for command in mdio fs tar mem pl spi uart ip system reboot; do
+  printf '[type=link] /usr/bin/%s=/usr/bin/bvstkctl\n' "$command" >> "$GENERATED_BUILD"
+done
 cat "$BUILD_DIR/gost/gost.build" >> "$GENERATED_BUILD"
 
 BVSTK_SSH_HOST_KEY="$SSH_HOST_KEY" \

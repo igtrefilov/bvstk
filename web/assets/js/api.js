@@ -60,6 +60,8 @@ export const busAction = (bus, name, action, params = {}, body) =>
   request(url("/api/ui/bus", {bus, name, action, ...params}), {method: "PUT", body});
 export const volumes = async signal => {
   const data = await get("/api/ui/volumes", signal);
+  const order={flash:0,sd:1,"sd-pl":2};
+  data.volumes.sort((a,b)=>(order[a.name]??99)-(order[b.name]??99));
   window.dispatchEvent(new CustomEvent("bvstk-volumes", {detail:data}));
   return data;
 };

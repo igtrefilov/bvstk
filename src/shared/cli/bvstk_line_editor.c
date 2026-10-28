@@ -151,6 +151,20 @@ static void editor_add_history(bvstk_line_editor_t *editor)
     ++editor->history_count;
 }
 
+static int utf8_continuation(unsigned char c) { return (c & 0xC0U) == 0x80U; }
+static size_t previous_character(const char *line, size_t position)
+{
+    if (position) --position;
+    while (position && utf8_continuation((unsigned char)line[position])) --position;
+    return position;
+}
+static size_t next_character(const char *line, size_t position, size_t length)
+{
+    if (position < length) ++position;
+    while (position < length && utf8_continuation((unsigned char)line[position])) ++position;
+    return position;
+}
+
 void bvstk_line_editor_redraw(bvstk_line_editor_t *editor)
 {
     size_t index;
@@ -168,7 +182,8 @@ void bvstk_line_editor_redraw(bvstk_line_editor_t *editor)
                                       editor->line_length);
     }
     for (index = editor->cursor; index < editor->line_length; ++index) {
-        (void)bvstk_line_editor_write_text(editor, "\033[D");
+        if (!utf8_continuation((unsigned char)editor->line[index]))
+            (void)bvstk_line_editor_write_text(editor, "\033[D");
     }
 }
 
@@ -182,7 +197,7 @@ static void editor_move_left(bvstk_line_editor_t *editor, int word)
         return;
     }
     if (!word) {
-        --editor->cursor;
+        editor->cursor = previous_character(editor->line, editor->cursor);
     } else {
         while (editor->cursor > 0U &&
                isspace((unsigned char)editor->line[editor->cursor - 1U])) {
@@ -193,7 +208,8 @@ static void editor_move_left(bvstk_line_editor_t *editor, int word)
             --editor->cursor;
         }
     }
-    while (old_cursor-- > editor->cursor) {
+    while (old_cursor > editor->cursor) {
+        old_cursor = previous_character(editor->line, old_cursor);
         (void)bvstk_line_editor_write_text(editor, "\033[D");
     }
 }
@@ -208,7 +224,7 @@ static void editor_move_right(bvstk_line_editor_t *editor, int word)
         return;
     }
     if (!word) {
-        ++editor->cursor;
+        editor->cursor = next_character(editor->line, editor->cursor, editor->line_length);
     } else {
         while (editor->cursor < editor->line_length &&
                !isspace((unsigned char)editor->line[editor->cursor])) {
@@ -219,7 +235,8 @@ static void editor_move_right(bvstk_line_editor_t *editor, int word)
             ++editor->cursor;
         }
     }
-    while (old_cursor++ < editor->cursor) {
+    while (old_cursor < editor->cursor) {
+        old_cursor = next_character(editor->line, old_cursor, editor->line_length);
         (void)bvstk_line_editor_write_text(editor, "\033[C");
     }
 }
@@ -287,13 +304,22 @@ static void editor_insert(bvstk_line_editor_t *editor, unsigned char character)
     ++editor->cursor;
     editor->line[editor->line_length] = '\0';
     bvstk_line_editor_mark_edited(editor);
+    if (character >= 0x80U && tail) {
+        /* Do not interleave a partially entered UTF-8 character with the tail. */
+        size_t first = previous_character(editor->line, editor->cursor);
+        unsigned char lead = (unsigned char)editor->line[first];
+        size_t bytes = lead < 0xE0U ? 2U : lead < 0xF0U ? 3U : 4U;
+        if (editor->cursor - first >= bytes) bvstk_line_editor_redraw(editor);
+        return;
+    }
     (void)bvstk_line_editor_write(editor, &character, 1U);
     if (tail != 0U) {
         (void)bvstk_line_editor_write(editor,
                                       editor->line + editor->cursor,
                                       tail);
-        while (tail-- != 0U) {
-            (void)bvstk_line_editor_write_text(editor, "\033[D");
+        for (size_t i = editor->cursor; i < editor->line_length; ++i) {
+            if (!utf8_continuation((unsigned char)editor->line[i]))
+                (void)bvstk_line_editor_write_text(editor, "\033[D");
         }
     }
 }
@@ -306,12 +332,14 @@ static void editor_backspace(bvstk_line_editor_t *editor)
         bvstk_line_editor_beep(editor);
         return;
     }
-    --editor->cursor;
-    tail = editor->line_length - editor->cursor - 1U;
+    size_t previous = previous_character(editor->line, editor->cursor);
+    size_t removed = editor->cursor - previous;
+    tail = editor->line_length - editor->cursor;
+    editor->cursor = previous;
     memmove(editor->line + editor->cursor,
-            editor->line + editor->cursor + 1U,
+            editor->line + editor->cursor + removed,
             tail);
-    --editor->line_length;
+    editor->line_length -= removed;
     editor->line[editor->line_length] = '\0';
     bvstk_line_editor_mark_edited(editor);
     bvstk_line_editor_redraw(editor);
@@ -325,11 +353,12 @@ static void editor_delete(bvstk_line_editor_t *editor)
         bvstk_line_editor_beep(editor);
         return;
     }
-    tail = editor->line_length - editor->cursor - 1U;
+    size_t removed = next_character(editor->line, editor->cursor, editor->line_length) - editor->cursor;
+    tail = editor->line_length - editor->cursor - removed;
     memmove(editor->line + editor->cursor,
-            editor->line + editor->cursor + 1U,
+            editor->line + editor->cursor + removed,
             tail);
-    --editor->line_length;
+    editor->line_length -= removed;
     editor->line[editor->line_length] = '\0';
     bvstk_line_editor_mark_edited(editor);
     bvstk_line_editor_redraw(editor);
@@ -765,7 +794,7 @@ int bvstk_line_editor_handle_byte(
         editor_backspace(editor);
     } else if (character == '\t') {
         editor_complete(editor);
-    } else if (isprint(character)) {
+    } else if (character >= 0x80U || isprint(character)) {
         editor_insert(editor, character);
     }
     return 0;

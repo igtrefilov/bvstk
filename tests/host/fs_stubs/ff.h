@@ -18,6 +18,7 @@ typedef enum {
     FR_TIMEOUT, FR_LOCKED, FR_NOT_ENOUGH_CORE, FR_TOO_MANY_OPEN_FILES, FR_INVALID_PARAMETER
 } FRESULT;
 #define FF_USE_LFN 3
+#define FF_LFN_UNICODE 2
 #define FF_MAX_LFN 255
 #define FF_MAX_SS 512
 #define FM_ANY 7
@@ -28,6 +29,10 @@ typedef enum {
 #define FS_FAT32 3
 #define FS_EXFAT 4
 #define AM_DIR 0x10
+#define AM_RDO 0x01
+#define AM_HID 0x02
+#define AM_SYS 0x04
+#define AM_ARC 0x20
 #define FA_READ 1
 #define FA_WRITE 2
 #define FA_CREATE_NEW 4

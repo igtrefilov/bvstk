@@ -382,10 +382,9 @@ int bvstk_dcp2_process_request(bvstk_control_api_t *control,
     }
     body_capacity = response_capacity - 14U;
     if (body_capacity > BVSTK_DCP2_MAX_PAYLOAD - 6U) body_capacity = BVSTK_DCP2_MAX_PAYLOAD - 6U;
-    if (request->service == BVSTK_DCP2_SERVICE_PING &&
-        request->opcode == BVSTK_DCP2_OP_PING &&
-        request->body_size == 0U) {
-        status = BVSTK_OK;
+    if (request->service == BVSTK_DCP2_SERVICE_PING) {
+        status = request->opcode != BVSTK_DCP2_OP_PING ? BVSTK_ERR_UNSUPPORTED :
+            request->body_size ? BVSTK_ERR_MALFORMED : BVSTK_OK;
     } else if (request->service == BVSTK_DCP2_SERVICE_MEM) {
         status = bvstk_dcp2_process_mem(control, request, body, body_capacity, &body_size);
     } else if (request->service == BVSTK_DCP2_SERVICE_I2C) {

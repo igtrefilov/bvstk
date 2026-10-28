@@ -382,7 +382,7 @@ static void check_neutrino_commands(void)
     save_ok = 0;
     assert(bvstk_neutrino_i2c_runtime_command(&nto,
         "i2c test save", output, sizeof(output)) == 1);
-    assert(strstr(output, "ERR IO") && saves == 2);
+    assert(strstr(output, "ERR i2c io") && saves == 2);
     assert(nto.config_store.devices[0].whitelist_len == 2);
     assert(!memcmp(&saved, &last_saved, sizeof(saved)));
     assert(!bus_reads && bus_writes == 2); /* Saving never performs a bus read. */
@@ -419,8 +419,6 @@ int main(void)
 {
     (void)s_spi_mutex; /* SPI is disabled in this board configuration. */
     char output[256];
-    char *args[] = {"test", "policy", "blacklist", "add", "5", "37"};
-    response_writer_t writer = {output, sizeof(output), 0, 0};
     setup(&s_i2c_master_service, &s_i2c_devices, &s_i2c_cache, &s_i2c_policy, &freertos_stored);
     s_i2c_ready = 1;
     check_sync(bvstk_runtime_i2c_sync_policy, 0, 1, 1);
@@ -440,7 +438,10 @@ int main(void)
     check_policy(&nto.config_store.devices[0]); check_settings(&nto.config_store.devices[0], 0);
     assert(saves == 0);
     /* Actual console edit starts from the mirror and keeps every rule in RAM. */
-    assert(policy_edit(&nto, 0, &nto.config_store.devices[0], args, 6, &writer) == 0);
+    bvstk_neutrino_i2c_runtime_unlock(&nto);
+    assert(!bvstk_neutrino_i2c_runtime_command(&nto,
+        "i2c test policy blacklist add 5 37", output, sizeof(output)));
+    bvstk_neutrino_i2c_runtime_lock(&nto);
     assert(strstr(output, "RAM") && saves == 0);
     assert(nto.config_store.devices[0].whitelist_len == 1 && nto.config_store.devices[0].whitelist[0].val == 0x33);
     assert(nto.config_store.devices[0].blacklist_len == 2 &&
@@ -467,16 +468,6 @@ int main(void)
     assert(pthread_mutex_destroy(&nto.state_mutex) == 0);
     check_explicit_save();
     check_neutrino_commands();
-    i2c_device_config_t multi = {0};
-    multi.endpoint.space_count=2;
-    multi.endpoint.spaces[0]=(bvstk_address_space_t){"id",0,4,0x50};
-    multi.endpoint.spaces[1]=(bvstk_address_space_t){"diag",4,4,0x51};
-    uint32_t index;
-    assert(parse_register(&multi,"id:0",&index) && index==0);
-    assert(parse_register(&multi,"diag:0",&index) && index==4);
-    assert(!parse_register(&multi,"diag:4",&index));
-    assert(!parse_register(&multi,"missing:0",&index));
-    assert(!parse_register(&multi,"0",&index));
     puts("DCP2 policy runtime synchronization tests passed");
     return 0;
 }

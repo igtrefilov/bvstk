@@ -2,6 +2,7 @@
 #define BVSTK_NEUTRINO_I2C_RUNTIME_H
 
 #include <pthread.h>
+#include "services/cli/bvstk_cli.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -84,6 +85,11 @@ int bvstk_neutrino_i2c_runtime_sync_policy_locked(
 int bvstk_neutrino_i2c_runtime_save_policy_locked(
     bvstk_neutrino_i2c_runtime_t *runtime,
     size_t device_id);
+
+int bvstk_neutrino_i2c_runtime_apply_locked(bvstk_neutrino_i2c_runtime_t *,
+    size_t id, const i2c_device_config_t *);
+void bvstk_neutrino_i2c_cli_init(bvstk_cli_t *, bvstk_neutrino_i2c_runtime_t *,
+    const bvstk_output_t *);
 
 /* Execute the same command grammar as the FreeRTOS `i2c` shell command. */
 int bvstk_neutrino_i2c_runtime_command(

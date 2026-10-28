@@ -18,7 +18,9 @@ typedef enum {
     BVSTK_FS_IO,
     BVSTK_FS_CHANGED,
     BVSTK_FS_BUSY,
-    BVSTK_FS_UNSUPPORTED
+    BVSTK_FS_UNSUPPORTED,
+    BVSTK_FS_EXISTS,
+    BVSTK_FS_DENIED
 } bvstk_fs_result_t;
 
 enum {

@@ -1,16 +1,17 @@
 import * as api from "./api.js";
-import {esc, head, kv, bytes, uptime, ask, notice, footer, action} from "./ui.js";
+import {esc, head, kv, ask, notice, footer, action} from "./ui.js";
+import {runtimeRows} from "./runtime.js";
 export async function systemPage(root, params, ctx) {
   let dirty = false;
   let tab = params.get("tab") || "network";
   if (!["network","runtime","maintenance"].includes(tab)) tab = "network";
   async function refresh() {
     if (dirty && !await ask({title:"Отбросить черновик?",body:"<p>Несохранённые поля сети будут загружены заново.</p>"})) return;
-    const net = await api.get("/api/net", ctx.signal), rtos = await api.get("/api/rtos", ctx.signal), ver = await api.get("/api/version", ctx.signal);
+    const net = await api.get("/api/net", ctx.signal), rtos = await api.get("/api/runtime", ctx.signal), ver = await api.get("/api/version", ctx.signal);
     if (ctx.signal.aborted) return; dirty = false;
-    root.innerHTML = `${head("Система", "Сеть, состояние FreeRTOS и обслуживание")}<div class="tabs" aria-label="Разделы системы"><button data-tab="network" class="active">Сеть</button><button data-tab="runtime">FreeRTOS</button><button data-tab="maintenance">Обслуживание</button></div><div class="stack">
+    root.innerHTML = `${head("Система", "Сеть, среда исполнения и обслуживание")}<div class="tabs" aria-label="Разделы системы"><button data-tab="network" class="active">Сеть</button><button data-tab="runtime">Среда исполнения</button><button data-tab="maintenance">Обслуживание</button></div><div class="stack">
     <article class="card" data-section="network"><h2>Сеть</h2><p class="muted">Настройки сохраняются во Flash. Применение нового IP может прервать соединение.</p><form id="network-form" class="form-grid">${[["ip","IP-адрес",net.ip],["netmask","Маска сети",net.netmask],["gateway","Шлюз",net.gateway],["mac","MAC-адрес",net.mac]].map(([key,label,val]) => `<label>${label}<input name="${key}" value="${esc(val)}" required autocomplete="off"></label>`).join("")}<label class="check wide"><input name="apply" type="checkbox" checked>Применить сразу</label><div class="actions wide"><button class="primary" type="submit">Сохранить настройки сети</button><span id="network-state" class="muted"></span></div></form><div id="network-reconnect"></div></article>
-    <article class="card hidden" data-section="runtime"><h2>FreeRTOS</h2>${kv([["Время работы",uptime(rtos.uptime_ms)],["Свободная память",bytes(rtos.heap_free)],["Минимум свободной памяти",bytes(rtos.heap_min_ever)],["Частота тиков",rtos.tick_rate_hz + " Гц"],["Сборка",ver.build_date + " " + ver.build_time],["Порт HTTP",ver.http_port]])}</article>
+    <article class="card hidden" data-section="runtime"><h2>Среда исполнения</h2>${kv([...runtimeRows(rtos),["Сборка",ver.build_date + " " + ver.build_time],["Порт HTTP",ver.http_port]])}</article>
     <article class="card hidden" data-section="maintenance"><h2>Обслуживание</h2><p>Перезагрузка остановит активные операции. Изменения подсистем, применённые только в RAM, будут потеряны.</p><button id="reboot" class="danger">Перезагрузить систему</button><p class="muted">HTTP-доступ предназначен для доверенной сети. Шифрование и аутентификация этим сервером не предоставляются.</p></article></div>${footer()}`;
     const selectTab = value => {
       tab = value; ctx.setContext({tab});

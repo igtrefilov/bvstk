@@ -1,6 +1,7 @@
 #include "apps/neutrino/bvstkd/bvstk_dcp2_runtime.h"
 
 #include <stdio.h>
+#include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 static int request_mutates_i2c(const bvstk_dcp2_request_t *request)
 {
@@ -105,45 +106,43 @@ static bvstk_status_t policy_changed(void *context, uint8_t service, size_t id)
     return BVSTK_ERR_UNSUPPORTED;
 }
 
+static void lock_runtime(void *context, unsigned scope)
+{
+    bvstk_neutrino_dcp2_runtime_t *r = context;
+    if (scope & 1U) bvstk_neutrino_i2c_runtime_lock(r->i2c);
+    if (scope & 2U) bvstk_neutrino_mdio_runtime_lock(r->mdio);
+}
+static void unlock_runtime(void *context, unsigned scope)
+{
+    bvstk_neutrino_dcp2_runtime_t *r = context;
+    if (scope & 2U) bvstk_neutrino_mdio_runtime_unlock(r->mdio);
+    if (scope & 1U) bvstk_neutrino_i2c_runtime_unlock(r->i2c);
+}
+static bvstk_status_t sync_runtime(void *context, uint8_t service, size_t id, int cache)
+{
+    bvstk_neutrino_dcp2_runtime_t *r = context;
+    if (service == BVSTK_DCP2_SERVICE_I2C)
+        return (cache ? bvstk_neutrino_i2c_runtime_sync_locked(r->i2c, id) :
+            bvstk_neutrino_i2c_runtime_sync_policy_locked(r->i2c, id)) ? BVSTK_OK : BVSTK_ERR_INTERNAL;
+    return service == BVSTK_DCP2_SERVICE_MDIO &&
+        bvstk_neutrino_mdio_runtime_sync_locked(r->mdio, id) ? BVSTK_OK : BVSTK_ERR_INTERNAL;
+}
+void bvstk_neutrino_dcp2_adapter(bvstk_dcp2_adapter_t *a,
+    bvstk_neutrino_dcp2_runtime_t *runtime, const bvstk_control_api_t *control)
+{
+    *a = (bvstk_dcp2_adapter_t){0};
+    a->context = runtime; a->control = *control;
+    a->i2c_supported = BVSTK_PL_HAS_I2C_CORE;
+    a->mdio_supported = BVSTK_PL_HAS_MDIO_CORE;
+    a->lock = lock_runtime; a->unlock = unlock_runtime; a->sync = sync_runtime;
+    a->policy = (bvstk_dcp2_policy_adapter_t){control->i2c, control->mdio,
+        runtime, policy_catalog, policy_changed, save_policy};
+}
 int bvstk_neutrino_dcp2_dispatch(bvstk_neutrino_dcp2_runtime_t *runtime,
     bvstk_dcp2_policy_session_t *session, bvstk_control_api_t *control,
-    const bvstk_dcp2_request_t *request, uint8_t *response, size_t capacity, size_t *response_size)
+    const bvstk_dcp2_request_t *request, uint8_t *response, size_t capacity, size_t *size)
 {
-    if (!runtime || !session || !control || !request || !response || !response_size) return -1;
-    int use_i2c = request->service == BVSTK_DCP2_SERVICE_I2C || request->service == BVSTK_DCP2_SERVICE_POLICY;
-    int use_mdio = request->service == BVSTK_DCP2_SERVICE_MDIO || request->service == BVSTK_DCP2_SERVICE_POLICY;
-    if (use_i2c) bvstk_neutrino_i2c_runtime_lock(runtime->i2c);
-    if (use_mdio) bvstk_neutrino_mdio_runtime_lock(runtime->mdio);
-    int result;
-    if (request->service == BVSTK_DCP2_SERVICE_POLICY) {
-        const bvstk_dcp2_policy_adapter_t adapter = {
-            control->i2c, control->mdio, runtime, policy_catalog, policy_changed, save_policy
-        };
-        uint8_t body[BVSTK_DCP2_MAX_PAYLOAD - 6U];
-        uint16_t size = 0;
-        uint16_t status = bvstk_dcp2_policy_request(session, &adapter, request->opcode,
-            request->body, request->body_size, bvstk_platform_now_ms(), body, sizeof(body), &size);
-        result = bvstk_dcp2_encode_response(response, capacity, request, status,
-            status ? NULL : body, status ? 0U : size, response_size);
-    } else if ((use_i2c || use_mdio) && request->opcode == BVSTK_DCP2_OP_I2C_POLICY_SAVE) {
-        bvstk_status_t status = bvstk_dcp2_process_policy_save(control->i2c, control->mdio,
-            request, save_policy, runtime);
-        result = bvstk_dcp2_encode_response(response, capacity, request,
-            bvstk_dcp2_status_from_bvstk(status), NULL, 0, response_size);
-    } else {
-        result = bvstk_neutrino_dcp2_request_locked(runtime->i2c, control,
-            request, response, capacity, response_size);
-        if (!result && use_mdio && request->body_size && *response_size >= 14U &&
-            !bvstk_dcp2_read_be16(response + 12U) &&
-            request->opcode >= BVSTK_DCP2_OP_MDIO_POLICY_SET &&
-            request->opcode <= BVSTK_DCP2_OP_MDIO_POLICY_CLEAR) {
-            size_t id;
-            if (bvstk_mdio_service_find_by_phy(control->mdio, request->body[0], &id) != BVSTK_OK ||
-                !bvstk_neutrino_mdio_runtime_sync_locked(runtime->mdio, id))
-                bvstk_dcp2_write_be16(response + 12U, bvstk_dcp2_status_from_bvstk(BVSTK_ERR_INTERNAL));
-        }
-    }
-    if (use_mdio) bvstk_neutrino_mdio_runtime_unlock(runtime->mdio);
-    if (use_i2c) bvstk_neutrino_i2c_runtime_unlock(runtime->i2c);
-    return result;
+    bvstk_dcp2_adapter_t adapter;
+    bvstk_neutrino_dcp2_adapter(&adapter, runtime, control);
+    return bvstk_dcp2_dispatch(&adapter, session, request, bvstk_platform_now_ms(), response, capacity, size);
 }

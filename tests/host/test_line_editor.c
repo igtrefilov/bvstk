@@ -169,5 +169,26 @@ int main(void)
     feed(&editor, (const unsigned char *)"\t", 1U);
     CHECK(strcmp(bvstk_line_editor_line(&editor), "foo ") == 0);
 
+    bvstk_line_editor_reset(&editor);
+    feed_text(&editor, "fs cat данные.txt");
+    CHECK(strcmp(bvstk_line_editor_line(&editor), "fs cat данные.txt") == 0);
+    feed(&editor, (const unsigned char *)"\001", 1U);
+    feed_text(&editor, "я");
+    CHECK(strcmp(bvstk_line_editor_line(&editor), "яfs cat данные.txt") == 0);
+    feed(&editor, (const unsigned char *)"\002", 1U);
+    CHECK(bvstk_line_editor_cursor(&editor) == 0U);
+    feed(&editor, delete_key, sizeof(delete_key) - 1U);
+    CHECK(strcmp(bvstk_line_editor_line(&editor), "fs cat данные.txt") == 0);
+    bvstk_line_editor_reset(&editor);
+    feed_text(&editor, "а😀б");
+    feed(&editor, (const unsigned char *)"\177", 1U);
+    CHECK(strcmp(bvstk_line_editor_line(&editor), "а😀") == 0);
+    feed(&editor, (const unsigned char *)"\002", 1U);
+    CHECK(bvstk_line_editor_cursor(&editor) == strlen("а"));
+    feed(&editor, (const unsigned char *)"\006", 1U);
+    CHECK(bvstk_line_editor_cursor(&editor) == strlen("а😀"));
+    feed(&editor, (const unsigned char *)"\177", 1U);
+    CHECK(strcmp(bvstk_line_editor_line(&editor), "а") == 0);
+
     return 0;
 }

@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "apps/neutrino/i2c/bvstk_i2c_client.h"
+#include "apps/neutrino/commands/bvstk_command_client.h"
 #include "shared/cli/bvstk_i2c_completion.h"
 #include "shared/cli/bvstk_line_editor.h"
 
@@ -148,6 +149,28 @@ static int line_starts_with_i2c(const char *line,
            strncasecmp(line + start, "i2c", i2c_length) == 0 &&
            (cursor - start == i2c_length ||
             isspace((unsigned char)line[start + i2c_length]));
+}
+
+static int line_starts_with_mdio(const char *line,
+                                size_t line_length,
+                                size_t cursor)
+{
+    size_t start = 0U;
+    size_t mdio_length = strlen("mdio");
+
+    if (line == NULL) {
+        return 0;
+    }
+    if (cursor > line_length) {
+        cursor = line_length;
+    }
+    while (start < cursor && isspace((unsigned char)line[start])) {
+        ++start;
+    }
+    return cursor - start >= mdio_length &&
+           strncasecmp(line + start, "mdio", mdio_length) == 0 &&
+           (cursor - start == mdio_length ||
+            isspace((unsigned char)line[start + mdio_length]));
 }
 
 static int shell_completion_copy_fragment(char *output,
@@ -587,11 +610,12 @@ static int shell_editor_complete(void *context,
         (void)bvstk_i2c_client_list_devices(devices,
                                             I2C_CFG_MAX_DEVICES,
                                             &device_count);
-        if (!bvstk_i2c_complete_line(line,
+        if (!bvstk_i2c_complete_line_ex(line,
                                      length,
                                      cursor,
                                      devices,
                                      device_count,
+                                     BVSTK_I2C_COMPLETION_EXPLICIT_SAVE,
                                      &i2c_result)) {
             return 0;
         }
@@ -605,6 +629,40 @@ static int shell_editor_complete(void *context,
         for (index = 0U; index < result->match_count; ++index) {
             strncpy(result->candidates[index],
                     i2c_result.candidates[index],
+                    BVSTK_LINE_EDITOR_COMPLETION_WORD_MAX - 1U);
+            result->candidates[index]
+                    [BVSTK_LINE_EDITOR_COMPLETION_WORD_MAX - 1U] = '\0';
+        }
+        return result->match_count != 0U;
+    }
+    if (line_starts_with_mdio(line, length, cursor)) {
+        bvstk_mdio_completion_device_t devices[MDIO_CFG_MAX_DEVICES];
+        bvstk_mdio_completion_result_t mdio_result;
+        size_t device_count = 0U;
+        size_t index;
+
+        memset(devices, 0, sizeof(devices));
+        (void)bvstk_command_client_mdio_devices(devices,
+                                            MDIO_CFG_MAX_DEVICES,
+                                            &device_count);
+        if (!bvstk_mdio_complete_line(line,
+                                     length,
+                                     cursor,
+                                     devices,
+                                     device_count,
+                                     &mdio_result)) {
+            return 0;
+        }
+        memset(result, 0, sizeof(*result));
+        result->token_start = mdio_result.token_start;
+        result->token_prefix_length = mdio_result.token_prefix_length;
+        result->match_count = mdio_result.match_count;
+        if (result->match_count > BVSTK_LINE_EDITOR_COMPLETION_MAX_MATCHES) {
+            result->match_count = BVSTK_LINE_EDITOR_COMPLETION_MAX_MATCHES;
+        }
+        for (index = 0U; index < result->match_count; ++index) {
+            strncpy(result->candidates[index],
+                    mdio_result.candidates[index],
                     BVSTK_LINE_EDITOR_COMPLETION_WORD_MAX - 1U);
             result->candidates[index]
                     [BVSTK_LINE_EDITOR_COMPLETION_WORD_MAX - 1U] = '\0';

@@ -183,11 +183,11 @@ SSH подключает общий консольный интерфейс и �
 | Файл | Назначение |
 |---|---|
 | [dcp2_server.h](../../../../src/apps/freertos/services/dcp2/dcp2_server.h) | Объявляет запуск сервера, получение порта и проверку завершения начальной настройки. |
-| [dcp2_server.c](../../../../src/apps/freertos/services/dcp2/dcp2_server.c) | Принимает TCP-клиента, читает кадры, выбирает обработчики команд, ведёт подписки и отправляет ответы и события DCP2. |
+| [dcp2_server.c](../../../../src/apps/freertos/services/dcp2/dcp2_server.c) | Обеспечивает сокет и ограниченное ожидание; подключает общие session/dispatch, адаптеры состояния, хранения и наблюдений; очищает сессию при разрыве. |
 | [dcp2_notify.h](../../../../src/apps/freertos/services/dcp2/dcp2_notify.h) | Объявляет определение класса уведомления по его типу. |
 | [dcp2_notify.c](../../../../src/apps/freertos/services/dcp2/dcp2_notify.c) | Сопоставляет тип события с битом фильтра подписки NOTIFY. |
 | [dcp2_stream_sim.h](../../../../src/apps/freertos/services/dcp2/dcp2_stream_sim.h) | Определяет настройки, состояние и формат события синтетического потока. |
-| [dcp2_stream_sim.c](../../../../src/apps/freertos/services/dcp2/dcp2_stream_sim.c) | Генерирует последовательности данных по заданному шаблону и периоду, ведёт счётчики выдачи и потерь. |
+| [dcp2_stream_sim.c](../../../../src/apps/freertos/services/dcp2/dcp2_stream_sim.c) | Адаптирует общий services/stream к часам и критическим секциям FreeRTOS; сохраняет прежний API. |
 
 Файлы общего протокольного кода разобраны в [protocols](../protocols.md).
 Синтетический поток и наблюдение за реальными операциями имеют разные
@@ -255,8 +255,8 @@ HTTP-сервер читает запрос и передаёт его обра�
 | [fs_shared.c](../../../../src/apps/freertos/storage/fs/fs_shared.c) | Выполняет файловые операции через FatFs, согласует доступ к томам, обрабатывает пути, копирование и перемещение между носителями. |
 | [fs_devices.h](../../../../src/apps/freertos/storage/fs/fs_devices.h) | Определяет описание доступного тома и операции его поиска по имени или пути. |
 | [fs_devices.c](../../../../src/apps/freertos/storage/fs/fs_devices.c) | Собирает реестр QSPI, PS SD и PL SD, выбирает контекст для файлового запроса и организует его подготовку. |
-| [fs_dcp2_backend.h](../../../../src/apps/freertos/storage/fs/fs_dcp2_backend.h) | Объявляет получение таблицы файловых операций для общего читателя FS. |
-| [fs_dcp2_backend.c](../../../../src/apps/freertos/storage/fs/fs_dcp2_backend.c) | Адаптирует тома и файловые операции приложения к `bvstk_fs_backend_t`, преобразует имена между UTF-8 и кодировкой FatFs. |
+| [fs_dcp2_backend.h](../../../../src/apps/freertos/storage/fs/fs_dcp2_backend.h) | Объявляет получение таблицы чтения DCP2 FS и общей таблицы операций записи. |
+| [fs_dcp2_backend.c](../../../../src/apps/freertos/storage/fs/fs_dcp2_backend.c) | Адаптирует тома к `bvstk_fs_backend_t` и `bvstk_fs_storage_t`, преобразует имена UTF-8, блокирует отдельные файловые вызовы и устанавливает профили с откатом. Используется также файловым HTTP UI. |
 
 ### apps/freertos/storage/qspi
 
@@ -301,3 +301,11 @@ HTTP-сервер читает запрос и передаёт его обра�
 
 Общая организация файловых путей и носителей описана в
 [главе хранения данных](../../../system/storage/storage.md).
+
+Обработчики I²C/MDIO, stream, mem и tar в `console` — адаптеры общего
+[services/cli](../../../../src/services/cli).
+[bvstk_cli_freertos.c](../../../../src/apps/freertos/console/bvstk_cli_freertos.c)
+подключает вывод консоли, рабочие сервисы и callbacks RAM/SAVE;
+[bvstk_storage_freertos.c](../../../../src/apps/freertos/console/bvstk_storage_freertos.c)
+переводит каталог сеанса в логический путь. Новое пространство команд `fs`
+использует общий storage; прежние самостоятельные ls/cd/cp/... сохранены.

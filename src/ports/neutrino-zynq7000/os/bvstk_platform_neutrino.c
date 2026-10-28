@@ -5,12 +5,15 @@
 #include "shared/pl/access/bvstk_pl_service.h"
 
 #include <errno.h>
+#include <pthread.h>
 #include <sys/mman.h>
 #include <sys/neutrino.h>
 #include <time.h>
 
 static int platform_ready;
 static bvstk_pl_service_t memory_regions;
+/* DCP2 and local commands share lazily created mappings and 64-bit accesses. */
+static pthread_mutex_t memory_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static bvstk_status_t memory_region(uint32_t address, size_t span, unsigned width,
     bvstk_pl_region_id_t *id, size_t *offset)
@@ -46,7 +49,7 @@ static bvstk_status_t memory_mapping(void *context, uint32_t address, unsigned w
     return status == BVSTK_OK ? bvstk_pl_service_mapping(context, id, mapping) : status;
 }
 
-static bvstk_status_t memory_read(void *context, uint32_t address, unsigned width, uint64_t *value)
+static bvstk_status_t memory_read_unlocked(void *context, uint32_t address, unsigned width, uint64_t *value)
 {
     const bvstk_mmio_region_t *mapping;
     size_t offset;
@@ -67,7 +70,7 @@ static bvstk_status_t memory_read(void *context, uint32_t address, unsigned widt
     return BVSTK_OK;
 }
 
-static bvstk_status_t memory_write(void *context, uint32_t address, unsigned width, uint64_t value)
+static bvstk_status_t memory_write_unlocked(void *context, uint32_t address, unsigned width, uint64_t value)
 {
     const bvstk_mmio_region_t *mapping;
     size_t offset;
@@ -86,6 +89,22 @@ static bvstk_status_t memory_write(void *context, uint32_t address, unsigned wid
     }
     __sync_synchronize();
     return BVSTK_OK;
+}
+
+static bvstk_status_t memory_read(void *context, uint32_t address, unsigned width, uint64_t *value)
+{
+    pthread_mutex_lock(&memory_mutex);
+    bvstk_status_t status = memory_read_unlocked(context, address, width, value);
+    pthread_mutex_unlock(&memory_mutex);
+    return status;
+}
+
+static bvstk_status_t memory_write(void *context, uint32_t address, unsigned width, uint64_t value)
+{
+    pthread_mutex_lock(&memory_mutex);
+    bvstk_status_t status = memory_write_unlocked(context, address, width, value);
+    pthread_mutex_unlock(&memory_mutex);
+    return status;
 }
 
 const bvstk_memory_t *bvstk_platform_memory(void)
@@ -126,7 +145,9 @@ int bvstk_platform_init(void)
 
 void bvstk_platform_shutdown(void)
 {
+    pthread_mutex_lock(&memory_mutex);
     bvstk_pl_service_shutdown(&memory_regions);
+    pthread_mutex_unlock(&memory_mutex);
     platform_ready = 0;
 }
 

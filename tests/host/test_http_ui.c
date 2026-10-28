@@ -34,6 +34,8 @@ const fs_device_info_t *fs_device_by_name(const char *name) {
     for (size_t i=0;i<3;i++) if (!strcmp(name,host_devices[i].name)) return &host_devices[i];
     return NULL;
 }
+int fs_device_count(void) { return 3; }
+const fs_device_info_t *fs_device_at(int i) { return i >= 0 && i < 3 ? &host_devices[i] : NULL; }
 static FRESULT failure(void) { return errno == ENOENT ? FR_NO_FILE : errno == EEXIST ? FR_EXIST : FR_DENIED; }
 static void native_path(const char *path,char out[512]) {
     assert(path[1] == ':' && path[2] == '/' && path[0] >= '0' && path[0] <= '2');
@@ -54,6 +56,7 @@ FRESULT f_write(FIL *f,const void *p,UINT n,UINT *got) { *got=(UINT)fwrite(p,1,n
 FRESULT f_close(FIL *f) { int r=fclose(f->native); if(close_error){close_error=0;return FR_DISK_ERR;} return r ? FR_DISK_ERR : FR_OK; }
 FRESULT f_sync(FIL *f) { return fflush(f->native) ? FR_DISK_ERR : FR_OK; }
 FRESULT f_truncate(FIL *f) { f->size=0; return ftruncate(fileno(f->native),0) ? FR_DISK_ERR : FR_OK; }
+FRESULT f_lseek(FIL *f, FSIZE_t offset) { return fseek(f->native, (long)offset, SEEK_SET) ? FR_DISK_ERR : FR_OK; }
 FRESULT f_stat(const char *path,FILINFO *fi) {
     char p[512]; struct stat st; native_path(path,p);
     if(stat(p,&st)) return failure();
@@ -72,6 +75,17 @@ FRESULT f_closedir(DIR *d) { return closedir(d->native)?FR_DISK_ERR:FR_OK; }
 FRESULT f_mkdir(const char *p) {char n[512];native_path(p,n);return mkdir(n,0700)?failure():FR_OK;}
 FRESULT f_unlink(const char *p) {char n[512];native_path(p,n);return remove(n)?failure():FR_OK;}
 FRESULT f_rename(const char *a,const char *b) {char x[512],y[512];struct stat st;native_path(a,x);native_path(b,y);if(!stat(y,&st))return FR_EXIST;return rename(x,y)?failure():FR_OK;}
+FRESULT fs_shared_file_stat(const fs_shared_ctx_t *c,const char *p,FILINFO *i) {(void)c;return f_stat(p,i);}
+FRESULT fs_shared_file_open_read(const fs_shared_ctx_t *c,const char *p,FIL *f,uint32_t *size) {
+    (void)c;FRESULT rc=f_open(f,p,FA_READ);if(rc==FR_OK)*size=f_size(f);return rc;
+}
+FRESULT fs_shared_file_read(const fs_shared_ctx_t *c,FIL *f,void *p,uint32_t n,uint32_t *size) {
+    (void)c;UINT count=0;FRESULT rc=f_read(f,p,n,&count);*size=count;return rc;
+}
+FRESULT fs_shared_file_close(const fs_shared_ctx_t *c,FIL *f) {(void)c;return f_close(f);}
+FRESULT fs_shared_dir_open(const fs_shared_ctx_t *c,const char *p,DIR *d) {(void)c;return f_opendir(d,p);}
+FRESULT fs_shared_dir_read(const fs_shared_ctx_t *c,DIR *d,FILINFO *i) {(void)c;return f_readdir(d,i);}
+FRESULT fs_shared_dir_close(const fs_shared_ctx_t *c,DIR *d) {(void)c;return f_closedir(d);}
 int bvstk_sd_pl_is_ready(void) {return mounted;}
 const bvstk_sd_volume_t *bvstk_sd_pl_volume(void) {static bvstk_sd_volume_t v={0,10000,32};return &v;}
 bvstk_sd_service_t *bvstk_sd_master_freertos_service(void) {return NULL;}
@@ -387,6 +401,10 @@ int main(int argc,char **argv) {
     close_error=1;
     http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fclose-failure&confirm=true","x",500);
     mounted=0;http_run("GET","/api/ui/files?volume=sd-pl&path=%2F","",503);mounted=1;
+    http_run("GET","/api/i2c","",200);assert(strstr(output,"\"count\":1"));
+    http_run("GET","/api/i2c?name=dev","",200);assert(strstr(output,"\"device\":"));
+    http_run("PUT","/api/i2c","{\"name\":\"dev\",\"policy\":\"whitelist\"}",200);assert(strstr(output,"\"saved\":false"));
+    http_run("PUT","/api/i2c","{\"name\":\"dev\",\"name\":\"dev\"}",400);
     multiple_spaces();
     routing_context();
     cache_read_groups();

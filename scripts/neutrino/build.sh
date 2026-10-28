@@ -23,6 +23,8 @@ python3 "$REPO_ROOT/tools/codegen/gen_default_configs.py" \
   --out "$BUILD_DIR/default_configs.h"
 
 COMMON_SOURCES=(
+  "$REPO_ROOT/src/services/system/bvstk_system.c"
+  "$REPO_ROOT/src/shared/protocols/http/bvstk_http_input.c"
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c"
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_slave.c"
   "$REPO_ROOT/src/drivers/pl/mdio/bvstk_mdio_core.c"
@@ -30,6 +32,18 @@ COMMON_SOURCES=(
   "$REPO_ROOT/src/hardware/boards/ax7020/bvstk_pl_regions.c"
   "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c"
   "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_sync_neutrino.c"
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_dispatch.c"
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_session.c"
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_cache.c"
+  "$REPO_ROOT/src/services/cli/bvstk_cli.c"
+  "$REPO_ROOT/src/services/cli/bvstk_i2c_cli.c"
+  "$REPO_ROOT/src/services/cli/bvstk_mdio_cli.c"
+  "$REPO_ROOT/src/services/cli/bvstk_stream_cli.c"
+  "$REPO_ROOT/src/services/cli/bvstk_storage_cli.c"
+  "$REPO_ROOT/src/services/cli/bvstk_tar_cli.c"
+  "$REPO_ROOT/src/shared/base/bvstk_parse.c"
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_fs.c"
+  "$REPO_ROOT/src/services/stream/bvstk_stream_sim.c"
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c"
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c"
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_policy.c"
@@ -48,14 +62,26 @@ COMMON_SOURCES=(
   "$REPO_ROOT/src/services/cache/bvstk_cache.c"
   "$REPO_ROOT/src/services/cache/bvstk_cache_bridges.c"
   "$REPO_ROOT/src/services/observation/bvstk_observation.c"
+  "$REPO_ROOT/src/services/fs/bvstk_fs_reader.c"
+  "$REPO_ROOT/src/services/fs/bvstk_fs_storage.c"
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_fs_posix.c"
   "$REPO_ROOT/src/shared/events/bvstk_journal.c"
 )
 
 NEUTRINO_I2C_RUNTIME_SOURCES=(
+  "$REPO_ROOT/src/apps/neutrino/http/bvstk_http_neutrino.c"
+  "$REPO_ROOT/src/apps/neutrino/http/bvstk_http_server.c"
+  "$REPO_ROOT/src/protocols/http/bvstk_http_system.c"
+  "$REPO_ROOT/src/protocols/http/bvstk_http_ui.c"
+  "$REPO_ROOT/src/protocols/http/bvstk_http_bus.c"
+  "$REPO_ROOT/src/protocols/http/bvstk_http_files.c"
+  "$REPO_ROOT/src/protocols/http/bvstk_http_observe.c"
+  "$REPO_ROOT/src/apps/neutrino/runtime/bvstk_system_neutrino.c"
+  "$REPO_ROOT/src/apps/neutrino/commands/bvstk_command.c"
+  "$REPO_ROOT/src/apps/neutrino/commands/bvstk_command_resmgr.c"
   "$REPO_ROOT/src/apps/neutrino/observe/bvstk_observe.c"
   "$REPO_ROOT/src/apps/neutrino/observe/bvstk_observe_resmgr.c"
   "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_observation_neutrino.c"
-  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_cache.c"
   "$REPO_ROOT/src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c"
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_profile_store.c"
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_mdio_config_store.c"
@@ -103,6 +129,7 @@ build_program bvstkctl \
   "$REPO_ROOT/src/apps/neutrino/bvstkctl/main.c" \
   "$REPO_ROOT/src/apps/neutrino/observe/bvstk_observe_client.c" \
   "$I2C_CLIENT_SOURCE" \
+  "$REPO_ROOT/src/apps/neutrino/commands/bvstk_command_client.c" \
   "${COMMON_SOURCES[@]}"
 
 build_program bvstkd \
@@ -113,12 +140,15 @@ build_program bvstkd \
 
 build_program i2c \
   "$REPO_ROOT/src/apps/neutrino/i2c/main.c" \
-  "$I2C_CLIENT_SOURCE"
+  "$I2C_CLIENT_SOURCE" \
+  "$REPO_ROOT/src/apps/neutrino/commands/bvstk_command_client.c"
 
 build_program bvstk-shell \
   "$REPO_ROOT/src/apps/neutrino/shell/main.c" \
   "$I2C_CLIENT_SOURCE" \
+  "$REPO_ROOT/src/apps/neutrino/commands/bvstk_command_client.c" \
   "$I2C_COMPLETION_SOURCE" \
+  "$REPO_ROOT/src/shared/cli/bvstk_mdio_completion.c" \
   "$LINE_EDITOR_SOURCE"
 
 build_program bvstk-qspi-fat \

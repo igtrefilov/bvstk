@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "apps/neutrino/config/bvstk_profile_store.h"
+#include "ports/neutrino-zynq7000/storage/bvstk_fs_posix.h"
 #include "shared/config/bvstk_device_profile.h"
 #include <dirent.h>
 #include <errno.h>
@@ -31,9 +32,13 @@ int bvstk_neutrino_profile_mkdir(const char *path)
         if (mkdir(current, 0755) != 0 && errno != EEXIST) {
             return 0;
         }
+        struct stat info;
+        if (lstat(current, &info) || !S_ISDIR(info.st_mode)) return 0;
         *cursor = '/';
     }
-    return mkdir(current, 0755) == 0 || errno == EEXIST;
+    if (mkdir(current, 0755) && errno != EEXIST) return 0;
+    struct stat info;
+    return lstat(current, &info) == 0 && S_ISDIR(info.st_mode);
 }
 
 static int file_name_safe(const char *name)
@@ -95,7 +100,7 @@ size_t bvstk_neutrino_profile_load(const char *directory,
     int failed = 0;
     struct stat info;
     if (!directory || !accept) return SIZE_MAX;
-    if (stat(directory, &info)) return errno == ENOENT ? 0U : SIZE_MAX;
+    if (lstat(directory, &info)) return errno == ENOENT ? 0U : SIZE_MAX;
     if (!S_ISDIR(info.st_mode)) return SIZE_MAX;
     dirs = calloc(128U, sizeof(*dirs));
     if (!dirs) return SIZE_MAX;
@@ -125,21 +130,38 @@ size_t bvstk_neutrino_profile_load(const char *directory,
                 strcpy(dirs[count++], relative);
                 continue;
             }
-            if (!file_name_safe(relative) || bvstk_device_profile_is_register_map(entry->d_name)) continue;
+            char file_name[I2C_CFG_FILE_NAME_MAX];
+            strcpy(file_name, entry->d_name);
+            size_t length = strlen(relative);
+            /* A completed .bak recovers a missing canonical file, as in the
+             * FreeRTOS loader. An existing invalid JSON still fails closed. */
+            if (length > 9U && !strcasecmp(relative + length - 9U, ".json.bak")) {
+                char canonical[512];
+                relative[length - 4U] = 0;
+                file_name[strlen(file_name) - 4U] = 0;
+                if (snprintf(canonical, sizeof(canonical), "%s/%s", directory, relative) >= (int)sizeof(canonical))
+                    { failed = 1; break; }
+                if (!lstat(canonical, &info)) {
+                    if (!S_ISREG(info.st_mode)) { failed = 1; break; }
+                    continue;
+                }
+                if (errno != ENOENT) { failed = 1; break; }
+            }
+            if (!file_name_safe(relative) || bvstk_device_profile_is_register_map(file_name)) continue;
             const char *base = strrchr(dirs[d], '/');
             base = base ? base + 1 : dirs[d];
-            if (d && !strcasecmp(entry->d_name, "profile.json")) {
+            if (d && !strcasecmp(file_name, "profile.json")) {
                 if (snprintf(alternative, sizeof(alternative), "%s/%s.json", folder, base) >= (int)sizeof(alternative))
                     { failed = 1; break; }
                 if (!access(alternative, F_OK)) continue;
             }
             if (!d) {
-                size_t n = strlen(entry->d_name) - 5U;
+                size_t n = strlen(file_name) - 5U;
                 if (snprintf(alternative, sizeof(alternative), "%s/%.*s/%s", folder,
-                    (int)n, entry->d_name, entry->d_name) >= (int)sizeof(alternative)) { failed = 1; break; }
+                    (int)n, file_name, file_name) >= (int)sizeof(alternative)) { failed = 1; break; }
                 if (!access(alternative, F_OK)) continue;
                 if (snprintf(alternative, sizeof(alternative), "%s/%.*s/profile.json", folder,
-                    (int)n, entry->d_name) >= (int)sizeof(alternative)) { failed = 1; break; }
+                    (int)n, file_name) >= (int)sizeof(alternative)) { failed = 1; break; }
                 if (!access(alternative, F_OK)) continue;
             }
             if (!read_file(path, &json)) { failed = 1; break; }
@@ -154,43 +176,37 @@ size_t bvstk_neutrino_profile_load(const char *directory,
     return failed ? SIZE_MAX : loaded;
 }
 
-static int write_all(int fd, const char *data, size_t length)
-{
-    size_t offset = 0U;
-
-    while (offset < length) {
-        ssize_t count = write(fd, data + offset, length - offset);
-        if (count < 0 && errno == EINTR) {
-            continue;
-        }
-        if (count <= 0) {
-            return 0;
-        }
-        offset += (size_t)count;
-    }
-    return 1;
-}
-
 int bvstk_neutrino_profile_save(const char *directory, const char *relative,
     const char *json, size_t size)
 {
-    char destination[512], temporary[528], parent[512];
-    if (!directory || !file_name_safe(relative) || !json || !size ||
-        !bvstk_neutrino_profile_mkdir(directory)) return 0;
-    int n = snprintf(destination, sizeof(destination), "%s/%s", directory, relative);
-    if (n <= 0 || (size_t)n >= sizeof(destination)) return 0;
-    n = snprintf(temporary, sizeof(temporary), "%s.tmp", destination);
-    if (n <= 0 || (size_t)n >= sizeof(temporary)) return 0;
-    strcpy(parent, destination);
-    char *slash = strrchr(parent, '/');
-    if (!slash) return 0;
-    *slash = 0;
-    if (!bvstk_neutrino_profile_mkdir(parent)) return 0;
-    int fd = open(temporary, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd < 0) return 0;
-    int ok = write_all(fd, json, size) && fsync(fd) == 0;
-    if (close(fd)) ok = 0;
-    if (ok && rename(temporary, destination) == 0) return 1;
-    unlink(temporary);
-    return 0;
+    char path[BVSTK_FS_PATH_CAPACITY], parent[BVSTK_FS_PATH_CAPACITY];
+    bvstk_fs_posix_t local;
+    const bvstk_fs_storage_t *storage;
+    bool custom = true;
+    if (!directory || !file_name_safe(relative) || !json || !size) return 0;
+    int n;
+    /* Real device profiles use the mounted logical volume. Custom roots are
+     * for explicit alternate stores/tests, never an unmounted /flash alias. */
+    if (!strncmp(directory, "/flash", 6) && (!directory[6] || directory[6] == '/')) {
+        storage = bvstk_fs_posix_default();
+        custom = false;
+        n = snprintf(path, sizeof(path), "flash:%s/%s", directory + 6, relative);
+    } else {
+        if (!bvstk_neutrino_profile_mkdir(directory)) return 0;
+        const bvstk_fs_posix_volume_t v = {"flash", directory, false};
+        if (bvstk_fs_posix_init(&local, &v, 1) != BVSTK_FS_OK) return 0;
+        storage = bvstk_fs_posix_storage(&local);
+        n = snprintf(path, sizeof(path), "flash:/%s", relative);
+    }
+    int ok = 0;
+    if (storage && n > 0 && (size_t)n < sizeof(path)) {
+        strcpy(parent, path);
+        char *slash = strrchr(parent, '/');
+        if (slash == strchr(parent, ':') + 1) slash[1] = 0;
+        else *slash = 0;
+        ok = bvstk_fs_mkdirs(storage, parent) == BVSTK_FS_OK &&
+             bvstk_fs_save(storage, path, json, size) == BVSTK_FS_OK;
+    }
+    if (custom && bvstk_fs_posix_destroy(&local) != BVSTK_FS_OK) ok = 0;
+    return ok;
 }

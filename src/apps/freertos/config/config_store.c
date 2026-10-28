@@ -1,3 +1,4 @@
+#include "services/system/bvstk_system.h"
 #include "apps/freertos/config/config_store.h"
 
 #include <ctype.h>
@@ -97,19 +98,6 @@ static int compare_mdio_address(const void *left, const void *right)
     return order ? order : strcmp(a->name, b->name);
 }
 
-static void config_apply_defaults(network_config_t *cfg)
-{
-    if (!cfg) return;
-    memset(cfg, 0, sizeof(*cfg));
-    cfg->mac[0] = 0x00;
-    cfg->mac[1] = 0x0a;
-    cfg->mac[2] = 0x35;
-    cfg->mac[3] = 0x00;
-    cfg->mac[4] = 0x01;
-    cfg->mac[5] = 0x02;
-    cfg->has_mac = true;
-}
-
 static void build_flash_path(char *out, size_t out_sz, const char *suffix_no_slash)
 {
     if (!out || out_sz == 0) return;
@@ -199,104 +187,8 @@ static int read_file_to_buf(const char *path, char *buf, size_t buf_sz, size_t *
     return 1;
 }
 
-static const char *skip_ws(const char *p)
-{
-    while (p && *p && isspace((unsigned char)*p)) p++;
-    return p;
-}
-
-static const char *find_key(const char *json, const char *key)
-{
-    if (!json || !key) return NULL;
-    char pat[64];
-    int n = snprintf(pat, sizeof(pat), "\"%s\"", key);
-    if (n <= 0 || (size_t)n >= sizeof(pat)) return NULL;
-    const char *p = json;
-    while (p && *p) {
-        p = strstr(p, pat);
-        if (!p) return NULL;
-        const char *q = p + strlen(pat);
-        q = skip_ws(q);
-        if (q && *q == ':') {
-            q++;
-            return skip_ws(q);
-        }
-        /* This was a string value match (e.g. policy:"whitelist"), not a key. Keep searching. */
-        p = q ? q : (p + 1);
-    }
-    return NULL;
-}
-
-static int json_get_string(const char *json, const char *key, char *out, size_t out_sz)
-{
-    if (!out || out_sz == 0) return 0;
-    out[0] = '\0';
-    const char *p = find_key(json, key);
-    if (!p || *p != '"') return 0;
-    p++;
-    size_t i = 0;
-    while (*p && *p != '"' && i + 1 < out_sz) {
-        if (*p == '\\' && p[1]) p++;
-        out[i++] = *p++;
-    }
-    out[i] = '\0';
-    return (*p == '"') ? 1 : 0;
-}
-
-static int parse_mac(const char *s, uint8_t out_mac[6])
-{
-    if (!s || !out_mac) return 0;
-    unsigned vals[6] = {0};
-    int got = sscanf(s, "%x:%x:%x:%x:%x:%x",
-                     &vals[0], &vals[1], &vals[2], &vals[3], &vals[4], &vals[5]);
-    if (got != 6) return 0;
-    for (int i = 0; i < 6; ++i) {
-        if (vals[i] > 255U) return 0;
-        out_mac[i] = (uint8_t)vals[i];
-    }
-    return 1;
-}
-
-static uint32_t parse_ipv4_be(const char *s, int *ok)
-{
-    if (ok) *ok = 0;
-    if (!s) return 0;
-    unsigned a, b, c, d;
-    if (sscanf(s, "%u.%u.%u.%u", &a, &b, &c, &d) != 4) return 0;
-    if (a > 255 || b > 255 || c > 255 || d > 255) return 0;
-    if (ok) *ok = 1;
-    return ((a & 0xffu) << 24) | ((b & 0xffu) << 16) | ((c & 0xffu) << 8) | (d & 0xffu);
-}
-
 static int parse_network_json(const char *json, network_config_t *cfg)
-{
-    if (!json || !cfg) return 0;
-    config_apply_defaults(cfg);
-
-    char ip[32], netmask[32], gw[32], mac[32];
-    ip[0] = netmask[0] = gw[0] = mac[0] = '\0';
-
-    if (json_get_string(json, "ip", ip, sizeof(ip))) {
-        int ok = 0;
-        cfg->ip_be = parse_ipv4_be(ip, &ok);
-        cfg->has_ip = ok;
-    }
-    if (json_get_string(json, "netmask", netmask, sizeof(netmask))) {
-        int ok = 0;
-        cfg->netmask_be = parse_ipv4_be(netmask, &ok);
-        cfg->has_netmask = ok;
-    }
-    if (json_get_string(json, "gateway", gw, sizeof(gw))) {
-        int ok = 0;
-        cfg->gateway_be = parse_ipv4_be(gw, &ok);
-        cfg->has_gateway = ok;
-    }
-    if (json_get_string(json, "mac", mac, sizeof(mac))) {
-        cfg->has_mac = parse_mac(mac, cfg->mac);
-    }
-
-    return cfg->has_ip && cfg->has_netmask && cfg->has_gateway && cfg->has_mac;
-}
+{ return bvstk_network_parse(json, cfg) == BVSTK_OK; }
 
 static int parse_i2c_device_json(const char *json, i2c_device_config_t *cfg)
 {

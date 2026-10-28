@@ -1,3 +1,4 @@
+#include "apps/neutrino/commands/bvstk_command.h"
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <stdio.h>
@@ -302,6 +303,40 @@ int main(int argc, char **argv)
     assert(!dcp(BVSTK_DCP2_SERVICE_PING, BVSTK_DCP2_OP_PING, NULL, 0, 0, 0));
     assert(dcp(BVSTK_DCP2_SERVICE_MDIO, BVSTK_DCP2_OP_MDIO_READ, write, 2, 1, 0) ==
         bvstk_dcp2_status_from_bvstk(BVSTK_ERR_NOT_READY));
+
+    /* Local management uses the daemon's services and the same RAM/save boundary. */
+    bvstk_control_api_t control = {.i2c = &i2c.master_service, .mdio = &mdio.service};
+    bvstk_stream_sim_t streams;
+    bvstk_stream_sim_init(&streams, NULL);
+    bvstk_neutrino_command_t commands = {&runtime, &control, &streams, NULL, NULL};
+    bvstk_cli_buffer_t local_buffer = {local, sizeof(local), 0, false};
+    const bvstk_output_t sink = {bvstk_cli_buffer_write, &local_buffer};
+    assert(!bvstk_neutrino_command_execute(&commands, "flash:/", "mdio lan8720 policy whitelist add 4 0xAB00 0xFF00", &sink));
+    mdio_phy_config_t saved_config;
+    assert(bvstk_mdio_service_get_config(&mdio.service, 0, &saved_config) == BVSTK_OK);
+    bool found_mask = false;
+    for (size_t i = 0; i < saved_config.whitelist_len; ++i)
+        if (saved_config.whitelist[i].reg == 4 && saved_config.whitelist[i].mask == 0xFF00U && saved_config.whitelist[i].val == 0xAB00U) found_mask = true;
+    assert(found_mask && mdio.config_store.devices[0].whitelist_len == saved_config.whitelist_len);
+    local_buffer.length = 0;
+    assert(!bvstk_neutrino_command_execute(&commands, "flash:/", "mdio lan8720 policy blacklist add 7 *", &sink));
+    read_json(path, json, sizeof(json));
+    assert(strstr(json, "AB00") == NULL); /* CLI edits have not saved the profile. */
+    local_buffer.length = 0;
+    assert(!bvstk_neutrino_command_execute(&commands, "flash:/", "mdio lan8720 r 4", &sink));
+    assert(strstr(local, "00A5"));
+    local_buffer.length = 0;
+    assert(!bvstk_neutrino_command_execute(&commands, "flash:/", "mdio lan8720 save", &sink));
+    assert(bvstk_neutrino_mdio_config_store_init(&reloaded, directory, "/missing-legacy"));
+    assert(reloaded.devices[0].whitelist_len == saved_config.whitelist_len);
+    assert(reloaded.devices[0].settings[0].val == 0x0022);
+    local_buffer.length = 0;
+    assert(!bvstk_neutrino_command_execute(&commands, "flash:/", "spi stream fake enable 10 ramp 8", &sink));
+    dcp2_stream_sim_status_t stream_status;
+    assert(bvstk_stream_sim_get_status(&streams, DCP2_STREAM_SERVICE_SPI, &stream_status) && stream_status.enabled);
+    local_buffer.length = 0;
+    assert(bvstk_neutrino_command_execute(&commands, "flash:/", "spi stream fake disable unexpected", &sink) == 2);
+    assert(bvstk_stream_sim_get_status(&streams, DCP2_STREAM_SERVICE_SPI, &stream_status) && stream_status.enabled);
 
     /* A held I2C state lock must not delay the independent MDIO worker. */
     pthread_mutex_lock(&i2c.state_mutex);

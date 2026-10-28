@@ -16,10 +16,16 @@ cc "${http_flags[@]}" -Itests/host/http_stubs -Isrc \
 "$HTTP_TEST_OUTPUT/test_http_transport"
 cc "${http_flags[@]}" -Itests/host/fs_stubs -Isrc \
   tests/host/test_http_ui.c \
+  src/protocols/http/bvstk_http_ui.c \
+  src/protocols/http/bvstk_http_bus.c \
+  src/protocols/http/bvstk_http_files.c \
+  src/protocols/http/bvstk_http_observe.c \
   src/apps/freertos/services/http/http_ui.c \
   src/apps/freertos/services/http/http_ui_bus.c \
   src/apps/freertos/services/http/http_ui_files.c \
   src/apps/freertos/services/http/http_ui_observe.c \
+  src/apps/freertos/storage/fs/fs_dcp2_backend.c \
+  src/services/fs/bvstk_fs_reader.c src/services/fs/bvstk_fs_storage.c \
   src/apps/freertos/runtime/bvstk_observer.c \
   src/services/observation/bvstk_observation.c \
   src/shared/events/bvstk_journal.c \
@@ -28,6 +34,11 @@ cc "${http_flags[@]}" -Itests/host/fs_stubs -Isrc \
   src/shared/config/bvstk_device_profile.c \
   src/shared/config/bvstk_mdio_config_codec.c \
   src/apps/freertos/console/bus_shell_common.c \
+  src/apps/freertos/console/bvstk_cli_freertos.c \
+  src/apps/freertos/services/dcp2/dcp2_stream_sim.c \
+  src/services/cli/bvstk_cli.c src/services/cli/bvstk_i2c_cli.c \
+  src/services/cli/bvstk_mdio_cli.c src/services/cli/bvstk_stream_cli.c \
+  src/services/stream/bvstk_stream_sim.c \
   src/apps/freertos/console/i2c_shell.c \
   src/apps/freertos/console/mdio_shell.c \
   src/drivers/pl/i2c/bvstk_i2c_master.c \
@@ -42,3 +53,8 @@ cc "${http_flags[@]}" -Itests/host/fs_stubs -Isrc \
   src/shared/base/bvstk_parse.c src/shared/base/bvstk_status.c \
   -o "$HTTP_TEST_OUTPUT/test_http_ui"
 "$HTTP_TEST_OUTPUT/test_http_ui" "$HTTP_TEST_OUTPUT/http-fs"
+cc "${http_flags[@]}" -Isrc tests/host/test_http_system.c \
+  src/protocols/http/bvstk_http_system.c src/protocols/http/bvstk_http_ui.c \
+  src/services/system/bvstk_system.c src/shared/protocols/http/bvstk_http_input.c \
+  src/shared/base/bvstk_status.c -o "$HTTP_TEST_OUTPUT/test_http_system"
+"$HTTP_TEST_OUTPUT/test_http_system"

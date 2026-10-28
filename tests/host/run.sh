@@ -5,7 +5,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 TEST_TMP="$(mktemp -d)"
 trap 'rm -rf "$TEST_TMP"' EXIT
+fs_sources=(
+  "$REPO_ROOT/src/services/fs/bvstk_fs_reader.c"
+  "$REPO_ROOT/src/services/fs/bvstk_fs_storage.c"
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_fs_posix.c"
+)
 
+bash "$SCRIPT_DIR/run_system.sh" "$TEST_TMP"
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_image.py"
 for memory_port in recording freertos neutrino; do
   memory_sources=()
@@ -45,6 +51,7 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
 "$TEST_TMP/test_qspi_flash"
 
 bash "$SCRIPT_DIR/run_http.sh" "$TEST_TMP"
+bash "$SCRIPT_DIR/run_fs.sh" "$TEST_TMP"
 
 cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_journal.c" "$REPO_ROOT/src/shared/events/bvstk_journal.c" \
@@ -89,12 +96,15 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
 cc -std=c11 -Wall -Wextra -Werror -pedantic -Wno-overlength-strings -ffunction-sections -fdata-sections \
   -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" -I"$REPO_ROOT/src/apps/freertos/config" \
   "$SCRIPT_DIR/test_config_bundles.c" \
+  "$REPO_ROOT/src/services/system/bvstk_system.c" \
+  "$REPO_ROOT/src/shared/protocols/http/bvstk_http_input.c" \
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_profile_store.c" \
+  "${fs_sources[@]}" \
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_i2c_config_store.c" \
   "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
   "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
   "$REPO_ROOT/src/shared/config/bvstk_mdio_config_codec.c" \
-  -Wl,--gc-sections -o "$TEST_TMP/test_config_bundles"
+  -Wl,--gc-sections -pthread -o "$TEST_TMP/test_config_bundles"
 "$TEST_TMP/test_config_bundles" "$TEST_TMP/flash"
 
 cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
@@ -169,8 +179,14 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
 cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections \
   -I"$SCRIPT_DIR/policy_stubs" -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_dcp2_policy_sync.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_i2c_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_stream_cli.c" \
+  "$REPO_ROOT/src/services/stream/bvstk_stream_sim.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_parse.c" \
   "$REPO_ROOT/src/services/control/bvstk_control_api.c" \
   "$REPO_ROOT/src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_dispatch.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
   "$REPO_ROOT/src/drivers/pl/spi/bvstk_spi_core.c" \
@@ -193,9 +209,16 @@ cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic -Wno-overl
   -I"$REPO_ROOT/src/apps/freertos/config" \
   "$SCRIPT_DIR/test_neutrino_config.c" \
   "$REPO_ROOT/src/apps/neutrino/runtime/bvstk_i2c_runtime.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_i2c_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_stream_cli.c" \
+  "$REPO_ROOT/src/services/stream/bvstk_stream_sim.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_parse.c" \
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_profile_store.c" \
+  "${fs_sources[@]}" \
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_i2c_config_store.c" \
   "$REPO_ROOT/src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_dispatch.c" \
   "$REPO_ROOT/src/services/control/bvstk_control_api.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
@@ -218,6 +241,12 @@ cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic -Wno-overl
   -ffunction-sections -fdata-sections -I"$REPO_ROOT/src" \
   -I"$REPO_ROOT/src/apps/freertos/config" \
   "$SCRIPT_DIR/test_neutrino_runtime.c" \
+  "$REPO_ROOT/src/apps/neutrino/commands/bvstk_command.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_mdio_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_storage_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_tar_cli.c" \
+  "$REPO_ROOT/src/shared/pl/access/bvstk_pl_service.c" \
+  "$REPO_ROOT/src/hardware/boards/ax7020/bvstk_pl_regions.c" \
   "$REPO_ROOT/src/apps/neutrino/observe/bvstk_observe.c" \
   "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_observation_neutrino.c" \
   "$REPO_ROOT/src/services/observation/bvstk_observation.c" \
@@ -231,9 +260,16 @@ cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic -Wno-overl
   "$REPO_ROOT/src/services/acquisition/bvstk_acquisition.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_policy.c" \
   "$REPO_ROOT/src/apps/neutrino/runtime/bvstk_i2c_runtime.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_i2c_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_stream_cli.c" \
+  "$REPO_ROOT/src/services/stream/bvstk_stream_sim.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_parse.c" \
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_profile_store.c" \
+  "${fs_sources[@]}" \
   "$REPO_ROOT/src/apps/neutrino/config/bvstk_i2c_config_store.c" \
   "$REPO_ROOT/src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c" \
+  "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_dispatch.c" \
   "$REPO_ROOT/src/services/control/bvstk_control_api.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_control.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
@@ -285,6 +321,13 @@ cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror -pedantic \
   "$REPO_ROOT/src/shared/config/bvstk_device_profile.c" \
   "$REPO_ROOT/src/shared/config/bvstk_i2c_config_codec.c" \
   "$REPO_ROOT/src/apps/freertos/console/bus_shell_common.c" \
+  "$REPO_ROOT/src/apps/freertos/console/bvstk_cli_freertos.c" \
+  "$REPO_ROOT/src/apps/freertos/services/dcp2/dcp2_stream_sim.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_i2c_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_mdio_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_stream_cli.c" \
+  "$REPO_ROOT/src/services/stream/bvstk_stream_sim.c" \
   "$REPO_ROOT/src/apps/freertos/console/i2c_shell.c" \
   "$REPO_ROOT/src/apps/freertos/console/mdio_shell.c" \
   "$REPO_ROOT/src/drivers/pl/i2c/bvstk_i2c_master.c" \
@@ -365,3 +408,5 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -o "$TEST_TMP/dcp2_fs_server"
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_dcp2_fs.py" "$TEST_TMP/dcp2_fs_server"
+
+bash "$SCRIPT_DIR/run_interfaces.sh" "$TEST_TMP"

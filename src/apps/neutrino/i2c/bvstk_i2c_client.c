@@ -8,6 +8,8 @@
 #include <unistd.h>
 
 #include "apps/neutrino/i2c/bvstk_i2c_ipc.h"
+#include "apps/neutrino/commands/bvstk_command_client.h"
+#include "apps/neutrino/commands/bvstk_command_ipc.h"
 
 static int argument_valid(const char *argument)
 {
@@ -57,6 +59,12 @@ int bvstk_i2c_client_execute(int argument_count,
                              FILE *output,
                              FILE *error_output)
 {
+    if (argument_count >= 0 && argument_count < 64 && output && error_output &&
+        !access(BVSTK_COMMAND_PATH, F_OK)) {
+        char *argv[65]; argv[0] = (char *)"i2c";
+        for (int i = 0; i < argument_count; ++i) argv[i + 1] = arguments[i];
+        return bvstk_command_client_execute(argument_count + 1, argv, output, error_output);
+    }
     bvstk_i2c_ipc_message_t *message;
     int fd;
     int devctl_result;
@@ -159,15 +167,12 @@ int bvstk_i2c_client_list_devices(
             unsigned int address;
             char name[I2C_CFG_NAME_MAX];
 
-            if (sscanf(line,
-                       " %u: %31s addr=0x%x",
-                       &index,
-                       name,
-                       &address) != 3 ||
+            if ((sscanf(line, " name=%31s addr=0x%x", name, &address) != 2 &&
+                 sscanf(line, " %u: %31s addr=0x%x", &index, name, &address) != 3) ||
                 address > 0x7FU || device_count >= device_capacity) {
                 continue;
             }
-            (void)index;
+
             strncpy(devices[device_count].name,
                     name,
                     sizeof(devices[device_count].name) - 1U);

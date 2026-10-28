@@ -2,10 +2,14 @@
 
 #include <string.h>
 #include "apps/freertos/storage/fs/fs_devices.h"
+#include "task.h"
 #include "hardware/boards/ax7020/bvstk_hw_config.h"
 
 typedef struct { const fs_device_info_t *device; FIL file; } fs_dcp2_file_t;
 typedef struct { const fs_device_info_t *device; DIR dir; } fs_dcp2_dir_t;
+static int lock(const fs_shared_ctx_t *, TickType_t);
+static void unlock(const fs_shared_ctx_t *);
+static bvstk_fs_result_t finish_file(void *, void *, bool);
 
 static bvstk_fs_result_t result(FRESULT value)
 {
@@ -15,6 +19,9 @@ static bvstk_fs_result_t result(FRESULT value)
     case FR_NOT_READY: case FR_NOT_ENABLED: case FR_NO_FILESYSTEM: return BVSTK_FS_NOT_READY;
     case FR_INVALID_NAME: case FR_INVALID_PARAMETER: return BVSTK_FS_INVALID;
     case FR_NOT_ENOUGH_CORE: return BVSTK_FS_BUSY;
+    case FR_TIMEOUT: case FR_LOCKED: case FR_TOO_MANY_OPEN_FILES: return BVSTK_FS_BUSY;
+    case FR_EXIST: return BVSTK_FS_EXISTS;
+    case FR_DENIED: case FR_WRITE_PROTECTED: return BVSTK_FS_DENIED;
     default: return BVSTK_FS_IO;
     }
 }
@@ -109,6 +116,12 @@ static bvstk_fs_result_t native_to_utf8(const char *input, char *out, size_t cap
 
 static bvstk_fs_result_t resolve(const char *path, const fs_device_info_t **device, char *native, size_t capacity)
 {
+    char canonical[BVSTK_FS_PATH_CAPACITY];
+    if (!path) return BVSTK_FS_INVALID;
+    bvstk_fs_result_t valid = bvstk_fs_validate_path((const uint8_t *)path, strlen(path),
+                                                    canonical, sizeof(canonical));
+    if (valid != BVSTK_FS_OK) return valid;
+    path = canonical;
     const char *colon = strchr(path, ':');
     char alias[16];
     size_t length, root_length;
@@ -185,10 +198,7 @@ static bvstk_fs_result_t file_read(void *context, void *handle, uint8_t *data, s
 
 static void file_close(void *context, void *handle)
 {
-    fs_dcp2_file_t *file = handle;
-    (void)context;
-    (void)fs_shared_file_close(file->device->ctx, &file->file);
-    vPortFree(file);
+    (void)finish_file(context, handle, false);
 }
 
 static bvstk_fs_result_t dir_open(void *context, const char *path, void **out)
@@ -228,14 +238,169 @@ static void dir_close(void *context, void *handle)
 {
     fs_dcp2_dir_t *dir = handle;
     (void)context;
-    (void)fs_shared_dir_close(dir->device->ctx, &dir->dir);
+    if (!lock(dir->device->ctx, (TickType_t)~(TickType_t)0)) return;
+    (void)f_closedir(&dir->dir);
+    unlock(dir->device->ctx);
     vPortFree(dir);
 }
 
-const bvstk_fs_backend_t *fs_dcp2_backend(void)
+static const bvstk_fs_backend_t reader = {
+    NULL, volume_count, volume, stat_path, file_open, file_read, file_close, dir_open, dir_read, dir_close
+};
+const bvstk_fs_backend_t *fs_dcp2_backend(void) { return &reader; }
+
+static int lock(const fs_shared_ctx_t *ctx, TickType_t timeout)
 {
-    static const bvstk_fs_backend_t backend = {
-        NULL, volume_count, volume, stat_path, file_open, file_read, file_close, dir_open, dir_read, dir_close
+    return !ctx->mutex || !*ctx->mutex || xSemaphoreTake(*ctx->mutex, timeout) == pdTRUE;
+}
+
+static void unlock(const fs_shared_ctx_t *ctx)
+{
+    if (ctx->mutex && *ctx->mutex) xSemaphoreGive(*ctx->mutex);
+}
+
+static bvstk_fs_result_t create(void *context, const char *path, bool overwrite, void **out)
+{
+    const fs_device_info_t *device;
+    char native[BVSTK_FS_PATH_CAPACITY];
+    fs_dcp2_file_t *file;
+    bvstk_fs_result_t rc = resolve(path, &device, native, sizeof(native));
+    (void)context;
+    *out = NULL;
+    if (rc != BVSTK_FS_OK) return rc;
+    file = pvPortMalloc(sizeof(*file));
+    if (!file) return BVSTK_FS_BUSY;
+    file->device = device;
+    if (!lock(device->ctx, pdMS_TO_TICKS(2000U))) { vPortFree(file); return BVSTK_FS_BUSY; }
+    FRESULT st = f_open(&file->file, native, FA_WRITE | (overwrite ? FA_OPEN_ALWAYS : FA_CREATE_NEW));
+    if (st == FR_OK && overwrite) {
+        st = f_truncate(&file->file);
+        if (st != FR_OK) (void)f_close(&file->file);
+    }
+    unlock(device->ctx);
+    if (st != FR_OK) { vPortFree(file); return result(st); }
+    *out = file;
+    return BVSTK_FS_OK;
+}
+
+static bvstk_fs_result_t append_file(void *context, const char *path, void **out)
+{
+    const fs_device_info_t *device;
+    char native[BVSTK_FS_PATH_CAPACITY];
+    fs_dcp2_file_t *file;
+    bvstk_fs_result_t rc = resolve(path, &device, native, sizeof(native));
+    (void)context;
+    *out = NULL;
+    if (rc != BVSTK_FS_OK) return rc;
+    file = pvPortMalloc(sizeof(*file));
+    if (!file) return BVSTK_FS_BUSY;
+    file->device = device;
+    if (!lock(device->ctx, pdMS_TO_TICKS(2000U))) { vPortFree(file); return BVSTK_FS_BUSY; }
+    FRESULT st = f_open(&file->file, native, FA_WRITE | FA_OPEN_ALWAYS);
+    if (st == FR_OK) {
+        st = f_lseek(&file->file, f_size(&file->file));
+        if (st != FR_OK) (void)f_close(&file->file);
+    }
+    unlock(device->ctx);
+    if (st != FR_OK) { vPortFree(file); return result(st); }
+    *out = file;
+    return BVSTK_FS_OK;
+}
+
+static bvstk_fs_result_t write_file(void *context, void *handle, const uint8_t *data, size_t size, size_t *written)
+{
+    fs_dcp2_file_t *file = handle;
+    (void)context;
+    *written = 0;
+    if (size > UINT32_MAX) return BVSTK_FS_RANGE;
+    if (!lock(file->device->ctx, pdMS_TO_TICKS(2000U))) return BVSTK_FS_BUSY;
+    UINT count = 0;
+    FRESULT st = f_write(&file->file, data, (UINT)size, &count);
+    unlock(file->device->ctx);
+    *written = count;
+    return result(st);
+}
+
+static bvstk_fs_result_t finish_file(void *context, void *handle, bool sync)
+{
+    fs_dcp2_file_t *file = handle;
+    (void)context;
+    /* Contexts and their mutexes outlive all open handles. Cleanup waits for
+     * the owner, rather than abandoning a live FatFs file on a busy volume. */
+    if (!lock(file->device->ctx, (TickType_t)~(TickType_t)0)) return BVSTK_FS_BUSY;
+    FRESULT st = sync ? f_sync(&file->file) : FR_OK;
+    FRESULT closed = f_close(&file->file);
+    unlock(file->device->ctx);
+    vPortFree(file);
+    return result(st != FR_OK ? st : closed);
+}
+
+static bvstk_fs_result_t mutate(void *context, const char *path, bool directory)
+{
+    const fs_device_info_t *device;
+    char native[BVSTK_FS_PATH_CAPACITY];
+    bvstk_fs_result_t rc = resolve(path, &device, native, sizeof(native));
+    (void)context;
+    if (rc != BVSTK_FS_OK) return rc;
+    if (!strcmp(native, device->ctx->root)) return BVSTK_FS_INVALID;
+    if (!lock(device->ctx, pdMS_TO_TICKS(2000U))) return BVSTK_FS_BUSY;
+    FRESULT st = directory ? f_mkdir(native) : f_unlink(native);
+    unlock(device->ctx);
+    return result(st);
+}
+static bvstk_fs_result_t make_dir(void *c, const char *p) { return mutate(c, p, true); }
+static bvstk_fs_result_t remove_path(void *c, const char *p) { return mutate(c, p, false); }
+
+static bvstk_fs_result_t rename_path(void *context, const char *from, const char *to)
+{
+    const fs_device_info_t *a, *b;
+    char source[BVSTK_FS_PATH_CAPACITY], dest[BVSTK_FS_PATH_CAPACITY];
+    bvstk_fs_result_t rc = resolve(from, &a, source, sizeof(source));
+    (void)context;
+    if (rc == BVSTK_FS_OK) rc = resolve(to, &b, dest, sizeof(dest));
+    if (rc != BVSTK_FS_OK) return rc;
+    if (a != b || !strcmp(source, a->ctx->root) || !strcmp(dest, a->ctx->root)) return BVSTK_FS_INVALID;
+    if (!lock(a->ctx, pdMS_TO_TICKS(2000U))) return BVSTK_FS_BUSY;
+    FRESULT st = f_rename(source, dest);
+    unlock(a->ctx);
+    return result(st);
+}
+
+static bvstk_fs_result_t install(void *context, const char *temporary, const char *path, const char *backup)
+{
+    const fs_device_info_t *a, *b, *c;
+    char source[BVSTK_FS_PATH_CAPACITY], dest[BVSTK_FS_PATH_CAPACITY], previous[BVSTK_FS_PATH_CAPACITY];
+    FILINFO info;
+    bvstk_fs_result_t rc = resolve(temporary, &a, source, sizeof(source));
+    (void)context;
+    if (rc == BVSTK_FS_OK) rc = resolve(path, &b, dest, sizeof(dest));
+    if (rc == BVSTK_FS_OK) rc = resolve(backup, &c, previous, sizeof(previous));
+    if (rc != BVSTK_FS_OK) return rc;
+    if (a != b || a != c) return BVSTK_FS_INVALID;
+    if (!lock(a->ctx, pdMS_TO_TICKS(2000U))) return BVSTK_FS_BUSY;
+    FRESULT st = f_stat(dest, &info);
+    bool had_file = st == FR_OK;
+    if (had_file && (info.fattrib & AM_DIR)) st = FR_DENIED;
+    else if (st == FR_NO_FILE || st == FR_NO_PATH) st = FR_OK;
+    if (st == FR_OK && had_file) {
+        st = f_stat(previous, &info);
+        if (st == FR_OK && (info.fattrib & AM_DIR)) st = FR_DENIED;
+        else if (st == FR_OK) st = f_unlink(previous);
+        else if (st == FR_NO_FILE || st == FR_NO_PATH) st = FR_OK;
+        if (st == FR_OK) st = f_rename(dest, previous);
+    }
+    if (st == FR_OK) {
+        st = f_rename(source, dest);
+        if (st != FR_OK && had_file) (void)f_rename(previous, dest);
+    }
+    unlock(a->ctx);
+    return result(st);
+}
+
+const bvstk_fs_storage_t *fs_storage_backend(void)
+{
+    static const bvstk_fs_storage_t storage = {
+        &reader, create, write_file, finish_file, make_dir, remove_path, rename_path, install, append_file
     };
-    return &backend;
+    return &storage;
 }

@@ -123,7 +123,34 @@ TAR-поток. Это позволяет обработчику DCP2 работ
 |---|---|
 | [bvstk_fs_reader.h](../../../src/services/fs/bvstk_fs_reader.h) | Задаёт интерфейс файлового адаптера и состояние последовательного чтения файла или каталога. |
 | [bvstk_fs_reader.c](../../../src/services/fs/bvstk_fs_reader.c) | Проверяет путь и UTF-8, обходит каталоги, читает данные порциями и при необходимости формирует TAR. |
+| [bvstk_fs_storage.h](../../../src/services/fs/bvstk_fs_storage.h) | Задаёт необязательные операции записи поверх читателя: создание, завершение, изменение каталогов и установка профиля с резервной копией. |
+| [bvstk_fs_storage.c](../../../src/services/fs/bvstk_fs_storage.c) | Проверяет логические пути и границы тома, управляет порционной записью и её ошибками, копированием и сохранением через отдельный временный файл. |
 
-Конкретный адаптер FatFs находится в
-`apps/freertos/storage/fs/fs_dcp2_backend.c`. Управление сеансом
+Адаптер FatFs находится в
+`apps/freertos/storage/fs/fs_dcp2_backend.c`, POSIX — в
+`ports/neutrino-zynq7000/storage/bvstk_fs_posix.c`. Операции общего слоя
+не монтируют и не форматируют носители. Управление сеансом
 чтения по сети выполняется в [protocols/dcp2](protocols.md).
+
+## services/cli и services/stream
+
+Общий CLI находится в [services/cli](../../../src/services/cli).
+`bvstk_cli` задаёт вывод, разбор аргументов и callbacks RAM/SAVE;
+`bvstk_i2c_cli` и `bvstk_mdio_cli` реализуют грамматику, проверки и формат
+ответов обеих ОС. `bvstk_storage_cli` подключает файловый слой, MEM и PL;
+`bvstk_tar_cli` создаёт, перечисляет и извлекает ustar/PAX через тот же backend.
+`bvstk_stream_cli` управляет тестовыми источниками. В этом слое нет сокетов,
+FatFs, devctl или собственных экземпляров драйверов.
+
+[bvstk_stream_sim](../../../src/services/stream/bvstk_stream_sim.c) хранит
+четыре детерминированных источника counter/ramp/toggle, период, счётчики
+и признак synthetic. Приложение передаёт часы и guard; по умолчанию
+источники выключены и аппаратных операций не выполняют.
+
+## services/system
+
+[bvstk_system.h](../../../src/services/system/bvstk_system.h) и
+[bvstk_system.c](../../../src/services/system/bvstk_system.c) задают общий
+формат network.json, строгую проверку адресов, раздельные результаты SAVE
+и APPLY, снимки runtime/network и системные команды. ОС предоставляет
+сеть, сохранение, перезапуск, часы и осмысленные показатели.

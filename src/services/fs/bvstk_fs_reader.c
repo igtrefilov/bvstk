@@ -42,6 +42,9 @@ static bool valid_component(const char *name, size_t length)
     uint32_t cp;
     if (!length || (length == 1 && name[0] == '.') ||
         (length == 2 && name[0] == '.' && name[1] == '.')) return false;
+    /* FAT normalizes trailing dots/spaces. Reject aliases at the shared
+     * boundary so POSIX and FatFs cannot resolve the same spelling differently. */
+    if (name[length - 1] == '.' || name[length - 1] == ' ') return false;
     while (pos < length) {
         if (!bvstk_fs_utf8_decode((const uint8_t *)name + pos, length - pos, &used, &cp)) return false;
         if (cp < 32 || cp == 127 || cp == '/' || cp == '\\' || cp == ':' ||

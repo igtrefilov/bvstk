@@ -103,7 +103,7 @@ int bvstk_dcp2_encode_response(uint8_t *frame,
     bvstk_dcp2_write_be16(frame + 10, request->sequence);
     bvstk_dcp2_write_be16(frame + 12, status);
     if (body_size != 0U) {
-        memcpy(frame + 14, body, body_size);
+        memmove(frame + 14, body, body_size);
     }
     if (frame_size != NULL) {
         *frame_size = total_size;
@@ -118,9 +118,11 @@ uint16_t bvstk_dcp2_status_from_bvstk(bvstk_status_t status)
     case BVSTK_ERR_MALFORMED: return 0x0001U;
     case BVSTK_ERR_UNSUPPORTED: return 0x0002U;
     case BVSTK_ERR_DENIED: return 0x0003U;
-    case BVSTK_ERR_BUSY: return 0x0004U;
+    case BVSTK_ERR_BUSY:
+    case BVSTK_ERR_NOT_READY: return 0x0004U;
     case BVSTK_ERR_TIMEOUT: return 0x0005U;
-    case BVSTK_ERR_RANGE: return 0x0006U;
+    case BVSTK_ERR_RANGE:
+    case BVSTK_ERR_NOT_FOUND: return 0x0006U;
     default: return 0x0007U;
     }
 }

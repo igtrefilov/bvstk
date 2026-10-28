@@ -1,3 +1,4 @@
+#include "apps/freertos/console/bvstk_system_freertos.h"
 #include "apps/freertos/services/http/http_server.h"
 #include "apps/freertos/services/http/http_ui.h"
 
@@ -1431,7 +1432,7 @@ static int handle_put_tar(int fd, const fs_device_info_t *dev, const char *fat_d
 int http_handle_request(const http_request_t *req, http_conn_t *conn)
 {
     if (!req || !conn || !req->method || !req->path) return 0;
-    if (http_ui_handle(req, conn)) return 1;
+    if (http_ui_handle(req, conn) || bvstk_system_freertos_http(req,conn)) return 1;
 
     // 0) JSON API: /api/...
     if (starts_with(req->path, "/api/")) {
@@ -1443,6 +1444,13 @@ int http_handle_request(const http_request_t *req, http_conn_t *conn)
 
         if (strcasecmp(req->method, "GET") == 0) {
             if (strcmp(api_path, "/api/net") == 0) { api_handle_net(conn->fd); return 1; }
+            if (strcmp(api_path, "/api/runtime") == 0) {
+                char runtime_json[1400];
+                int size=bvstk_system_runtime_json(bvstk_system_freertos(),runtime_json,sizeof(runtime_json));
+                if (size>=0) { http_ui_header(conn->fd,"application/json",size);http_ui_text(conn->fd,runtime_json); }
+                else http_ui_error(conn->fd,503,"runtime unavailable");
+                return 1;
+            }
             if (strcmp(api_path, "/api/rtos") == 0) { api_handle_rtos(conn->fd); return 1; }
             if (strcmp(api_path, "/api/fs") == 0) { api_handle_fs(conn->fd); return 1; }
             if (strcmp(api_path, "/api/qspi") == 0) { api_handle_qspi(conn->fd); return 1; }

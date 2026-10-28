@@ -38,6 +38,7 @@ for (const [bus,name,directory=name] of [['i2c','pca9555','pca9545a/pca9555'],['
 }
 const presence = {i2c:'responding',mdio:'responding'};
 const revision={mdio:1,i2c:1},saved={mdio:true,i2c:true};
+const registerCache=new Map();
 const calls=[]; let conflict=false, failRtos=false, mdioListState="devices", versionMode="normal";
 const observations = {i2c:{events:[],telemetry:[]},mdio:{events:[],telemetry:[]}};
 let observeFail = false, observeLoss = "0", observeUptime = 100000;
@@ -64,7 +65,7 @@ const server=http.createServer(async(req,res)=>{
     assert.equal(body.length,0,'Query-only commands must not leave an ignored body in the board receive queue');
   }
   if(u.pathname==="/api/net")return reply({ip:"192.168.0.10",netmask:"255.255.255.0",gateway:"192.168.0.1",mac:"00:0a:35:00:01:02",mode:"static",up:true,link_up:true});
-  if(u.pathname==="/api/rtos")return failRtos ? error("RTOS unavailable",503) : reply({uptime_ms:759000,heap_free:396697,heap_min_ever:367718,tick_rate_hz:100});
+  if(u.pathname==="/api/runtime")return failRtos ? error("Runtime unavailable",503) : reply({schema_version:1,os:process.env.BVSTK_TEST_OS || "freertos",uptime_ms:759000,capabilities:{},os_details:process.env.BVSTK_TEST_OS === "neutrino" ? {pid:42,online_cpus:2} : {heap_free:396697,heap_min_ever:367718,tick_rate_hz:100}});
   if(u.pathname==="/api/version"){
     if(versionMode==="silent")return;
     if(versionMode==="error")return error("Version temporarily unavailable",503);
@@ -80,7 +81,7 @@ const server=http.createServer(async(req,res)=>{
     if(req.method==="GET"){
       if(!q.name&&b==="mdio"&&mdioListState!=="devices")return reply({ready:mdioListState==="empty",devices:[]});
       if(!q.name)return reply({ready:true,devices:profiles.map(p=>({name:p.name,address:b==="mdio"?p.phy_addr:p.addr_7b,policy:p.policy,available:state(p)==='responding',presence:state(p)}))});
-      const cache=Array.from({length:c.reg_count},(_,reg)=>({reg,val:reg===2?7:reg===3?49393:0,valid:reg<8&&state(c)==='responding',source:b==='mdio'?"PHY":"I2C",updated_ms:100}));
+      const cache=Array.from({length:c.reg_count},(_,reg)=>({reg,val:reg===2?7:reg===3?49393:0,valid:reg<8&&state(c)==='responding',source:b==='mdio'?"PHY":"I2C",updated_ms:100,...registerCache.get(`${b}/${c.name}/${reg}`)}));
       if(q.action==="cache")return reply({cache,stats:{reads:128,writes:3,denied:0,errors:0,observed:3}});
       return reply({config:c,revision:String(revision[b]),saved:saved[b],available:state(c)==='responding',presence:state(c),file_name:c.name+".json",cache,stats:{reads:128,writes:3,denied:0,errors:0,observed:3}});
     }
@@ -89,6 +90,7 @@ const server=http.createServer(async(req,res)=>{
       if(q.action==="apply"){configurations[b]=JSON.parse(body);revision[b]++;saved[b]=false;}
       else saved[b]=true;
     }
+    if(q.action==="read"||q.action==="write") registerCache.set(`${b}/${c.name}/${Number(q.reg)}`,{val:q.action==="read"?7:Number(q.val),valid:true,source:b==="mdio"?"PHY":"I2C",updated_ms:500});
     return reply(q.action==="read"?{ok:true,reg:Number(q.reg),val:7}:{ok:true});
   }
   if(u.pathname==="/api/ui/observe"){
@@ -257,7 +259,7 @@ try{
   assert.equal(await page.getByText('Тракт управления',{exact:false}).count(),0);
   await page.locator('[data-subsystem="i2c:axp15060"]').click();
   await page.locator('#overview-inspector').getByText('axp15060',{exact:true}).waitFor();
-  assert.equal(await page.locator('.device-meta .badge').textContent(),'Готово');
+  assert.equal(await page.locator('[data-subsystem="i2c:axp15060"] .badge').textContent(),'Готово');
   await page.locator('[data-subsystem="mdio:lan8720"]').click();
   await page.locator('#overview-inspector').getByText('Сохранена',{exact:true}).waitFor();
   await screenshot("01-overview");
@@ -445,7 +447,7 @@ try{
   await page.locator('[data-register="3"]').press('ArrowUp');
   await page.getByRole('heading',{name:'Регистр 0x02'}).waitFor();
   assert.equal(busReads(),beforeRead);
-  await page.locator('[data-snapshot]').click();await page.getByRole('heading',{name:'Регистр 0x02'}).waitFor();
+  await page.locator('[data-refresh]').click();await page.getByRole('heading',{name:'Регистр 0x02'}).waitFor();
   assert.equal(busReads(),beforeRead);
   await page.locator('[data-read]').click();await page.locator('#reg-result').filter({hasText:'0x0007 (7)'}).waitFor();
   assert.equal(busReads(),beforeRead+1);
@@ -458,9 +460,8 @@ try{
   await page.locator('#modal[open] #modal-submit').click();
   await page.locator('#reg-result').filter({hasText:'Кадр передан'}).waitFor();
   assert.equal(calls.filter(([method,path,q])=>method==='PUT'&&q.action==='write'&&q.confirm==='true').length,writesBefore+1);
-  await page.locator('[data-tab="autopoll"]').click();await page.locator('[data-regs]').fill("2, 2");
-  assert(await page.locator("[data-apply]").isDisabled());
-  await page.locator('[data-regs]').fill("0,1,2,3,4,5,17,31");
+  // Polling is profile-driven; the current device UI has no separate autopoll editor.
+  assert.equal(await page.locator('[data-tab="autopoll"]').count(),0);
   await page.locator('[data-nav="i2c"]').click();await page.locator('.device-name').filter({hasText:"axp15060"}).waitFor();
   await page.locator('[data-tab="policy"]').click();assert.equal(await page.getByRole("columnheader",{name:"Маска",exact:true}).count(),0);
   assert.equal(await page.getByText("Правила совпадают с рабочим снимком RAM",{exact:true}).count(),0);
