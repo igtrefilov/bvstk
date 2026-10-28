@@ -48,6 +48,7 @@
  */
 #define BVSTK_SD_CONTROLLER_BASE  BVSTK_SPI_MASTER_BASE
 #define BVSTK_SD_CONTROLLER_SIZE  UINT32_C(0x00010000)
+#define BVSTK_SD_DMA_BASE         UINT32_C(0x40400000)
 #define BVSTK_SD_SECTOR_SIZE      UINT32_C(512)
 /*
  * The AX7020 wiring/card combination is reliable at approximately 500 kHz.

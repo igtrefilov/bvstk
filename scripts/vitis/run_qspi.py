@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Back up, program and read back an AX7020 FreeRTOS QSPI boot image."""
+"""Back up, program and read back an AX7020 QSPI boot image."""
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -25,12 +25,27 @@ def compare_readback(before, after, image, geometry, erase_end):
             "filesystem_sha256": hashlib.sha256(after[geometry["fs_base"]:]).hexdigest()}
 
 
+def verify_migrated_volume(before, geometry, expected):
+    # Earlier BVSTK versions mounted FAT at 8 MiB. Programming a larger
+    # boot image would destroy it, even though it preserves the new window.
+    # Require an independently prepared and read-back-verified new volume.
+    old_base = 8 * 1024 * 1024
+    if geometry["fs_base"] > old_base and before[old_base + 510:old_base + 512] == b"\x55\xaa":
+        actual = hashlib.sha256(before[geometry["fs_base"]:]).hexdigest()
+        if (len(expected) != 64 or expected.lower() != actual or
+            before[geometry["fs_base"] + 510:geometry["fs_base"] + 512] != b"\x55\xaa"):
+            raise ValueError("Old 8 MiB FAT detected: migrate and verify flash:/ before programming; provide QSPI_MIGRATED_VOLUME_SHA256")
+
+
 def main():
-    parser = argparse.ArgumentParser(prog="./run.sh freertos qspi", description=__doc__)
+    parser = argparse.ArgumentParser(prog="./run.sh <freertos|neutrino> qspi", description=__doc__)
+    parser.add_argument("--target", choices=["freertos", "neutrino"], default="freertos")
     parser.add_argument("--dry-run", action="store_true", help="validate bundle and display ranges without accessing hardware")
     args = parser.parse_args()
-    directory = Path(os.environ.get("BOOT_OUTPUT_DIR", ROOT / "artifacts/boot/freertos")).resolve()
-    manifest = load_bundle(directory)
+    directory = Path(os.environ.get("BOOT_OUTPUT_DIR", ROOT / "artifacts/boot" / ("neutrino-qspi" if args.target == "neutrino" else args.target))).resolve()
+    manifest = load_bundle(directory, target=args.target, medium="qspi")
+    if manifest.get("medium", "qspi") != "qspi":
+        raise ValueError("SD bundle cannot be programmed to QSPI")
     geometry, image_info = manifest["qspi"], manifest["image"]
     print(f"Image: {directory / 'BOOT.bin'}\nProgram offset: 0x00000000\nImage bytes: {image_info['size']}\n"
           f"Erase range: [0x00000000, 0x{image_info['erase_end']:08X})\n"
@@ -60,6 +75,7 @@ def main():
     run(snapshot + [before_path, url], env=env, cwd=evidence, log=evidence / "snapshot-before.log", timeout=600)
     if before_path.stat().st_size != geometry["flash_size"]:
         raise ValueError("Incomplete backup; Flash was not programmed")
+    verify_migrated_volume(before_path.read_bytes(), geometry, os.environ.get("QSPI_MIGRATED_VOLUME_SHA256", ""))
     # Re-check after the potentially long backup, before any Flash mutation.
     if load_bundle(directory) != manifest:
         raise ValueError("Boot bundle changed while taking the backup")

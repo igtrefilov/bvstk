@@ -11,7 +11,7 @@ if [[ -n "${XILINX_SETTINGS:-}" ]]; then
   # shellcheck disable=SC1090
   source "$XILINX_SETTINGS"
 fi
-for name in BOOT_OUTPUT_DIR HW_SERVER_URL JTAG_FREQUENCY; do
+for name in BOOT_OUTPUT_DIR HW_SERVER_URL JTAG_FREQUENCY QSPI_MIGRATED_VOLUME_SHA256; do
   if [[ -n "${!name:-}" ]]; then export "${name?}"; fi
 done
 exec python3 "$SCRIPT_DIR/run_qspi.py" "$@"

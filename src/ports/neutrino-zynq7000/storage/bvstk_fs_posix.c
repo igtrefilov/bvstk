@@ -70,6 +70,13 @@ static bvstk_fs_result_t root_ready(const bvstk_fs_posix_root_t *v)
     if (lstat(path, &root)) return error_result(errno);
     if (!S_ISDIR(root.st_mode)) return BVSTK_FS_NOT_READY;
     if (!v->require_mount) return BVSTK_FS_OK;
+    /* A latched PL media error invalidates access even if the OS FAT cache
+     * still has old sectors. Never use an empty mountpoint as a RAM volume. */
+    if (!strcmp(v->root, "/sd-pl")) {
+        struct stat device;
+        if (stat("/dev/bvstk-sd-pl-fat", &device) || device.st_size <= 0)
+            return BVSTK_FS_NOT_READY;
+    }
     char *slash = strrchr(path, '/');
     if (slash == path) slash[1] = 0;
     else *slash = 0;
@@ -212,13 +219,22 @@ static bvstk_fs_result_t dir_read(void *context, void *handle, char *name, size_
     char path[BVSTK_FS_PATH_CAPACITY], checked_name[BVSTK_FS_PATH_CAPACITY];
     (void)context;
     if (!dir || !name || !capacity || !out) return BVSTK_FS_INVALID;
-    do {
+    for (;;) {
         errno = 0;
         entry = readdir(dir->dir);
-    } while (entry && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")));
-    if (!entry) {
-        if (errno) return error_result(errno);
-        name[0] = 0; memset(out, 0, sizeof(*out)); return BVSTK_FS_OK;
+        if (!entry) {
+            if (errno) return error_result(errno);
+            name[0] = 0; memset(out, 0, sizeof(*out)); return BVSTK_FS_OK;
+        }
+        if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
+        int n = snprintf(path, sizeof(path), "%s/%s", dir->path, entry->d_name);
+        if (n < 0 || (size_t)n >= sizeof(path)) return BVSTK_FS_RANGE;
+        if (lstat(path, &info)) return error_result(errno);
+#ifdef S_ISNAM
+        /* Neutrino exposes a FAT volume label as a special =LABEL entry. */
+        if (entry->d_name[0] == '=' && S_ISNAM(info.st_mode)) continue;
+#endif
+        break;
     }
     /* Validate the actual entry, including UTF-8, without changing its name. */
     int n = snprintf(checked_name, sizeof(checked_name), "v:/%s", entry->d_name);
@@ -226,9 +242,6 @@ static bvstk_fs_result_t dir_read(void *context, void *handle, char *name, size_
     bvstk_fs_result_t rc = bvstk_fs_validate_path((const uint8_t *)checked_name, (size_t)n, path, sizeof(path));
     if (rc != BVSTK_FS_OK) return rc;
     if (strlen(entry->d_name) >= capacity) return BVSTK_FS_RANGE;
-    n = snprintf(path, sizeof(path), "%s/%s", dir->path, entry->d_name);
-    if (n < 0 || (size_t)n >= sizeof(path)) return BVSTK_FS_RANGE;
-    if (lstat(path, &info)) return error_result(errno);
     if (S_ISLNK(info.st_mode)) return BVSTK_FS_DENIED;
     rc = convert(&info, out);
     if (rc == BVSTK_FS_OK) strcpy(name, entry->d_name);
@@ -478,7 +491,7 @@ static pthread_once_t default_once = PTHREAD_ONCE_INIT;
 static void init_default(void)
 {
     const bvstk_fs_posix_volume_t volumes[] = {
-        {"sd", "/sd", true}, {"flash", "/flash", true}, {"sd-pl", NULL, false}
+        {"sd", "/sd", true}, {"flash", "/flash", true}, {"sd-pl", "/sd-pl", true}
     };
     (void)bvstk_fs_posix_init(&default_port, volumes, 3);
 }

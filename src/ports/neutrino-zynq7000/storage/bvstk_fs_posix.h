@@ -35,7 +35,7 @@ bvstk_fs_result_t bvstk_fs_posix_init(bvstk_fs_posix_t *,
 /* All handles must be closed before destruction. */
 bvstk_fs_result_t bvstk_fs_posix_destroy(bvstk_fs_posix_t *);
 const bvstk_fs_storage_t *bvstk_fs_posix_storage(bvstk_fs_posix_t *);
-/* AX7020 native mappings: sd:/ -> /sd, flash:/ -> /flash; sd-pl unsupported. */
+/* AX7020 native mappings: sd:/ -> /sd, flash:/ -> /flash; sd-pl:/ -> /sd-pl. */
 const bvstk_fs_storage_t *bvstk_fs_posix_default(void);
 
 #endif

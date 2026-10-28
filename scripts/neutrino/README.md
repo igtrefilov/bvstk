@@ -27,3 +27,5 @@ UART для JTAG выбирается из стабильных имён `/dev/s
 `/dev/bvstk-i2c`. PS SD и QSPI обслуживаются отдельными менеджерами
 ресурсов; их место в файловом стеке описано в
 [статье о BVSTK](../../docs/system/storage/storage.md).
+
+Автономная загрузка: [PS SD и проверенный BOOT.bin](../../docs/build/neutrino-sd.md).

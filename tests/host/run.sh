@@ -13,6 +13,8 @@ fs_sources=(
 
 bash "$SCRIPT_DIR/run_system.sh" "$TEST_TMP"
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_image.py"
+PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_release.py"
+PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_qspi16_migration.py"
 for memory_port in recording freertos neutrino; do
   memory_sources=()
   memory_flags=()
@@ -410,3 +412,10 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_dcp2_fs.py" "$TEST_TMP/dcp2_fs_server"
 
 bash "$SCRIPT_DIR/run_interfaces.sh" "$TEST_TMP"
+
+cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_sd_disk_common.c" "$REPO_ROOT/src/services/sd/bvstk_sd_disk.c" \
+  "$REPO_ROOT/src/services/sd/bvstk_sd_volume.c" -o "$TEST_TMP/test_sd_disk_common"
+for disk_case in init-error no-filesystem read-error write-error; do
+  "$TEST_TMP/test_sd_disk_common" "$disk_case"
+done

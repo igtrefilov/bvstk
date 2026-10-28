@@ -11,7 +11,7 @@
  * FatFs window above that reserved area and aligned to an erase sector.
  */
 #ifndef QSPI_FS_BASE_BYTES
-#define QSPI_FS_BASE_BYTES (8U * 1024U * 1024U)
+#define QSPI_FS_BASE_BYTES (16U * 1024U * 1024U)
 #endif
 
 #ifndef QSPI_FS_SIZE_BYTES

@@ -95,7 +95,7 @@ class BootImageTests(unittest.TestCase):
                                 env={**os.environ, "BOOT_OUTPUT_DIR": str(directory)}, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Program offset: 0x00000000", result.stdout)
-        self.assertIn("0x00800000", result.stdout)
+        self.assertIn(f"0x{layout()['fs_base']:08X}", result.stdout)
         self.path.write_bytes(self.path.read_bytes()[:-1])
         with self.assertRaisesRegex(ValueError, "checksum mismatch"):
             load_bundle(directory)

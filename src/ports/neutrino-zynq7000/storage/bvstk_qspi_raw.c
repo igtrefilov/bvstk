@@ -78,9 +78,9 @@
 
 #define QSPI_CMD_WRITE_ENABLE           UINT8_C(0x06)
 #define QSPI_CMD_READ_STATUS            UINT8_C(0x05)
-#define QSPI_CMD_PAGE_PROGRAM           UINT8_C(0x02)
-#define QSPI_CMD_READ_DATA              UINT8_C(0x03)
-#define QSPI_CMD_SECTOR_ERASE_4K        UINT8_C(0x20)
+#define QSPI_CMD_PAGE_PROGRAM           UINT8_C(0x12)
+#define QSPI_CMD_READ_DATA              UINT8_C(0x13)
+#define QSPI_CMD_SECTOR_ERASE_4K        UINT8_C(0x21)
 #define QSPI_CMD_READ_ID                UINT8_C(0x9F)
 #define QSPI_STATUS_WIP                 UINT8_C(0x01)
 #define QSPI_STATUS_WEL                 UINT8_C(0x02)
@@ -99,7 +99,7 @@
  * state on every chip-select assertion.
  */
 #define QSPI_TRANSFER_DATA_MAX          128U
-#define QSPI_TRANSFER_HEADER_SIZE       4U
+#define QSPI_TRANSFER_HEADER_SIZE       5U
 #define QSPI_TRANSFER_MAX              (QSPI_TRANSFER_HEADER_SIZE + \
                                          QSPI_TRANSFER_DATA_MAX)
 
@@ -288,7 +288,7 @@ static int qspi_wait_tx_fifo_ready(void)
  * The Zynq QSPI FIFO has dedicated registers for the first 1/2/3 bytes of a
  * flash instruction and a four-byte data register for the remainder.  The
  * caller keeps the complete transaction in tx; for a read, bytes after the
- * first four are replaced by 0xFF clock-out bytes.
+ * five-byte command/address header are replaced by 0xFF clock-out bytes.
  */
 static int qspi_transfer(const uint8_t *tx, uint8_t *rx, size_t count)
 {
@@ -374,7 +374,7 @@ static int qspi_transfer(const uint8_t *tx, uint8_t *rx, size_t count)
                 tx_offset = QSPI_TXD_00;
             }
 
-            if (rx != NULL && next_word != 0U && word_offset >= 4U) {
+            if (rx != NULL && next_word != 0U && word_offset >= QSPI_TRANSFER_HEADER_SIZE) {
                 word = UINT32_C(0xFFFFFFFF);
             } else {
                 word = pack_word(tx, word_offset, word_length);
@@ -409,22 +409,19 @@ static int qspi_transfer(const uint8_t *tx, uint8_t *rx, size_t count)
 
             if (received_words == 0U) {
                 rx_offset = 0U;
-                /* RXD is always a four-byte FIFO word once the command is
-                 * longer than four bytes.  The first TX word may contain
-                 * only the opcode, but its RX word still contains the
-                 * following bus bytes. */
-                rx_length = count < 4U ? count : 4U;
+                /* The first RX word corresponds to the partial TX word;
+                 * subsequent words contain four consecutive bus bytes. */
+                rx_length = first_length;
             } else {
-                rx_offset = (count < 4U ? first_length : 4U) +
-                            (received_words - 1U) * 4U;
+                rx_offset = first_length + (received_words - 1U) * 4U;
                 rx_length = count - rx_offset;
                 if (rx_length > 4U) {
                     rx_length = 4U;
                 }
             }
             if (rx != NULL) {
-                if (received_words == 0U && count < 4U) {
-                    size_t shift = count == 1U ? 24U : 8U;
+                if (received_words == 0U && first_length < 4U) {
+                    size_t shift = first_length == 1U ? 24U : 8U;
 
                     /* For TXD_01/TXD_10/TXD_11 the controller right-aligns
                      * the received bus bytes in the upper part of RXD.
@@ -509,9 +506,10 @@ static int qspi_read_bytes(uint32_t address, uint8_t *data, size_t length)
                          ? QSPI_TRANSFER_DATA_MAX : length;
 
         tx[0] = QSPI_CMD_READ_DATA;
-        tx[1] = (uint8_t)(address >> 16);
-        tx[2] = (uint8_t)(address >> 8);
-        tx[3] = (uint8_t)address;
+        tx[1] = (uint8_t)(address >> 24);
+        tx[2] = (uint8_t)(address >> 16);
+        tx[3] = (uint8_t)(address >> 8);
+        tx[4] = (uint8_t)address;
         memset(&tx[QSPI_TRANSFER_HEADER_SIZE], 0xFF, chunk);
 
         if (qspi_transfer(tx, rx, QSPI_TRANSFER_HEADER_SIZE + chunk) != 0) {
@@ -529,6 +527,7 @@ static int qspi_erase_sector(uint32_t address)
 {
     uint8_t tx[QSPI_TRANSFER_HEADER_SIZE] = {
         QSPI_CMD_SECTOR_ERASE_4K,
+        (uint8_t)(address >> 24),
         (uint8_t)(address >> 16),
         (uint8_t)(address >> 8),
         (uint8_t)address
@@ -570,9 +569,10 @@ static int qspi_program_page(uint32_t address, const uint8_t *data,
         }
 
         tx[0] = QSPI_CMD_PAGE_PROGRAM;
-        tx[1] = (uint8_t)((address + offset) >> 16);
-        tx[2] = (uint8_t)((address + offset) >> 8);
-        tx[3] = (uint8_t)(address + offset);
+        tx[1] = (uint8_t)((address + offset) >> 24);
+        tx[2] = (uint8_t)((address + offset) >> 16);
+        tx[3] = (uint8_t)((address + offset) >> 8);
+        tx[4] = (uint8_t)(address + offset);
         memcpy(&tx[QSPI_TRANSFER_HEADER_SIZE], &data[offset], chunk);
 
         if (qspi_write_enable() != 0) {

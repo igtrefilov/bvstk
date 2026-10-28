@@ -45,15 +45,17 @@ def layout():
     return {"offset": 0, "fs_base": base, "flash_size": size, "erase_size": ERASE_SIZE}
 
 
-def validate_image(path, geometry=None):
+def validate_image(path, geometry=None, medium="qspi"):
+    if medium not in ("qspi", "sd"):
+        raise ValueError("Unsupported boot medium")
     geometry = geometry or layout()
     data = Path(path).read_bytes()
     if len(data) < 0xA0:
         raise ValueError("Truncated BOOT.bin")
-    if len(data) > geometry["fs_base"]:
+    if medium == "qspi" and len(data) > geometry["fs_base"]:
         raise ValueError("BOOT.bin overlaps flash:/")
     erase_end = (len(data) + ERASE_SIZE - 1) // ERASE_SIZE * ERASE_SIZE
-    if erase_end > geometry["fs_base"]:
+    if medium == "qspi" and erase_end > geometry["fs_base"]:
         raise ValueError("QSPI erase range overlaps flash:/")
     words = struct.unpack_from("<19I", data)
     if words[8:10] != (0xAA995566, 0x584C4E58):
@@ -88,22 +90,34 @@ def validate_image(path, geometry=None):
             "fsbl_size": words[13], "partitions": partitions, "sha256": hashlib.sha256(data).hexdigest()}
 
 
-def load_bundle(directory):
+def load_bundle(directory, *, target=None, medium=None):
     directory = Path(directory).resolve()
     manifest = json.loads((directory / "manifest.json").read_text())
-    if manifest.get("format") != 1 or manifest.get("target") != "freertos":
+    if manifest.get("format") != 1 or manifest.get("target") not in ("freertos", "neutrino"):
+        raise ValueError("Unsupported boot bundle")
+    actual_medium = manifest.get("medium", "qspi")
+    if actual_medium not in ("qspi", "sd") or (target and manifest["target"] != target) or (medium and actual_medium != medium):
         raise ValueError("Unsupported boot bundle")
     if manifest.get("qspi") != layout():
         raise ValueError("Boot bundle does not match the current QSPI layout; rebuild it")
-    required = {"BOOT.bin", "fsbl.elf", "qspi_read.elf", "ps7_init.tcl", "design.bit", "app_bvstk.elf", "design.xsa", "boot.bif"}
+    required = {"BOOT.bin", "fsbl.elf", "qspi_read.elf", "ps7_init.tcl", "design.bit", "design.xsa", "boot.bif"}
+    required.add("app_bvstk.elf" if manifest["target"] == "freertos" else "ifs.elf")
+    if manifest["target"] == "neutrino":
+        required.update({"ifs.raw", "resources.tar"})
     if not required <= manifest.get("files", {}).keys():
         raise ValueError("Incomplete boot-bundle manifest")
     for name, expected in manifest["files"].items():
         if Path(name).name != name or sha256(directory / name) != expected:
             raise ValueError(f"Boot bundle checksum mismatch: {name}")
-    actual = validate_image(directory / "BOOT.bin", manifest["qspi"])
+    actual = validate_image(directory / "BOOT.bin", manifest["qspi"], actual_medium)
     if actual != manifest["image"]:
         raise ValueError("BOOT.bin metadata mismatch")
+    if manifest["target"] == "neutrino":
+        partition = actual["partitions"][2]
+        raw = (directory / "ifs.raw").read_bytes()
+        payload = (directory / "BOOT.bin").read_bytes()[partition["offset"]:partition["offset"] + partition["size"]]
+        if partition["load"] != 0x100000 or partition["entry"] != 0x100000 or payload != raw + b"\0" * (-len(raw) % 4):
+            raise ValueError("IFS payload/load/entry does not match the JTAG image")
     return manifest
 
 

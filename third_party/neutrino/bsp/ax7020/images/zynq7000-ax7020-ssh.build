@@ -55,6 +55,11 @@
     mount -t dos /dev/sd0 /sd &
 
     #######################################################################
+    ## PL SD: existing FAT volume only, isolated SPI/DMA owner
+    #######################################################################
+    /etc/sd-pl-start &
+
+    #######################################################################
     ## SPI driver - not started by default, no SPI devices on board
     #######################################################################
     #display_msg Starting SPI driver...
@@ -159,6 +164,7 @@
 [type=link] /tmp=/dev/shmem
 [uid=0 gid=0 perms=0644] /etc/profile = ${BVSTK_PROFILE}
 [type=dir dperms=0755] /sd
+[type=dir dperms=0755] /sd-pl
 [type=dir dperms=0755] /flash
 [type=link] /sd:=/sd
 [type=link] /flash:=/flash
@@ -461,3 +467,23 @@ vi
 ###########################################################################
 ## END OF BUILD SCRIPT
 ###########################################################################
+
+# Independent startup: missing PL media must not delay network or bus services.
+[perms=0755] /etc/sd-pl-start={
+#!/proc/boot/ksh
+export PATH=/proc/boot:/bin:/sbin:/usr/bin:/usr/sbin
+export LD_LIBRARY_PATH=/proc/boot:/lib:/usr/lib:/lib/dll
+/usr/sbin/bvstk-sd-pl-fat &
+n=0
+while [ ! -e /dev/bvstk-sd-pl-fat ]; do
+    n=$((n+1)); [ "$n" -gt 30 ] && exit 1
+    sleep 1
+done
+devb-loopback blk cache=128k,auto=none loopback rw,sync,blksz=512,prefix=sdpl,fd=/dev/bvstk-sd-pl-fat &
+n=0
+while [ ! -e /dev/sdpl0 ]; do
+    n=$((n+1)); [ "$n" -gt 5 ] && exit 1
+    sleep 1
+done
+mount -t dos /dev/sdpl0 /sd-pl
+}

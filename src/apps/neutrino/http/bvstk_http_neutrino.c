@@ -5,6 +5,10 @@
 #include "ports/neutrino-zynq7000/storage/bvstk_fs_posix.h"
 #include "shared/config/bvstk_i2c_config_codec.h"
 #include <sys/statvfs.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include "ports/neutrino-zynq7000/storage/bvstk_sd_pl_status.h"
 #include "hardware/boards/ax7020/bvstk_qspi_layout.h"
 #include <ctype.h>
 #include <stdio.h>
@@ -68,7 +72,24 @@ static void volumes(int fd)
     http_ui_text(fd,"]}");
 }
 static void sd_info(int fd)
-{ http_ui_header(fd,"application/json",-1);http_ui_text(fd,"{\"supported\":false,\"ready\":false,\"mounted\":false,\"format_allowed\":false}"); }
+{
+    bvstk_sd_pl_status_t st={0};
+    int node=open(BVSTK_SD_PL_NODE,O_RDONLY);
+    bool known=node>=0 && devctl(node,BVSTK_SD_PL_STATUS,&st,sizeof(st),NULL)==0;
+    if(node>=0)close(node);
+    const bvstk_fs_backend_t *b=owner->storage->reader;
+    bool mounted=false;
+    for(size_t i=0;i<b->volume_count(b->context);++i) {
+        bvstk_fs_volume_t v={0};(void)b->volume(b->context,i,&v);
+        if(!strcmp(v.name,"sd-pl")) mounted=v.state==1;
+    }
+    http_ui_header(fd,"application/json",-1);
+    http_ui_printf(fd,"{\"supported\":true,\"ready\":%s,\"mounted\":%s,\"block_addressed\":%s,\"format_allowed\":false,\"fat_bits\":%u,\"last_error\":",
+        known&&st.ready?"true":"false",mounted?"true":"false",known&&st.ready?"true":"false",st.fat_bits);
+    http_ui_string(fd,known?bvstk_status_string(st.last_error):"NOT_READY");
+    if(known) http_ui_printf(fd,",\"volume_lba\":%u,\"volume_sectors\":%u,\"last_lba\":%u,\"irq_count\":%u}",st.first_lba,st.sectors,st.last_lba,st.irq_count);
+    else http_ui_text(fd,",\"volume_lba\":null,\"volume_sectors\":null,\"last_lba\":null,\"irq_count\":null}");
+}
 const http_ui_backend_t *http_ui_backend(void)
 {
     static const http_ui_backend_t b={i2c,mdio,snapshot,apply,save,sync_device,bvstk_fs_posix_default,volumes,sd_info,malloc,free,observe,false};return &b;

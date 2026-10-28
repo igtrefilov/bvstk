@@ -167,7 +167,7 @@ int bvstk_system_neutrino_start(bvstk_neutrino_command_t *runtime)
     pthread_mutex_lock(&mutex);commands=runtime;
     bvstk_system_port_t port={0};port.os="neutrino";port.current=current;port.load=load;port.save=save;
     port.apply=apply;port.reboot=reboot_system;port.uptime=uptime;port.details=details;
-    port.capabilities=(bvstk_capabilities_t){true,true,true,true,true,true,true,true,true,true,false,true,true};
+    port.capabilities=(bvstk_capabilities_t){true,true,true,true,true,true,true,true,true,true,true,true,true};
     bvstk_system_init(&system_service,&port);initialized=true;
     bvstk_status_t st=bvstk_system_restore(&system_service);
     if (st!=BVSTK_OK&&st!=BVSTK_ERR_NOT_FOUND) fprintf(stderr,"bvstkd: network restore: %s; current network retained where possible\n",bvstk_status_string(st));

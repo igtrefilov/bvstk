@@ -160,3 +160,12 @@ POSIX-адаптер работает поверх файловой систем
 Здесь `bvstk_sd_raw.c` относится к SD-контроллеру PS. Путь SD через
 PL описан в ветви FreeRTOS выше. Общая организация носителей показана
 в [главе хранения данных](../../system/storage/storage.md).
+
+### SD через PL в Нейтрино
+
+- [bvstk_sd_pl_raw.c](../../../src/ports/neutrino-zynq7000/storage/bvstk_sd_pl_raw.c)
+  — отдельный владелец SPI/DMA, обработчик IRQ, ресурс FAT-тома с
+  проверкой смещений и фиксацией ошибок. DMA использует физические адреса
+  BRAM; CPU отображает эту память без кэширования.
+- [bvstk_sd_pl_status.h](../../../src/ports/neutrino-zynq7000/storage/bvstk_sd_pl_status.h)
+  — ограниченный пассивный devctl состояния без новых операций карты.

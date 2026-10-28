@@ -157,4 +157,18 @@ build_program bvstk-qspi-fat \
 build_program bvstk-sd-raw \
   "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_sd_raw.c"
 
-echo "Neutrino applications: $BUILD_DIR/i2c, $BUILD_DIR/bvstkctl, $BUILD_DIR/bvstkd, $BUILD_DIR/bvstk-shell, $BUILD_DIR/bvstk-qspi-fat and $BUILD_DIR/bvstk-sd-raw"
+# Application list follows all link steps.
+
+build_program bvstk-sd-pl-fat \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_sd_pl_raw.c" \
+  "$REPO_ROOT/src/drivers/pl/sd/bvstk_sd_master.c" \
+  "$REPO_ROOT/src/services/sd/bvstk_sd_service.c" \
+  "$REPO_ROOT/src/services/sd/bvstk_sd_volume.c" \
+  "$REPO_ROOT/src/services/sd/bvstk_sd_disk.c" \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_platform_neutrino.c" \
+  "$REPO_ROOT/src/ports/neutrino-zynq7000/os/bvstk_sync_neutrino.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_status.c" \
+  "$REPO_ROOT/src/hardware/boards/ax7020/bvstk_pl_regions.c" \
+  "$REPO_ROOT/src/shared/pl/access/bvstk_pl_service.c"
+
+echo "Neutrino applications include bvstk-sd-pl-fat (exclusive PL SD owner)"

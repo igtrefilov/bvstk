@@ -11,6 +11,8 @@
 | Собрать FreeRTOS | `./build.sh freertos` | `vitis_ws/app_bvstk/Debug/app_bvstk.elf` |
 | Собрать загрузочный образ FreeRTOS | `./build_boot.sh freertos` | `artifacts/boot/freertos/BOOT.bin` и проверенный комплект |
 | Записать образ в QSPI | `./run.sh freertos qspi` | Образ по адресу ноль, резервные копии и отчёт проверки |
+| Собрать автономный комплект Нейтрино для PS SD | `./build_boot.sh neutrino` | `artifacts/boot/neutrino/BOOT.bin`, IFS и манифест |
+| Установить комплект на PS SD | `./run.sh neutrino sd` | Резервная копия и проверка BOOT.bin; QSPI сохраняется |
 | Собрать программы Нейтрино | `./build.sh neutrino` | Шесть исполняемых файлов в `build/neutrino/` |
 | Сформировать IFS Нейтрино | `./build.sh neutrino-image` | `build/neutrino/ifs-zynq7000-ax7020-bvstk.raw` |
 | Собрать обе программные цели | `./build.sh all` | FreeRTOS ELF, затем IFS Нейтрино |
@@ -55,3 +57,5 @@ Vitis/Vivado до запуска очистки. Не храните единс�
 Для постоянной установки используются `build_boot.sh freertos` и
 `run.sh freertos qspi`. Состав образа, сохранение `flash:/` и переключение
 J13 описаны в [руководстве QSPI boot](qspi.md).
+
+Автономная загрузка Нейтрино использует [PS SD](neutrino-sd.md).

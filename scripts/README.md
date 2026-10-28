@@ -8,7 +8,7 @@
 |---|---|---|
 | `fpga/` | Vivado, bitstream и XSA | [Аппаратная сборка](../docs/build/fpga.md) |
 | `vitis/` | FreeRTOS, JTAG, BOOT.bin и QSPI | [FreeRTOS](../docs/build/freertos.md), [JTAG](../docs/build/jtag.md), [QSPI boot](../docs/build/qspi.md) |
-| `neutrino/` | Программы, IFS, JTAG и проверка SSH | [Нейтрино](../docs/build/neutrino.md) |
+| `neutrino/` | Программы, IFS, PS SD boot, JTAG и проверка SSH | [Нейтрино](../docs/build/neutrino.md) |
 | `vscode/` | База компиляции и GDB | [Отладка](../docs/development/debugging.md) |
 | `dcp2/` | Клиент файлов и событий | [Работа с DCP2](../docs/interfaces/dcp2/client.md) |
 | `compat/` | Переход со старых путей сценариев | Для новых команд используйте корневые `build.sh` и `run.sh` |
