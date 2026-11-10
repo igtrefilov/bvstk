@@ -122,7 +122,7 @@
 
     waitfor /dev/socket
     if_up -p -a xzynq0
-    ifconfig xzynq0 192.168.0.10
+    ifconfig xzynq0 192.168.0.11
     ## or
     #display_msg Obtaining DHCP network address...
     #if_up -p -a xzynq0
@@ -146,6 +146,9 @@
     #######################################################################
     display_msg Starting SSH server...
     [argv0=/etc/sshd-start] /etc/sshd-start &
+
+    # Network time synchronization runs asynchronously after network startup.
+    [argv0=/etc/ntp-sync-start] /etc/ntp-sync-start &
 
     # Start the main shell
     SYSNAME=nto
@@ -401,6 +404,22 @@ umask guest 0707
 }
 
 /etc/services = ${KPDA_TARGET}/armle-v7/etc/services
+/etc/resolv.conf={
+nameserver 192.168.0.1
+}
+
+[perms=0755] /etc/ntp-sync-start={
+#!/bin/sh
+for attempt in 1 2 3 4 5; do
+    if ntpdate -u -t 2 -p 2 time.google.com; then
+        echo "ntpdate: time synchronization successful"
+        exit 0
+    fi
+    sleep 5
+done
+echo "ntpdate: time synchronization failed" >&2
+exit 1
+}
 
 
 ###########################################################################
@@ -435,6 +454,7 @@ mq
 mqueue
 mv
 netstat
+ntpdate
 nicinfo
 od
 on
