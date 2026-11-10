@@ -295,6 +295,11 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
                                                 data,
                                                 BVSTK_EVENT_SOURCE_HOST,
                                                 timeout_ms);
+        /* The PL core has already ACKed this byte, so the host now works with
+         * the channel it selected, whether or not forwarding reached the
+         * downstream switch.  Only a policy denial leaves the old selection. */
+        if (router->channel_count && current_reg == router->reg && status != BVSTK_ERR_DENIED)
+            bvstk_i2c_master_service_host_select(service->master, target, data);
         if (status != BVSTK_OK) {
             /* Preserve stop-on-error forwarding, but audit the unprocessed tail. */
             for (++i; i < frame_size; ++i) {

@@ -58,6 +58,13 @@ typedef struct {
     /* Last confirmed persistent switch masks; temporary PS routes are restored. */
     uint8_t switch_value[I2C_CFG_MAX_DEVICES];
     uint8_t switch_known[I2C_CFG_MAX_DEVICES];
+    /* Selection made by the external (host-side) master through the PL slave.
+     * Host addresses are resolved against this view: the host keeps using the
+     * channel it selected even when the forwarded write did not reach the
+     * downstream switch, and Linux does not re-select a channel it believes
+     * is already selected.  Falls back to the physical state while unknown. */
+    uint8_t host_switch_value[I2C_CFG_MAX_DEVICES];
+    uint8_t host_switch_known[I2C_CFG_MAX_DEVICES];
     bvstk_i2c_switch_observation_t switch_observation[I2C_CFG_MAX_DEVICES];
     uint8_t initialized;
 } bvstk_i2c_master_service_t;
@@ -93,6 +100,9 @@ bvstk_status_t bvstk_i2c_master_service_find_by_addr(
     const bvstk_i2c_master_service_t *service,
     uint8_t addr_7b,
     size_t *device_id);
+/* Record a switch-control write accepted from the external master. */
+void bvstk_i2c_master_service_host_select(bvstk_i2c_master_service_t *service,
+                                          size_t switch_id, uint8_t value);
 bvstk_status_t bvstk_i2c_master_service_resolve_host(
     const bvstk_i2c_master_service_t *, uint8_t address, size_t *device_id);
 

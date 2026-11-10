@@ -489,6 +489,32 @@ bvstk_status_t bvstk_i2c_master_service_find_by_addr(
     return bvstk_i2c_devices_find_by_addr(service->devices, addr_7b, device_id);
 }
 
+void bvstk_i2c_master_service_host_select(bvstk_i2c_master_service_t *service,
+                                          size_t switch_id, uint8_t value)
+{
+    if (service_status(service, switch_id) != BVSTK_OK ||
+        !service->devices->items[switch_id].endpoint.router.channel_count) return;
+    bvstk_cache_sink_enter(&service->cache->sink);
+    service->host_switch_value[switch_id] = value;
+    service->host_switch_known[switch_id] = 1U;
+    bvstk_cache_sink_leave(&service->cache->sink);
+}
+
+/* The switch state the external master works with: its own last accepted
+ * selection, otherwise the last confirmed physical state. */
+static int host_switch_state(const bvstk_i2c_master_service_t *service, size_t id, uint8_t *value)
+{
+    if (service->host_switch_known[id]) {
+        *value = service->host_switch_value[id];
+        return 1;
+    }
+    if (service->switch_known[id]) {
+        *value = service->switch_value[id];
+        return 1;
+    }
+    return 0;
+}
+
 bvstk_status_t bvstk_i2c_master_service_resolve_host(
     const bvstk_i2c_master_service_t *service, uint8_t address, size_t *out)
 {
@@ -501,10 +527,12 @@ bvstk_status_t bvstk_i2c_master_service_resolve_host(
         if (bvstk_i2c_address_space(&d->endpoint, d->addr_7b, address) < 0) continue;
         if (bvstk_i2c_devices_route(service->devices, id, route, channel, &depth) != BVSTK_OK)
             return BVSTK_ERR_MALFORMED;
-        for (i = 0; i < depth; ++i)
-            if (!service->switch_known[route[i]] ||
+        for (i = 0; i < depth; ++i) {
+            uint8_t selection;
+            if (!host_switch_state(service, route[i], &selection) ||
                 !bvstk_i2c_channel_selected(&service->devices->items[route[i]].endpoint.router,
-                    channel[i], service->switch_value[route[i]])) break;
+                    channel[i], selection)) break;
+        }
         if (i != depth) continue;
         if (found != SIZE_MAX) return BVSTK_ERR_UNSUPPORTED;
         found = id;
