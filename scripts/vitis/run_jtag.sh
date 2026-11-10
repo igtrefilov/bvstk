@@ -4,9 +4,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 CONFIG_FILE="${RUN_JTAG_CONFIG:-$SCRIPT_DIR/run_jtag.conf}"
+source "$REPO_ROOT/scripts/common/hw_server.sh"
 
 BITSTREAM_OVERRIDE=""
 MODE="run"
+HW_SERVER_OPTION=""
 
 if [[ -f "$CONFIG_FILE" ]]; then
   # shellcheck disable=SC1090
@@ -29,11 +31,12 @@ if [[ -n "${PS7_INIT_TCL:-}" ]]; then export PS7_INIT_TCL; fi
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  run_jtag.sh [--debug] [bitstream-path]
+  run_jtag.sh [--debug] [--hw-server HOST[:PORT]] [bitstream-path]
 
 Modes:
   (default)        Program PL + init PS7 + download ELF + run
   --debug          Program PL + init PS7 + halt CPU (for GDB/VSCode attach)
+  --hw-server      Connect to the specified hw_server (default port: 3121)
 
 Notes:
   - Requires Xilinx environment in PATH (xsct/hw_server).
@@ -46,6 +49,14 @@ while [[ $# -gt 0 ]]; do
     --debug|--prepare-debug)
       MODE="debug"
       shift
+      ;;
+    --hw-server)
+      if [[ $# -lt 2 || -z "$2" || "$2" == -* ]]; then
+        echo "ERROR: --hw-server requires HOST[:PORT]" >&2
+        exit 2
+      fi
+      HW_SERVER_OPTION="$2"
+      shift 2
       ;;
     -h|--help)
       usage
@@ -68,6 +79,12 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ -n "$HW_SERVER_OPTION" ]]; then
+  bvstk_set_hw_server_url "$HW_SERVER_OPTION"
+elif [[ -n "${HW_SERVER_URL:-}" ]]; then
+  bvstk_set_hw_server_url "$HW_SERVER_URL"
+fi
+
 if ! command -v xsct >/dev/null 2>&1; then
   echo "ERROR: xsct not found in PATH" >&2
   echo "Please source the Xilinx Vitis/Xilinx SDK environment before running this script." >&2
@@ -83,7 +100,9 @@ fi
 
 if [[ "$MODE" == "debug" ]]; then
   echo "Mode: debug (prepare JTAG and halt core0 for GDB attach)"
-  if command -v hw_server >/dev/null 2>&1; then
+  if [[ -n "${HW_SERVER_URL:-}" ]]; then
+    echo "Using $HW_SERVER_URL; ensure its GDB port is enabled for debugging."
+  elif command -v hw_server >/dev/null 2>&1; then
     if command -v ss >/dev/null 2>&1; then
       if ! ss -ltn 2>/dev/null | grep -qE '[:.]3121\\b'; then
         echo "Starting hw_server with GDB ports enabled (-p 3000)..."
@@ -102,9 +121,16 @@ if [[ "$MODE" == "debug" ]]; then
   echo ""
   echo "Next steps:"
   echo "  - Start VSCode debug config: Attach: Zynq-7000 (hw_server GDB, core0)"
+  if [[ -n "${HW_SERVER_URL:-}" ]]; then
+    DEBUG_SERVER_ADDRESS="${HW_SERVER_URL#tcp:}"
+    DEBUG_GDB_TARGET="${DEBUG_SERVER_ADDRESS%:*}:3000"
+    echo "    Set its GDB target to $DEBUG_GDB_TARGET if that port is enabled."
+  else
+    DEBUG_GDB_TARGET=":3000"
+  fi
   echo "  - Or CLI GDB:"
   echo "      arm-none-eabi-gdb \"$REPO_ROOT/vitis_ws/app_bvstk/Debug/app_bvstk.elf\" \\"
-  echo "        -ex \"target remote :3000\" -ex \"load\" -ex \"tbreak main\" -ex \"continue\""
+  echo "        -ex \"target remote $DEBUG_GDB_TARGET\" -ex \"load\" -ex \"tbreak main\" -ex \"continue\""
 else
   xsct "$SCRIPT_DIR/run_jtag.tcl"
 fi

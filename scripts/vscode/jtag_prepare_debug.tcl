@@ -48,7 +48,11 @@ if {![file exists $PS7_INIT_TCL]} {
 }
 
 puts "Connecting to hw_server..."
-connect
+if {[info exists env(HW_SERVER_URL)] && $env(HW_SERVER_URL) ne ""} {
+    connect -url $env(HW_SERVER_URL)
+} else {
+    connect
+}
 
 # Select APU group (both cores) and reset/halt before touching PS registers.
 targets -set -nocase -filter {name =~ "APU"}

@@ -3,7 +3,32 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+source "$REPO_ROOT/scripts/common/hw_server.sh"
 BUILD_DIR="${NEUTRINO_BUILD_DIR:-$REPO_ROOT/build/neutrino}"
+
+HW_SERVER_OPTION=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --hw-server)
+      if [[ $# -lt 2 || -z "$2" || "$2" == -* ]]; then
+        echo "ERROR: --hw-server requires HOST[:PORT]" >&2
+        exit 2
+      fi
+      HW_SERVER_OPTION="$2"
+      shift 2
+      ;;
+    -h|--help)
+      echo "Usage: $0 [--hw-server HOST[:PORT]]"
+      exit 0
+      ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
+  esac
+done
+if [[ -n "$HW_SERVER_OPTION" ]]; then
+  bvstk_set_hw_server_url "$HW_SERVER_OPTION"
+elif [[ -n "${HW_SERVER_URL:-}" ]]; then
+  bvstk_set_hw_server_url "$HW_SERVER_URL"
+fi
 
 IFS_FILE="${IFS_FILE:-$BUILD_DIR/ifs-zynq7000-ax7020-bvstk.raw}"
 BITSTREAM_FILE="${BITSTREAM_FILE:-$REPO_ROOT/artifacts/fpga/design.bit}"

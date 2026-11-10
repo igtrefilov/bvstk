@@ -23,7 +23,11 @@ foreach path [list $IFS_FILE $PS7_INIT_TCL $BITSTREAM_FILE] {
     }
 }
 
-connect
+if {[info exists env(HW_SERVER_URL)] && $env(HW_SERVER_URL) ne ""} {
+    connect -url $env(HW_SERVER_URL)
+} else {
+    connect
+}
 
 targets -set -nocase -filter {name =~ "APU"}
 rst -system
