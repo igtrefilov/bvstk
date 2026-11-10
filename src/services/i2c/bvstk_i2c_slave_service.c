@@ -165,7 +165,7 @@ void bvstk_i2c_slave_service_end_transaction(
     }
 }
 
-bvstk_status_t bvstk_i2c_slave_service_handle_frame(
+static bvstk_status_t handle_frame(
     bvstk_i2c_slave_service_t *service,
     const uint8_t *frame,
     size_t frame_size,
@@ -173,7 +173,8 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
     uint8_t *read_window,
     size_t read_window_capacity,
     size_t *read_window_size,
-    uint32_t timeout_ms)
+    uint32_t timeout_ms,
+    bvstk_i2c_slave_read_reply_t *reply)
 {
     bvstk_i2c_device_t device;
     size_t target;
@@ -234,8 +235,19 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
                 BVSTK_EVENT_SLAVE_REPLY_PREPARED, BVSTK_EVENT_OP_READ,
                 (uint32_t)bvstk_i2c_next_register(transfer.read_sequence, device.reg_count, reg, i),
                 read_window[i], BVSTK_OK);
-        service->register_pointer[target][space] = (uint16_t)bvstk_i2c_next_register(
+        uint16_t next = (uint16_t)bvstk_i2c_next_register(
             transfer.read_sequence, device.reg_count, reg, count);
+        if (reply != NULL) {
+            *reply = (bvstk_i2c_slave_read_reply_t){
+                .device_id = target,
+                .start_register = (uint16_t)reg,
+                .next_register = next,
+                .address_space = (uint8_t)space,
+                .valid = count != 0U
+            };
+        } else {
+            service->register_pointer[target][space] = next;
+        }
         return BVSTK_OK;
     }
 
@@ -295,6 +307,11 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
                                                 data,
                                                 BVSTK_EVENT_SOURCE_HOST,
                                                 timeout_ms);
+        /* The PL core has already ACKed this byte, so the host now works with
+         * the channel it selected, whether or not forwarding reached the
+         * downstream switch.  Only a policy denial leaves the old selection. */
+        if (router->channel_count && current_reg == router->reg && status != BVSTK_ERR_DENIED)
+            bvstk_i2c_master_service_host_select(service->master, target, data);
         if (status != BVSTK_OK) {
             /* Preserve stop-on-error forwarding, but audit the unprocessed tail. */
             for (++i; i < frame_size; ++i) {
@@ -311,4 +328,51 @@ bvstk_status_t bvstk_i2c_slave_service_handle_frame(
             service->register_pointer[target][space] = (uint16_t)write_register(&device, reg, i - prefix + 1U);
     }
     return BVSTK_OK;
+}
+
+bvstk_status_t bvstk_i2c_slave_service_prepare_read(
+    bvstk_i2c_slave_service_t *service,
+    uint8_t *read_window,
+    size_t read_window_capacity,
+    size_t *read_window_size,
+    bvstk_i2c_slave_read_reply_t *reply,
+    uint32_t timeout_ms)
+{
+    if (reply == NULL) return BVSTK_ERR_MALFORMED;
+    memset(reply, 0, sizeof(*reply));
+    return handle_frame(service, NULL, 0U, 1U, read_window,
+                        read_window_capacity, read_window_size, timeout_ms, reply);
+}
+
+bvstk_status_t bvstk_i2c_slave_service_commit_read(
+    bvstk_i2c_slave_service_t *service,
+    bvstk_i2c_slave_read_reply_t *reply)
+{
+    bvstk_status_t status = service_status(service);
+    if (status != BVSTK_OK) return status;
+    if (reply == NULL || reply->valid == 0U ||
+        reply->device_id >= service->devices->count ||
+        reply->address_space >= BVSTK_ADDRESS_SPACES_MAX) {
+        return BVSTK_ERR_MALFORMED;
+    }
+    uint16_t *cursor = &service->register_pointer[reply->device_id][reply->address_space];
+    if (*cursor != reply->start_register) return BVSTK_ERR_BUSY;
+    *cursor = reply->next_register;
+    reply->valid = 0U;
+    return BVSTK_OK;
+}
+
+bvstk_status_t bvstk_i2c_slave_service_handle_frame(
+    bvstk_i2c_slave_service_t *service,
+    const uint8_t *frame,
+    size_t frame_size,
+    uint8_t read_phase,
+    uint8_t *read_window,
+    size_t read_window_capacity,
+    size_t *read_window_size,
+    uint32_t timeout_ms)
+{
+    /* Keep the existing immediate-advance contract for legacy callers. */
+    return handle_frame(service, frame, frame_size, read_phase, read_window,
+                        read_window_capacity, read_window_size, timeout_ms, NULL);
 }

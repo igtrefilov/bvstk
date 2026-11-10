@@ -39,6 +39,25 @@ bvstk_status_t bvstk_i2c_slave_hw_clear_irq(bvstk_i2c_slave_hw_t *hardware);
 bvstk_status_t bvstk_i2c_slave_hw_capture_irq(
     bvstk_i2c_slave_hw_t *hardware,
     bvstk_i2c_slave_irq_event_t *event);
+/* Like capture_irq, but for DATA_VALID also copies the write frame out of the
+ * single BRAM write window before the interrupt is acknowledged.  The core
+ * reuses that window for the next STOP/repeated START, so a task that reads
+ * it later can see (or erase) the following frame instead.  frame_status is
+ * BVSTK_OK when frame/frame_size/frame_addr hold a snapshot. */
+bvstk_status_t bvstk_i2c_slave_hw_capture_irq_frame(
+    bvstk_i2c_slave_hw_t *hardware,
+    bvstk_i2c_slave_irq_event_t *event,
+    uint8_t *frame,
+    size_t frame_capacity,
+    size_t *frame_size,
+    uint8_t *frame_addr,
+    bvstk_status_t *frame_status);
+/* Best-effort filter for expired read requests: data_ctrl must be busy and
+ * REQ must still match. Equal headers are not transaction identities, and
+ * this check is not atomic with RD_VALID. PL needs a checked request token
+ * to exclude late replies across timeout/retry and publication races. */
+int bvstk_i2c_slave_hw_request_pending(const bvstk_i2c_slave_hw_t *hardware,
+                                       uint32_t request_header);
 bvstk_status_t bvstk_i2c_slave_hw_read_frame(
     const bvstk_i2c_slave_hw_t *hardware,
     uint8_t *frame,

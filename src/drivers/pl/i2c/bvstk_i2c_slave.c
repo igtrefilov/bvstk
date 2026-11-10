@@ -223,6 +223,61 @@ bvstk_status_t bvstk_i2c_slave_hw_read_frame(
     return BVSTK_OK;
 }
 
+bvstk_status_t bvstk_i2c_slave_hw_capture_irq_frame(
+    bvstk_i2c_slave_hw_t *hardware,
+    bvstk_i2c_slave_irq_event_t *event,
+    uint8_t *frame,
+    size_t frame_capacity,
+    size_t *frame_size,
+    uint8_t *frame_addr,
+    bvstk_status_t *frame_status)
+{
+    bvstk_status_t status;
+
+    if (hardware == NULL || hardware->initialized == 0U) {
+        return BVSTK_ERR_NOT_READY;
+    }
+    if (event == NULL || frame_size == NULL || frame_addr == NULL ||
+        frame_status == NULL || (frame_capacity != 0U && frame == NULL)) {
+        return BVSTK_ERR_MALFORMED;
+    }
+    memset(event, 0, sizeof(*event));
+    *frame_size = 0U;
+    *frame_addr = 0U;
+    *frame_status = BVSTK_ERR_NOT_FOUND;
+    status = read32(&hardware->slave, BVSTK_I2C_SLV_IRQ_OFFSET, &event->irq_flags);
+    if (status != BVSTK_OK) {
+        return status;
+    }
+    if ((event->irq_flags & BVSTK_I2C_SLV_IRQ_DATA_VALID) != 0U) {
+        /* Snapshot first: the IRQ acknowledge below does not protect the
+         * window, the next frame from the host does overwrite it. */
+        *frame_status = bvstk_i2c_slave_hw_read_frame(hardware, frame, frame_capacity,
+                                                      frame_size, frame_addr);
+    }
+    status = read32(&hardware->slave, BVSTK_I2C_SLV_REQ_OFFSET, &event->request_header);
+    if (status != BVSTK_OK) {
+        return status;
+    }
+    event->request_addr = header_address(event->request_header);
+    event->request_size = header_size(event->request_header);
+    return bvstk_i2c_slave_hw_clear_irq(hardware);
+}
+
+int bvstk_i2c_slave_hw_request_pending(const bvstk_i2c_slave_hw_t *hardware,
+                                       uint32_t request_header)
+{
+    uint32_t status_word = 0U;
+    uint32_t current = 0U;
+
+    if (hardware == NULL || hardware->initialized == 0U ||
+        read32(&hardware->slave, BVSTK_I2C_SLV_CSR_OFFSET, &status_word) != BVSTK_OK ||
+        read32(&hardware->slave, BVSTK_I2C_SLV_REQ_OFFSET, &current) != BVSTK_OK) {
+        return 0;
+    }
+    return (status_word & BVSTK_I2C_SLV_STATUS_BUSY_BIT) != 0U && current == request_header;
+}
+
 bvstk_status_t bvstk_i2c_slave_hw_write_read_window(
     bvstk_i2c_slave_hw_t *hardware,
     uint8_t addr_7b,

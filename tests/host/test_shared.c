@@ -726,6 +726,49 @@ int main(void)
                               BVSTK_I2C_SLV_CSR_OFFSET),
                sizeof(word));
         CHECK(word == BVSTK_I2C_SLV_CSR_RD_VALID_BIT);
+
+        /* The write frame is snapshotted with its interrupt: a later frame in
+         * the single BRAM window must not replace the captured one. */
+        {
+            uint8_t snap[8] = {0U};
+            size_t snap_size = 0U;
+            uint8_t snap_addr = 0U;
+            bvstk_status_t snap_status = BVSTK_ERR_INTERNAL;
+            uint32_t pointer_header = (1U << BVSTK_I2C_SLV_HEADER_BYTES_SHIFT) | 0x51U;
+            uint32_t read_header = 0x51U;
+            memcpy((void *)(i2c_slave_hw.bram.mapped_base + BVSTK_I2C_BRAM_SLAVE_WR_OFFSET),
+                   &pointer_header, sizeof(pointer_header));
+            word = UINT32_C(0x0000006E);
+            memcpy((void *)(i2c_slave_hw.bram.mapped_base + BVSTK_I2C_BRAM_SLAVE_WR_OFFSET + sizeof(word)),
+                   &word, sizeof(word));
+            memcpy((void *)(i2c_slave_hw.slave.mapped_base + BVSTK_I2C_SLV_IRQ_OFFSET),
+                   &(uint32_t){BVSTK_I2C_SLV_IRQ_DATA_VALID | BVSTK_I2C_SLV_IRQ_FINAL_PACKET},
+                   sizeof(word));
+            memcpy((void *)(i2c_slave_hw.slave.mapped_base + BVSTK_I2C_SLV_REQ_OFFSET),
+                   &read_header, sizeof(read_header));
+            CHECK(bvstk_i2c_slave_hw_capture_irq_frame(&i2c_slave_hw, &slave_event, snap, sizeof(snap),
+                                                       &snap_size, &snap_addr, &snap_status) == BVSTK_OK);
+            /* The next frame lands in the same window after the capture. */
+            word = UINT32_C(0x00000002);
+            memcpy((void *)(i2c_slave_hw.bram.mapped_base + BVSTK_I2C_BRAM_SLAVE_WR_OFFSET + sizeof(word)),
+                   &word, sizeof(word));
+            CHECK(snap_status == BVSTK_OK && snap_size == 1U && snap_addr == 0x51U && snap[0] == 0x6EU);
+            CHECK(slave_event.irq_flags == (BVSTK_I2C_SLV_IRQ_DATA_VALID | BVSTK_I2C_SLV_IRQ_FINAL_PACKET));
+            memcpy(&word, (const void *)(i2c_slave_hw.slave.mapped_base + BVSTK_I2C_SLV_IRQ_OFFSET),
+                   sizeof(word));
+            CHECK(word == BVSTK_I2C_SLV_IRQ_RESET_BIT);
+
+            /* Filter idle and changed headers. Equal headers alone cannot
+             * identify which transaction owns the pending request. */
+            memcpy((void *)(i2c_slave_hw.slave.mapped_base + BVSTK_I2C_SLV_CSR_OFFSET),
+                   &(uint32_t){BVSTK_I2C_SLV_STATUS_BUSY_BIT}, sizeof(word));
+            CHECK(bvstk_i2c_slave_hw_request_pending(&i2c_slave_hw, read_header));
+            CHECK(!bvstk_i2c_slave_hw_request_pending(&i2c_slave_hw,
+                      (1U << BVSTK_I2C_SLV_HEADER_BYTES_SHIFT) | 0x51U));
+            memcpy((void *)(i2c_slave_hw.slave.mapped_base + BVSTK_I2C_SLV_CSR_OFFSET),
+                   &(uint32_t){0U}, sizeof(word));
+            CHECK(!bvstk_i2c_slave_hw_request_pending(&i2c_slave_hw, read_header));
+        }
     }
     bvstk_i2c_slave_hw_shutdown(&i2c_slave_hw);
     CHECK(bvstk_mdio_service_init(&mdio_service,

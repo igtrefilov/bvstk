@@ -24,6 +24,16 @@ typedef struct {
     uint8_t multi_device;
 } bvstk_i2c_slave_service_t;
 
+/* Prepared cursor movement, owned by the caller until commit or discard.
+ * This tracks publication to PL, not acknowledgement by the external host. */
+typedef struct {
+    size_t device_id;
+    uint16_t start_register;
+    uint16_t next_register;
+    uint8_t address_space;
+    uint8_t valid;
+} bvstk_i2c_slave_read_reply_t;
+
 bvstk_status_t bvstk_i2c_slave_service_init(
     bvstk_i2c_slave_service_t *service,
     bvstk_i2c_devices_t *devices,
@@ -40,6 +50,20 @@ bvstk_status_t bvstk_i2c_slave_service_select_address(
     bvstk_i2c_slave_service_t *, uint8_t);
 void bvstk_i2c_slave_service_end_transaction(
     bvstk_i2c_slave_service_t *service);
+
+/* Fetch a reply without advancing the register pointer. Discard the token
+ * when the request expires or publication fails. The adapter is the sole
+ * owner of the service's host protocol state; commit before its next event. */
+bvstk_status_t bvstk_i2c_slave_service_prepare_read(
+    bvstk_i2c_slave_service_t *service,
+    uint8_t *read_window,
+    size_t read_window_capacity,
+    size_t *read_window_size,
+    bvstk_i2c_slave_read_reply_t *reply,
+    uint32_t timeout_ms);
+bvstk_status_t bvstk_i2c_slave_service_commit_read(
+    bvstk_i2c_slave_service_t *service,
+    bvstk_i2c_slave_read_reply_t *reply);
 
 /* Translate one hardware mailbox event into a response read window. */
 bvstk_status_t bvstk_i2c_slave_service_handle_frame(

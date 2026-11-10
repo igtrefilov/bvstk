@@ -14,6 +14,8 @@
 #define BVSTK_I2C_SLV_CSR_SOFT_RESET_BIT (UINT32_C(1) << 0)
 #define BVSTK_I2C_SLV_CSR_START_BIT      (UINT32_C(1) << 1)
 #define BVSTK_I2C_SLV_CSR_RD_VALID_BIT   (UINT32_C(1) << 2)
+/* CSR read side (status_reg_t): data_ctrl is not idle (WAIT_EVENT). */
+#define BVSTK_I2C_SLV_STATUS_BUSY_BIT    (UINT32_C(1) << 1)
 
 #define BVSTK_I2C_SLV_IRQ_RESET_BIT      (UINT32_C(1) << 0)
 #define BVSTK_I2C_SLV_IRQ_DATA_VALID    (UINT32_C(1) << 1)
