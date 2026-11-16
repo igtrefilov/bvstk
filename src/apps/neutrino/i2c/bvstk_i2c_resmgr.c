@@ -22,6 +22,29 @@ static int io_devctl(resmgr_context_t *context,
     if (default_result != (int)_RESMGR_DEFAULT) {
         return default_result;
     }
+    if (message->i.dcmd == BVSTK_DCMD_I2C_READ_UID) {
+        if (!s_manager || !s_manager->runtime ||
+            message->i.nbytes != sizeof(bvstk_i2c_uid_message_t) ||
+            context->info.msglen < (int)(sizeof(message->i) + sizeof(bvstk_i2c_uid_message_t)))
+            return EINVAL;
+        bvstk_i2c_uid_message_t *uid = (void *)_DEVCTL_DATA(message->i);
+        if (uid->version != BVSTK_I2C_IPC_VERSION ||
+            !memchr(uid->profile, 0, sizeof(uid->profile))) return EINVAL;
+        bvstk_neutrino_i2c_runtime_t *runtime = s_manager->runtime;
+        bvstk_neutrino_i2c_runtime_lock(runtime);
+        size_t id, completed = 0;
+        memset(uid->uid, 0, sizeof(uid->uid));
+        bvstk_status_t status = bvstk_i2c_devices_find_by_name(&runtime->devices, uid->profile, &id);
+        if (status == BVSTK_OK)
+            status = bvstk_i2c_master_service_read_uid(&runtime->master_service,
+                id, uid->uid, &completed, 100U);
+        uid->status = status;
+        uid->completed = (uint32_t)completed;
+        bvstk_neutrino_i2c_runtime_unlock(runtime);
+        message->o.ret_val = 0;
+        message->o.nbytes = sizeof(*uid);
+        return _RESMGR_PTR(context, &message->o, sizeof(message->o) + sizeof(*uid));
+    }
     if (message->i.dcmd != BVSTK_DCMD_I2C_EXECUTE) {
         return ENOTTY;
     }

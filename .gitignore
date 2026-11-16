@@ -9,6 +9,8 @@
 !scripts/**
 !configs/
 !configs/**
+!security/
+!security/**
 !third_party/
 !third_party/**
 !src/

@@ -2,7 +2,7 @@
 
 | Сценарий | Назначение |
 |---|---|
-| `build.sh` | Шесть программ: `bvstkctl`, `bvstkd`, `i2c`, `bvstk-shell`, `bvstk-qspi-fat`, `bvstk-sd-raw` |
+| `build.sh` | Программы управления, файловые backend и `bvstk-uid-verify` |
 | `build_image.sh` | Программы, базовый состав BSP, OpenSSL с ГОСТ, локальные SSH-материалы и IFS |
 | `build_gost.sh` | GOST ENGINE для ARMv7 и файлы OpenSSL для включения в IFS |
 | `gost/openssl-gost-selftest.sh` | Проверка хеширования, шифрования и подписи; в образе доступна как `openssl-gost-selftest` |
@@ -29,3 +29,23 @@ UART для JTAG выбирается из стабильных имён `/dev/s
 [статье о BVSTK](../../docs/system/storage/storage.md).
 
 Автономная загрузка: [PS SD и проверенный BOOT.bin](../../docs/build/neutrino-sd.md).
+
+## Проверка UID при загрузке
+
+После настройки сети IFS запускает `bvstk-uid-verify --boot` в фоне.
+Утилита дожидается успешного завершения `/etc/ntp-sync-start`, затем
+читает исходные 16 байт UID из EEPROM через `/dev/bvstk-i2c` и проверяет
+отсоединённую CMS-подпись из `/flash/security/signatures/uid/banana.uuid.sig`.
+Время из NTP используется как системное; подстановка времени и отключение
+проверки сроков не применяются. Общий предел выполнения — 90 секунд.
+
+Корни доверия читаются из `/flash/security/trust/anchors/*.pem`, CRL —
+из `/flash/security/trust/crl/*.crl`. Проверяются подпись, цепочка, сроки,
+отзыв всей цепочки и явное назначение `Code Signing` единственного подписанта.
+Формат каталогов описан в [security](../../security/README.md).
+
+В UART выводится `verify: true` или `verify: false`; при отказе добавляется
+`verify_reason`. Результат запуска также доступен в RAM-файле
+`/tmp/bvstk-uid-verify.status`. Ошибка проверки не останавливает остальные службы.
+Без аргументов утилита повторяет физическое чтение и проверку с текущим
+системным временем, без повторной синхронизации NTP.

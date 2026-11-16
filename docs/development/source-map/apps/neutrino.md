@@ -20,6 +20,15 @@ DCP2 CACHE получает тот же каталог; сетевое ожид�
 | [main.c](../../../../src/apps/neutrino/bvstkd/main.c) | Создаёт рабочую среду, ресурсы управления/I²C/наблюдений и общую сессию DCP2, подключает файловый backend, журналы и генераторы потоков. |
 | [bvstk_dcp2_runtime.h](../../../../src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.h), [bvstk_dcp2_runtime.c](../../../../src/apps/neutrino/bvstkd/bvstk_dcp2_runtime.c) | Диспетчер блокирует нужную шину, выполняет общие регистровые команды и POLICY, синхронизирует RAM-модели I²C/MDIO; сохраняет профили только по SAVE. |
 
+## apps/neutrino/security
+
+[uid_verify.c](../../../../src/apps/neutrino/security/uid_verify.c) реализует
+`bvstk-uid-verify`: при загрузке дожидается успешной синхронизации NTP,
+получает физические байты EEPROM через отдельный devctl I²C и проверяет
+CMS-подпись по материалам `flash:/security/`. Проверка ограничена по времени;
+результат выводится в UART. Порядок описан в
+[сценариях Нейтрино](../../../../scripts/neutrino/README.md#проверка-uid-при-загрузке).
+
 ## apps/neutrino/runtime
 
 Здесь создаются связанные экземпляры драйверов, устройств, политики,

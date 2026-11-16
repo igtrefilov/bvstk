@@ -22,4 +22,14 @@ typedef struct {
 #define BVSTK_DCMD_I2C_EXECUTE \
     __DIOTF(0x80, 1, bvstk_i2c_ipc_message_t)
 
+/* Physical UID bytes; never console formatting or a cached value. */
+typedef struct {
+    uint32_t version;
+    int32_t status;
+    uint32_t completed;
+    char profile[64];
+    uint8_t uid[16];
+} bvstk_i2c_uid_message_t;
+#define BVSTK_DCMD_I2C_READ_UID __DIOTF(0x80, 4, bvstk_i2c_uid_message_t)
+
 #endif /* BVSTK_NEUTRINO_I2C_IPC_H */

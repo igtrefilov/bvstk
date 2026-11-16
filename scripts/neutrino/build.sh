@@ -143,6 +143,9 @@ build_program i2c \
   "$I2C_CLIENT_SOURCE" \
   "$REPO_ROOT/src/apps/neutrino/commands/bvstk_command_client.c"
 
+build_program bvstk-uid-verify \
+  "$REPO_ROOT/src/apps/neutrino/security/uid_verify.c" -lcrypto
+
 build_program bvstk-shell \
   "$REPO_ROOT/src/apps/neutrino/shell/main.c" \
   "$I2C_CLIENT_SOURCE" \

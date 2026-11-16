@@ -147,8 +147,8 @@
     display_msg Starting SSH server...
     [argv0=/etc/sshd-start] /etc/sshd-start &
 
-    # Network time synchronization runs asynchronously after network startup.
-    [argv0=/etc/ntp-sync-start] /etc/ntp-sync-start &
+    # Ordered background task: NTP success, physical EEPROM UID, CMS verification.
+    /usr/bin/bvstk-uid-verify --boot &
 
     # Start the main shell
     SYSNAME=nto

@@ -17,6 +17,7 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections 
 "$TEST_TMP/test_uid_write_delay"
 
 bash "$SCRIPT_DIR/run_system.sh" "$TEST_TMP"
+PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_uid_verify.py"
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_image.py"
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_release.py"
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_qspi16_migration.py"

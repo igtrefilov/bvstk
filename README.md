@@ -18,6 +18,7 @@ BVSTK — программы управления и диагностики дл
   [DCP2](docs/interfaces/dcp2/01-intro.md) и его [клиент](docs/interfaces/dcp2/client.md).
 - Работа с [сетью](docs/network.md) и [файлами](docs/files.md).
 - [Конфигурация устройств](docs/configuration/configuration.md): профили, карты регистров и формы.
+- [Материалы проверки подписей](security/README.md): структура `flash:/security/`, корни доверия, CRL и подписи объектов.
 - [Общий контракт FreeRTOS и Нейтрино](docs/system/architecture/common-contract.md): целевое поведение, допустимые различия и проверки паритета.
 - [Карта исходников](docs/development/source-map.md): устройство дерева каталогов и назначение файлов.
 
