@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "services/i2c/bvstk_i2c_slave_service.h"
+#include "services/cli/bvstk_cli.h"
 #include "shared/config/bvstk_device_profile.h"
 #include "shared/config/bvstk_i2c_config_codec.h"
 
@@ -21,7 +22,7 @@ typedef struct {
     size_t nt, nr;
     bvstk_status_t status;
 } operation_t;
-static operation_t operations[128];
+static operation_t operations[512];
 static size_t expected, consumed;
 
 uint64_t bvstk_platform_now_ms(void) { return now; }
@@ -135,6 +136,13 @@ static void profiles_load(const char *root)
         assert(!memcmp(&roundtrip.endpoint,&profiles[i].endpoint,sizeof(roundtrip.endpoint)));
         assert(roundtrip.reg_count==profiles[i].reg_count);
         assert(roundtrip.whitelist_len==profiles[i].whitelist_len);
+        if (i == 2) {
+            /* A malformed UID descriptor must not partially replace config. */
+            char *mask = strstr(encoded, "\"mask\": \"0x04\""); assert(mask);
+            mask[strlen("\"mask\": \"0x0")] = '3';
+            assert(bvstk_i2c_config_parse_json(encoded,&roundtrip)!=BVSTK_OK);
+            assert(!memcmp(&roundtrip.endpoint,&profiles[i].endpoint,sizeof(roundtrip.endpoint)));
+        }
     }
 }
 static void routes_and_policy(void)
@@ -570,6 +578,120 @@ static void switch_observations(void)
     done(0); /* All observation getters are memory-only. */
 }
 
+static void uid_rd(unsigned channel, uint8_t addr, uint8_t reg, uint8_t value)
+{
+    rd_switch(0x70, 2); wr_switch(0x70, channel);
+    rd(addr, reg, value); wr_switch(0x70, 2);
+}
+static void uid_wr(unsigned channel, uint8_t addr, uint8_t reg, uint8_t value)
+{
+    rd_switch(0x70, 2); wr_switch(0x70, channel);
+    wr(addr, reg, value);
+    if (addr == 0x57) rd(addr, reg, value); /* profile verify_readback */
+    wr_switch(0x70, 2);
+}
+static void uid_cleanup(int failure)
+{
+    uid_wr(8, 0x20, 7, 0xFF);
+    uid_wr(8, 0x20, 3, 0xBF);
+    uid_rd(8, 0x20, 7, failure ? 0 : 0xFF);
+    uid_rd(8, 0x20, 3, 0xBF);
+}
+static void uid_setup(void)
+{
+    topology();
+    assert(configs[2].endpoint.uid.configured && configs[2].endpoint.uid.offset == 0);
+    assert(!strcmp(configs[2].endpoint.uid.wp_device, configs[3].name));
+    assert(bvstk_i2c_master_service_set_policy(&master, 2, I2C_POLICY_BLACKLIST) == BVSTK_OK);
+    assert(bvstk_i2c_master_service_set_policy(&master, 3, I2C_POLICY_BLACKLIST) == BVSTK_OK);
+}
+static const i2c_device_config_t *uid_cli_config(void *context, size_t id)
+{ (void)context; return &configs[id]; }
+static char uid_output[1024];
+static int uid_command(const char *line)
+{
+    char input[128], *argv[8];
+    strcpy(input, line);
+    int argc = bvstk_cli_tokens(input, argv, 8);
+    bvstk_cli_buffer_t buffer = {uid_output, sizeof(uid_output), 0, false};
+    bvstk_cli_t cli = {0};
+    uid_output[0] = 0;
+    cli.output = (bvstk_output_t){bvstk_cli_buffer_write, &buffer};
+    cli.i2c = &master; cli.i2c_config = uid_cli_config;
+    assert(bvstk_i2c_cli(&cli, argc, argv));
+    return cli.result;
+}
+static void uid_operations(void)
+{
+    const uint8_t data[16] = "ABCD1234EFGH5678";
+    uint8_t received[16];
+    size_t completed;
+    bvstk_status_t cleanup;
+    uid_setup();
+    /* Invalid input and unsupported profiles perform no physical operations. */
+    assert(uid_command("p24c02a write uid short"));
+    assert(uid_command("p24c02a write uid ABCD1234EFGH56789"));
+    assert(uid_command("p24c02a write uid ABCD1234EFGH56é"));
+    assert(uid_command("pcf8563 read uid"));
+    done(0);
+    /* Preflight the whole UID before I/O; never install policy exceptions. */
+    assert(bvstk_i2c_master_service_set_policy(&master, 2, I2C_POLICY_WHITELIST) == BVSTK_OK);
+    assert(bvstk_i2c_master_service_write_uid(&master,2,data,&completed,&cleanup,20)==BVSTK_ERR_DENIED);
+    assert(completed==0); done(0);
+    uid_setup();
+    /* Even a seeded cache cannot satisfy read uid. Escape non-printable bytes
+     * and backslash, do not terminate at an embedded NUL. */
+    for (unsigned i=0;i<16;i++) uid_rd(1,0x57,i,(uint8_t)i);
+    assert(!uid_command("p24c02a read uid"));
+    assert(strstr(uid_output,"UID: \\x00\\x01") && strstr(uid_output,"\\x0F"));
+    done(1);
+    for (unsigned i=0;i<16;i++) uid_rd(1,0x57,i,data[i]);
+    assert(!uid_command("p24c02a read uid") && strstr(uid_output,"UID: ABCD1234EFGH5678"));
+    done(1);
+    /* Preserve unrelated GPIO bits (bit 6 was already low). */
+    uid_rd(8,0x20,3,0xBF); uid_rd(8,0x20,7,0xFF);
+    uid_wr(8,0x20,3,0xBB); uid_wr(8,0x20,7,0xFB); uid_rd(8,0x20,1,0xEB);
+    for (unsigned i=0;i<16;i++) { uid_wr(1,0x57,i,data[i]); uid_rd(1,0x57,i,data[i]); }
+    uid_cleanup(0);
+    assert(!uid_command("p24c02a write uid ABCD1234EFGH5678"));
+    assert(strstr(uid_output,"verified=16/16") && strstr(uid_output,"wp_restore=ok"));
+    done(1);
+    /* Readback mismatch stops at the first unverified byte, restores WP, and
+     * reports the partial result instead of claiming an atomic write. */
+    uid_rd(8,0x20,3,0xBF); uid_rd(8,0x20,7,0xFF);
+    uid_wr(8,0x20,3,0xBB); uid_wr(8,0x20,7,0xFB); uid_rd(8,0x20,1,0xEB);
+    uid_wr(1,0x57,0,data[0]); uid_rd(1,0x57,0,data[0]);
+    uid_wr(1,0x57,1,data[1]); uid_rd(1,0x57,1,0);
+    uid_cleanup(0);
+    assert(bvstk_i2c_master_service_write_uid(&master,2,data,&completed,&cleanup,20)==BVSTK_ERR_IO);
+    assert(completed==1 && cleanup==BVSTK_OK); done(1);
+    /* A GPIO timeout may occur after the device accepted the byte. Restore
+     * even when enabling the output was never reached. */
+    uid_rd(8,0x20,3,0xBF); uid_rd(8,0x20,7,0xFF);
+    uid_wr(8,0x20,3,0xBB);
+    operations[expected-2].status = BVSTK_ERR_TIMEOUT;
+    uid_cleanup(0);
+    assert(bvstk_i2c_master_service_write_uid(&master,2,data,&completed,&cleanup,20)==BVSTK_ERR_TIMEOUT);
+    assert(completed==0 && cleanup==BVSTK_OK); done(1);
+    /* WP never goes low: zero EEPROM writes, cleanup still runs. */
+    uid_rd(8,0x20,3,0xBF); uid_rd(8,0x20,7,0xFF);
+    uid_wr(8,0x20,3,0xBB); uid_wr(8,0x20,7,0xFB); uid_rd(8,0x20,1,0xEF);
+    uid_cleanup(0);
+    assert(bvstk_i2c_master_service_write_uid(&master,2,data,&completed,&cleanup,20)==BVSTK_ERR_IO);
+    assert(completed==0 && cleanup==BVSTK_OK); done(1);
+    /* Restoration failure remains visible separately from the main error. */
+    uid_rd(8,0x20,3,0xBF); uid_rd(8,0x20,7,0xFF);
+    uid_wr(8,0x20,3,0xBB); uid_wr(8,0x20,7,0xFB); uid_rd(8,0x20,1,0xEF);
+    uid_cleanup(1);
+    assert(bvstk_i2c_master_service_write_uid(&master,2,data,&completed,&cleanup,20)==BVSTK_ERR_IO);
+    assert(cleanup==BVSTK_ERR_IO); done(1);
+    /* Ordinary service calls still acquire/release their own lock afterward. */
+    uid_rd(1,0x57,0,0x41);
+    assert(bvstk_i2c_master_service_read(&master,2,0,received,20)==BVSTK_OK);
+    done(1);
+    puts("UID: CLI, physical reads, policy preflight, WP sequencing, verification, partial failure and restoration passed");
+}
+
 int main(int argc, char **argv)
 {
     assert(argc==2);
@@ -583,6 +705,7 @@ int main(int argc, char **argv)
     rtc_sampling();
     eeprom_sampling();
     switch_observations();
+    uid_operations();
     puts("I2C topology: generic profiles, atomic routes/restoration, policies, duplicate addresses, sequences and write verification passed");
     return 0;
 }

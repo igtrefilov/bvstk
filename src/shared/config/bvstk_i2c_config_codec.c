@@ -302,6 +302,14 @@ bvstk_status_t bvstk_i2c_endpoint_validate(const bvstk_i2c_endpoint_t *e, uint16
               (i && ((c >= '0' && c <= '9') || c == '_' || c == '-'))))
             return BVSTK_ERR_MALFORMED;
     }
+    const bvstk_i2c_uid_t *u = &e->uid;
+    if (u->configured && (u->configured != 1 || e->space_count || e->router.channel_count ||
+        count < BVSTK_I2C_UID_SIZE || u->offset > count - BVSTK_I2C_UID_SIZE ||
+        !e->transfer.configured || !e->transfer.address_bytes || e->transfer.write_cycle_ms < 5 ||
+        !memchr(u->wp_device, 0, sizeof(u->wp_device)) || !u->wp_device[0] ||
+        !u->mask || (u->mask & (u->mask - 1U)) ||
+        u->output_reg == u->direction_reg || u->output_reg == u->input_reg ||
+        u->direction_reg == u->input_reg)) return BVSTK_ERR_MALFORMED;
     t = bvstk_i2c_transfer_options(e); s = &e->router;
     unsigned largest = count, total = 0;
     if (e->space_count > BVSTK_ADDRESS_SPACES_MAX) return BVSTK_ERR_RANGE;

@@ -73,12 +73,20 @@ typedef struct {
     bvstk_i2c_channel_t channels[BVSTK_I2C_SWITCH_CHANNELS_MAX];
 } bvstk_i2c_switch_t;
 
+#define BVSTK_I2C_UID_SIZE 16u
+typedef struct {
+    char wp_device[I2C_CFG_NAME_MAX];
+    uint8_t configured, offset;
+    uint8_t output_reg, direction_reg, input_reg, mask;
+} bvstk_i2c_uid_t;
+
 /* parent is a profile ID; an empty parent means the controller's root bus. */
 typedef struct {
     char parent[I2C_CFG_NAME_MAX];
     uint8_t channel;
     bvstk_i2c_transfer_t transfer;
     bvstk_i2c_switch_t router;
+    bvstk_i2c_uid_t uid;
     uint8_t read_only[I2C_CFG_MAX_REG_COUNT / 8u];
     uint8_t space_count;
     bvstk_address_space_t spaces[BVSTK_ADDRESS_SPACES_MAX];

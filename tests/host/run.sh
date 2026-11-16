@@ -11,6 +11,11 @@ fs_sources=(
   "$REPO_ROOT/src/ports/neutrino-zynq7000/storage/bvstk_fs_posix.c"
 )
 
+cc -std=c11 -Wall -Wextra -Werror -pedantic -ffunction-sections -fdata-sections \
+  -I"$SCRIPT_DIR/memory_stubs" -I"$SCRIPT_DIR/fs_stubs" -I"$REPO_ROOT/src" \
+  "$SCRIPT_DIR/test_uid_write_delay.c" -Wl,--gc-sections -o "$TEST_TMP/test_uid_write_delay"
+"$TEST_TMP/test_uid_write_delay"
+
 bash "$SCRIPT_DIR/run_system.sh" "$TEST_TMP"
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_image.py"
 PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/test_boot_release.py"
@@ -84,6 +89,12 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
 
 cc -std=c11 -Wall -Wextra -Werror -pedantic -I"$REPO_ROOT/src" \
   "$SCRIPT_DIR/test_i2c_topology.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_i2c_cli.c" \
+  "$REPO_ROOT/src/services/cli/bvstk_stream_cli.c" \
+  "$REPO_ROOT/src/services/stream/bvstk_stream_sim.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_parse.c" \
+  "$REPO_ROOT/src/shared/base/bvstk_status.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_devices.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_cache.c" \
   "$REPO_ROOT/src/services/i2c/bvstk_i2c_policy.c" \

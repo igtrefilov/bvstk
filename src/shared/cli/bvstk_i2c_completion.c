@@ -137,7 +137,7 @@ static void complete_operation(const char *prefix,
                                bvstk_i2c_completion_result_t *result)
 {
     static const char *const operations[] = {
-        "info", "r", "w", "addr", "address", "policy"
+        "info", "r", "w", "read", "write", "addr", "address", "policy"
     };
 
     complete_words(prefix,
@@ -258,6 +258,10 @@ int bvstk_i2c_complete_line_ex(
     } else if (token_count == 2U &&
                !token_equals(line, tokens[1], "list")) {
         complete_operation(prefix, features, result);
+    } else if (token_count == 3U &&
+        (token_equals(line, tokens[2], "read") || token_equals(line, tokens[2], "write") ||
+         token_equals(line, tokens[2], "r") || token_equals(line, tokens[2], "w"))) {
+        (void)add_match(prefix, "uid", result);
     } else {
         complete_policy(prefix, tokens, token_count, line, result);
     }

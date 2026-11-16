@@ -24,6 +24,17 @@
       "presence_check_enabled": true,
       "presence_check_resource": "reg_00"
     },
+    "uid": {
+      "offset": "0x00",
+      "size": 16,
+      "write_protect": {
+        "device": "pca9555",
+        "output_register": "0x03",
+        "direction_register": "0x07",
+        "input_register": "0x01",
+        "mask": "0x04"
+      }
+    },
     "transfer": {
       "address_bytes": 1,
       "address_order": "big",

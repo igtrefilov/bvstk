@@ -175,6 +175,40 @@ static void cmd_write(bvstk_cli_t *cli, size_t id, const i2c_device_config_t *co
     result(cli, status);
 }
 
+static void cmd_uid(bvstk_cli_t *cli, size_t id, const char *text)
+{
+    uint8_t data[BVSTK_I2C_UID_SIZE];
+    size_t completed = 0;
+    bvstk_status_t status, cleanup = BVSTK_OK;
+    if (text) {
+        if (strlen(text) != sizeof(data)) {
+            bvstk_cli_text(cli, "UID must contain exactly 16 printable ASCII characters (one token).\r\n");
+            result(cli, BVSTK_ERR_MALFORMED); return;
+        }
+        for (unsigned i = 0; i < sizeof(data); ++i) {
+            if ((unsigned char)text[i] < 0x21 || (unsigned char)text[i] > 0x7E) {
+                result(cli, BVSTK_ERR_MALFORMED); return;
+            }
+            data[i] = (uint8_t)text[i];
+        }
+        status = bvstk_i2c_master_service_write_uid(cli->i2c, id, data, &completed, &cleanup, 100U);
+        bvstk_cli_writef(cli, "UID write: verified=%u/16 wp_restore=%s\r\n",
+            (unsigned)completed, bvstk_status_string(cleanup));
+    } else {
+        status = bvstk_i2c_master_service_read_uid(cli->i2c, id, data, &completed, 100U);
+        if (status == BVSTK_OK) {
+            bvstk_cli_text(cli, "UID: ");
+            for (unsigned i = 0; i < sizeof(data); ++i) {
+                if (data[i] >= 0x20 && data[i] <= 0x7E && data[i] != '\\')
+                    bvstk_cli_writef(cli, "%c", data[i]);
+                else bvstk_cli_writef(cli, "\\x%02X", data[i]);
+            }
+            bvstk_cli_text(cli, "\r\n");
+        } else bvstk_cli_writef(cli, "UID read: completed=%u/16\r\n", (unsigned)completed);
+    }
+    result(cli, status);
+}
+
 static void rules_show(bvstk_cli_t *cli, const char *name, const i2c_rule_entry_t *rules, size_t count,
                        const bvstk_i2c_endpoint_t *endpoint)
 {
@@ -376,9 +410,11 @@ bool bvstk_i2c_cli(bvstk_cli_t *cli, int argc, char **argv)
     if (argc == 1 || (argc == 2 && eq(argv[1], "info"))) {
         cmd_info(cli, id, config);
     } else if (argc == 3 && (eq(argv[1], "r") || eq(argv[1], "read"))) {
-        cmd_read(cli, id, config, argv[2]);
+        if (eq(argv[2], "uid")) cmd_uid(cli, id, NULL);
+        else cmd_read(cli, id, config, argv[2]);
     } else if (argc == 4 && (eq(argv[1], "w") || eq(argv[1], "write"))) {
-        cmd_write(cli, id, config, argv[2], argv[3]);
+        if (eq(argv[2], "uid")) cmd_uid(cli, id, argv[3]);
+        else cmd_write(cli, id, config, argv[2], argv[3]);
     } else if (argc == 3 && (eq(argv[1], "addr") || eq(argv[1], "address"))) {
         cmd_address(cli, config, argv[2]);
     } else if (argc == 2 && eq(argv[1], "save")) {
@@ -397,6 +433,8 @@ void bvstk_i2c_cli_help(bvstk_cli_t *cli)
         "i2c list | -h | --help\r\n"
         "i2c <name|@addr|addr> [info]\r\n"
         "i2c <sel> r <reg> | w <reg> <value>\r\n"
+        "i2c <name> read uid | write uid <16-ASCII-characters>\r\n"
+        "UID requires protocol.uid in the profile; write obeys EEPROM/GPIO policies.\r\n"
         "Multi-space device: <reg> is <space>:<offset>; @addr selects a space for r/w.\r\n"
         "i2c <sel> addr <addr_7b>\r\n"
         "i2c <sel> policy [show]\r\n"

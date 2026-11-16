@@ -8,6 +8,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "sleep.h"
 #include "xil_io.h"
 
 static bvstk_status_t memory_check(void *context, uint32_t address, size_t span,
@@ -104,7 +105,11 @@ void bvstk_platform_shutdown(void)
 
 void bvstk_platform_sleep_ms(uint32_t milliseconds)
 {
-    vTaskDelay(pdMS_TO_TICKS(milliseconds));
+    TickType_t ticks = pdMS_TO_TICKS(milliseconds);
+    /* EEPROM write cycles (5 ms) must not become a zero-tick yield on a
+     * 100 Hz BSP. Keep explicit sleep(0) as the existing scheduler yield. */
+    if (milliseconds && !ticks) usleep((unsigned long)milliseconds * 1000UL);
+    else vTaskDelay(ticks);
 }
 
 int bvstk_mmio_region_open(bvstk_mmio_region_t *region,

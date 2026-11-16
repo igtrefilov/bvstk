@@ -57,12 +57,12 @@ int main(void)
 
     CHECK(bvstk_i2c_complete_line("i2c axp15060 ", 13U, 13U,
                                   devices, 2U, &result));
-    CHECK(result.match_count == 6U && has_candidate(&result, "policy") &&
+    CHECK(result.match_count == 8U && has_candidate(&result, "policy") &&
           has_candidate(&result, "address") && !has_candidate(&result, "save"));
 
     CHECK(bvstk_i2c_complete_line_ex("i2c axp15060 ", 13U, 13U,
                                      devices, 2U, BVSTK_I2C_COMPLETION_EXPLICIT_SAVE, &result));
-    CHECK(result.match_count == 7U && has_candidate(&result, "save"));
+    CHECK(result.match_count == 9U && has_candidate(&result, "save"));
 
     CHECK(bvstk_i2c_complete_line("i2c axp15060 policy ", 20U, 20U,
                                   devices, 2U, &result));
@@ -81,6 +81,9 @@ int main(void)
                                    devices, 2U, &result));
     CHECK(!bvstk_i2c_complete_line("ls ", 3U, 3U,
                                    devices, 2U, &result));
+    const char *uid_line = "i2c adc read u";
+    CHECK(bvstk_i2c_complete_line(uid_line, strlen(uid_line), strlen(uid_line), devices, 2U, &result));
+    CHECK(result.match_count == 1U && has_candidate(&result, "uid"));
     CHECK(bvstk_i2c_completion_common_prefix_len(
               (const char[][BVSTK_I2C_COMPLETION_WORD_MAX]){
                   "whitelist", "whitecap"},

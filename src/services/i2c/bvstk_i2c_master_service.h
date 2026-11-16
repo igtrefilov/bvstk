@@ -196,4 +196,13 @@ bvstk_status_t bvstk_i2c_master_service_rule_clear_list(
 bvstk_status_t bvstk_i2c_master_service_rule_clear_range(
     bvstk_i2c_master_service_t *, size_t, i2c_policy_t, unsigned first, unsigned count);
 
+/* Console UID capability: physical access, single bus owner across WP and
+ * both device routes. completed counts verified bytes, not atomic commit.
+ * cleanup reports GPIO restoration independently of the write status. */
+bvstk_status_t bvstk_i2c_master_service_read_uid(bvstk_i2c_master_service_t *,
+    size_t, uint8_t data[BVSTK_I2C_UID_SIZE], size_t *completed, uint32_t timeout_ms);
+bvstk_status_t bvstk_i2c_master_service_write_uid(bvstk_i2c_master_service_t *,
+    size_t, const uint8_t data[BVSTK_I2C_UID_SIZE], size_t *completed,
+    bvstk_status_t *cleanup, uint32_t timeout_ms);
+
 #endif /* BVSTK_I2C_MASTER_SERVICE_H */

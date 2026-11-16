@@ -657,6 +657,31 @@ static int transfer_options(view_t v, bvstk_i2c_transfer_t *out)
     if (f[10].p) { if (!boolean(f[10], &flag)) return 0; out->stop_before_read = !flag; }
     return 1;
 }
+/* UID is an explicit profile capability, never inferred from a device name. */
+static int uid_options(view_t v, bvstk_i2c_uid_t *out)
+{
+    static const char *const keys[] = {"offset", "size", "write_protect"};
+    static const char *const wp_keys[] = {"device", "output_register", "direction_register", "input_register", "mask"};
+    view_t f[3], wp[5];
+    uint32_t n;
+    if (!v.p) return 1;
+    if (!fields(v, keys, 3, f) || !hex(f[0], 240, &n)) return 0;
+    out->offset = (uint8_t)n;
+    if (!number(f[1], BVSTK_I2C_UID_SIZE, &n) || n != BVSTK_I2C_UID_SIZE ||
+        !fields(f[2], wp_keys, 5, wp) ||
+        !text(wp[0], out->wp_device, sizeof(out->wp_device)) || !id_valid(out->wp_device)) return 0;
+    uint8_t *regs[] = {&out->output_reg, &out->direction_reg, &out->input_reg, &out->mask};
+    for (unsigned i = 0; i < 4; ++i) {
+        if (!hex(wp[i + 1], 255, &n)) return 0;
+        *regs[i] = (uint8_t)n;
+    }
+    if (!out->mask || (out->mask & (out->mask - 1U)) ||
+        out->output_reg == out->direction_reg || out->output_reg == out->input_reg ||
+        out->direction_reg == out->input_reg) return 0;
+    out->configured = 1;
+    return 1;
+}
+
 static int switch_options(view_t v, const bvstk_profile_metadata_t *meta,
                           unsigned count, bvstk_i2c_switch_t *out)
 {
@@ -714,7 +739,7 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
     static const char *const root_keys[] = {"schema_version", "id", "device", "transport", "protocol", "resources", "defaults", "policy", "settings", "observability", "register_map", "view", "acquisition", "icon"};
     static const char *const device_keys[] = {"model", "vendor", "class", "label"};
     static const char *const transport_keys[] = {"bus", "controller", "address", "address_bits", "parent", "channel", "address_spaces"};
-    static const char *const protocol_keys[] = {"driver", "options", "transfer", "switch"};
+    static const char *const protocol_keys[] = {"driver", "options", "transfer", "switch", "uid"};
     static const char *const option_keys[] = {"max_write_value", "capture_cache_on_save", "autopoll_enabled", "autopoll_order", "autopoll_reg_delay_ms", "autopoll_cycle_delay_ms", "presence_check_enabled", "presence_check_resource"};
     static const char *const resource_keys[] = {"id", "kind", "address", "width_bits", "access", "write_mask", "cache", "verify", "refresh", "persist_mask", "read_effect", "write_effect", "fields", "space"};
     static const char *const defaults_keys[] = {"register"};
@@ -771,12 +796,13 @@ static bvstk_status_t parse(const char *json, int mdio, i2c_device_config_t *i2c
             i2c->endpoint.channel = (uint8_t)n;
         }
     }
-    if (!fields(r[4], protocol_keys, 4, f)) return BVSTK_ERR_MALFORMED;
+    if (!fields(r[4], protocol_keys, 5, f)) return BVSTK_ERR_MALFORMED;
     if (mdio) {
-        if (!equal(f[0], "bvstk_mdio_bridge") || f[2].p || f[3].p) return BVSTK_ERR_UNSUPPORTED;
+        if (!equal(f[0], "bvstk_mdio_bridge") || f[2].p || f[3].p || f[4].p) return BVSTK_ERR_UNSUPPORTED;
     } else {
         if (!equal(f[0], "bvstk_i2c_bridge") ||
-            !transfer_options(f[2], &i2c->endpoint.transfer)) return BVSTK_ERR_UNSUPPORTED;
+            !transfer_options(f[2], &i2c->endpoint.transfer) ||
+            !uid_options(f[4], &i2c->endpoint.uid)) return BVSTK_ERR_UNSUPPORTED;
         router = f[3];
     }
     if (f[1].p && !fields(f[1], option_keys, 8, options)) return BVSTK_ERR_MALFORMED;
@@ -997,6 +1023,14 @@ static void format_transfer(writer_t *w, const bvstk_i2c_endpoint_t *endpoint,
             t->write_cycle_ms, t->verify_readback ? "readback" : "none",
             t->invalidate_after_write ? "invalidate" : "value",
             t->host_read_fresh ? "fresh" : "cache", t->host_current_read ? "true" : "false");
+    }
+    const bvstk_i2c_uid_t *u = &endpoint->uid;
+    if (u->configured) {
+        append(w, ", \"uid\": {\"offset\": \"0x%02X\", \"size\": 16, \"write_protect\": {\"device\": ", u->offset);
+        quoted(w, u->wp_device);
+        append(w, ", \"output_register\": \"0x%02X\", \"direction_register\": \"0x%02X\", "
+            "\"input_register\": \"0x%02X\", \"mask\": \"0x%02X\"}}",
+            u->output_reg, u->direction_reg, u->input_reg, u->mask);
     }
     if (s->channel_count) {
         append(w, ", \"switch\": {\"resource\": "); reference(w, meta, s->reg);

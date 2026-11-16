@@ -222,10 +222,22 @@ static bvstk_status_t route_control(bvstk_i2c_master_service_t *service, size_t 
     return status;
 }
 
+static bvstk_status_t lock_bus(bvstk_i2c_master_service_t *s, uint32_t ms)
+{
+    if (s->io.transfer) return s->io.lock && s->io.unlock ?
+        s->io.lock(s->io.context, ms) : BVSTK_ERR_UNSUPPORTED;
+    return bvstk_i2c_master_hw_lock(s->hardware, ms);
+}
+static void unlock_bus(bvstk_i2c_master_service_t *s)
+{
+    if (s->io.transfer) s->io.unlock(s->io.context);
+    else bvstk_i2c_master_hw_unlock(s->hardware);
+}
+
 static bvstk_status_t routed_transfer(bvstk_i2c_master_service_t *service,
     const bvstk_i2c_device_t *device, uint8_t reg, uint8_t *value,
     int write, uint32_t ms, int *performed, bvstk_status_t *target_status,
-    int quiet, size_t count)
+    int quiet, size_t count, int bus_held)
 {
     size_t id, route[BVSTK_I2C_ROUTE_MAX], depth, opened = 0;
     uint8_t channels[BVSTK_I2C_ROUTE_MAX], saved[BVSTK_I2C_ROUTE_MAX];
@@ -233,10 +245,7 @@ static bvstk_status_t routed_transfer(bvstk_i2c_master_service_t *service,
     if (bvstk_i2c_devices_find_by_name(service->devices, device->name, &id) != BVSTK_OK ||
         bvstk_i2c_devices_route(service->devices, id, route, channels, &depth) != BVSTK_OK)
         return BVSTK_ERR_MALFORMED;
-    if (service->io.transfer) {
-        if (!service->io.lock || !service->io.unlock) return BVSTK_ERR_UNSUPPORTED;
-        status = service->io.lock(service->io.context, ms);
-    } else status = bvstk_i2c_master_hw_lock(service->hardware, ms);
+    status = bus_held ? BVSTK_OK : lock_bus(service, ms);
     if (status != BVSTK_OK) return status;
     for (size_t i = 0; i < depth; ++i) {
         const bvstk_i2c_device_t *sw = &service->devices->items[route[i]];
@@ -267,8 +276,7 @@ static bvstk_status_t routed_transfer(bvstk_i2c_master_service_t *service,
         switch_state(service, route[i], saved[i], restored == BVSTK_OK);
         if (restored != BVSTK_OK) cleanup = restored;
     }
-    if (service->io.transfer) service->io.unlock(service->io.context);
-    else bvstk_i2c_master_hw_unlock(service->hardware);
+    if (!bus_held) unlock_bus(service);
     return cleanup != BVSTK_OK ? cleanup : status;
 }
 
@@ -286,7 +294,7 @@ static bvstk_status_t backend_read(bvstk_i2c_master_service_t *service,
     if (device->endpoint.parent[0] || device->endpoint.transfer.configured ||
         (service->io.transfer && !service->io.read_reg)) {
         *value = 0;
-        return routed_transfer(service, device, reg, value, 0, timeout_ms, performed, target_status, quiet, 1);
+        return routed_transfer(service, device, reg, value, 0, timeout_ms, performed, target_status, quiet, 1, 0);
     }
     if (service->io.read_reg != NULL) {
         *performed = 1;
@@ -352,7 +360,7 @@ static bvstk_status_t backend_write(bvstk_i2c_master_service_t *service,
     *target_status = BVSTK_ERR_NOT_READY;
     if (device->endpoint.parent[0] || device->endpoint.transfer.configured ||
         (service->io.transfer && !service->io.write_reg))
-        return routed_transfer(service, device, reg, &value, 1, timeout_ms, performed, target_status, 0, 1);
+        return routed_transfer(service, device, reg, &value, 1, timeout_ms, performed, target_status, 0, 1, 0);
     if (service->io.write_reg != NULL) {
         *performed = 1;
         status = service->io.write_reg(service->io.context,
@@ -632,7 +640,7 @@ bvstk_status_t bvstk_i2c_master_service_sample(bvstk_i2c_master_service_t *servi
         return BVSTK_ERR_UNSUPPORTED;
     uint64_t started_ms = bvstk_platform_now_ms();
     status = routed_transfer(service, &device, (uint8_t)first, values, 0,
-        timeout_ms, &performed, &target_status, 1, count);
+        timeout_ms, &performed, &target_status, 1, count, 0);
     uint64_t finished_ms = bvstk_platform_now_ms();
     if (performed) {
         record_response(service, device_id, wire_address(&device, first), target_status, 1);
@@ -1039,4 +1047,143 @@ bvstk_status_t bvstk_i2c_master_service_rule_clear_range(
     *length = kept;
     bvstk_cache_sink_leave(&service->cache->sink);
     return BVSTK_OK;
+}
+
+/* A UID transaction owns the physical bus across both device routes, WP
+ * transitions and verification. No shared "already locked" state is exposed
+ * to other callers. Only restoration of the saved GPIO bytes bypasses policy. */
+static int uid_permitted(bvstk_i2c_master_service_t *s, size_t id, uint8_t reg, uint8_t value)
+{
+    const bvstk_i2c_device_t *d = &s->devices->items[id];
+    bvstk_cache_sink_enter(&s->cache->sink);
+    int ok = reg < d->reg_count && value <= d->max_value_code &&
+        !(d->endpoint.read_only[reg / 8U] & (1U << (reg % 8U))) &&
+        bvstk_i2c_policy_permits(s->policy, id, d, reg, value);
+    bvstk_cache_sink_leave(&s->cache->sink);
+    return ok;
+}
+static bvstk_status_t uid_io(bvstk_i2c_master_service_t *s, size_t id, uint8_t reg,
+    uint8_t *value, int write, int restoring, uint32_t ms)
+{
+    const bvstk_i2c_device_t *d = &s->devices->items[id];
+    bvstk_event_source_t source = BVSTK_EVENT_SOURCE_CONSOLE;
+    if (write) {
+        emit(s, BVSTK_EVENT_REG_ATTEMPT, 0, source, BVSTK_EVENT_OP_WRITE, d, reg, *value);
+        if (!restoring && !uid_permitted(s, id, reg, *value)) {
+            emit(s, BVSTK_EVENT_REG_DENIED, BVSTK_ERR_DENIED, source, BVSTK_EVENT_OP_WRITE, d, reg, *value);
+            return BVSTK_ERR_DENIED;
+        }
+    }
+    int performed = 0;
+    bvstk_status_t target = BVSTK_ERR_NOT_READY;
+    bvstk_status_t status = routed_transfer(s, d, reg, value, write, ms,
+        &performed, &target, 0, 1, 1);
+    if (performed) {
+        record_response(s, id, wire_address(d, reg), target, !write);
+        bvstk_status_t cache_status = write && target == BVSTK_OK &&
+            d->endpoint.transfer.invalidate_after_write ? BVSTK_ERR_NOT_READY : target;
+        cache_response(s, id, d, reg, target == BVSTK_OK ? *value : 0, cache_status, !write);
+        emit(s, write ? BVSTK_EVENT_MASTER_WRITE : BVSTK_EVENT_MASTER_READ,
+            target, source, write ? BVSTK_EVENT_OP_WRITE : BVSTK_EVENT_OP_READ, d, reg, *value);
+    }
+    if (write) emit(s, status == BVSTK_OK ? BVSTK_EVENT_REG_COMMIT : BVSTK_EVENT_FAULT,
+        status, source, BVSTK_EVENT_OP_WRITE, d, reg, *value);
+    return status;
+}
+static bvstk_status_t uid_device(bvstk_i2c_master_service_t *s, size_t id)
+{
+    bvstk_status_t st = service_status(s, id);
+    if (st != BVSTK_OK) return st;
+    const bvstk_i2c_device_t *d = &s->devices->items[id];
+    if (!d->endpoint.uid.configured) return BVSTK_ERR_UNSUPPORTED;
+    if (!d->endpoint.transfer.configured || (s->io.read_reg && !s->io.transfer))
+        return BVSTK_ERR_UNSUPPORTED;
+    return BVSTK_OK;
+}
+bvstk_status_t bvstk_i2c_master_service_read_uid(bvstk_i2c_master_service_t *s,
+    size_t id, uint8_t data[BVSTK_I2C_UID_SIZE], size_t *completed, uint32_t ms)
+{
+    if (!data || !completed) return BVSTK_ERR_MALFORMED;
+    *completed = 0;
+    bvstk_status_t st = uid_device(s, id);
+    if (st != BVSTK_OK) return st;
+    st = lock_bus(s, ms);
+    if (st != BVSTK_OK) return st;
+    unsigned first = s->devices->items[id].endpoint.uid.offset;
+    for (unsigned i = 0; i < BVSTK_I2C_UID_SIZE; ++i) {
+        st = uid_io(s, id, (uint8_t)(first + i), &data[i], 0, 0, ms);
+        if (st != BVSTK_OK) break;
+        ++*completed;
+    }
+    unlock_bus(s);
+    return st;
+}
+bvstk_status_t bvstk_i2c_master_service_write_uid(bvstk_i2c_master_service_t *s,
+    size_t id, const uint8_t data[BVSTK_I2C_UID_SIZE], size_t *completed,
+    bvstk_status_t *cleanup, uint32_t ms)
+{
+    if (!data || !completed || !cleanup) return BVSTK_ERR_MALFORMED;
+    *completed = 0; *cleanup = BVSTK_OK;
+    bvstk_status_t st = uid_device(s, id);
+    if (st != BVSTK_OK) return st;
+    const bvstk_i2c_uid_t u = s->devices->items[id].endpoint.uid;
+    size_t wp;
+    st = bvstk_i2c_devices_find_by_name(s->devices, u.wp_device, &wp);
+    if (st != BVSTK_OK) return st;
+    const bvstk_i2c_device_t *w = &s->devices->items[wp];
+    if (wp == id || !w->endpoint.transfer.configured || w->endpoint.space_count ||
+        w->endpoint.router.channel_count || u.output_reg >= w->reg_count ||
+        u.direction_reg >= w->reg_count || u.input_reg >= w->reg_count) return BVSTK_ERR_MALFORMED;
+    /* Reject the entire UID before any physical I/O if a byte is denied. */
+    for (unsigned i = 0; i < BVSTK_I2C_UID_SIZE; ++i)
+        if (!uid_permitted(s, id, (uint8_t)(u.offset + i), data[i])) return BVSTK_ERR_DENIED;
+    st = lock_bus(s, ms);
+    if (st != BVSTK_OK) return st;
+    uint8_t output = 0, direction = 0, value = 0;
+    int touched = 0;
+    st = uid_io(s, wp, u.output_reg, &output, 0, 0, ms);
+    if (st == BVSTK_OK) st = uid_io(s, wp, u.direction_reg, &direction, 0, 0, ms);
+    if (st != BVSTK_OK) goto finish;
+    if (!uid_permitted(s, wp, u.output_reg, output & (uint8_t)~u.mask) ||
+        !uid_permitted(s, wp, u.direction_reg, direction & (uint8_t)~u.mask)) {
+        st = BVSTK_ERR_DENIED; goto finish;
+    }
+    /* Include ambiguous/partially completed writes in cleanup. Set the latch
+     * before changing direction to avoid a high pulse on the WP pin. */
+    touched = 1;
+    value = output & (uint8_t)~u.mask;
+    st = uid_io(s, wp, u.output_reg, &value, 1, 0, ms);
+    if (st == BVSTK_OK) {
+        value = direction & (uint8_t)~u.mask;
+        st = uid_io(s, wp, u.direction_reg, &value, 1, 0, ms);
+    }
+    if (st == BVSTK_OK) st = uid_io(s, wp, u.input_reg, &value, 0, 0, ms);
+    if (st == BVSTK_OK && (value & u.mask)) st = BVSTK_ERR_IO;
+    for (unsigned i = 0; st == BVSTK_OK && i < BVSTK_I2C_UID_SIZE; ++i) {
+        value = data[i];
+        st = uid_io(s, id, (uint8_t)(u.offset + i), &value, 1, 0, ms);
+        if (st == BVSTK_OK) st = uid_io(s, id, (uint8_t)(u.offset + i), &value, 0, 0, ms);
+        if (st == BVSTK_OK && value != data[i]) st = BVSTK_ERR_IO;
+        if (st == BVSTK_OK) ++*completed;
+    }
+finish:
+    if (touched) {
+        /* The bus mutex excludes all other GPIO writers. Restore both saved
+         * registers even if one cleanup fails; never hide a restoration error. */
+        bvstk_status_t a = uid_io(s, wp, u.direction_reg, &direction, 1, 1, ms);
+        bvstk_status_t b = uid_io(s, wp, u.output_reg, &output, 1, 1, ms);
+        uint8_t actual = 0;
+        if (a == BVSTK_OK) {
+            a = uid_io(s, wp, u.direction_reg, &actual, 0, 0, ms);
+            if (a == BVSTK_OK && actual != direction) a = BVSTK_ERR_IO;
+        }
+        if (b == BVSTK_OK) {
+            b = uid_io(s, wp, u.output_reg, &actual, 0, 0, ms);
+            if (b == BVSTK_OK && actual != output) b = BVSTK_ERR_IO;
+        }
+        *cleanup = a != BVSTK_OK ? a : b;
+        if (st == BVSTK_OK) st = *cleanup;
+    }
+    unlock_bus(s);
+    return st;
 }
