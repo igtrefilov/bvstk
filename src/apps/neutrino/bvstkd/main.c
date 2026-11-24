@@ -109,8 +109,7 @@ static int serve_client(int fd, bvstk_control_api_t *control,
 {
     static uint8_t frame[BVSTK_DCP2_HEADER_SIZE + BVSTK_DCP2_MAX_PAYLOAD];
     bvstk_neutrino_dcp2_adapter(&s_adapter, runtime, control);
-    const bvstk_fs_storage_t *storage = bvstk_fs_posix_default();
-    s_adapter.files = storage ? storage->reader : NULL;
+    s_adapter.storage = bvstk_fs_posix_default();
     s_adapter.cache = s_observation.initialized ? &s_observation.cache : NULL;
     s_adapter.head = s_observation.initialized ? observation_head : NULL;
     s_adapter.read = s_observation.initialized ? observation_read : NULL;

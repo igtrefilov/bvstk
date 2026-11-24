@@ -129,8 +129,9 @@ TAR-поток. Это позволяет обработчику DCP2 работ
 Адаптер FatFs находится в
 `apps/freertos/storage/fs/fs_dcp2_backend.c`, POSIX — в
 `ports/neutrino-zynq7000/storage/bvstk_fs_posix.c`. Операции общего слоя
-не монтируют и не форматируют носители. Управление сеансом
-чтения по сети выполняется в [protocols/dcp2](protocols.md).
+не монтируют и не форматируют носители. Хранилище готовит временный файл
+загрузки и публикует его при подтверждении. Сетевой обмен, дескрипторы
+и повторы команд реализованы в [protocols/dcp2](protocols.md).
 
 ## services/cli и services/stream
 

@@ -47,18 +47,31 @@ state_value() {
   printf '%s' "$value"
 }
 
+fatfs_bsp_checksum() {
+  # CLEAN=0 only builds the application. The FatFs locking configuration
+  # changes FIL/DIR layout and has to match the linked BSP archive.
+  (
+    cd "$REPO_ROOT"
+    sha256sum tools/codegen/patch_ffconf_lfn.py tools/codegen/xilffs-r013b-locks.patch \
+      src/ports/freertos-xilinx/fs-fatfs/*.[ch] |
+      sha256sum | cut -d ' ' -f 1
+  )
+}
+
 write_build_state() {
-  local xsa_sha256
+  local xsa_sha256 fatfs_sha256
 
   if [[ ! -s "$XSA" ]]; then
     echo "ERROR: XSA '$XSA' is missing or empty; cannot record Vitis build state" >&2
     return 1
   fi
   xsa_sha256="$(sha256sum "$XSA" | awk '{print $1}')"
+  fatfs_sha256="$(fatfs_bsp_checksum)"
   mkdir -p "$WORKSPACE"
   {
     printf 'format=1\n'
     printf 'xsa_sha256=%s\n' "$xsa_sha256"
+    printf 'fatfs_bsp_sha256=%s\n' "$fatfs_sha256"
     printf 'ssh_enable=%s\n' "${BVSTK_SSH_ENABLE:-0}"
     printf 'lwip_lib=%s\n' "${LWIP_LIB:-}"
     printf 'wolfssl_root=%s\n' "${BVSTK_WOLFSSL_ROOT:-}"
@@ -78,6 +91,10 @@ check_build_state() {
   fi
   if [[ "$(state_value format)" != "1" ]]; then
     echo "ERROR: unsupported BVSTK Vitis workspace state format; run CLEAN=1" >&2
+    return 1
+  fi
+  if [[ "$(state_value fatfs_bsp_sha256)" != "$(fatfs_bsp_checksum)" ]]; then
+    echo "ERROR: FatFs BSP configuration changed; rebuild the workspace with CLEAN=1" >&2
     return 1
   fi
   if [[ ! -s "$XSA" ]]; then

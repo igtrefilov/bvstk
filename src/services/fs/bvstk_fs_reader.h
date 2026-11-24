@@ -81,6 +81,8 @@ typedef struct {
     uint8_t phase;
 } bvstk_fs_reader_t;
 
+/* A canonical logical path in the volume's reserved upload namespace. */
+bool bvstk_fs_upload_reserved(const char *path);
 bool bvstk_fs_utf8_decode(const uint8_t *data, size_t size, size_t *used, uint32_t *codepoint);
 bvstk_fs_result_t bvstk_fs_validate_path(const uint8_t *data, size_t size, char *out, size_t capacity);
 bvstk_fs_result_t bvstk_fs_reader_open(bvstk_fs_reader_t *reader, const bvstk_fs_backend_t *backend,

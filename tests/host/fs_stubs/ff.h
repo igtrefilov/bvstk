@@ -3,13 +3,14 @@
 /* API-only double for fs_shared policy/error propagation, NOT a FAT model.
  * Actual on-media filesystem behavior is tested on the board. */
 #include <stdint.h>
+typedef char TCHAR;
 typedef uint8_t BYTE;
 typedef unsigned UINT;
 typedef uint32_t FSIZE_t;
 typedef uint32_t DWORD;
 typedef struct { unsigned fs_type, unused, n_fatent, csize; } FATFS;
 typedef struct { FSIZE_t size; void *native; } FIL;
-typedef struct { unsigned unused; void *native; char path[512]; } DIR;
+typedef struct { struct { DWORD sclust; } obj; void *native; char path[512]; } DIR;
 typedef struct { char fname[256], altname[13]; BYTE fattrib; FSIZE_t fsize; unsigned short fdate, ftime; } FILINFO;
 typedef enum {
     FR_OK, FR_DISK_ERR, FR_INT_ERR, FR_NOT_READY, FR_NO_FILE, FR_NO_PATH,

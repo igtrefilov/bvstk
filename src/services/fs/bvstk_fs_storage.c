@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+enum { UPLOAD_SLOTS = 16 };
+
 static bvstk_fs_result_t checked(const char *path, char out[BVSTK_FS_PATH_CAPACITY], bool mutation)
 {
     size_t size = 0;
@@ -12,7 +14,9 @@ static bvstk_fs_result_t checked(const char *path, char out[BVSTK_FS_PATH_CAPACI
                                                  out, BVSTK_FS_PATH_CAPACITY);
     if (rc != BVSTK_FS_OK) return rc;
     const char *colon = strchr(out, ':');
-    return mutation && !colon[2] ? BVSTK_FS_INVALID : BVSTK_FS_OK;
+    if (mutation && !colon[2]) return BVSTK_FS_INVALID;
+    if (mutation && bvstk_fs_upload_reserved(out)) return BVSTK_FS_DENIED;
+    return BVSTK_FS_OK;
 }
 
 bvstk_fs_result_t bvstk_fs_path(const char *volume, const char *relative, char *out, size_t capacity)
@@ -152,6 +156,103 @@ static bvstk_fs_result_t finish(bvstk_fs_writer_t *w, bool sync)
 
 bvstk_fs_result_t bvstk_fs_writer_close(bvstk_fs_writer_t *w) { return finish(w, true); }
 bvstk_fs_result_t bvstk_fs_writer_abort(bvstk_fs_writer_t *w) { return finish(w, false); }
+
+bool bvstk_fs_upload_supported(const bvstk_fs_storage_t *s)
+{
+    return usable(s) && s->reader->stat && s->create && s->write && s->finish &&
+           s->remove && s->publish;
+}
+
+bvstk_fs_result_t bvstk_fs_upload_begin(bvstk_fs_upload_t *u, const bvstk_fs_storage_t *s,
+    const char *path, uint64_t size, bool overwrite)
+{
+    if (!u) return BVSTK_FS_INVALID;
+    if (u->writer.handle) return BVSTK_FS_BUSY;
+    if (!bvstk_fs_upload_supported(s)) return BVSTK_FS_UNSUPPORTED;
+    if (size > UINT32_MAX) return BVSTK_FS_RANGE;
+    memset(u, 0, sizeof(*u));
+    bvstk_fs_result_t rc = checked(path, u->destination, true);
+    if (rc != BVSTK_FS_OK) return rc;
+    bvstk_fs_info_t info;
+    void *ctx = s->reader->context;
+    rc = s->reader->stat(ctx, u->destination, &info);
+    if (rc == BVSTK_FS_OK) {
+        if (info.type != BVSTK_FS_ENTRY_FILE) return BVSTK_FS_TYPE_ERROR;
+        if (!overwrite) return BVSTK_FS_EXISTS;
+        if (info.attributes & 1U) return BVSTK_FS_DENIED;
+    } else {
+        if (rc != BVSTK_FS_NOT_FOUND) return rc;
+        /* The stage lives at the root. A missing destination directory must
+         * still fail at BEGIN, before the client streams its file. */
+        char *slash = strrchr(u->destination, '/');
+        if (slash[-1] != ':') {
+            *slash = '\0';
+            rc = s->reader->stat(ctx, u->destination, &info);
+            *slash = '/';
+            if (rc != BVSTK_FS_OK) return rc;
+            if (info.type != BVSTK_FS_ENTRY_DIR) return BVSTK_FS_TYPE_ERROR;
+        }
+    }
+
+    u->expected_size = size;
+    u->overwrite = overwrite;
+    u->writer.storage = s;
+    size_t root = (size_t)(strchr(u->destination, ':') + 2 - u->destination);
+    memcpy(u->temporary, u->destination, root);
+    for (unsigned i = 0; i < UPLOAD_SLOTS; ++i) {
+        snprintf(u->temporary + root, sizeof(u->temporary) - root, "BVU%05u.OLD", i);
+        /* Occupied slots may predate this boot. Never remove or overwrite
+         * another upload's stage or its only surviving rollback file. */
+        rc = s->reader->stat(ctx, u->temporary, &info);
+        if (rc == BVSTK_FS_OK) continue;
+        if (rc != BVSTK_FS_NOT_FOUND) return rc;
+        memcpy(u->temporary + root + 9U, "TMP", 4);
+        rc = s->reader->stat(ctx, u->temporary, &info);
+        if (rc == BVSTK_FS_OK) continue;
+        if (rc != BVSTK_FS_NOT_FOUND) return rc;
+        rc = s->create(ctx, u->temporary, false, &u->writer.handle);
+        if (rc == BVSTK_FS_EXISTS) continue;
+        if (rc != BVSTK_FS_OK) return rc;
+        return u->writer.handle ? BVSTK_FS_OK : BVSTK_FS_IO;
+    }
+    return BVSTK_FS_BUSY;
+}
+
+bvstk_fs_result_t bvstk_fs_upload_write(bvstk_fs_upload_t *u, const void *data, size_t size)
+{
+    if (!u || !u->writer.handle) return BVSTK_FS_INVALID;
+    if (u->writer.result != BVSTK_FS_OK) return u->writer.result;
+    if (size > u->expected_size - u->writer.bytes) return BVSTK_FS_RANGE;
+    return bvstk_fs_writer_write(&u->writer, data, size);
+}
+
+static bvstk_fs_result_t discard_stage(bvstk_fs_upload_t *u, bvstk_fs_result_t rc)
+{
+    const bvstk_fs_storage_t *s = u->writer.storage;
+    bvstk_fs_result_t cleanup = s->remove(s->reader->context, u->temporary);
+    return cleanup == BVSTK_FS_OK || cleanup == BVSTK_FS_NOT_FOUND ? rc : cleanup;
+}
+
+bvstk_fs_result_t bvstk_fs_upload_abort(bvstk_fs_upload_t *u)
+{
+    if (!u) return BVSTK_FS_INVALID;
+    if (!u->writer.handle) return BVSTK_FS_OK;
+    u->writer.result = BVSTK_FS_OK; /* Report the outcome of cleanup. */
+    return discard_stage(u, bvstk_fs_writer_abort(&u->writer));
+}
+
+bvstk_fs_result_t bvstk_fs_upload_commit(bvstk_fs_upload_t *u)
+{
+    if (!u || !u->writer.handle) return BVSTK_FS_INVALID;
+    if (u->writer.result == BVSTK_FS_OK && u->writer.bytes != u->expected_size)
+        u->writer.result = BVSTK_FS_RANGE;
+    bvstk_fs_result_t rc = bvstk_fs_writer_close(&u->writer);
+    bool consumed = false;
+    const bvstk_fs_storage_t *s = u->writer.storage;
+    if (rc == BVSTK_FS_OK)
+        rc = s->publish(s->reader->context, u->temporary, u->destination, u->overwrite, &consumed);
+    return consumed ? rc : discard_stage(u, rc);
+}
 
 bvstk_fs_result_t bvstk_fs_copy(const bvstk_fs_storage_t *s,
     const char *from, const char *to, uint64_t *bytes)

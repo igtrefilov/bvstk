@@ -3,6 +3,7 @@
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import socket
 import struct
@@ -56,9 +57,12 @@ class FilesystemTests(unittest.TestCase):
         cls.server.stdout.close()
         cls.temporary.cleanup()
 
-    def setUp(self):
+    def connect(self):
         self.sock = socket.create_connection(("127.0.0.1", self.port), timeout=2)
         self.client = dcp.FsClient(self.sock, 2, 0)
+
+    def setUp(self):
+        self.connect()
 
     def tearDown(self):
         self.sock.close()
@@ -67,6 +71,143 @@ class FilesystemTests(unittest.TestCase):
         with self.assertRaises(dcp.FsError) as raised:
             function(*args, **kwargs)
         self.assertEqual(raised.exception.status, status)
+
+    def mutate(self, opcode, op_id, payload=b""):
+        return self.client.request(opcode, struct.pack(">I", op_id) + payload)
+
+    def begin(self, op_id, path, size, flags=0):
+        reply = self.mutate(dcp.OP_FS_WRITE_BEGIN, op_id,
+                            struct.pack(">QB", size, flags) + self.client._path(path))
+        handle, = struct.unpack(">I", reply)
+        self.assertNotEqual(handle, 0)
+        return handle
+
+    def test_mutations_survive_lost_replies(self):
+        # Drop one complete, successful response to each mutation, after the C
+        # server executed it. The real client must resend using the same ID.
+        lost = set()
+
+        class LossyClient(dcp.FsClient):
+            def _read_frame(self, deadline):
+                frame = super()._read_frame(deadline)
+                if 0x06 <= frame.opcode <= 0x0B and frame.opcode not in lost and frame.body[:2] == bytes(2):
+                    lost.add(frame.opcode)
+                    raise socket.timeout("lost mutation reply")
+                return frame
+
+        client = LossyClient(self.sock, timeout=1, retries=1)
+        folder = "flash:/повторы"
+        source = self.root / "retry-source.bin"
+        source.write_bytes(self.binary)
+        client.mkdir(folder)
+        self.assertEqual(client.upload(source, folder + "/file", block_size=3072), len(self.binary))
+        client.rename(folder + "/file", folder + "/moved")
+        self.assertEqual(b"".join(client.stream(folder + "/moved", dcp.FS_FILE)), self.binary)
+        client.remove(folder + "/moved")
+        client.remove(folder)
+        self.assertEqual(lost, set(range(0x06, 0x0C)))
+
+    def test_mutation_identity_is_per_connection_and_exact(self):
+        path = self.client._path("flash:/replay")
+        self.assert_status(1, self.mutate, dcp.OP_FS_MKDIR, 0, path)
+        self.assertEqual(self.mutate(dcp.OP_FS_MKDIR, 41, path), b"")
+        self.assertEqual(self.client.stat("flash:/replay")["type"], "directory")
+        self.assertEqual(self.mutate(dcp.OP_FS_MKDIR, 41, path), b"")
+        self.assert_status(1, self.mutate, dcp.OP_FS_MKDIR, 41, self.client._path("flash:/different"))
+        self.assert_status(1, self.mutate, dcp.OP_FS_REMOVE, 41, path)
+        self.assert_status(0x106, self.mutate, dcp.OP_FS_MKDIR, 42, path)
+        # Error results are cached too, even if a local user changes the volume.
+        (self.root / "flash/replay").rmdir()
+        self.assert_status(0x106, self.mutate, dcp.OP_FS_MKDIR, 42, path)
+        self.assert_status(6, self.mutate, dcp.OP_FS_MKDIR, 41, path)
+        self.assertFalse((self.root / "flash/replay").exists())
+        self.assertEqual(self.mutate(dcp.OP_FS_MKDIR, 0xffffffff, path), b"")
+        self.assert_status(6, self.mutate, dcp.OP_FS_REMOVE, 1, path)
+        self.sock.close()
+        self.connect()
+        self.assertEqual(self.mutate(dcp.OP_FS_REMOVE, 1, path), b"")
+
+    def test_upload_offset_and_commit_visibility(self):
+        path = "flash:/block-target"
+        original = self.root / "flash/block-target"
+        original.write_bytes(b"original")
+        handle = self.begin(1, path, 6, 1)
+        self.assertEqual(self.begin(1, path, 6, 1), handle)
+        self.assert_status(1, self.begin, 1, path, 7, 1)
+        self.assert_status(4, self.begin, 2, "flash:/other-upload", 0)
+        block = struct.pack(">IQ", handle, 0) + b"abc"
+        self.assertEqual(self.mutate(dcp.OP_FS_WRITE_BLOCK, 3, block), struct.pack(">Q", 3))
+        self.assertEqual(self.mutate(dcp.OP_FS_WRITE_BLOCK, 3, block), struct.pack(">Q", 3))
+        self.assert_status(1, self.mutate, dcp.OP_FS_WRITE_BLOCK, 3, block[:-1] + b"X")
+        self.assert_status(6, self.mutate, dcp.OP_FS_WRITE_BLOCK, 4, block)
+        self.assert_status(6, self.mutate, dcp.OP_FS_WRITE_BLOCK, 5, struct.pack(">IQ", handle, 4) + b"d")
+        self.assertEqual(b"".join(self.client.stream(path, dcp.FS_FILE)), b"original")
+        self.assertEqual(self.mutate(dcp.OP_FS_WRITE_BLOCK, 6, struct.pack(">IQ", handle, 3) + b"def"),
+                         struct.pack(">Q", 6))
+        final = struct.pack(">I", handle)
+        self.assertEqual(self.mutate(dcp.OP_FS_WRITE_COMMIT, 7, final), b"")
+        self.assertEqual(original.read_bytes(), b"abcdef")
+        original.write_bytes(b"later edit")
+        self.assertEqual(self.mutate(dcp.OP_FS_WRITE_COMMIT, 7, final), b"")
+        self.assertEqual(original.read_bytes(), b"later edit")
+        self.assert_status(0x102, self.mutate, dcp.OP_FS_WRITE_COMMIT, 8, final)
+
+    def test_abort_and_disconnect_discard_staged_data(self):
+        folder = self.root / "flash/cancel"
+        folder.mkdir()
+        target = folder / "existing"
+        target.write_bytes(b"initial")
+        path = "flash:/cancel/existing"
+        before = set((self.root / "flash").rglob("*"))
+        for first_id, disconnect in ((1, False), (4, True)):
+            handle = self.begin(first_id, path, 100, 1)
+            self.mutate(dcp.OP_FS_WRITE_BLOCK, first_id + 1,
+                        struct.pack(">IQ", handle, 0) + b"some data")
+            if disconnect:
+                self.sock.close()
+                self.connect()
+                # A response on a new connection confirms teardown has run.
+                self.assertEqual(self.client.stat(path)["size"], len(b"initial"))
+            else:
+                body = struct.pack(">I", handle)
+                self.assertEqual(self.mutate(dcp.OP_FS_WRITE_ABORT, 3, body), b"")
+                self.assertEqual(self.mutate(dcp.OP_FS_WRITE_ABORT, 3, body), b"")
+            self.assertEqual(set((self.root / "flash").rglob("*")), before)
+            self.assertEqual(target.read_bytes(), b"initial")
+
+    def test_create_only_rechecks_destination_at_commit(self):
+        path = "flash:/racing-writer"
+        target = self.root / "flash/racing-writer"
+        handle = self.begin(1, path, 0)
+        self.assertFalse(target.exists())
+        target.write_bytes(b"created after begin")
+        final = struct.pack(">I", handle)
+        self.assert_status(0x106, self.mutate, dcp.OP_FS_WRITE_COMMIT, 2, final)
+        target.unlink()
+        self.assert_status(0x106, self.mutate, dcp.OP_FS_WRITE_COMMIT, 2, final)
+        self.assertFalse(target.exists())
+        handle = self.begin(3, path, 0)
+        self.assertEqual(self.mutate(dcp.OP_FS_WRITE_COMMIT, 4, struct.pack(">I", handle)), b"")
+        self.assertEqual(target.read_bytes(), b"")
+
+    def test_mutation_limits_and_paths(self):
+        self.assertEqual(self.client.info()["capabilities"] & 0x3ff, 0x3ff)
+        self.assertEqual(struct.unpack(">QHHI", self.client.request(dcp.OP_FS_WRITE_INFO)),
+                         (0xffffffff, 3072, 1, 30000))
+        self.assert_status(1, self.client.request, dcp.OP_FS_WRITE_INFO, b"x")
+        self.assert_status(1, self.begin, 1, "flash:/bad-flag", 0, 2)
+        self.assert_status(6, self.begin, 2, "flash:/too-large", 1 << 32)
+        self.assert_status(1, self.mutate, dcp.OP_FS_REMOVE, 3, self.client._path("flash:/"))
+        self.assert_status(1, self.mutate, dcp.OP_FS_MKDIR, 4, self.client._path("flash:/../x"))
+        self.assert_status(1, self.mutate, dcp.OP_FS_RENAME, 5,
+                           self.client._path("flash:/file.bin") + self.client._path("sd:/cross-volume"))
+        self.assert_status(3, self.mutate, dcp.OP_FS_REMOVE, 6, self.client._path("flash:/config"))
+        self.assert_status(0x101, self.begin, 7, "sd-pl:/unavailable", 0)
+        handle = self.begin(8, "flash:/too-much-data", 4000)
+        prefix = struct.pack(">IQ", handle, 0)
+        self.assert_status(6, self.mutate, dcp.OP_FS_WRITE_BLOCK, 9, prefix + bytes(3073))
+        self.assert_status(6, self.mutate, dcp.OP_FS_WRITE_COMMIT, 10, struct.pack(">I", handle))
+        self.assertFalse((self.root / "flash/too-much-data").exists())
 
     def test_info_and_stat(self):
         info = self.client.info()
@@ -187,8 +328,7 @@ class FilesystemTests(unittest.TestCase):
         handle, block, _ = self.client.open("flash:/config", dcp.FS_TREE, True, 5)
         self.client.read_block(handle, 0, block)
         self.sock.close()
-        self.sock = socket.create_connection(("127.0.0.1", self.port), timeout=2)
-        self.client = dcp.FsClient(self.sock, 2, 0)
+        self.connect()
         self.assertEqual(b"".join(self.client.stream("sd:/readme.txt", dcp.FS_FILE)), b"second volume\n")
 
     def test_monitor_cli_info_list_read_tar_and_failed_output(self):
@@ -212,7 +352,94 @@ class FilesystemTests(unittest.TestCase):
             self.assertEqual(archive.extractfile("readme.txt").read(), b"second volume\n")
 
 
+    def test_monitor_cli_edits_files_and_directories(self):
+        self.sock.close()
+        directory = "flash:/cli-правки"
+        remote = directory + "/data.bin"
+        renamed = directory + "/new.bin"
+        source = self.root / "cli-source.bin"
+        base = [sys.executable, str(CLIENT), "127.0.0.1", "--port", str(self.port), "--fs-retries", "0"]
+
+        def cli(*args, expected=0):
+            result = subprocess.run(base + list(args), capture_output=True, timeout=10)
+            self.assertEqual(result.returncode, expected, result.stderr.decode())
+            return result
+
+        limits = json.loads(cli("--fs-write-info").stdout)
+        self.assertEqual((limits["max_file_size"], limits["max_block_size"]), (0xFFFFFFFF, 3072))
+        cli("--fs-mkdir", directory)
+        source.write_bytes(b"")
+        cli("--fs-upload", str(source), remote)
+        self.assertEqual(json.loads(cli("--fs-stat", remote).stdout)["size"], 0)
+
+        source.write_bytes(self.binary)
+        cli("--fs-upload", str(source), remote, expected=1)
+        self.assertEqual(cli("--fs-read", remote).stdout, b"")
+        cli("--fs-upload", str(source), remote, "--overwrite", "--fs-block-size", "1024")
+        self.assertEqual(cli("--fs-read", remote).stdout, self.binary)
+        cli("--fs-upload", str(self.root / "missing-source.bin"), remote, "--overwrite", expected=1)
+        fifo = self.root / "cli-source.fifo"
+        os.mkfifo(fifo)
+        cli("--fs-upload", str(fifo), remote, "--overwrite", expected=1)
+        cli("--fs-rename", remote, renamed)
+        self.assertEqual([json.loads(line)["path"] for line in cli("--fs-list", directory).stdout.splitlines()],
+                         ["new.bin"])
+        cli("--fs-remove", directory, expected=1)
+        self.assertEqual(cli("--fs-read", renamed).stdout, self.binary)
+        cli("--fs-remove", renamed)
+        cli("--fs-remove", directory)
+        self.assertFalse((self.root / "flash/cli-правки").exists())
+
+    def test_cli_reports_unknown_outcome_on_disconnect_after_commit(self):
+        source = self.root / "cli-commit-source.bin"
+        source.write_bytes(b"already committed")
+        remote = "flash:/cli-commit.bin"
+        # Relay the CLI to the real handler until the successful COMMIT reply,
+        # then close its connection before the acknowledgement reaches it.
+        with socket.socket() as listener:
+            listener.bind(("127.0.0.1", 0))
+            listener.listen()
+            listener.settimeout(5)
+            command = [sys.executable, str(CLIENT), "127.0.0.1", "--port", str(listener.getsockname()[1]),
+                       "--timeout", "1", "--fs-upload", str(source), remote]
+            with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+                downstream, _ = listener.accept()
+                with downstream:
+                    downstream.settimeout(5)
+                    while True:
+                        request = dcp.read_frame(downstream)
+                        self.sock.sendall(dcp.build_frame(request.srv, request.op, request.seq, request.body))
+                        response = dcp.read_frame(self.sock)
+                        if request.opcode == dcp.OP_FS_WRITE_COMMIT:
+                            self.assertEqual(dcp.parse_status_from_response(response), 0)
+                            break
+                        downstream.sendall(dcp.build_frame(response.srv, response.op, response.seq, response.body))
+                _, error = process.communicate(timeout=5)
+            self.assertEqual(process.returncode, 1)
+            self.assertIn("outcome unknown", error.decode().lower())
+            listener.setblocking(False)
+            with self.assertRaises(BlockingIOError):
+                listener.accept()
+        self.assertEqual((self.root / "flash/cli-commit.bin").read_bytes(), source.read_bytes())
+
+
 class RetryTests(unittest.TestCase):
+    def test_readonly_v1_client_negotiation(self):
+        class ReadOnlyClient(dcp.FsClient):
+            def request(self, opcode, body=b"", **kwargs):
+                if opcode != dcp.OP_FS_INFO or body:
+                    raise AssertionError("unexpected request to the read-only device")
+                return struct.pack(">HIHHHHIH", 1, 0x3F, 3072, 511, 16, 2, 30000, 0)
+
+        with socket.socket() as sock:
+            client = ReadOnlyClient(sock)
+            for operation in (lambda: client.mkdir("flash:/dir"), client.write_info,
+                              lambda: client.remove("flash:/file"), lambda: client.rename("sd:/a", "sd:/b"),
+                              lambda: client.upload("source.bin", "sd:/file")):
+                with self.assertRaises(dcp.FsError) as error:
+                    operation()
+                self.assertEqual(error.exception.status, 2)
+
     def test_partial_late_response_is_preserved_across_retry(self):
         client_sock, server_sock = socket.socketpair()
         errors = []

@@ -151,6 +151,7 @@ static bvstk_fs_result_t file_open(void *context, const char *path, void **out, 
     struct stat info;
     if (!out || !size) return BVSTK_FS_INVALID;
     *out = NULL;
+    if (bvstk_fs_upload_reserved(path)) return BVSTK_FS_DENIED;
     pthread_mutex_lock(&p->mutex);
     bvstk_fs_result_t rc = resolve(p, path, native, false, false);
     native_file_t *file = NULL;
@@ -273,7 +274,8 @@ static bvstk_fs_result_t create(void *context, const char *path, bool overwrite,
     if (rc == BVSTK_FS_OK && !lstat(native, &info) && !S_ISREG(info.st_mode)) rc = BVSTK_FS_TYPE_ERROR;
     if (rc == BVSTK_FS_OK && !(file = malloc(sizeof(*file)))) rc = BVSTK_FS_BUSY;
     if (rc == BVSTK_FS_OK) {
-        file->fd = open(native, open_flags(O_WRONLY | O_CREAT | (overwrite ? O_TRUNC : O_EXCL)), 0644);
+        mode_t mode = bvstk_fs_upload_reserved(path) ? 0600 : 0644;
+        file->fd = open(native, open_flags(O_WRONLY | O_CREAT | (overwrite ? O_TRUNC : O_EXCL)), mode);
         if (file->fd < 0) rc = error_result(errno);
     }
     if (rc == BVSTK_FS_OK) { *out = file; ++p->files; }
@@ -359,6 +361,37 @@ static bvstk_fs_result_t remove_path(void *context, const char *path)
     return rc;
 }
 
+/* POSIX rename() replaces an existing name. Reserve an absent name with an
+ * exclusive create so other processes can race to create it safely too. */
+static bvstk_fs_result_t rename_to_free_path(const char *source, const char *dest, bool directory)
+{
+    struct stat reservation, current;
+    bvstk_fs_result_t rc = BVSTK_FS_OK;
+    bool identified;
+    if (directory) {
+        if (mkdir(dest, 0700)) return error_result(errno);
+        identified = !lstat(dest, &reservation);
+        if (!identified) rc = error_result(errno);
+    } else {
+        int fd = open(dest, open_flags(O_WRONLY | O_CREAT | O_EXCL), 0600);
+        if (fd < 0) return error_result(errno);
+        identified = !fstat(fd, &reservation);
+        if (!identified) rc = error_result(errno);
+        if (close(fd) && rc == BVSTK_FS_OK) rc = error_result(errno);
+    }
+    if (rc == BVSTK_FS_OK) {
+        if (!rename(source, dest)) return BVSTK_FS_OK;
+        rc = error_result(errno);
+    }
+    if (identified && !lstat(dest, &current) && current.st_dev == reservation.st_dev &&
+        current.st_ino == reservation.st_ino) {
+        if (directory && S_ISDIR(current.st_mode) && rmdir(dest)) return error_result(errno);
+        if (!directory && S_ISREG(current.st_mode) && !current.st_size && unlink(dest))
+            return error_result(errno);
+    }
+    return rc;
+}
+
 static bvstk_fs_result_t rename_path(void *context, const char *from, const char *to)
 {
     bvstk_fs_posix_t *p = context;
@@ -368,9 +401,9 @@ static bvstk_fs_result_t rename_path(void *context, const char *from, const char
     bvstk_fs_result_t rc = resolve(p, from, a, true, false);
     if (rc == BVSTK_FS_OK) rc = resolve(p, to, b, true, true);
     if (rc == BVSTK_FS_OK) {
-        if (!lstat(b, &info)) rc = BVSTK_FS_EXISTS;
-        else if (errno != ENOENT) rc = error_result(errno);
-        else if (rename(a, b)) rc = error_result(errno);
+        if (lstat(a, &info)) rc = error_result(errno);
+        else if (!S_ISREG(info.st_mode) && !S_ISDIR(info.st_mode)) rc = BVSTK_FS_TYPE_ERROR;
+        else rc = rename_to_free_path(a, b, S_ISDIR(info.st_mode));
     }
     pthread_mutex_unlock(&p->mutex);
     return rc;
@@ -435,6 +468,73 @@ static bvstk_fs_result_t install(void *context, const char *temporary, const cha
     return rc;
 }
 
+/* The staged inode replaces the old inode. Preserve ordinary access rights
+ * and ownership, without carrying executable privilege bits into new data. */
+static bvstk_fs_result_t preserve_access(const char *source, const struct stat *destination)
+{
+    struct stat stage;
+    int fd = open(source, open_flags(O_RDONLY));
+    if (fd < 0) return error_result(errno);
+    bvstk_fs_result_t rc = BVSTK_FS_OK;
+    if (fstat(fd, &stage)) rc = error_result(errno);
+    else if (!S_ISREG(stage.st_mode)) rc = BVSTK_FS_TYPE_ERROR;
+    else {
+        mode_t mode = destination->st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
+        if ((stage.st_uid != destination->st_uid || stage.st_gid != destination->st_gid) &&
+            fchown(fd, destination->st_uid, destination->st_gid)) rc = error_result(errno);
+        if (rc == BVSTK_FS_OK && (stage.st_mode & 07777) != mode && fchmod(fd, mode))
+            rc = error_result(errno);
+    }
+    if (close(fd) && rc == BVSTK_FS_OK) rc = error_result(errno);
+    return rc;
+}
+
+/* FAT has no hard links. O_EXCL arbitrates creation even with a native
+ * process outside this adapter. A native reader may see an empty reservation
+ * for the duration of the final rename. */
+static bvstk_fs_result_t publish_new(const char *source, const char *dest, bool *consumed)
+{
+    if (!link(source, dest)) {
+        if (unlink(source)) return error_result(errno);
+        *consumed = true;
+        return BVSTK_FS_OK;
+    }
+    /* Neutrino fs-dos returns EXDEV for link() on the same FAT volume.
+     * A genuine mount boundary is still rejected by the subsequent rename. */
+    if (errno != ENOTSUP && errno != EOPNOTSUPP && errno != ENOSYS && errno != EPERM && errno != EXDEV)
+        return error_result(errno);
+
+    bvstk_fs_result_t rc = rename_to_free_path(source, dest, false);
+    *consumed = rc == BVSTK_FS_OK;
+    return rc;
+}
+
+static bvstk_fs_result_t publish(void *context, const char *temporary, const char *path,
+                                bool overwrite, bool *consumed)
+{
+    bvstk_fs_posix_t *p = context;
+    char source[BVSTK_FS_PATH_CAPACITY], dest[BVSTK_FS_PATH_CAPACITY];
+    struct stat info;
+    *consumed = false;
+    pthread_mutex_lock(&p->mutex);
+    bvstk_fs_result_t rc = resolve(p, temporary, source, true, false);
+    if (rc == BVSTK_FS_OK) rc = resolve(p, path, dest, true, true);
+    if (rc == BVSTK_FS_OK && !overwrite) rc = publish_new(source, dest, consumed);
+    else if (rc == BVSTK_FS_OK) {
+        if (!lstat(dest, &info)) {
+            if (!S_ISREG(info.st_mode)) rc = BVSTK_FS_TYPE_ERROR;
+            else if (!(info.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH))) rc = BVSTK_FS_DENIED;
+            else rc = preserve_access(source, &info);
+        } else if (errno != ENOENT) rc = error_result(errno);
+        if (rc == BVSTK_FS_OK) {
+            rc = rename(source, dest) ? error_result(errno) : BVSTK_FS_OK;
+            *consumed = rc == BVSTK_FS_OK;
+        }
+    }
+    pthread_mutex_unlock(&p->mutex);
+    return rc;
+}
+
 bvstk_fs_result_t bvstk_fs_posix_init(bvstk_fs_posix_t *p, const bvstk_fs_posix_volume_t *volumes, size_t count)
 {
     if (!p || !volumes || !count || count > BVSTK_FS_POSIX_VOLUMES_MAX) return BVSTK_FS_INVALID;
@@ -464,7 +564,7 @@ bvstk_fs_result_t bvstk_fs_posix_init(bvstk_fs_posix_t *p, const bvstk_fs_posix_
     p->reader = (bvstk_fs_backend_t){p, volume_count, volume, stat_path, file_open,
         file_read, file_close, dir_open, dir_read, dir_close};
     p->storage = (bvstk_fs_storage_t){&p->reader, create, write_file, finish_file,
-        make_dir, remove_path, rename_path, install, append_file};
+        make_dir, remove_path, rename_path, install, append_file, publish};
     p->initialized = true;
     return BVSTK_FS_OK;
 }

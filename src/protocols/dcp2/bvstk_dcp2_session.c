@@ -440,7 +440,8 @@ void bvstk_dcp2_session_init(bvstk_dcp2_session_t *s, const bvstk_dcp2_adapter_t
     s->adapter = a; s->send = send; s->send_context = context;
     bvstk_dcp2_policy_init(&s->policy);
     bvstk_dcp2_cache_init(&s->cache, a->cache);
-    bvstk_dcp2_fs_init(&s->files, a->files);
+    bvstk_dcp2_fs_init(&s->files, a->storage ? a->storage->reader : a->files);
+    s->files.storage = a->storage;
 }
 void bvstk_dcp2_session_destroy(bvstk_dcp2_session_t *s)
 {
@@ -485,7 +486,7 @@ int bvstk_dcp2_session_frame(bvstk_dcp2_session_t *s, const uint8_t *frame,
         return dcp2_handle_stream_ctl(s, &s->state, srv, opcode, seq, request.body, request.body_size);
     uint16_t size = 0, status;
     if (srv == BVSTK_DCP2_SERVICE_FS) {
-        status = s->adapter->files ? bvstk_dcp2_fs_request(&s->files, opcode,
+        status = s->files.backend ? bvstk_dcp2_fs_request(&s->files, opcode,
             request.body, request.body_size, (uint32_t)now, s->body, sizeof(s->body) - 6U, &size) :
             DCP2_STATUS_ERR_UNSUPPORTED;
     } else if (srv == BVSTK_DCP2_SERVICE_CACHE) {

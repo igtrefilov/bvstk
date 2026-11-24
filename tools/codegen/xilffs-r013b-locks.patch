@@ -1,0 +1,119 @@
+--- a/ff.c
++++ b/ff.c
+@@ -1045,6 +1045,30 @@
+ }
+ 
+ 
++/* A caller releases FIL/DIR storage after close, including on failed writes.
++ * Drop the in-memory entry even when a failed sync or an offline medium makes
++ * validate() fail. A remount already discarded the previous generation. */
++static FRESULT close_object_lock (FFOBJID* obj)
++{
++	FATFS* fs = obj ? obj->fs : 0;
++	FRESULT res = FR_INVALID_OBJECT;
++
++	if (!fs) return res;
++#if FF_FS_REENTRANT
++	/* Only disposal must wait for ownership; ordinary I/O keeps its timeout. */
++	while (!lock_fs(fs)) {}
++#endif
++	if (fs->fs_type && fs->id == obj->id) {
++		res = obj->lockid ? dec_lock(obj->lockid) : FR_OK;
++	}
++	obj->fs = 0;
++#if FF_FS_REENTRANT
++	unlock_fs(fs, FR_OK);
++#endif
++	return res;
++}
++
++
+ static void clear_lock (	/* Clear lock entries of the volume */
+ 	FATFS *fs
+ )
+@@ -4054,6 +4078,13 @@
+ 	FIL* fp		/* Pointer to the file object to be closed */
+ )
+ {
++#if FF_FS_LOCK != 0
++	FRESULT sync_result, close_result;
++	if (!fp) return FR_INVALID_OBJECT;
++	sync_result = f_sync(fp);
++	close_result = close_object_lock(&fp->obj);
++	return sync_result != FR_OK ? sync_result : close_result;
++#else
+ 	FRESULT res = FR_DISK_ERR;
+ 	FATFS *fs;
+ 
+@@ -4064,18 +4095,14 @@
+ 	{
+ 		res = validate(&fp->obj, &fs);	/* Lock volume */
+ 		if (res == FR_OK) {
+-#if FF_FS_LOCK != 0
+-			res = dec_lock(fp->obj.lockid);		/* Decrement file open counter */
+-			if (res == FR_OK) fp->obj.fs = 0;	/* Invalidate file object */
+-#else
+ 			fp->obj.fs = 0;	/* Invalidate file object */
+-#endif
+ #if FF_FS_REENTRANT
+ 			unlock_fs(fs, FR_OK);		/* Unlock volume */
+ #endif
+ 		}
+ 	}
+ 	return res;
++#endif
+ }
+ 
+ 
+@@ -4445,6 +4472,14 @@
+ 		INIT_NAMBUF(fs);
+ 		res = follow_path(dp, path);			/* Follow the path to the directory */
+ 		if (res == FR_OK) {						/* Follow completed */
++#if FF_FS_LOCK != 0
++			/* follow_path identifies the entry in its parent. Moving to the
++			 * child and rewinding it below changes both parts of that key. */
++			DIR entry;
++			entry.obj.fs = fs;
++			entry.obj.sclust = dp->obj.sclust;
++			entry.dptr = dp->dptr;
++#endif
+ 			if (!(dp->fn[NSFLAG] & NS_NONAME)) {	/* It is not the origin directory itself */
+ 				if (dp->obj.attr & AM_DIR) {		/* This object is a sub-directory */
+ #if FF_FS_EXFAT
+@@ -4468,7 +4503,7 @@
+ #if FF_FS_LOCK != 0
+ 				if (res == FR_OK) {
+ 					if (dp->obj.sclust != 0) {
+-						dp->obj.lockid = inc_lock(dp, 0);	/* Lock the sub directory */
++						dp->obj.lockid = inc_lock(&entry, 0);	/* Lock the sub directory */
+ 						if (!dp->obj.lockid) res = FR_TOO_MANY_OPEN_FILES;
+ 					} else {
+ 						dp->obj.lockid = 0;	/* Root directory need not to be locked */
+@@ -4496,23 +4531,22 @@
+ 	DIR *dp		/* Pointer to the directory object to be closed */
+ )
+ {
++#if FF_FS_LOCK != 0
++	return close_object_lock(dp ? &dp->obj : 0);
++#else
+ 	FRESULT res = FR_DISK_ERR;
+ 	FATFS *fs;
+ 
+ 
+ 	res = validate(&dp->obj, &fs);	/* Check validity of the file object */
+ 	if (res == FR_OK) {
+-#if FF_FS_LOCK != 0
+-		if (dp->obj.lockid) res = dec_lock(dp->obj.lockid);	/* Decrement sub-directory open counter */
+-		if (res == FR_OK) dp->obj.fs = 0;	/* Invalidate directory object */
+-#else
+ 		dp->obj.fs = 0;	/* Invalidate directory object */
+-#endif
+ #if FF_FS_REENTRANT
+ 		unlock_fs(fs, FR_OK);		/* Unlock volume */
+ #endif
+ 	}
+ 	return res;
++#endif
+ }
+ 
+ 

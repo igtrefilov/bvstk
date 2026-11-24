@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "apps/freertos/storage/fs/fs_shared.h"
+#include "ports/freertos-xilinx/fs-fatfs/bvstk_fatfs.h"
 
 static FRESULT mount_result, close_result, write_result;
 static unsigned mounts, formats, opens, closes, truncates, seeks, writes;
@@ -16,7 +17,7 @@ int xSemaphoreTake(SemaphoreHandle_t sem, unsigned ticks)
 int xSemaphoreGive(SemaphoreHandle_t sem) { assert(sem && locked); locked = 0; return pdTRUE; }
 static int media_ready(void) { return media_ok; }
 
-FRESULT f_mount(FATFS *fs, const char *path, BYTE immediate)
+FRESULT bvstk_fatfs_mount(FATFS *fs, const TCHAR *path, BYTE immediate)
 {
     assert(locked && path);
     if (!fs) { assert(!immediate); return FR_OK; }

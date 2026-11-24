@@ -21,6 +21,11 @@ typedef struct {
     bvstk_fs_result_t (*install)(void *, const char *, const char *, const char *);
     /* Optional append-open; creates a missing file, never truncates it. */
     bvstk_fs_result_t (*append)(void *, const char *, void **);
+    /* Publish a closed upload. Check create-only/replace under the backend
+     * lock. Set consumed once the staging name is gone, even on a subsequent
+     * cleanup error. An unconsumed name still belongs to the caller. */
+    bvstk_fs_result_t (*publish)(void *, const char *temporary, const char *path,
+                                 bool overwrite, bool *consumed);
 } bvstk_fs_storage_t;
 
 typedef struct {
@@ -29,6 +34,24 @@ typedef struct {
     uint64_t bytes;
     bvstk_fs_result_t result;
 } bvstk_fs_writer_t;
+
+typedef struct {
+    bvstk_fs_writer_t writer;
+    uint64_t expected_size;
+    char destination[BVSTK_FS_PATH_CAPACITY];
+    char temporary[32]; /* volume name (15 bytes), ":/", 8.3 filename, NUL */
+    bool overwrite;
+} bvstk_fs_upload_t;
+
+bool bvstk_fs_upload_supported(const bvstk_fs_storage_t *);
+/* Initialize the upload to zero before its first begin. Keep the destination
+ * intact until commit. Both commit (including failure) and abort end the
+ * transaction. Size mismatches never publish a partial file. */
+bvstk_fs_result_t bvstk_fs_upload_begin(bvstk_fs_upload_t *,
+    const bvstk_fs_storage_t *, const char *path, uint64_t size, bool overwrite);
+bvstk_fs_result_t bvstk_fs_upload_write(bvstk_fs_upload_t *, const void *, size_t);
+bvstk_fs_result_t bvstk_fs_upload_commit(bvstk_fs_upload_t *);
+bvstk_fs_result_t bvstk_fs_upload_abort(bvstk_fs_upload_t *);
 
 bvstk_fs_result_t bvstk_fs_path(const char *volume, const char *relative,
                                char *out, size_t capacity);

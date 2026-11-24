@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <svg xmlns="http://www.w3.org/2000/svg" width="2000" viewBox="0 20 2000 1758" role="img" aria-labelledby="title desc" height="1758">
   <title id="title">Внешний клиент DCP2 и части BVSTK</title>
-  <desc id="desc">Клиент подключается через Ethernet и TCP к серверу L4. Команды устройств проходят через сервисы L3, MEM обращается к разрешённым аппаратным адресам через L1. FS читает файлы. Сервер возвращает результаты и события. Драйверы и порты ОС опущены.</desc>
+  <desc id="desc">Клиент подключается через Ethernet и TCP к серверу L4. Команды устройств проходят через сервисы L3, MEM обращается к разрешённым аппаратным адресам через L1. FS читает и изменяет файлы. Сервер возвращает результаты и события. Драйверы и порты ОС опущены.</desc>
   <defs>
     <style>
 text { font-family: "DejaVu Sans", sans-serif; fill: #233747; }
@@ -95,9 +95,9 @@ g:target &gt; rect { stroke-width: 5; }
       <path d="M915,1225 L1100,1225" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
       <path d="M915,1225 L1100,1225" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
     </g>
-    <g data-kind="interaction" data-from="files" data-to="fs" data-interaction="data" data-direction="forward">
+    <g data-kind="interaction" data-from="files" data-to="fs" data-interaction="data" data-direction="both">
       <path d="M1785,1160 L1785,715" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
-      <path d="M1785,1160 L1785,715" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-source)" marker-end="url(#data-arrow)" />
+      <path d="M1785,1160 L1785,715" fill="none" stroke="#3f75ad" stroke-width="3.4" stroke-linejoin="round" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)" />
     </g>
     <g data-kind="interaction" data-from="cores" data-to="device" data-interaction="data" data-direction="both">
       <path d="M1270,1280 L1270,1460" fill="none" stroke="white" stroke-width="11" stroke-linejoin="round" data-kind="crossing-clearance" />
@@ -180,7 +180,7 @@ g:target &gt; rect { stroke-width: 5; }
     <text x="440" y="258.0" font-size="20" font-weight="400" text-anchor="middle" style="fill:#c65b4e">События</text>
     <text x="843" y="470.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#788794">MEM</text>
     <text x="1847" y="470.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#788794">FS</text>
-    <text x="1860" y="970.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Чтение</text>
+    <text x="1890" y="970.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Чтение / запись</text>
     <text x="1350" y="1403.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Шина</text>
     <path d="M60,1632 h65" fill="none" stroke="#788794" stroke-width="3" marker-end="url(#call-arrow)" />
     <text x="142" y="1638.0" font-size="18" font-weight="400" text-anchor="start" style="fill:#576c7b">Вызов</text>

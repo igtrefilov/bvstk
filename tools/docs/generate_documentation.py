@@ -237,7 +237,7 @@ def dcp2():
               "src/protocols/dcp2/bvstk_dcp2_fs.c"],width=2000)
     p.subtitle = ("Клиент подключается через Ethernet и TCP к серверу L4. "
                   "Команды устройств проходят через сервисы L3, MEM обращается "
-                  "к разрешённым аппаратным адресам через L1. FS читает файлы. "
+                  "к разрешённым аппаратным адресам через L1. FS читает и изменяет файлы. "
                   "Сервер возвращает результаты и события. Драйверы и порты ОС опущены.")
     p.root.find(f"{{{NS}}}desc").text=p.subtitle
     p.frame("bvstk",500,60,1460,1310,"BVSTK",None)
@@ -275,8 +275,8 @@ def dcp2():
     p.path("mem","registers",((770,715),(770,1170)),"mmio")
     p.path("services","cores",((1270,905),(1270,1170)),"data",bidirectional=True)
     p.path("registers","cores",((915,1225),(1100,1225)),"data",bidirectional=True)
-    p.path("files","fs",((1785,1160),(1785,715)),"data")
-    p.text(p.notes,1860,970,"Чтение",24,color=ARROWS["data"][0],anchor="middle")
+    p.path("files","fs",((1785,1160),(1785,715)),"data",bidirectional=True)
+    p.text(p.notes,1890,970,"Чтение / запись",24,color=ARROWS["data"][0],anchor="middle")
     p.path("cores","device",((1270,1280),(1270,1460)),"data",bidirectional=True)
     p.text(p.notes,1350,1403,"Шина",24,color=ARROWS["data"][0],anchor="middle")
     p.legend_note="Лист — сохранённые файлы. Слева показана программа вне BVSTK."

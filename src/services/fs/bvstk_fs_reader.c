@@ -36,6 +36,30 @@ bool bvstk_fs_utf8_decode(const uint8_t *data, size_t size, size_t *used, uint32
     return true;
 }
 
+static bool ascii_matches(const char *s, const char *uppercase, size_t n)
+{
+    for (size_t i = 0; i < n; ++i) {
+        char c = s[i];
+        if (c >= 'a' && c <= 'z') c = (char)(c - 'a' + 'A');
+        if (c != uppercase[i]) return false;
+    }
+    return true;
+}
+
+/* A fixed 8.3 spelling avoids additional short-name aliases on FAT. Keeping
+ * the stage in the volume root also survives renames of the target's parent. */
+bool bvstk_fs_upload_reserved(const char *path)
+{
+    const char *colon = path ? strchr(path, ':') : NULL;
+    if (!colon || colon[1] != '/') return false;
+    const char *relative = colon + 2;
+    if (strcspn(relative, "/") != 12 || !ascii_matches(relative, "BVU000", 6) ||
+        relative[6] < '0' || relative[6] > '1' ||
+        relative[7] < '0' || relative[7] > '9' ||
+        (relative[6] == '1' && relative[7] > '5')) return false;
+    return ascii_matches(relative + 8, ".TMP", 4) || ascii_matches(relative + 8, ".OLD", 4);
+}
+
 static bool valid_component(const char *name, size_t length)
 {
     size_t pos = 0, used;
@@ -111,6 +135,7 @@ bvstk_fs_result_t bvstk_fs_reader_open(bvstk_fs_reader_t *r, const bvstk_fs_back
     size_t length;
     if (!r || !backend || !path) return BVSTK_FS_INVALID;
     memset(r, 0, sizeof(*r));
+    if (bvstk_fs_upload_reserved(path)) return BVSTK_FS_DENIED;
     r->backend = backend;
     r->kind = kind; r->flags = flags;
     length = strlen(path);
@@ -162,6 +187,7 @@ static bvstk_fs_result_t next_entry(bvstk_fs_reader_t *r, bool *done)
         }
         if (parent + length >= sizeof(r->path)) return BVSTK_FS_RANGE;
         memcpy(r->path + parent, name, length + 1);
+        if (bvstk_fs_upload_reserved(r->path)) continue;
         if (r->info.type == BVSTK_FS_ENTRY_DIR &&
             (r->kind == BVSTK_FS_TAR || (r->flags & BVSTK_FS_RECURSIVE))) {
             if (r->depth == BVSTK_FS_MAX_DEPTH) return BVSTK_FS_RANGE;

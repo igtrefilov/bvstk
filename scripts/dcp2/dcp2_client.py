@@ -6,13 +6,14 @@ import json
 import os
 import signal
 import socket
+import stat
 import struct
 import sys
 import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
 
 
 MAGIC = b"DCP2"
@@ -33,6 +34,10 @@ POLICY_VERSION = 1
 OP_CACHE_GET, OP_CACHE_SUBSCRIBE, OP_CACHE_UNSUBSCRIBE = 0x20, 0x21, 0x22
 
 OP_FS_INFO, OP_FS_STAT, OP_FS_OPEN, OP_FS_READ, OP_FS_CLOSE = range(5)
+(OP_FS_WRITE_INFO, OP_FS_MKDIR, OP_FS_REMOVE, OP_FS_RENAME, OP_FS_WRITE_BEGIN,
+ OP_FS_WRITE_BLOCK, OP_FS_WRITE_COMMIT, OP_FS_WRITE_ABORT) = range(5, 13)
+FS_CAP_MKDIR, FS_CAP_REMOVE, FS_CAP_RENAME, FS_CAP_UPLOAD = (1 << bit for bit in range(6, 10))
+FS_MUTATION_CAPS = FS_CAP_MKDIR | FS_CAP_REMOVE | FS_CAP_RENAME | FS_CAP_UPLOAD
 FS_FILE, FS_TREE, FS_TAR = 1, 2, 3
 FS_RECURSIVE = 1
 FS_UNKNOWN_SIZE = (1 << 64) - 1
@@ -98,6 +103,7 @@ STATUS_NAMES: Dict[int, str] = {
     0x0103: "ERR_FS_TYPE",
     0x0104: "ERR_FS_IO",
     0x0105: "ERR_FS_CHANGED",
+    0x0106: "ERR_FS_EXISTS",
     0x0200: "ERR_CACHE_NOT_FOUND",
     0x0201: "ERR_CACHE_STALE_SNAPSHOT",
     0x0301: "ERR_POLICY_STALE_SNAPSHOT",
@@ -1013,11 +1019,15 @@ class FsError(RuntimeError):
         super().__init__(status_name(status))
 
 
-class FsClient:
-    """DCP2 FS v1 reader. A socket and its receive buffer belong to this client.
+class FsOutcomeUnknown(RuntimeError):
+    """A filesystem mutation may have completed before the connection failed."""
 
-    Partial frames survive response timeouts. Retries use a fresh seq but the
-    same open_id or block number, and late responses are consumed and ignored.
+
+class FsClient:
+    """DCP2 FS v1 client for sequential requests on one connection.
+
+    Retries preserve the request body, including its mutation ID. Partial
+    frames survive response timeouts and late responses are consumed.
     """
 
     def __init__(self, sock: socket.socket, timeout: float = 5.0, retries: int = 2):
@@ -1026,6 +1036,8 @@ class FsClient:
         self.retries = retries
         self.sequence = 0
         self.open_id = 0
+        self.mutation_id = 0
+        self._capabilities: Optional[int] = None
         self.received = bytearray()
 
     def _read_frame(self, deadline: float) -> Frame:
@@ -1073,8 +1085,9 @@ class FsClient:
                         raise FsError(status)
                     return frame.body[2:]
             except (socket.timeout, FsError) as exc:
-                if isinstance(exc, FsError) and exc.status not in (4, 5, 0x0101):
-                    raise
+                if isinstance(exc, FsError):
+                    if OP_FS_MKDIR <= opcode <= OP_FS_WRITE_ABORT or exc.status not in (4, 5, 0x0101):
+                        raise
                 if attempt == self.retries:
                     raise
                 time.sleep(min(0.05 * (attempt + 1), self.timeout))
@@ -1107,9 +1120,120 @@ class FsClient:
             volumes.append({"root": name + ":/", "state": ("not_ready", "ready", "unsupported")[state]})
         if offset != len(body):
             raise ValueError("trailing bytes in FS_INFO")
+        self._capabilities = capabilities
         return {"fs_version": version, "capabilities": capabilities, "max_block_size": block,
                 "max_path_bytes": path, "max_depth": depth, "max_handles": handles,
                 "idle_timeout_ms": idle, "volumes": volumes}
+
+    def _require_capability(self, mask: int) -> None:
+        capabilities = self._capabilities
+        if capabilities is None:
+            capabilities = self.info()["capabilities"]
+        if not capabilities & mask:
+            raise FsError(0x0002)
+
+    def write_info(self) -> dict:
+        self._require_capability(FS_MUTATION_CAPS)
+        body = self.request(OP_FS_WRITE_INFO)
+        if len(body) != 16:
+            raise ValueError("invalid FS_WRITE_INFO response")
+        size, block, uploads, idle = struct.unpack(">QHHI", body)
+        # The common request header takes 4 bytes, the BLOCK prefix takes 16.
+        if not 1 <= block <= DCP2_MAX_PAYLOAD - 20 or not uploads or not idle:
+            raise ValueError("invalid FS_WRITE_INFO limits")
+        return {"max_file_size": size, "max_block_size": block, "max_uploads": uploads,
+                "idle_timeout_ms": idle}
+
+    def _mutation(self, opcode: int, body: bytes, reply_size: int = 0) -> bytes:
+        if len(body) + 8 > DCP2_MAX_PAYLOAD:
+            raise ValueError("FS mutation exceeds DCP2 payload limit")
+        if self.mutation_id == 0xFFFFFFFF:
+            raise ValueError("FS mutation IDs exhausted on this connection")
+        self.mutation_id += 1
+        try:
+            reply = self.request(opcode, struct.pack(">I", self.mutation_id) + body)
+            if len(reply) != reply_size:
+                raise ValueError("unexpected FS mutation response length")
+            return reply
+        except (OSError, ValueError, KeyboardInterrupt) as exc:
+            # A partial send or a lost handle cannot safely be followed by a
+            # different mutation on this stream. Disconnect also frees uploads.
+            self.sock.close()
+            operation = {OP_FS_MKDIR: "FS_MKDIR", OP_FS_REMOVE: "FS_REMOVE",
+                         OP_FS_RENAME: "FS_RENAME", OP_FS_WRITE_COMMIT: "FS_WRITE_COMMIT"}.get(opcode)
+            if operation:
+                raise FsOutcomeUnknown(f"{operation} outcome unknown. Verify the remote path before retrying.") from exc
+            raise
+
+    def mkdir(self, path: str) -> None:
+        self._require_capability(FS_CAP_MKDIR)
+        self._mutation(OP_FS_MKDIR, self._path(path))
+
+    def remove(self, path: str) -> None:
+        self._require_capability(FS_CAP_REMOVE)
+        self._mutation(OP_FS_REMOVE, self._path(path))
+
+    def rename(self, source: str, destination: str) -> None:
+        self._require_capability(FS_CAP_RENAME)
+        self._mutation(OP_FS_RENAME, self._path(source) + self._path(destination))
+
+    def upload(self, local: Path, path: str, *, overwrite: bool = False, block_size: int = 3072,
+               progress: Optional[Callable[[int, int], None]] = None) -> int:
+        """Publish a local regular file. Progress reports acknowledged bytes."""
+        if not 0 <= block_size <= 4078:
+            raise ValueError("FS block size must be in range 0..4078")
+        self._require_capability(FS_CAP_UPLOAD)
+        limits = self.write_info()
+        block = min(block_size or limits["max_block_size"], limits["max_block_size"])
+
+        # O_NONBLOCK lets fstat reject a FIFO even when it has no writer.
+        def open_source(name: str, flags: int) -> int:
+            return os.open(name, flags | getattr(os, "O_NONBLOCK", 0))
+
+        with open(local, "rb", opener=open_source) as source:
+            source_stat = os.fstat(source.fileno())
+            if not stat.S_ISREG(source_stat.st_mode):
+                raise ValueError("upload source must be a regular file")
+            size = source_stat.st_size
+            if size > limits["max_file_size"]:
+                raise ValueError(f"upload exceeds server size limit of {limits['max_file_size']} bytes")
+            if (size + block - 1) // block + 2 > 0xFFFFFFFF - self.mutation_id:
+                raise ValueError("insufficient mutation IDs for upload. Use a larger block or a new connection.")
+            begin = struct.pack(">QB", size, int(overwrite)) + self._path(path)
+            reply = self._mutation(OP_FS_WRITE_BEGIN, begin, 4)
+            handle, = struct.unpack(">I", reply)
+            if not handle:
+                self.sock.close()
+                raise ValueError("invalid FS_WRITE_BEGIN handle")
+            handle_bytes = struct.pack(">I", handle)
+            offset = 0
+            try:
+                while offset < size:
+                    data = source.read(min(block, size - offset))
+                    if not data:
+                        raise ValueError("upload source shrank during transfer")
+                    request = struct.pack(">IQ", handle, offset) + data
+                    reply = self._mutation(OP_FS_WRITE_BLOCK, request, 8)
+                    offset += len(data)
+                    if struct.unpack(">Q", reply)[0] != offset:
+                        raise ValueError("invalid FS_WRITE_BLOCK acknowledged offset")
+                    if progress:
+                        progress(offset, size)
+                if source.read(1):
+                    raise ValueError("upload source grew during transfer")
+                final_stat = os.fstat(source.fileno())
+                if final_stat.st_size != size or final_stat.st_mtime_ns != source_stat.st_mtime_ns:
+                    raise ValueError("upload source changed during transfer")
+            except BaseException:
+                if self.sock.fileno() >= 0:
+                    try:
+                        self._mutation(OP_FS_WRITE_ABORT, handle_bytes)
+                    except (OSError, RuntimeError, ValueError):
+                        self.sock.close()
+                raise
+            # COMMIT consumes the handle even if publication returns FS_EXISTS or IO.
+            self._mutation(OP_FS_WRITE_COMMIT, handle_bytes)
+        return size
 
     def stat(self, path: str) -> dict:
         body = self.request(OP_FS_STAT, self._path(path))
@@ -1213,6 +1337,31 @@ def run_fs_operation(args: argparse.Namespace) -> int:
             client = FsClient(sock, args.timeout, args.fs_retries)
             if args.fs_info:
                 print(json.dumps(client.info(), ensure_ascii=False, indent=2))
+            elif args.fs_write_info:
+                print(json.dumps(client.write_info(), indent=2))
+            elif args.fs_mkdir is not None:
+                client.mkdir(args.fs_mkdir)
+                print(f"FS_MKDIR -> OK {args.fs_mkdir}")
+            elif args.fs_remove is not None:
+                client.remove(args.fs_remove)
+                print(f"FS_REMOVE -> OK {args.fs_remove}")
+            elif args.fs_rename:
+                client.rename(*args.fs_rename)
+                print(f"FS_RENAME -> OK {args.fs_rename[0]} -> {args.fs_rename[1]}")
+            elif args.fs_upload:
+                local, path = args.fs_upload
+                last_report = 0.0
+
+                def report(uploaded: int, total: int) -> None:
+                    nonlocal last_report
+                    now = time.monotonic()
+                    if uploaded == total or now - last_report >= 1.0:
+                        print(f"FS upload {uploaded}/{total} bytes", file=sys.stderr, flush=True)
+                        last_report = now
+
+                size = client.upload(Path(local), path, overwrite=args.overwrite, block_size=args.fs_block_size,
+                                     progress=report if args.fs_progress else None)
+                print(f"FS_WRITE_COMMIT -> OK {size} bytes saved to {path}")
             elif args.fs_stat:
                 print(json.dumps(client.stat(args.fs_stat), ensure_ascii=False, indent=2))
             elif args.fs_list:
@@ -1241,6 +1390,9 @@ def run_fs_operation(args: argparse.Namespace) -> int:
                         sys.stdout.buffer.flush()
                 finally:
                     stream.close()
+    except KeyboardInterrupt:
+        print("FS operation interrupted", file=sys.stderr)
+        return 130
     except (ConnectionError, OSError, RuntimeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -1333,8 +1485,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "DCP2 client: monitor CACHE, NOTIFY or PL streams, access MEM and MDIO, "
-            "manage I2C and MDIO policies, or read files, "
-            "directories and TAR archives through FS."
+            "manage I2C and MDIO policies, or access files and directories through FS."
         )
     )
     parser.add_argument("host", help="device IP or hostname")
@@ -1399,6 +1550,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="subscribe to a PL stream; repeat for i2c, mdio, spi or uart",
     )
     operation.add_argument("--fs-info", action="store_true", help="show FS limits and volumes as JSON")
+    operation.add_argument("--fs-write-info", action="store_true", help="show FS mutation limits as JSON")
+    operation.add_argument("--fs-mkdir", metavar="PATH", help="create a directory")
+    operation.add_argument("--fs-remove", metavar="PATH", help="remove a file or an empty directory")
+    operation.add_argument("--fs-rename", nargs=2, metavar=("FROM", "TO"), help="rename an object within its volume")
+    operation.add_argument("--fs-upload", nargs=2, metavar=("LOCAL", "PATH"), help="upload a local file to a volume")
     operation.add_argument("--fs-stat", metavar="PATH", help="show file/directory metadata as JSON")
     operation.add_argument("--fs-list", metavar="PATH", help="list directory records as JSON lines")
     operation.add_argument("--fs-read", metavar="PATH", help="read a file to stdout or --output")
@@ -1407,6 +1563,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", metavar="FILE", help="save --fs-read/--fs-tar atomically after successful completion")
     parser.add_argument("--fs-block-size", type=int, default=3072, help="FS block bytes (0 selects server default)")
     parser.add_argument("--fs-retries", type=int, default=2, help="FS retries per request (default: 2)")
+    parser.add_argument("--overwrite", action="store_true", help="allow --fs-upload to replace an existing file")
+    parser.add_argument("--fs-progress", action="store_true", help="print acknowledged --fs-upload bytes to stderr")
     parser.add_argument("--fs-verify-repeats", action="store_true", help="read every FS block twice and compare")
     parser.add_argument(
         "--width",
@@ -1466,7 +1624,11 @@ def main() -> int:
             "Use: dcp2_client.py <device-ip> --port <port>"
         )
 
-    fs_operation = args.fs_info or args.fs_stat or args.fs_list or args.fs_read or args.fs_tar
+    fs_operation = (args.fs_info or args.fs_stat or args.fs_list or args.fs_read or args.fs_tar or
+                    args.fs_write_info or args.fs_mkdir is not None or args.fs_remove is not None or
+                    args.fs_rename or args.fs_upload)
+    if (args.overwrite or args.fs_progress) and not args.fs_upload:
+        parser.error("--overwrite and --fs-progress require --fs-upload")
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
     if args.cache_duration < 0 or (args.cache_duration and not args.cache_watch):

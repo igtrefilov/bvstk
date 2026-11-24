@@ -19,6 +19,7 @@ import struct
 import subprocess
 import sys
 import tarfile
+import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -69,6 +70,32 @@ class Wire:
         except socket.timeout:
             return
         raise AssertionError(("unexpected event", frame))
+
+
+def check_fs_mutations(fs, scratch):
+    directory = scratch + "/dcp-edit"
+    before = directory + "/initial.bin"
+    after = directory + "/renamed.bin"
+    original = bytes(range(256)) * 16
+    replacement = original[::-1]
+    fs.mkdir(directory)
+    with tempfile.TemporaryDirectory() as local:
+        source = Path(local) / "source.bin"
+        source.write_bytes(original)
+        assert fs.upload(source, before) == len(original)
+        source.write_bytes(replacement)
+        try:
+            fs.upload(source, before)
+        except dcp.FsError as error:
+            assert error.status == 0x0106
+        else:
+            raise AssertionError("create-only upload replaced an existing file")
+        assert b"".join(fs.stream(before, dcp.FS_FILE)) == original
+        assert fs.upload(source, before, overwrite=True) == len(replacement)
+    fs.rename(before, after)
+    assert b"".join(fs.stream(after, dcp.FS_FILE)) == replacement
+    fs.remove(after)
+    fs.remove(directory)
 
 
 def main():
@@ -191,6 +218,10 @@ def main():
             fs = dcp.FsClient(sock)
             info = fs.info(); report["fs_info"] = info
             assert info["max_handles"] == 2 and info["max_block_size"] == 3072
+            report["fs_write_info"] = fs.write_info()
+            for root in roots:
+                check_fs_mutations(fs, root)
+            passed("DCP2 upload, conflict, replace, rename, readback and removal on flash and SD")
             assert b"".join(fs.stream(leaf, dcp.FS_FILE, block_size=7, verify_repeats=True)) == b"two  spaces + tail"
             assert b"".join(fs.stream(roots[1] + "/restored/large.txt", dcp.FS_FILE)) == (content * 20).encode()
             entries = list(fs.list_entries(roots[1], recursive=True, block_size=19, verify_repeats=True))

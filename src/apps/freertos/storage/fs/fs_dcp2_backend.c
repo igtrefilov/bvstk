@@ -172,9 +172,10 @@ static bvstk_fs_result_t file_open(void *context, const char *path, void **out, 
     char native[BVSTK_FS_PATH_CAPACITY];
     uint32_t file_size = 0;
     fs_dcp2_file_t *file;
-    bvstk_fs_result_t rc = resolve(path, &device, native, sizeof(native));
     (void)context;
     *out = NULL;
+    if (bvstk_fs_upload_reserved(path)) return BVSTK_FS_DENIED;
+    bvstk_fs_result_t rc = resolve(path, &device, native, sizeof(native));
     if (rc != BVSTK_FS_OK) return rc;
     file = pvPortMalloc(sizeof(*file));
     if (!file) return BVSTK_FS_BUSY;
@@ -343,7 +344,10 @@ static bvstk_fs_result_t mutate(void *context, const char *path, bool directory)
     (void)context;
     if (rc != BVSTK_FS_OK) return rc;
     if (!strcmp(native, device->ctx->root)) return BVSTK_FS_INVALID;
-    if (!lock(device->ctx, pdMS_TO_TICKS(2000U))) return BVSTK_FS_BUSY;
+    /* Like finish_file, cleanup must release its owned resource even when
+     * a different filesystem operation is temporarily holding the mutex. */
+    TickType_t timeout = bvstk_fs_upload_reserved(path) ? (TickType_t)~(TickType_t)0 : pdMS_TO_TICKS(2000U);
+    if (!lock(device->ctx, timeout)) return BVSTK_FS_BUSY;
     FRESULT st = directory ? f_mkdir(native) : f_unlink(native);
     unlock(device->ctx);
     return result(st);
@@ -351,19 +355,56 @@ static bvstk_fs_result_t mutate(void *context, const char *path, bool directory)
 static bvstk_fs_result_t make_dir(void *c, const char *p) { return mutate(c, p, true); }
 static bvstk_fs_result_t remove_path(void *c, const char *p) { return mutate(c, p, false); }
 
+static bvstk_fs_result_t directory_cluster(const char *path, DWORD *cluster)
+{
+    DIR dir;
+    FRESULT st = f_opendir(&dir, path);
+    if (st != FR_OK) return result(st);
+    *cluster = dir.obj.sclust;
+    return result(f_closedir(&dir));
+}
+
+/* FatFs f_rename does not reject moving a directory below itself. Compare
+ * directory identities so the same check covers short names and OEM case. */
+static bvstk_fs_result_t check_directory_move(const char *source, char *dest, size_t root_len)
+{
+    DWORD src_cluster, parent_cluster;
+    char *slash = strchr(dest + root_len, '/');
+    if (!slash) return BVSTK_FS_OK;
+    bvstk_fs_result_t rc = directory_cluster(source, &src_cluster);
+    while (rc == BVSTK_FS_OK && slash) {
+        *slash = '\0';
+        rc = directory_cluster(dest, &parent_cluster);
+        *slash = '/';
+        if (rc == BVSTK_FS_OK && parent_cluster == src_cluster) return BVSTK_FS_INVALID;
+        slash = strchr(slash + 1, '/');
+    }
+    return rc;
+}
+
 static bvstk_fs_result_t rename_path(void *context, const char *from, const char *to)
 {
     const fs_device_info_t *a, *b;
     char source[BVSTK_FS_PATH_CAPACITY], dest[BVSTK_FS_PATH_CAPACITY];
+    FILINFO info;
     bvstk_fs_result_t rc = resolve(from, &a, source, sizeof(source));
     (void)context;
     if (rc == BVSTK_FS_OK) rc = resolve(to, &b, dest, sizeof(dest));
     if (rc != BVSTK_FS_OK) return rc;
     if (a != b || !strcmp(source, a->ctx->root) || !strcmp(dest, a->ctx->root)) return BVSTK_FS_INVALID;
     if (!lock(a->ctx, pdMS_TO_TICKS(2000U))) return BVSTK_FS_BUSY;
-    FRESULT st = f_rename(source, dest);
+    FRESULT st = f_stat(source, &info);
+    rc = result(st);
+    if (rc == BVSTK_FS_OK) {
+        bool directory = (info.fattrib & AM_DIR) != 0;
+        st = f_stat(dest, &info);
+        if (st == FR_OK) rc = BVSTK_FS_EXISTS;
+        else if (st != FR_NO_FILE && st != FR_NO_PATH) rc = result(st);
+        else if (directory) rc = check_directory_move(source, dest, strlen(a->ctx->root));
+    }
+    if (rc == BVSTK_FS_OK) rc = result(f_rename(source, dest));
     unlock(a->ctx);
-    return result(st);
+    return rc;
 }
 
 static bvstk_fs_result_t install(void *context, const char *temporary, const char *path, const char *backup)
@@ -397,10 +438,50 @@ static bvstk_fs_result_t install(void *context, const char *temporary, const cha
     return result(st);
 }
 
+/* temporary is a private 8.3 name in the volume root. f_rename never
+ * replaces an existing file, including an occupied rollback slot. */
+static bvstk_fs_result_t publish(void *context, const char *temporary, const char *path,
+                                bool overwrite, bool *consumed)
+{
+    const fs_device_info_t *a, *b;
+    char source[32], previous[32], dest[BVSTK_FS_PATH_CAPACITY];
+    FILINFO info;
+    (void)context;
+    *consumed = false;
+    bvstk_fs_result_t rc = resolve(temporary, &a, source, sizeof(source));
+    if (rc == BVSTK_FS_OK) rc = resolve(path, &b, dest, sizeof(dest));
+    if (rc != BVSTK_FS_OK) return rc;
+    char *extension = strrchr(source, '.');
+    if (a != b || !extension || strcmp(extension, ".TMP")) return BVSTK_FS_INVALID;
+    strcpy(previous, source);
+    strcpy(previous + (extension - source), ".OLD");
+    if (!lock(a->ctx, pdMS_TO_TICKS(2000U))) return BVSTK_FS_BUSY;
+    FRESULT st = f_stat(dest, &info);
+    bool moved = false;
+    if (st == FR_OK) {
+        if (info.fattrib & AM_DIR) rc = BVSTK_FS_TYPE_ERROR;
+        else if (!overwrite) rc = BVSTK_FS_EXISTS;
+        else if (info.fattrib & AM_RDO) rc = BVSTK_FS_DENIED;
+        else {
+            rc = result(f_rename(dest, previous));
+            moved = rc == BVSTK_FS_OK;
+        }
+    } else if (st != FR_NO_FILE && st != FR_NO_PATH) rc = result(st);
+    if (rc == BVSTK_FS_OK) {
+        rc = result(f_rename(source, dest));
+        *consumed = rc == BVSTK_FS_OK;
+        if (moved && *consumed) rc = result(f_unlink(previous));
+        else if (moved && f_rename(previous, dest) != FR_OK) rc = BVSTK_FS_IO;
+    }
+    unlock(a->ctx);
+    return rc;
+}
+
 const bvstk_fs_storage_t *fs_storage_backend(void)
 {
     static const bvstk_fs_storage_t storage = {
-        &reader, create, write_file, finish_file, make_dir, remove_path, rename_path, install, append_file
+        &reader, create, write_file, finish_file, make_dir, remove_path, rename_path, install, append_file,
+        publish
     };
     return &storage;
 }

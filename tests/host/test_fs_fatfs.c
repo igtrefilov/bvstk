@@ -102,7 +102,11 @@ FRESULT f_opendir(DIR *dir, const char *path)
     if (strlen(p) >= sizeof(dir->path)) return FR_INVALID_NAME;
     strcpy(dir->path, p);
     dir->native = opendir(p);
-    return dir->native ? FR_OK : failure();
+    if (!dir->native) return failure();
+    struct stat st;
+    assert(!fstat(dirfd((NativeDir *)dir->native), &st));
+    dir->obj.sclust = (DWORD)st.st_ino;
+    return FR_OK;
 }
 FRESULT f_readdir(DIR *dir, FILINFO *info)
 {
@@ -125,7 +129,10 @@ FRESULT f_rename(const char *from, const char *to)
 {
     char a[1024], b[1024]; struct stat info;
     native_path(from, a); native_path(to, b);
-    if (fail_install && strstr(from, ".tmp")) { fail_install = 0; return FR_DISK_ERR; }
+    if (fail_install && (strstr(from, ".tmp") || strstr(from, ".TMP"))) {
+        fail_install = 0;
+        return FR_DISK_ERR;
+    }
     if (!stat(b, &info)) return FR_EXIST;
     return rename(a, b) ? failure() : FR_OK;
 }
@@ -141,6 +148,16 @@ int main(int argc, char **argv)
     }
     const bvstk_fs_storage_t *s = fs_storage_backend();
     fs_storage_contract(s);
+    /* Simulate two FatFs spellings of one directory with the same starting
+     * cluster. A string prefix check cannot recognize the 8.3 spelling. */
+    assert(bvstk_fs_mkdirs(s, "flash:/Move source/child") == BVSTK_FS_OK);
+    char alias[1024];
+    native_path("0:/MOVESO~1", alias);
+    assert(!symlink("Move source", alias));
+    assert(bvstk_fs_rename(s, "flash:/Move source", "flash:/MOVESO~1/child/loop") == BVSTK_FS_INVALID);
+    assert(!unlink(alias));
+    assert(bvstk_fs_remove(s, "flash:/Move source/child") == BVSTK_FS_OK);
+    assert(bvstk_fs_remove(s, "flash:/Move source") == BVSTK_FS_OK);
     ready[1] = 0;
     bvstk_fs_writer_t w;
     assert(bvstk_fs_writer_open(&w, s, "sd:/not-mounted", false) == BVSTK_FS_NOT_READY);
@@ -156,6 +173,32 @@ int main(int argc, char **argv)
     fail_close = 1;
     assert(bvstk_fs_save(s, "flash:/recover.json", "bad", 3) == BVSTK_FS_IO);
     fs_expect(s->reader, "flash:/recover.json", "original", 8);
+
+    /* A previous power loss may leave a backup in a slot. Never replace it. */
+    FIL leftover;
+    UINT count;
+    assert(f_open(&leftover, "0:/BVU00000.OLD", FA_WRITE | FA_CREATE_NEW) == FR_OK);
+    assert(f_write(&leftover, "older", 5, &count) == FR_OK && count == 5);
+    assert(f_close(&leftover) == FR_OK);
+    bvstk_fs_upload_t upload = {0};
+    assert(bvstk_fs_upload_begin(&upload, s, "flash:/recover.json", 3, true) == BVSTK_FS_OK);
+    FILINFO info;
+    assert(f_stat("0:/BVU00000.TMP", &info) == FR_NO_FILE);
+    assert(bvstk_fs_upload_write(&upload, "new", 3) == BVSTK_FS_OK);
+    fail_install = 1;
+    assert(bvstk_fs_upload_commit(&upload) == BVSTK_FS_IO);
+    assert(!fail_install);
+    fs_expect(s->reader, "flash:/recover.json", "original", 8);
+    assert(bvstk_fs_upload_begin(&upload, s, "flash:/recover.json", 3, true) == BVSTK_FS_OK);
+    assert(bvstk_fs_upload_write(&upload, "new", 3) == BVSTK_FS_OK);
+    assert(bvstk_fs_upload_commit(&upload) == BVSTK_FS_OK);
+    fs_expect(s->reader, "flash:/recover.json", "new", 3);
+    char saved[5];
+    assert(f_open(&leftover, "0:/BVU00000.OLD", FA_READ) == FR_OK);
+    assert(f_read(&leftover, saved, sizeof(saved), &count) == FR_OK && count == sizeof(saved));
+    assert(!memcmp(saved, "older", sizeof(saved)));
+    assert(f_close(&leftover) == FR_OK);
+    assert(f_unlink("0:/BVU00000.OLD") == FR_OK);
     assert(bvstk_fs_remove(s, "flash:/recover.json") == BVSTK_FS_OK);
     assert(!opened && !allocated);
     for (unsigned i = 0; i < 3; ++i) {

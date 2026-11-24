@@ -24,7 +24,7 @@ BVSTK — программы управления и диагностики дл
 
 Полное оглавление — [документация BVSTK](docs/bvstk.md).
 Для чтения дерева `flash:/config/` начните с
-[примеров DCP2 FS](docs/interfaces/dcp2/client.md#каталоги-и-файлы-freertos).
+[примеров DCP2 FS](docs/interfaces/dcp2/client.md#каталоги-и-файлы).
 
 ## Точки входа
 

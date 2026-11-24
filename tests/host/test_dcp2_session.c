@@ -84,6 +84,50 @@ static uint32_t open_file(void)
     assert(!request(7, BVSTK_DCP2_FS_OPEN, body, 10U + sizeof(path) - 1U));
     return bvstk_dcp2_read_be32(replies[0] + 14U);
 }
+static void test_upload_expiry(const bvstk_fs_storage_t *storage)
+{
+    const char path[] = "flash:/upload.bin";
+    uint8_t begin[15 + sizeof(path) - 1] = {0};
+    uint8_t block[17] = {0}, commit[8] = {0};
+    bvstk_fs_info_t info;
+    bvstk_dcp2_write_be16(begin + 13, sizeof(path) - 1);
+    memcpy(begin + 15, path, sizeof(path) - 1);
+    begin[11] = 1; /* declared size of one byte */
+    bvstk_dcp2_write_be32(begin, 1);
+    assert(!request(7, BVSTK_DCP2_FS_WRITE_BEGIN, begin, sizeof(begin)));
+    assert(port.files == 1 && !request(0, 0, NULL, 0));
+    now += BVSTK_DCP2_FS_IDLE_MS;
+    assert(!bvstk_dcp2_session_poll(&session, now) && !port.files);
+    assert(request(7, BVSTK_DCP2_FS_WRITE_BEGIN, begin, sizeof(begin)) == BVSTK_DCP2_FS_BAD_HANDLE);
+    assert(bvstk_fs_stat(storage->reader, path, &info) == BVSTK_FS_NOT_FOUND);
+
+    bvstk_dcp2_write_be32(begin, 2);
+    assert(!request(7, BVSTK_DCP2_FS_WRITE_BEGIN, begin, sizeof(begin)));
+    bvstk_dcp2_write_be32(block, 3);
+    memcpy(block + 4, replies[0] + 14, 4);
+    block[16] = 0xab;
+    now += BVSTK_DCP2_FS_IDLE_MS - 1;
+    assert(!request(7, BVSTK_DCP2_FS_WRITE_BLOCK, block, sizeof(block)));
+    ++now;
+    assert(!bvstk_dcp2_session_poll(&session, now) && port.files == 1);
+    now += BVSTK_DCP2_FS_IDLE_MS;
+    assert(!bvstk_dcp2_session_poll(&session, now) && !port.files);
+    assert(request(7, BVSTK_DCP2_FS_WRITE_BLOCK, block, sizeof(block)) == BVSTK_DCP2_FS_BAD_HANDLE);
+    assert(bvstk_fs_stat(storage->reader, path, &info) == BVSTK_FS_NOT_FOUND);
+
+    bvstk_dcp2_write_be32(begin, 4);
+    begin[11] = 0;
+    assert(!request(7, BVSTK_DCP2_FS_WRITE_BEGIN, begin, sizeof(begin)));
+    bvstk_dcp2_write_be32(commit, 5);
+    memcpy(commit + 4, replies[0] + 14, 4);
+    assert(!request(7, BVSTK_DCP2_FS_WRITE_COMMIT, commit, sizeof(commit)));
+    assert(bvstk_fs_stat(storage->reader, path, &info) == BVSTK_FS_OK && !info.size);
+    assert(bvstk_fs_remove(storage, path) == BVSTK_FS_OK);
+    now += BVSTK_DCP2_FS_IDLE_MS;
+    assert(!bvstk_dcp2_session_poll(&session, now));
+    assert(!request(7, BVSTK_DCP2_FS_WRITE_COMMIT, commit, sizeof(commit)));
+    assert(bvstk_fs_stat(storage->reader, path, &info) == BVSTK_FS_NOT_FOUND);
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -103,7 +147,7 @@ int main(int argc, char **argv)
     bvstk_stream_sim_init(&streams, NULL);
     adapter.control.memory = &mem; adapter.lock = lock; adapter.unlock = unlock;
     adapter.i2c_supported = adapter.mdio_supported = true;
-    adapter.files = storage->reader; adapter.cache = &catalog; adapter.streams = &streams;
+    adapter.storage = storage; adapter.cache = &catalog; adapter.streams = &streams;
     adapter.head = head; adapter.read = read_observations;
     bvstk_dcp2_session_init(&session, &adapter, send_reply, NULL);
     assert(!request(0, 0, NULL, 0));
@@ -122,6 +166,7 @@ int main(int argc, char **argv)
     mem_body[0] = 1;
     assert(!request(1, 0, mem_body, sizeof(mem_body)));
     assert(bvstk_dcp2_read_be32(replies[0] + 18U) == 43 && !hardware_writes);
+    test_upload_expiry(storage);
     /* FS state survives unrelated commands, retries do not advance the reader. */
     assert(!request(7, BVSTK_DCP2_FS_INFO, NULL, 0));
     uint32_t handle = open_file(); assert(handle && port.files == 1);

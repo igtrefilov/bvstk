@@ -5,6 +5,7 @@
 #include "protocols/dcp2/bvstk_dcp2_policy.h"
 #include "protocols/dcp2/bvstk_dcp2_cache.h"
 #include "protocols/dcp2/bvstk_dcp2_fs.h"
+#include "services/fs/bvstk_fs_storage.h"
 #include "services/stream/bvstk_stream_sim.h"
 #include "shared/events/bvstk_journal.h"
 
@@ -25,6 +26,8 @@ typedef struct {
     void (*read)(void *, unsigned bus, unsigned channel, uint64_t after,
                  bvstk_journal_batch_t *);
     bvstk_stream_sim_t *streams;
+    /* When present, supplies both the reader and optional mutation callbacks. */
+    const bvstk_fs_storage_t *storage;
 } bvstk_dcp2_adapter_t;
 
 int bvstk_dcp2_dispatch(const bvstk_dcp2_adapter_t *,

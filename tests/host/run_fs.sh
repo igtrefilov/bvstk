@@ -11,7 +11,7 @@ fi
 cc "${flags[@]}" -Isrc tests/host/test_fs_posix.c \
   src/services/fs/bvstk_fs_reader.c src/services/fs/bvstk_fs_storage.c \
   src/ports/neutrino-zynq7000/storage/bvstk_fs_posix.c \
-  -o "$FS_TEST_OUTPUT/test_fs_posix"
+  -Wl,--wrap=link,--wrap=rename -o "$FS_TEST_OUTPUT/test_fs_posix"
 "$FS_TEST_OUTPUT/test_fs_posix" "$FS_TEST_OUTPUT/posix-storage"
 cc "${flags[@]}" -ffunction-sections -fdata-sections -Itests/host/fs_stubs -Isrc \
   tests/host/test_fs_fatfs.c src/apps/freertos/storage/fs/fs_dcp2_backend.c \

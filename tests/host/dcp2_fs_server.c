@@ -1,120 +1,19 @@
 /* Exercise the production FS handler over TCP using isolated POSIX fixtures. */
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
-#include <dirent.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
 #include <netinet/in.h>
 #include <time.h>
 #include <unistd.h>
 
+#include "ports/neutrino-zynq7000/storage/bvstk_fs_posix.h"
 #include "protocols/dcp2/bvstk_dcp2_codec.h"
 #include "protocols/dcp2/bvstk_dcp2_fs.h"
-
-typedef struct { DIR *dir; char path[2048]; } test_dir_t;
-static unsigned open_files, open_dirs;
-
-static bvstk_fs_result_t resolve(void *context, const char *path, char *out, size_t capacity)
-{
-    const char *colon = strchr(path, ':');
-    int n;
-    if (!colon) return BVSTK_FS_INVALID;
-    if (!strncmp(path, "sd-pl:", 6)) return BVSTK_FS_NOT_READY;
-    if (strncmp(path, "flash:", 6) && strncmp(path, "sd:", 3)) return BVSTK_FS_NOT_FOUND;
-    n = snprintf(out, capacity, "%s/%.*s/%s", (char *)context, (int)(colon - path), path, colon + 2);
-    return n >= 0 && (size_t)n < capacity ? BVSTK_FS_OK : BVSTK_FS_RANGE;
-}
-
-static bvstk_fs_result_t convert_stat(const char *path, bvstk_fs_info_t *out)
-{
-    struct stat st;
-    if (lstat(path, &st)) return errno == ENOENT ? BVSTK_FS_NOT_FOUND : BVSTK_FS_IO;
-    if (!S_ISREG(st.st_mode) && !S_ISDIR(st.st_mode)) return BVSTK_FS_UNSUPPORTED;
-    out->type = S_ISDIR(st.st_mode) ? BVSTK_FS_ENTRY_DIR : BVSTK_FS_ENTRY_FILE;
-    out->size = S_ISDIR(st.st_mode) ? 0 : (uint64_t)st.st_size;
-    out->attributes = 0;
-    out->stamp = (uint32_t)st.st_mtim.tv_nsec ^ (uint32_t)st.st_mtim.tv_sec;
-    return BVSTK_FS_OK;
-}
-
-static bvstk_fs_result_t stat_path(void *context, const char *path, bvstk_fs_info_t *out)
-{
-    char native[2048];
-    bvstk_fs_result_t rc = resolve(context, path, native, sizeof(native));
-    return rc == BVSTK_FS_OK ? convert_stat(native, out) : rc;
-}
-
-static size_t volumes(void *context) { (void)context; return 3; }
-static bvstk_fs_result_t volume(void *context, size_t index, bvstk_fs_volume_t *out)
-{
-    static const char *names[] = { "flash", "sd", "sd-pl" };
-    (void)context;
-    if (index >= 3) return BVSTK_FS_RANGE;
-    strcpy(out->name, names[index]); out->state = index == 2 ? 0 : 1;
-    return BVSTK_FS_OK;
-}
-
-static bvstk_fs_result_t file_open(void *context, const char *path, void **out, uint64_t *size)
-{
-    char native[2048];
-    struct stat st;
-    FILE *file;
-    bvstk_fs_result_t rc = resolve(context, path, native, sizeof(native));
-    *out = NULL;
-    if (rc != BVSTK_FS_OK) return rc;
-    file = fopen(native, "rb");
-    if (!file) return BVSTK_FS_NOT_FOUND;
-    if (fstat(fileno(file), &st)) { fclose(file); return BVSTK_FS_IO; }
-    *size = (uint64_t)st.st_size; *out = file; ++open_files;
-    return BVSTK_FS_OK;
-}
-
-static bvstk_fs_result_t file_read(void *context, void *handle, uint8_t *data, size_t capacity, size_t *size)
-{
-    (void)context;
-    *size = fread(data, 1, capacity, handle);
-    return ferror(handle) ? BVSTK_FS_IO : BVSTK_FS_OK;
-}
-static void file_close(void *context, void *handle)
-{
-    (void)context; fclose(handle); assert(open_files); --open_files;
-}
-static bvstk_fs_result_t dir_open(void *context, const char *path, void **out)
-{
-    test_dir_t *dir = calloc(1, sizeof(*dir));
-    bvstk_fs_result_t rc;
-    if (!dir) return BVSTK_FS_BUSY;
-    rc = resolve(context, path, dir->path, sizeof(dir->path));
-    if (rc != BVSTK_FS_OK) { free(dir); return rc; }
-    dir->dir = opendir(dir->path);
-    if (!dir->dir) { free(dir); return BVSTK_FS_NOT_FOUND; }
-    *out = dir; ++open_dirs;
-    return BVSTK_FS_OK;
-}
-static bvstk_fs_result_t dir_read(void *context, void *handle, char *name, size_t capacity, bvstk_fs_info_t *out)
-{
-    test_dir_t *dir = handle;
-    struct dirent *entry;
-    char path[4096];
-    (void)context;
-    do { errno = 0; entry = readdir(dir->dir); }
-    while (entry && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")));
-    if (!entry) { name[0] = '\0'; return errno ? BVSTK_FS_IO : BVSTK_FS_OK; }
-    if (strlen(entry->d_name) >= capacity) return BVSTK_FS_RANGE;
-    strcpy(name, entry->d_name);
-    (void)snprintf(path, sizeof(path), "%s/%s", dir->path, name);
-    return convert_stat(path, out);
-}
-static void dir_close(void *context, void *handle)
-{
-    test_dir_t *dir = handle;
-    (void)context; closedir(dir->dir); free(dir); assert(open_dirs); --open_dirs;
-}
 
 static uint16_t call(bvstk_dcp2_fs_session_t *s, unsigned op, const uint8_t *body, size_t size,
                       uint32_t time, uint8_t *out, uint16_t *out_size)
@@ -122,7 +21,7 @@ static uint16_t call(bvstk_dcp2_fs_session_t *s, unsigned op, const uint8_t *bod
     return bvstk_dcp2_fs_request(s, (uint8_t)op, body, size, time, out, 4090, out_size);
 }
 
-static void self_test(const bvstk_fs_backend_t *backend)
+static void self_test(bvstk_fs_posix_t *port)
 {
     bvstk_dcp2_fs_session_t *s = calloc(1, sizeof(*s));
     uint8_t body[1024] = {0}, out[4090], duplicate[4090], close_body[4];
@@ -134,8 +33,10 @@ static void self_test(const bvstk_fs_backend_t *backend)
     assert(bvstk_fs_validate_path((const uint8_t *)"flash:/a/../b", 13, normalized, sizeof(normalized)) == BVSTK_FS_INVALID);
     assert(bvstk_fs_validate_path((const uint8_t *)"flash:/config/", 14, normalized, sizeof(normalized)) == BVSTK_FS_OK);
     assert(!strcmp(normalized, "flash:/config"));
-    bvstk_dcp2_fs_init(s, backend);
+    bvstk_dcp2_fs_init(s, &port->reader);
     assert(call(s, 0, NULL, 0, 0, out, &n) == 0 && n > 20);
+    assert(bvstk_dcp2_read_be32(out + 2) == 0x3fU); /* Reader-only compatibility. */
+    assert(call(s, 5, NULL, 0, 0, out, &n) == 2);
     assert(call(s, 0, body, 1, 0, out, &n) == 1);
     assert(call(s, 3, body, 7, 0, out, &n) == 1);
     bvstk_dcp2_write_be32(body, 1);
@@ -146,7 +47,7 @@ static void self_test(const bvstk_fs_backend_t *backend)
     assert(call(s, 2, body, 10 + strlen(path), UINT32_MAX - 100, out, &n) == 0 && n == 14);
     first = bvstk_dcp2_read_be32(out);
     assert(call(s, 2, body, 10 + strlen(path), UINT32_MAX - 99, duplicate, &duplicate_size) == 0);
-    assert(n == duplicate_size && !memcmp(out, duplicate, n) && open_files == 1);
+    assert(n == duplicate_size && !memcmp(out, duplicate, n) && port->files == 1);
     body[5] = 1;
     assert(call(s, 2, body, 10 + strlen(path), UINT32_MAX - 98, out, &n) == 1);
     body[5] = 0;
@@ -155,7 +56,7 @@ static void self_test(const bvstk_fs_backend_t *backend)
     bvstk_dcp2_write_be32(body, 3);
     assert(call(s, 2, body, 10 + strlen(path), UINT32_MAX - 96, out, &n) == 4);
     bvstk_dcp2_fs_expire(s, 100); /* Across the millisecond-counter wrap. */
-    assert(open_files == 2);
+    assert(port->files == 2);
     bvstk_dcp2_write_be32(body, first); bvstk_dcp2_write_be32(body + 4, 0);
     assert(call(s, 3, body, 8, 101, out, &n) == 0 && n == 49);
     assert(call(s, 3, body, 8, 102, duplicate, &duplicate_size) == 0);
@@ -163,13 +64,57 @@ static void self_test(const bvstk_fs_backend_t *backend)
     bvstk_dcp2_write_be32(body + 4, 2);
     assert(call(s, 3, body, 8, 103, out, &n) == 6);
     bvstk_dcp2_fs_expire(s, 30104);
-    assert(open_files == 0);
+    assert(port->files == 0);
     assert(call(s, 3, body, 8, 30105, out, &n) == BVSTK_DCP2_FS_BAD_HANDLE);
     bvstk_dcp2_write_be32(close_body, first);
     assert(call(s, 4, close_body, 4, 30106, out, &n) == 0 && !n);
     assert(call(s, 4, close_body, 4, 30107, out, &n) == 0);
     bvstk_dcp2_fs_destroy(s);
-    assert(!open_files && !open_dirs);
+    assert(!port->files && !port->directories);
+    free(s);
+}
+
+/* FatFs can return a successful, short write when a volume fills up.
+ * Exercise the wire-level terminal error against a real short temporary file. */
+static bvstk_fs_result_t short_write(void *context, void *file, const uint8_t *data,
+                                     size_t size, size_t *written)
+{
+    bvstk_fs_posix_t *port = context;
+    return port->storage.write(context, file, data, size / 2, written);
+}
+
+static void test_failed_upload(bvstk_fs_posix_t *port)
+{
+    const char path[] = "flash:/failed-upload";
+    uint8_t begin[15 + sizeof(path) - 1] = {0}, block[20] = {0}, commit[8] = {0}, out[4090];
+    uint16_t n;
+    bvstk_fs_info_t info;
+    bvstk_dcp2_fs_session_t *s = calloc(1, sizeof(*s));
+    bvstk_fs_storage_t storage = port->storage;
+    storage.write = short_write;
+    assert(s);
+    bvstk_dcp2_fs_init(s, &port->reader);
+    s->storage = &storage;
+    bvstk_dcp2_write_be32(begin, 1);
+    begin[11] = 4;
+    bvstk_dcp2_write_be16(begin + 13, sizeof(path) - 1);
+    memcpy(begin + 15, path, sizeof(path) - 1);
+    assert(call(s, BVSTK_DCP2_FS_WRITE_BEGIN, begin, sizeof(begin), 0, out, &n) == 0 && n == 4);
+    assert(port->files == 1);
+    memcpy(block + 4, out, 4);
+    memcpy(commit + 4, out, 4);
+    memcpy(block + 16, "data", 4);
+    bvstk_dcp2_write_be32(block, 2);
+    assert(call(s, BVSTK_DCP2_FS_WRITE_BLOCK, block, sizeof(block), 1, out, &n) == BVSTK_DCP2_FS_IO_ERROR);
+    assert(call(s, BVSTK_DCP2_FS_WRITE_BLOCK, block, sizeof(block), 2, out, &n) == BVSTK_DCP2_FS_IO_ERROR);
+    bvstk_dcp2_write_be32(block, 3);
+    assert(call(s, BVSTK_DCP2_FS_WRITE_BLOCK, block, sizeof(block), 3, out, &n) == BVSTK_DCP2_FS_IO_ERROR);
+    bvstk_dcp2_write_be32(commit, 4);
+    assert(call(s, BVSTK_DCP2_FS_WRITE_COMMIT, commit, sizeof(commit), 4, out, &n) == BVSTK_DCP2_FS_IO_ERROR);
+    assert(call(s, BVSTK_DCP2_FS_WRITE_COMMIT, commit, sizeof(commit), 5, out, &n) == BVSTK_DCP2_FS_IO_ERROR);
+    bvstk_dcp2_fs_destroy(s);
+    assert(!port->files && !port->directories);
+    assert(bvstk_fs_stat(storage.reader, path, &info) == BVSTK_FS_NOT_FOUND);
     free(s);
 }
 
@@ -186,13 +131,22 @@ static int exact(int fd, uint8_t *data, size_t size, bool writing)
 
 int main(int argc, char **argv)
 {
-    bvstk_fs_backend_t backend = {NULL, volumes, volume, stat_path, file_open, file_read, file_close, dir_open, dir_read, dir_close};
+    bvstk_fs_posix_t port;
+    char roots[3][BVSTK_FS_PATH_CAPACITY];
+    const char *names[] = {"flash", "sd", "sd-pl"};
+    bvstk_fs_posix_volume_t volumes[3];
     struct sockaddr_in addr;
     socklen_t address_size = sizeof(addr);
     int listener;
     if (argc != 2) return 2;
-    backend.context = argv[1];
-    self_test(&backend);
+    for (size_t i = 0; i < 3; ++i) {
+        int n = snprintf(roots[i], sizeof(roots[i]), "%s/%s", argv[1], names[i]);
+        assert(n > 0 && (size_t)n < sizeof(roots[i]));
+        volumes[i] = (bvstk_fs_posix_volume_t){names[i], roots[i], false};
+    }
+    assert(bvstk_fs_posix_init(&port, volumes, 3) == BVSTK_FS_OK);
+    self_test(&port);
+    test_failed_upload(&port);
     signal(SIGPIPE, SIG_IGN);
     listener = socket(AF_INET, SOCK_STREAM, 0); assert(listener >= 0);
     memset(&addr, 0, sizeof(addr)); addr.sin_family = AF_INET; addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -205,7 +159,8 @@ int main(int argc, char **argv)
         bvstk_dcp2_fs_session_t *session = calloc(1, sizeof(*session));
         uint8_t input[4104], output[4104], body[4090];
         assert(fd >= 0 && session);
-        bvstk_dcp2_fs_init(session, &backend);
+        bvstk_dcp2_fs_init(session, &port.reader);
+        session->storage = bvstk_fs_posix_storage(&port);
         for (;;) {
             struct timespec ts;
             bvstk_dcp2_request_t request;
@@ -225,7 +180,7 @@ int main(int argc, char **argv)
             if (exact(fd, output, frame_size, true)) break;
         }
         bvstk_dcp2_fs_destroy(session);
-        assert(!open_files && !open_dirs);
+        assert(!port.files && !port.directories);
         free(session); close(fd);
     }
 }

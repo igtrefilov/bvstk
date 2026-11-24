@@ -246,6 +246,32 @@ static void cache_read_groups(void)
     reset_fixture();
 }
 
+static void staged_upload_with_http(void)
+{
+    const bvstk_fs_storage_t *fs = http_ui_backend()->storage();
+    bvstk_fs_upload_t upload = {0};
+    const char path[] = "flash:/shared.txt";
+    const char route[] = "/api/ui/file?volume=flash&path=%2Fshared.txt&confirm=true";
+
+    assert(bvstk_fs_upload_begin(&upload, fs, path, 6, false) == BVSTK_FS_OK);
+    assert(bvstk_fs_upload_write(&upload, "staged", 6) == BVSTK_FS_OK);
+    http_run("GET", route, "", 404);
+    http_run("PUT", route, "http", 200);
+    assert(bvstk_fs_upload_commit(&upload) == BVSTK_FS_EXISTS);
+
+    assert(bvstk_fs_upload_begin(&upload, fs, path, 6, true) == BVSTK_FS_OK);
+    assert(bvstk_fs_upload_write(&upload, "sta", 3) == BVSTK_FS_OK);
+    http_run("GET", route, "", 200);
+    const char *body = strstr(output, "\r\n\r\n");
+    assert(body && !strcmp(body + 4, "http"));
+    assert(bvstk_fs_upload_write(&upload, "ged", 3) == BVSTK_FS_OK);
+    assert(bvstk_fs_upload_commit(&upload) == BVSTK_FS_OK);
+    http_run("GET", route, "", 200);
+    body = strstr(output, "\r\n\r\n");
+    assert(body && !strcmp(body + 4, "staged"));
+    http_run("PUT", "/api/ui/files?volume=flash&path=%2Fshared.txt&action=remove&confirm=true", "", 200);
+}
+
 int main(int argc,char **argv) {
     assert(argc==2);snprintf(storage,sizeof(storage),"%s",argv[1]);assert(!mkdir(storage,0700));
     for(int i=0;i<3;i++){char p[300];snprintf(p,sizeof(p),"%s/%d",storage,i);assert(!mkdir(p,0700));}
@@ -385,6 +411,7 @@ int main(int argc,char **argv) {
     http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&confirm=true","hello",200);
     http_run("PUT","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&confirm=true","bad",409);
     http_run("GET","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt","",200);assert(strstr(output,"hello"));
+    staged_upload_with_http();
     http_run("GET","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&max_bytes=4","",413);
     http_run("GET","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&max_bytes=5","",200);
     http_run("GET","/api/ui/file?volume=sd-pl&path=%2Fdemo%2Ffile.txt&max_bytes=-1","",400);

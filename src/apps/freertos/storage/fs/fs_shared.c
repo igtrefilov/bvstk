@@ -11,6 +11,7 @@
 #include "xstatus.h"
 
 #include "apps/freertos/console/utils.h"
+#include "ports/freertos-xilinx/fs-fatfs/bvstk_fatfs.h"
 
 static int fs_shared_lock(const fs_shared_ctx_t *ctx)
 {
@@ -72,14 +73,14 @@ int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label)
         return status;
     }
     ctx->mount_attempted = true;
-    FRESULT res = f_mount(ctx->fatfs, ctx->root, 1);
+    FRESULT res = bvstk_fatfs_mount(ctx->fatfs, ctx->root, 1);
     /* FatFs may ignore a failed optional FAT32 FSInfo read during mount.
      * The adapter latches any I/O failure: never publish a stopped disk. */
     if (res == FR_OK && ctx->media_ready && !ctx->media_ready()) res = FR_DISK_ERR;
     if (res != FR_OK) {
         if (ctx->preserve_media) {
             *(ctx->ready) = 0;
-            (void)f_mount(NULL, ctx->root, 0);
+            (void)bvstk_fatfs_mount(NULL, ctx->root, 0);
             xil_printf("%s: mount failed (FR=%d); formatting disabled\r\n",
                 label ? label : "FS", (int)res);
             fs_shared_unlock(ctx);
@@ -93,7 +94,7 @@ int fs_shared_mount(fs_shared_ctx_t *ctx, const char *label)
                 fs_shared_unlock(ctx);
                 return XST_FAILURE;
             }
-            res = f_mount(ctx->fatfs, ctx->root, 1);
+            res = bvstk_fatfs_mount(ctx->fatfs, ctx->root, 1);
             if (res != FR_OK) {
                 fs_shared_unlock(ctx);
                 return XST_FAILURE;
@@ -127,13 +128,13 @@ FRESULT fs_shared_format(fs_shared_ctx_t *ctx)
     }
 
     *(ctx->ready) = 0;
-    res = f_mount(NULL, ctx->root, 0);
+    res = bvstk_fatfs_mount(NULL, ctx->root, 0);
     if (res == FR_OK) {
         res = f_mkfs(ctx->root, (BYTE)(FM_FAT32 | FM_SFD), 0,
                      work, sizeof(work));
     }
     if (res == FR_OK) {
-        res = f_mount(ctx->fatfs, ctx->root, 1);
+        res = bvstk_fatfs_mount(ctx->fatfs, ctx->root, 1);
     }
     if (res == FR_OK) {
         *(ctx->ready) = 1;

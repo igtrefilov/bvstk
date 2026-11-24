@@ -430,8 +430,7 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
 
 cc -std=c11 -Wall -Wextra -Werror -pedantic \
   -I"$REPO_ROOT/src" \
-  "$SCRIPT_DIR/dcp2_fs_server.c" \
-  "$REPO_ROOT/src/services/fs/bvstk_fs_reader.c" \
+  "$SCRIPT_DIR/dcp2_fs_server.c" -pthread "${fs_sources[@]}" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_codec.c" \
   "$REPO_ROOT/src/protocols/dcp2/bvstk_dcp2_fs.c" \
   -o "$TEST_TMP/dcp2_fs_server"

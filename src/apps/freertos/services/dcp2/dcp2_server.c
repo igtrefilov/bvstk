@@ -62,7 +62,7 @@ static void refresh_adapter(void)
     adapter.i2c_supported = BVSTK_PL_HAS_I2C_CORE;
     adapter.mdio_supported = BVSTK_PL_HAS_MDIO_CORE;
     adapter.sync = sync_device;
-    adapter.files = fs_dcp2_backend();
+    adapter.storage = fs_storage_backend();
     adapter.cache = bvstk_runtime_cache_registry();
     adapter.head = observation_head; adapter.read = observation_read;
     adapter.streams = dcp2_stream_sim_instance();
