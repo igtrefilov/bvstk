@@ -1,7 +1,7 @@
 """Policy commands, snapshots and examples in the established DCP2 style."""
 from dcp2_fields import FieldMap
 from dcp2_introduction import PAYLOAD
-from dcp2_examples import Sequence, wire, request, response, number
+from dcp2_examples import FIGURES, Sequence, wire, request, response, number, named, group
 
 SOURCES = (
     "src/protocols/dcp2/bvstk_dcp2_control.c",
@@ -82,9 +82,112 @@ def examples():
                    number("val", 0x8000, 2), number("mask", 0x8000, 2)]))
 
 
+def profile_target(subsystem="i2c", device="pcf8563"):
+    return [number("policy_version", 1, 1)] + named(subsystem, "subsystem") + named(device, "device")
+
+
+def profile_rule(resource, value, mask):
+    return named(resource, "resource") + [number("value", value, 8), number("mask", mask, 8)]
+
+
+def profile_page(token, mode, white, black, first, rules, following):
+    fields = [number("policy_version", 1, 1), number("mode", mode, 1),
+              number("snapshot_id", token, 4), number("whitelist_count", white, 2),
+              number("blacklist_count", black, 2), number("first", first, 2),
+              number("count", len(rules), 2), number("next", following, 2)]
+    if rules:
+        records = [field for rule in rules for field in rule]
+        fields += [group("rules", records, f"Правила ({len(rules)})")]
+    return fields
+
+
+def profile_fields():
+    sources = ("src/protocols/dcp2/bvstk_dcp2_policy.c",)
+    p = FieldMap("policy-id-requests", "Параметры POLICY по ID профиля", sources)
+    p.strip(90, "0x09", "opcode")
+    p.panel("target", 285, 190, "Начало тела каждого запроса")
+    p.fields(("policy_version", "subsystem_len", "subsystem", "device_len", "device"), 100, 365)
+    p.panel("parameters", 550, 1050, "Поля после адресации профиля")
+    for y, label, fields in (
+        (660, "SET = 0x02", ("mode",)),
+        (820, "GET = 0x03", ("snapshot_id", "first")),
+        (980, "ADD = 0x04\nDELETE = 0x05", ("list", "resource_len", "resource", "value:u64", "mask:u64")),
+        (1185, "CLEAR = 0x06", ("list",)),
+    ):
+        p.text(p.notes, 105, y + 30, label, 25, bold=True)
+        p.fields(fields, 520, y, 1170)
+    p.text(p.notes, 105, 1415, "SAVE = 0x07", 25, bold=True)
+    p.text(p.notes, 520, 1415, "После device тело запроса завершено", 24)
+    p.finish(1680)
+
+    p = FieldMap("policy-id-page", "Страница согласованного снимка POLICY_GET", sources)
+    p.strip(90, "0x09", "0x83 (RESP)")
+    p.panel("page", 285, 450, "body ответа POLICY_GET")
+    p.fields(("status", "policy_version", "mode", "snapshot_id"), 100, 385)
+    p.fields(("whitelist_count", "blacklist_count", "first", "count", "next"), 100, 510)
+    p.box("records", 100, 635, 1580, 80, "count целых записей rules", PAYLOAD, 25)
+    p.panel("rule", 840, 240, "Одна запись rules")
+    p.fields(("resource_len:u8", "resource", "value:u64", "mask:u64"), 100, 940)
+    p.finish(1160)
+
+
+def profile_examples():
+    target = profile_target()
+    rule = profile_rule("reg_01", 42, 255)
+    wire("policy-id-set", "Выбор BLACKLIST по ID профиля",
+         request("POLICY_SET", 9, 2, 0xB01, target + [number("mode", 1, 1)]),
+         response("Режим изменён", 9, 2, 0xB01))
+    wire("policy-id-add", "Добавление правила в BLACKLIST по ID ресурса",
+         request("POLICY_RULE_ADD", 9, 4, 0xB02, target + [number("list", 1, 1)] + rule),
+         response("Правило добавлено", 9, 4, 0xB02))
+    wire("policy-id-get", "Чтение одного правила из согласованного снимка",
+         request("POLICY_GET", 9, 3, 0xB03,
+                 target + [number("snapshot_id", 0, 4), number("first", 0, 2)]),
+         response("Снимок с одним правилом", 9, 3, 0xB03,
+                  profile_page(1, 1, 0, 1, 0, [rule], 0xFFFF)))
+    wire("policy-id-delete", "Удаление того же правила",
+         request("POLICY_RULE_DELETE", 9, 5, 0xB04, target + [number("list", 1, 1)] + rule),
+         response("Правило удалено", 9, 5, 0xB04))
+    wire("policy-id-save", "Явное сохранение профиля по ID",
+         request("POLICY_SAVE", 9, 7, 0xB05, target),
+         response("Профиль сохранён", 9, 7, 0xB05))
+
+    target = profile_target("i2c", "sensor")
+    rules = [profile_rule("reg_00", value, 255) for value in range(200)]
+    wire("policy-id-pages", "Две страницы политики из двухсот правил",
+         request("Начальный POLICY_GET", 9, 3, 0xC01,
+                 target + [number("snapshot_id", 0, 4), number("first", 0, 2)]),
+         response("Первая страница", 9, 3, 0xC01, profile_page(1, 0, 200, 0, 0, rules[:177], 177)),
+         request("Продолжение POLICY_GET", 9, 3, 0xC02,
+                 target + [number("snapshot_id", 1, 4), number("first", 177, 2)]),
+         response("Последняя страница", 9, 3, 0xC02, profile_page(1, 0, 200, 0, 177, rules[177:], 0xFFFF)))
+    wire("policy-id-stale", "Истечение снимка и новое начальное чтение",
+         request("Прежний снимок после таймаута", 9, 3, 0xC03,
+                 target + [number("snapshot_id", 1, 4), number("first", 177, 2)]),
+         response("ERR_POLICY_STALE_SNAPSHOT", 9, 3, 0xC03, status=0x301),
+         request("Новый начальный POLICY_GET", 9, 3, 0xC04,
+                 target + [number("snapshot_id", 0, 4), number("first", 0, 2)]),
+         response("Первая страница нового снимка", 9, 3, 0xC04, profile_page(2, 0, 200, 0, 0, rules[:177], 177)))
+    p = Sequence("policy-id-pagination", "Срок жизни снимка POLICY и повторное чтение")
+    p.send(0, 1, "GET, snapshot_id = 0, first = 0")
+    p.send(1, 0, "Снимок 1, count = 177, next = 177")
+    p.send(0, 1, "GET, snapshot_id = 1, first = 177")
+    p.send(1, 0, "Снимок 1, count = 23, next = 0xFFFF")
+    p.state(0, "Пауза больше 30 секунд")
+    p.send(0, 1, "GET, snapshot_id = 1, first = 177")
+    p.send(1, 0, "ERR_POLICY_STALE_SNAPSHOT")
+    p.send(0, 1, "GET, snapshot_id = 0, first = 0")
+    p.send(1, 0, "Новый снимок 2, count = 177, next = 177")
+    p.state(0, "Сборка политики со страницы 0")
+    p.finish()
+
+
 def generate():
+    before = len(FIGURES)
     requests()
     snapshot()
     operation()
     examples()
-    return 5
+    profile_fields()
+    profile_examples()
+    return 4 + len(FIGURES) - before

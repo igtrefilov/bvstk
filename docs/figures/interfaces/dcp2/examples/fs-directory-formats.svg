@@ -39,18 +39,6 @@ g:target &gt; rect { stroke-width: 5; }
     <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
-    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
-    </marker>
-    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#788794" />
-    </marker>
-    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
-    </marker>
-    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#788794" />
-    </marker>
   </defs>
   <rect width="1800" height="772" fill="white" />
   <g id="backgrounds" />
@@ -61,7 +49,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="file" data-kind="packet-field">
       <rect x="60" y="105" width="580" height="155" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
       <text x="350.0" y="173.05" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">flash:/demo/a.txt</text>
-      <text x="350.0" y="210.31" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">6 Б: "BVSTK\n"</text>
+      <text x="350.0" y="210.31" font-size="27" font-weight="400" text-anchor="middle" style="fill:#233747">6 Б: "NEW!!!"</text>
     </g>
     <g id="tree" data-kind="packet-field">
       <rect x="1040" y="105" width="680" height="155" fill="#cfe3f3" stroke="#607487" stroke-width="2" />

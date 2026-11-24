@@ -390,7 +390,7 @@ def fs_read_response(seq, handle, block, eof, data):
 
 
 def files():
-    info = [number("fs_version", 1, 2), number("capabilities", 0x3F, 4),
+    info = [number("fs_version", 1, 2), number("capabilities", 0x3FF, 4),
             number("max_block_size", 3072, 2), number("max_path_bytes", 511, 2),
             number("max_depth", 16, 2), number("max_handles", 2, 2),
             number("idle_timeout_ms", 30000, 4), number("volume_count", 3, 2)]
@@ -400,51 +400,157 @@ def files():
                        f'{state:02X} {len(name):02X} "{name}"')]
     wire("fs-info", "Возможности FS и условное состояние томов",
          request("FS_INFO", 7, 0, 0x601), response("Ответ FS_INFO", 7, 0, 0x601, info))
-    wire("fs-stat", "Сведения о шестибайтовом файле",
-         request("FS_STAT", 7, 1, 0x602, path("flash:/demo.txt")),
-         response("Ответ FS_STAT", 7, 1, 0x602,
-                  [number("type", 1, 1), number("attributes", 8, 1), number("size", 6, 8)]))
-    wire("fs-open", "Открытие файла с блоком четыре байта",
-         fs_open(0x603, 1, 1, 0, 4, "flash:/demo.txt"), fs_open_response(0x603, 1, 4, 6))
-    wire("fs-read", "Получение первого блока файла",
-         fs_read(0x604, 1, 0), fs_read_response(0x604, 1, 0, False, string("data", "BVST")))
+    wire("fs-stat", "Проверка созданного шестибайтового файла",
+         request("FS_STAT", 7, 1, 0x60A, path("flash:/demo/a.txt")),
+         response("Ответ FS_STAT", 7, 1, 0x60A,
+                  [number("type", 1, 1), number("attributes", 0, 1), number("size", 6, 8)]))
+    wire("fs-open", "Открытие созданного файла с блоком четыре байта",
+         fs_open(0x60B, 1, 1, 0, 4, "flash:/demo/a.txt"), fs_open_response(0x60B, 2, 4, 6))
+    wire("fs-read", "Получение первого блока созданного файла",
+         fs_read(0x60C, 2, 0), fs_read_response(0x60C, 2, 0, False, string("data", "BVST")))
     wire("fs-eof", "Получение конца файла и закрытие потока",
-         fs_read(0x606, 1, 1), fs_read_response(0x606, 1, 1, True, string("data", "K\n")),
-         request("FS_CLOSE", 7, 4, 0x607, [number("handle", 1, 4)]),
-         response("Поток закрыт", 7, 4, 0x607))
+         fs_read(0x60E, 2, 1), fs_read_response(0x60E, 2, 1, True, string("data", "K\n")),
+         request("FS_CLOSE", 7, 4, 0x60F, [number("handle", 2, 4)]),
+         response("Поток закрыт", 7, 4, 0x60F))
     p = Sequence("fs-file", "Повтор блока не добавляет данные в файл второй раз")
-    p.send(0, 1, "OPEN: FILE, open_id = 1, block_size = 4")
-    p.send(1, 0, "handle = 1, total_size = 6")
-    p.send(0, 1, "READ: block_no = 0, seq = 0x0604")
+    p.send(0, 1, "OPEN, open_id = 1, block_size = 4")
+    p.send(1, 0, "handle = 2, total_size = 6")
+    p.send(0, 1, "READ, block_no = 0, seq = 0x060C")
     p.send(1, 0, 'data = "BVST", EOF = 0')
-    p.send(0, 1, "Повтор READ: block_no = 0, seq = 0x0605")
-    p.send(1, 0, 'Тот же блок: "BVST"')
+    p.send(0, 1, "Повтор READ, block_no = 0, seq = 0x060D")
+    p.send(1, 0, 'Тот же блок "BVST"')
     p.state(0, "Блок 0 уже получен\nПовтор не дописывается")
-    p.send(0, 1, "READ: block_no = 1, seq = 0x0606")
+    p.send(0, 1, "READ, block_no = 1, seq = 0x060E")
     p.send(1, 0, 'data = "K\\n", EOF = 1')
-    p.send(0, 1, "CLOSE: handle = 1")
+    p.send(0, 1, "CLOSE, handle = 2")
     p.send(1, 0, "OK")
+    p.finish()
+
+
+def file_editing():
+    directory = "flash:/demo"
+    filename = directory + "/a.txt"
+    renamed = directory + "/b.txt"
+    wire("fs-write-info", "Пределы потоковой загрузки файла",
+         request("FS_WRITE_INFO", 7, 5, 0x602),
+         response("Ответ FS_WRITE_INFO", 7, 5, 0x602,
+                  [number("max_file_size", 0xFFFFFFFF, 8), number("max_block", 3072, 2),
+                   number("max_uploads", 1, 2), number("idle_ms", 30000, 4)]))
+    wire("fs-write-mkdir", "Создание каталога для нового файла",
+         request("FS_MKDIR", 7, 6, 0x603, [number("id", 1, 4)] + path(directory)),
+         response("Каталог создан", 7, 6, 0x603))
+    wire("fs-write-begin", "Начало загрузки нового шестибайтового файла",
+         request("FS_WRITE_BEGIN", 7, 9, 0x604,
+                 [number("id", 2, 4), number("size", 6, 8), number("flags", 0, 1)] + path(filename)),
+         response("Дескриптор загрузки", 7, 9, 0x604, [number("handle", 1, 4)]))
+    first = [number("id", 3, 4), number("handle", 1, 4), number("offset", 0, 8), string("data", "BVST")]
+    wire("fs-write-block", "Первый блок нового файла",
+         request("FS_WRITE_BLOCK", 7, 10, 0x605, first),
+         response("Смещение следующего блока", 7, 10, 0x605, [number("next_offset", 4, 8)]))
+    wire("fs-write-block-repeat", "Повтор первого блока после потери ответа",
+         request("FS_WRITE_BLOCK", 7, 10, 0x605, first),
+         response("Первый ответ", 7, 10, 0x605, [number("next_offset", 4, 8)]),
+         request("Повтор FS_WRITE_BLOCK", 7, 10, 0x606, first),
+         response("Сохранённый ответ", 7, 10, 0x606, [number("next_offset", 4, 8)]))
+    wire("fs-write-commit", "Последний блок и публикация готового файла",
+         request("FS_WRITE_BLOCK", 7, 10, 0x607,
+                 [number("id", 4, 4), number("handle", 1, 4), number("offset", 4, 8), string("data", "K\n")]),
+         response("Получены все шесть байт", 7, 10, 0x607, [number("next_offset", 6, 8)]),
+         request("FS_WRITE_COMMIT", 7, 11, 0x608, [number("id", 5, 4), number("handle", 1, 4)]),
+         response("Файл опубликован", 7, 11, 0x608))
+    wire("fs-replace", "Замена содержимого созданного файла",
+         request("WRITE_BEGIN с заменой", 7, 9, 0x610,
+                 [number("id", 6, 4), number("size", 6, 8), number("flags", 1, 1)] + path(filename)),
+         response("Новый дескриптор загрузки", 7, 9, 0x610, [number("handle", 3, 4)]),
+         request("WRITE_BLOCK", 7, 10, 0x611,
+                 [number("id", 7, 4), number("handle", 3, 4), number("offset", 0, 8), string("data", "NEW!!!")]),
+         response("Все байты приняты", 7, 10, 0x611, [number("next_offset", 6, 8)]),
+         request("WRITE_COMMIT", 7, 11, 0x612, [number("id", 8, 4), number("handle", 3, 4)]),
+         response("Новое содержимое опубликовано", 7, 11, 0x612))
+    wire("fs-write-names", "Переименование файла и удаление созданных объектов",
+         request("FS_RENAME", 7, 8, 0x619, [number("id", 9, 4)] + path(filename) + path(renamed)),
+         response("Файл переименован", 7, 8, 0x619),
+         request("FS_REMOVE файла", 7, 7, 0x61A, [number("id", 10, 4)] + path(renamed)),
+         response("Файл удалён", 7, 7, 0x61A),
+         request("FS_REMOVE пустого каталога", 7, 7, 0x61B, [number("id", 11, 4)] + path(directory)),
+         response("Каталог удалён", 7, 7, 0x61B))
+    wire("fs-write-conflict", "Конфликт с существующим файлом при BEGIN",
+         request("FS_WRITE_BEGIN для создания", 7, 9, 0xA01,
+                 [number("id", 1, 4), number("size", 6, 8), number("flags", 0, 1)] + path(filename)),
+         response("ERR_FS_EXISTS", 7, 9, 0xA01, status=0x106))
+    wire("fs-write-abort", "Отмена незавершённой замены файла",
+         request("FS_WRITE_ABORT", 7, 12, 0xA04, [number("id", 4, 4), number("handle", 1, 4)]),
+         response("Временный файл удалён", 7, 12, 0xA04))
+    p = Sequence("fs-upload", "Загрузка файла с повтором блока и подтверждения")
+    p.send(0, 1, "BEGIN, id = 2, size = 6, flags = 0")
+    p.send(1, 0, "OK, handle = 1")
+    p.send(0, 1, 'BLOCK, id = 3, offset = 0, data = "BVST"')
+    p.state(1, "Записаны четыре байта\nОтвет потерян")
+    p.send(0, 1, "Повтор BLOCK, id = 3, seq = 0x0606")
+    p.send(1, 0, "Сохранённый ответ, next_offset = 4")
+    p.send(0, 1, 'BLOCK, id = 4, offset = 4, data = "K\\n"')
+    p.send(1, 0, "OK, next_offset = 6")
+    p.send(0, 1, "COMMIT, id = 5, seq = 0x0608")
+    p.state(1, "Файл опубликован\nДескриптор закрыт")
+    p.send(1, 0, "OK")
+    p.send(0, 1, "Повтор COMMIT, id = 5, seq = 0x0609")
+    p.send(1, 0, "Сохранённый ответ, OK")
+    p.finish()
+
+
+def file_failures():
+    handle = [number("handle", 1, 4)]
+    wire("fs-write-full", "Ошибка записи на заполненный том и отмена загрузки",
+         request("WRITE_BLOCK", 7, 10, 0xD02,
+                 [number("id", 2, 4)] + handle + [number("offset", 0, 8), string("data", "NEW!!!")]),
+         response("ERR_FS_IO", 7, 10, 0xD02, status=0x104),
+         request("WRITE_ABORT", 7, 12, 0xD03, [number("id", 3, 4)] + handle),
+         response("Загрузка отменена", 7, 12, 0xD03))
+    wire("fs-write-busy", "Открытый другим интерфейсом файл мешает публикации на FatFs",
+         request("WRITE_COMMIT", 7, 11, 0xE03, [number("id", 3, 4)] + handle),
+         response("ERR_BUSY", 7, 11, 0xE03, status=4))
+    wire("fs-write-expired", "Дескриптор загрузки после таймаута",
+         request("WRITE_BLOCK после таймаута", 7, 10, 0xF02,
+                 [number("id", 2, 4)] + handle + [number("offset", 0, 8), string("data", "NEW!!!")]),
+         response("ERR_FS_BAD_HANDLE", 7, 10, 0xF02, status=0x102))
+    p = Sequence("fs-write-reconnect", "Проверка содержимого после разрыва соединения при COMMIT")
+    p.send(0, 1, "BEGIN, size = 6, flags = 1")
+    p.send(1, 0, "OK, handle = 1")
+    p.send(0, 1, 'BLOCK, offset = 0, data = "NEW!!!"')
+    p.send(1, 0, "OK, next_offset = 6")
+    p.send(0, 1, "COMMIT")
+    p.state(1, "Новое содержимое опубликовано\nОтвет потерян")
+    p.state(0, "Соединение разорвано")
+    p.send(0, 1, "Новое TCP-соединение, STAT")
+    p.send(1, 0, "FILE, size = 6")
+    p.send(0, 1, "OPEN, READ, CLOSE")
+    p.send(1, 0, 'Содержимое "NEW!!!"')
+    p.state(0, "Сверить байты или SHA-256")
     p.finish()
 
 
 def directories():
     wire("fs-tree-open", "Открытие рекурсивного перечисления каталога",
-         fs_open(0x701, 2, 2, 1, 64, "flash:/demo/"),
-         fs_open_response(0x701, 2, 64, 0xFFFFFFFFFFFFFFFF))
+         fs_open(0x613, 2, 2, 1, 64, "flash:/demo/"),
+         fs_open_response(0x613, 4, 64, 0xFFFFFFFFFFFFFFFF))
     entry = [number("entry_len", 19, 2), number("type", 1, 1), number("reserved", 0, 1),
              number("size", 6, 8), number("path_len", 5, 2), string("path", "a.txt")]
     wire("fs-tree-read", "Один файл в потоке TREE",
-         fs_read(0x702, 2, 0),
-         fs_read_response(0x702, 2, 0, True, group("data", entry, "Запись TREE")))
+         fs_read(0x614, 4, 0),
+         fs_read_response(0x614, 4, 0, True, group("data", entry, "Запись TREE")),
+         request("FS_CLOSE", 7, 4, 0x615, [number("handle", 4, 4)]),
+         response("TREE закрыт", 7, 4, 0x615))
     body_diagram("fs-tree-entry", "Запись TREE для файла a.txt", entry)
     wire("fs-tar", "Открытие потока TAR для того же каталога",
-         fs_open(0x704, 3, 3, 0, 3072, "flash:/demo/"),
-         fs_open_response(0x704, 3, 3072, 0xFFFFFFFFFFFFFFFF))
+         fs_open(0x616, 3, 3, 0, 3072, "flash:/demo/"),
+         fs_open_response(0x616, 5, 3072, 0xFFFFFFFFFFFFFFFF))
     wire("fs-tar-read", "Чтение небольшого архива TAR одним блоком",
-         fs_read(0x705, 3, 0),
-         fs_read_response(0x705, 3, 0, True, Field("data", 2048, "Архив TAR")))
+         fs_read(0x617, 5, 0),
+         fs_read_response(0x617, 5, 0, True, Field("data", 2048, "Архив TAR")),
+         request("FS_CLOSE", 7, 4, 0x618, [number("handle", 5, 4)]),
+         response("TAR закрыт", 7, 4, 0x618))
     p = ExampleFigure("fs-directory-formats", "TREE передаёт описание файла, TAR — описание и содержимое")
-    p.box("file", 60, 105, 580, 155, 'flash:/demo/a.txt\n6 Б: "BVSTK\\n"', NETWORK, 27)
+    p.box("file", 60, 105, 580, 155, 'flash:/demo/a.txt\n6 Б: "NEW!!!"', NETWORK, 27)
     p.box("tree", 1040, 105, 680, 155, "TREE: запись 19 Б\na.txt, FILE, размер 6 Б", PAYLOAD, 27)
     p.arrow(640, 182, 1040, 182, "Метаданные")
     p.text(p.notes, 60, 380, "TAR: 2048 Б", 29, bold=True)
@@ -539,13 +645,13 @@ def cache():
         many.append(fields)
     wire("cache-pages", "Продолжение многостраничного снимка CACHE",
          response("Первая страница: ответ SUBSCRIBE", 8, 0x21, 0x811,
-                  cache_page(1, 0x21, 256, 200, 0, many[:162], 162, 5000)),
-         request("CACHE_GET: продолжение снимка 0x21", 8, 0x20, 0x812,
-                 cache_target("i2c", "demo") + [number("snapshot_id", 0x21, 4), number("first", 162, 2)]),
+                  cache_page(1, 1, 256, 200, 0, many[:162], 162, 5000)),
+         request("CACHE_GET: продолжение снимка 1", 8, 0x20, 0x812,
+                 cache_target("i2c", "demo") + [number("snapshot_id", 1, 4), number("first", 162, 2)]),
          response("Последняя страница: ответ GET", 8, 0x20, 0x812,
-                  cache_page(1, 0x21, 256, 200, 162, many[162:], 0xFFFF, 5000)))
+                  cache_page(1, 1, 256, 200, 162, many[162:], 0xFFFF, 5000)))
     p = ExampleFigure("cache-pagination", "Две страницы одного снимка из двухсот ресурсов")
-    p.box("snapshot", 60, 85, 1680, 120, "snapshot_id = 0x21     revision = 256     total = 200", NETWORK, 28)
+    p.box("snapshot", 60, 85, 1680, 120, "snapshot_id = 1     revision = 256     total = 200", NETWORK, 28)
     p.box("first-page", 60, 390, 980, 180, "Страница 1\nfirst = 0, count = 162, next = 162", PAYLOAD, 27)
     p.box("last-page", 1150, 390, 590, 180, "Страница 2\nfirst = 162, count = 38\nnext = 0xFFFF", PAYLOAD, 25)
     p.arrow(550, 205, 550, 390, "SUBSCRIBE")
@@ -564,6 +670,6 @@ def cache():
 
 def generate():
     FIGURES.clear()
-    for draw in (connection, memory, i2c, mdio, notify, stream, files, directories, cache):
+    for draw in (connection, memory, i2c, mdio, notify, stream, files, file_editing, file_failures, directories, cache):
         draw()
     return len(FIGURES)

@@ -39,18 +39,6 @@ g:target &gt; rect { stroke-width: 5; }
     <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
-    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
-    </marker>
-    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#788794" />
-    </marker>
-    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
-    </marker>
-    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#788794" />
-    </marker>
   </defs>
   <rect width="1800" height="671" fill="white" />
   <g id="backgrounds" />
@@ -129,7 +117,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="frame-1-8" data-kind="packet-field">
       <rect x="1214" y="320" width="192" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
       <text x="1310.0" y="351.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">capabilities</text>
-      <text x="1310.0" y="389" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 3F</text>
+      <text x="1310.0" y="389" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 03 FF</text>
     </g>
     <g id="frame-1-9" data-kind="packet-field">
       <rect x="1418" y="320" width="218" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
@@ -301,7 +289,7 @@ g:target &gt; rect { stroke-width: 5; }
           "name": "capabilities",
           "offset": 16,
           "size": 4,
-          "hex": "0000003f"
+          "hex": "000003ff"
         },
         {
           "name": "max_block_size",

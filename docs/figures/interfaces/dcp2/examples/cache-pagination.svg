@@ -65,7 +65,7 @@ g:target &gt; rect { stroke-width: 5; }
   <g id="components">
     <g id="snapshot" data-kind="packet-field">
       <rect x="60" y="85" width="1680" height="120" fill="#f2f5f8" stroke="#607487" stroke-width="2" />
-      <text x="900.0" y="154.52" font-size="28" font-weight="400" text-anchor="middle" style="fill:#233747">snapshot_id = 0x21     revision = 256     total = 200</text>
+      <text x="900.0" y="154.52" font-size="28" font-weight="400" text-anchor="middle" style="fill:#233747">snapshot_id = 1     revision = 256     total = 200</text>
     </g>
     <g id="first-page" data-kind="packet-field">
       <rect x="60" y="390" width="980" height="180" fill="#cfe3f3" stroke="#607487" stroke-width="2" />

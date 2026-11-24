@@ -39,18 +39,6 @@ g:target &gt; rect { stroke-width: 5; }
     <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
-    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
-    </marker>
-    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#788794" />
-    </marker>
-    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
-    </marker>
-    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#788794" />
-    </marker>
   </defs>
   <rect width="1800" height="1642" fill="white" />
   <g id="backgrounds">
@@ -87,15 +75,15 @@ g:target &gt; rect { stroke-width: 5; }
     </g>
   </g>
   <g id="annotations">
-    <text x="875.0" y="215.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">OPEN: FILE, open_id = 1, block_size = 4</text>
-    <text x="875.0" y="330.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">handle = 1, total_size = 6</text>
-    <text x="875.0" y="445.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">READ: block_no = 0, seq = 0x0604</text>
+    <text x="875.0" y="215.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">OPEN, open_id = 1, block_size = 4</text>
+    <text x="875.0" y="330.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">handle = 2, total_size = 6</text>
+    <text x="875.0" y="445.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">READ, block_no = 0, seq = 0x060C</text>
     <text x="875.0" y="560.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">data = "BVST", EOF = 0</text>
-    <text x="875.0" y="675.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Повтор READ: block_no = 0, seq = 0x0605</text>
-    <text x="875.0" y="790.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Тот же блок: "BVST"</text>
-    <text x="875.0" y="1050.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">READ: block_no = 1, seq = 0x0606</text>
+    <text x="875.0" y="675.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Повтор READ, block_no = 0, seq = 0x060D</text>
+    <text x="875.0" y="790.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">Тот же блок "BVST"</text>
+    <text x="875.0" y="1050.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">READ, block_no = 1, seq = 0x060E</text>
     <text x="875.0" y="1165.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">data = "K\n", EOF = 1</text>
-    <text x="875.0" y="1280.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">CLOSE: handle = 1</text>
+    <text x="875.0" y="1280.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">CLOSE, handle = 2</text>
     <text x="875.0" y="1395.0" font-size="24" font-weight="400" text-anchor="middle" style="fill:#3f75ad">OK</text>
     <text x="145" y="1540.0" font-size="21" font-weight="400" text-anchor="start" style="fill:#607487">Передача данных</text>
     <text x="1740" y="1540.0" font-size="21" font-weight="400" text-anchor="end" style="fill:#607487">Время сверху вниз</text>

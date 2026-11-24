@@ -39,18 +39,6 @@ g:target &gt; rect { stroke-width: 5; }
     <marker id="clock-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="2" fill="#788794" />
     </marker>
-    <marker id="build-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
-    </marker>
-    <marker id="build-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#788794" />
-    </marker>
-    <marker id="depends-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#788794" />
-    </marker>
-    <marker id="depends-source" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="2" fill="#788794" />
-    </marker>
   </defs>
   <rect width="1800" height="1101" fill="white" />
   <g id="backgrounds" />
@@ -84,12 +72,12 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="frame-0-5" data-kind="packet-field">
       <rect x="782" y="105" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
       <text x="839.5" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">seq</text>
-      <text x="839.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">06 06</text>
+      <text x="839.5" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">06 0E</text>
     </g>
     <g id="frame-0-6" data-kind="packet-field">
       <rect x="909" y="105" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
       <text x="1004.0" y="136.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">handle</text>
-      <text x="1004.0" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 01</text>
+      <text x="1004.0" y="174" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 02</text>
     </g>
     <g id="frame-0-7" data-kind="packet-field">
       <rect x="1111" y="105" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
@@ -124,7 +112,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="frame-1-5" data-kind="packet-field">
       <rect x="782" y="320" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
       <text x="839.5" y="351.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">seq</text>
-      <text x="839.5" y="389" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">06 06</text>
+      <text x="839.5" y="389" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">06 0E</text>
     </g>
     <g id="frame-1-6" data-kind="packet-field">
       <rect x="909" y="320" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
@@ -134,7 +122,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="frame-1-7" data-kind="packet-field">
       <rect x="1036" y="320" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
       <text x="1131.0" y="351.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">handle</text>
-      <text x="1131.0" y="389" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 01</text>
+      <text x="1131.0" y="389" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 02</text>
     </g>
     <g id="frame-1-8" data-kind="packet-field">
       <rect x="1238" y="320" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
@@ -189,12 +177,12 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="frame-2-5" data-kind="packet-field">
       <rect x="782" y="659" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
       <text x="839.5" y="690.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">seq</text>
-      <text x="839.5" y="728" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">06 07</text>
+      <text x="839.5" y="728" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">06 0F</text>
     </g>
     <g id="frame-2-6" data-kind="packet-field">
       <rect x="909" y="659" width="190" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
       <text x="1004.0" y="690.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">handle</text>
-      <text x="1004.0" y="728" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 01</text>
+      <text x="1004.0" y="728" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">00 00 00 02</text>
     </g>
     <g id="frame-3-0" data-kind="packet-field">
       <rect x="60" y="874" width="190" height="100" fill="#eef5fb" stroke="#607487" stroke-width="2" />
@@ -224,7 +212,7 @@ g:target &gt; rect { stroke-width: 5; }
     <g id="frame-3-5" data-kind="packet-field">
       <rect x="782" y="874" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
       <text x="839.5" y="905.0" font-size="22" font-weight="700" text-anchor="middle" style="fill:#233747">seq</text>
-      <text x="839.5" y="943" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">06 07</text>
+      <text x="839.5" y="943" font-family="DejaVu Sans Mono, monospace" font-size="23" fill="#233747" text-anchor="middle">06 0F</text>
     </g>
     <g id="frame-3-6" data-kind="packet-field">
       <rect x="909" y="874" width="115" height="100" fill="#cfe3f3" stroke="#607487" stroke-width="2" />
@@ -298,13 +286,13 @@ g:target &gt; rect { stroke-width: 5; }
           "name": "seq",
           "offset": 10,
           "size": 2,
-          "hex": "0606"
+          "hex": "060e"
         },
         {
           "name": "handle",
           "offset": 12,
           "size": 4,
-          "hex": "00000001"
+          "hex": "00000002"
         },
         {
           "name": "block_no",
@@ -352,7 +340,7 @@ g:target &gt; rect { stroke-width: 5; }
           "name": "seq",
           "offset": 10,
           "size": 2,
-          "hex": "0606"
+          "hex": "060e"
         },
         {
           "name": "status",
@@ -364,7 +352,7 @@ g:target &gt; rect { stroke-width: 5; }
           "name": "handle",
           "offset": 14,
           "size": 4,
-          "hex": "00000001"
+          "hex": "00000002"
         },
         {
           "name": "block_no",
@@ -436,13 +424,13 @@ g:target &gt; rect { stroke-width: 5; }
           "name": "seq",
           "offset": 10,
           "size": 2,
-          "hex": "0607"
+          "hex": "060f"
         },
         {
           "name": "handle",
           "offset": 12,
           "size": 4,
-          "hex": "00000001"
+          "hex": "00000002"
         }
       ]
     },
@@ -484,7 +472,7 @@ g:target &gt; rect { stroke-width: 5; }
           "name": "seq",
           "offset": 10,
           "size": 2,
-          "hex": "0607"
+          "hex": "060f"
         },
         {
           "name": "status",

@@ -189,7 +189,55 @@ GET автоматически получает все страницы согл
 требует нового GET. Автоматический переход к адресным командам отсутствует.
 
 Формат сервиса POLICY описан в [спецификации](reference/policies.md#адресация-по-id-профиля),
-обмен для совпадающих адресов — в [примерах](examples/policies.md#одинаковые-адреса-за-свитчом).
+разбор кадров — в [примере POLICY по ID](examples/policy-profiles.md).
+
+### Одинаковые адреса за свитчом
+
+У RTC `pcf8563` адрес `0x51` находится на канале 0 PCA9545A. Диагностическое
+пространство SFP с ID `sfp` использует тот же адрес на канале 1. Сервис POLICY
+выбирает эти профили независимо:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c pcf8563
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c sfp
+```
+
+Добавление правила в BLACKLIST RTC и чтение обеих политик:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-add i2c pcf8563 blacklist reg_01 0xAA
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c pcf8563
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c sfp
+```
+
+У RTC появляется правило `resource=reg_01`, `val=170`, `mask=255`. Политика
+SFP сохраняет прежнее состояние. Правило применяется, когда выбран BLACKLIST.
+Команды политики не записывают значение `0xAA` в физический регистр RTC.
+
+Отдельное правило диагностического пространства SFP использует ID `a2_6e`:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-add i2c sfp blacklist a2_6e 0x40
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c sfp
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-get i2c pcf8563
+```
+
+Для сохранения текущего профиля с политикой:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --timeout 15 --policy-save i2c sfp
+```
+
+Удаление добавленных правил:
+
+```sh
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-delete i2c pcf8563 blacklist reg_01 0xAA
+python3 scripts/dcp2/dcp2_client.py 192.168.0.10 --policy-delete i2c sfp blacklist a2_6e 0x40
+```
+
+Если профиль был сохранён, повторите SAVE после удаления правила, чтобы
+обновить его файл. SET, CLEAR и SAVE работают со всем логическим устройством;
+у SFP это оба пространства `identity` и `diagnostics`.
 
 ### Выбор по физическому адресу
 
@@ -440,6 +488,56 @@ dcp --fs-remove sd:/dcp-example
 сохраняется. Если соединение потеряно во время подтверждения, прочитайте
 целевой файл новым соединением и сравните содержимое перед новой заменой.
 [Форматы команд и правила повторов](reference/fs.md#форматы-команд-изменения).
+[Разбор кадров загрузки, отмены и изменения каталогов](examples/files.md#создание-каталога-и-загрузка-файла).
+
+### Работа с FS из Python
+
+Класс `FsClient` из `scripts/dcp2/dcp2_client.py` предоставляет методы
+`write_info()`, `mkdir(path)`, `upload(local, path)`, `rename(source, destination)`
+и `remove(path)`. Параметр `overwrite=True` у `upload` разрешает замену,
+`block_size` задаёт размер блока, а функция `progress(done, total)` получает
+число подтверждённых байтов и полный размер. Метод возвращает число
+сохранённых байтов после успешного COMMIT.
+
+Пример запускается из корня репозитория. Он загружает локальный `example.txt`
+в отдельный каталог, сверяет SHA-256 и удаляет созданные объекты.
+
+```python
+import hashlib
+from pathlib import Path
+import secrets
+import socket
+import sys
+
+sys.path.insert(0, "scripts/dcp2")
+from dcp2_client import FS_FILE, FsClient
+
+source = Path("example.txt")
+directory = "sd:/python-example-" + secrets.token_hex(4)
+remote = directory + "/example.txt"
+print("Remote directory", directory)
+
+with socket.create_connection(("192.168.0.10", 8889), timeout=5) as sock:
+    fs = FsClient(sock, timeout=5, retries=2)
+    print(fs.write_info())
+    fs.mkdir(directory)
+    print("Saved bytes", fs.upload(source, remote, block_size=1024))
+    checksum = hashlib.sha256()
+    for block in fs.stream(remote, FS_FILE):
+        checksum.update(block)
+    assert checksum.digest() == hashlib.sha256(source.read_bytes()).digest()
+    fs.remove(remote)
+    fs.remove(directory)
+```
+
+Один экземпляр `FsClient` обслуживает последовательные вызовы на одном
+соединении и сам назначает идентификаторы повторов. Сохраняйте локальный
+исходник до конца передачи. Если изменились размер или время модификации
+исходника, клиент отменяет загрузку. Исключение из `progress` также запускает
+отмену. Ошибки сервера представлены `FsError` с полем `status`, а потеря
+подтверждения изменения может вызвать `FsOutcomeUnknown`. После такого
+исхода проверьте удалённый путь новым соединением. Если пример завершился
+ошибкой до удаления, проверьте созданный каталог по значению `directory`.
 
 ## Результат и обработка ошибок
 
